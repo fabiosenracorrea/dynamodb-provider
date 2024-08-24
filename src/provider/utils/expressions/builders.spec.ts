@@ -6,6 +6,7 @@ import {
   getExpressionNames,
   buildExpressionAttributeNames,
   buildExpressionAttributeValues,
+  getExpressionValues,
 } from './builders';
 
 describe('Provider: expressions - builders tests', () => {
@@ -343,6 +344,56 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.between(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} between :MASKED____${prop}_low and :MASKED____${prop}_high`,
         );
+      });
+    });
+  });
+
+  describe('expression attribute values builder', () => {
+    it('should be able to properly prefix common operations', () => {
+      const values = getExpressionValues([
+        {
+          operation: 'equal',
+          property: 'some_prop',
+          value: 'some_value',
+        },
+        {
+          operation: 'in',
+          property: 'other_prop',
+          values: [1],
+        },
+        {
+          operation: 'not_in',
+          property: 'no_in_prop',
+          values: [3, 4, 5, 6],
+        },
+        {
+          operation: 'exists',
+          property: 'hello',
+        },
+        {
+          operation: 'not_exists',
+          property: 'hello',
+        },
+        {
+          operation: 'not_equal',
+          property: 'no_equal_prop',
+          value: '102901920192',
+        },
+        {
+          high: 1,
+          low: 0,
+          operation: 'between',
+          property: 'between_prop',
+        },
+      ]);
+
+      expect(values).toEqual({
+        ':some_prop': 'some_value',
+        ':other_prop': [1],
+        ':no_in_prop': [3, 4, 5, 6],
+        ':no_equal_prop': '102901920192',
+        ':between_prop_low': 0,
+        ':between_prop_high': 1,
       });
     });
   });

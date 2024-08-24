@@ -1,21 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
 
-import { AttributeExistenceOperations, BaseConditions, BetweenOperation } from '../conditions';
+import {
+  AttributeExistenceExpression,
+  BasicExpression,
+  BetweenExpression,
+  ListExpression,
+} from '../expressions';
 
-export type BasicFilterConfig = Pick<BaseConditions<any>, 'operation' | 'type' | 'value'>;
+export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value' | 'joinAs'>;
 
 export type BetweenFilterConfig = Pick<
-  BetweenOperation<any>,
-  'operation' | 'type' | 'high' | 'low'
+  BetweenExpression<any>,
+  'operation' | 'high' | 'low' | 'joinAs'
 >;
 
 export type AttributeExistenceFilterConfig = Pick<
-  AttributeExistenceOperations<any>,
-  'operation' | 'type'
+  AttributeExistenceExpression<any>,
+  'operation' | 'joinAs'
 >;
 
-export type FilterConfig = BasicFilterConfig | BetweenFilterConfig | AttributeExistenceFilterConfig;
+export type ListFilterConfig = Pick<ListExpression<any>, 'operation' | 'values' | 'joinAs'>;
+
+export type FilterConfig =
+  | BasicFilterConfig
+  | BetweenFilterConfig
+  | AttributeExistenceFilterConfig
+  | ListFilterConfig;
 
 // https://stackoverflow.com/questions/54520676/in-typescript-how-to-get-the-keys-of-an-object-type-whose-values-are-of-a-given
 // type KeysMatching<T, V> = { [K in keyof T]-?: T[K] extends V ? K : never }[keyof T];

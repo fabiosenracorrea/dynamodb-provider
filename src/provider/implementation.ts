@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DynamoDB, ScanOutput, GetItemOutput, QueryOutput } from 'aws-sdk';
 
-import { cascadeEval, quickSwitch } from 'utils/conditions';
+import { cascadeEval } from 'utils/conditions';
 import { waitExponentially } from 'utils/backOff';
 import { ensureMaxArraySize } from 'utils/array';
 import { getCurrentFormattedTime } from 'utils/date';
@@ -18,7 +18,6 @@ import {
   expressionBuilders,
   toExpressionName,
   toExpressionValue,
-  SingleConditionExpression,
   CollectionListParams,
   CollectionListResult,
   CreateItemParams,
@@ -30,16 +29,12 @@ import {
   BatchListItemsArgs,
   GetItemParams,
   maskConditionProp,
-  Filters,
-  FilterConfig,
-  BetweenFilterConfig,
-  BasicFilterConfig,
-  getCondition,
   getExpressionNames,
   buildExpressionAttributeNames,
   buildExpressionAttributeValues,
   CONDITION_PREFIX,
   buildExpression,
+  getFilterParams,
 } from './utils';
 
 const NO_RETRIES = 0;
@@ -134,112 +129,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     return removeUndefinedProps(item);
   }
 
-  private wrapFilterProp(prop: string): string {
-    return `__filter_${prop}`;
-  }
-
-  private buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
-    filters: Filters<Entity>,
-  ): Pick<DynamoDB.DocumentClient.ScanInput, 'FilterExpression' | 'ExpressionAttributeValues'> {
-    const direct = Object.entries(filters).filter(([, value]) => typeof value !== 'object');
-
-    const conditions = Object.entries(filters)
-      .filter(([, value]) => typeof value === 'object' && !Array.isArray(value))
-      .map(([property, config]) => ({
-        ...getCondition(config as any),
-        property,
-      }));
-
-    const listConditions = Object.entries(filters)
-      .filter(([, value]) => Array.isArray(value))
-      .map(([property, values]) =>
-        getCondition({
-          type: 'LIST_IN',
-          operation: 'in',
-          property,
-          values: values as string[],
-        }),
-      );
-
-    const allConditions = [...conditions, ...listConditions];
-
-    return {
-      FilterExpression: buildExpression(allConditions, '__filter_'),
-
-      ExpressionAttributeValues: {
-        ...Object.fromEntries(
-          direct.map(([key, value]) => [toExpressionValue(this.wrapFilterProp(key)), value]),
-        ),
-
-        ...this.getConditionsExpressionValues(allConditions, {
-          mask: true,
-          masker: this.wrapFilterProp,
-        }),
-      },
-    };
-  }
-
-  private __buildFilterExpression(valuesToFilter: Record<string, any>): string {
-    const filterExpressions = Object.keys(valuesToFilter).map((key) =>
-      expressionBuilders.equal(key),
-    );
-
-    const filterExpression = filterExpressions.join(' and ');
-
-    return filterExpression;
-  }
-
-  private purgeUndefinedFilters<Entity extends AnyObject>(
-    filters: Filters<Entity>,
-  ): Filters<Entity> {
-    return Object.fromEntries(
-      Object.entries(filters).filter(([, value]) =>
-        cascadeEval([
-          { is: Array.isArray(value), then: () => (value as any[]).filter(Boolean).length },
-          {
-            is: typeof value === 'object',
-            then: () =>
-              quickSwitch((value as FilterConfig).operation, [
-                { is: ['exists', 'not_exists'], then: true },
-                {
-                  is: 'begins_with',
-                  then: !!(
-                    (value as BetweenFilterConfig)?.high && (value as BetweenFilterConfig)?.low
-                  ),
-                },
-                {
-                  is: true,
-                  then: (value as BasicFilterConfig).value !== undefined,
-                },
-              ]),
-          },
-          { is: true, then: value !== undefined },
-        ]),
-      ),
-    ) as Filters<Entity>;
-  }
-
-  private getFilterParams<Entity extends AnyObject>(
-    filters?: Filters<Entity>,
-  ): Pick<
-    DynamoDB.DocumentClient.ScanInput,
-    'FilterExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
-  > {
-    if (!filters) return {};
-
-    const actualValues = this.purgeUndefinedFilters(filters);
-
-    if (!Object.keys(actualValues).length) return {};
-
-    const properties = Object.keys(actualValues);
-
-    return {
-      ...this.buildFilterExpressionValuesAndExpression(actualValues),
-
-      ExpressionAttributeNames: getExpressionNames(properties.map(this.wrapFilterProp)),
-    };
-  }
-
   private async recursivelyGetAllItems<Entity extends AnyObject>({
     TableName,
     items = [],
@@ -247,7 +136,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     propertiesToGet,
     filters = {},
   }: RecursivelyGetItemsParams<Entity>): Promise<Entity[]> {
-    const filterParams = this.getFilterParams<Entity>(filters);
+    const filterParams = getFilterParams<Entity>(filters);
 
     const params = {
       TableName,
@@ -698,7 +587,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     items = [],
     filters,
   }: CollectionListParams<Entity> & { items?: Entity[] }): Promise<CollectionListResult<Entity>> {
-    const filterValues = this.getFilterParams(filters);
+    const filterValues = getFilterParams(filters);
 
     const { LastEvaluatedKey, Items } = await this._query({
       TableName: table,

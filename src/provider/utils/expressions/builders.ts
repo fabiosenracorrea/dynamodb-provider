@@ -1,6 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
 
-import { ExpressionOperation } from './types';
+import { quickSwitch } from 'utils/conditions';
+import {
+  BasicExpression,
+  BetweenExpression,
+  ExpressionOperation,
+  ItemExpression,
+  ListExpression,
+} from './types';
 
 // as used on all AWS examples
 const EXPRESSION_NAMES_CHAR = '#';
@@ -83,3 +91,53 @@ export const expressionBuilders: Record<
   not_in: (prop, prefix) =>
     `not ${addPrefix(prop, 'name', prefix)} in ${addPrefix(prop, 'value', prefix)}`,
 };
+
+export function getExpressionValues(expressions: ItemExpression<any>[], prefix = ''): AnyObject {
+  if (!expressions.length) return {};
+
+  const withPrefix = (prop: string): string => addPrefix(prop, 'value', prefix);
+
+  const entries = expressions.reduce((acc, expression) => {
+    return quickSwitch(expression.operation, [
+      {
+        is: ['exists', 'not_exists'],
+        then: acc,
+      },
+      {
+        is: ['in', 'not_in'],
+        then: () => [
+          ...acc,
+          [withPrefix(expression.property), (expression as ListExpression<any>).values],
+        ],
+      },
+      {
+        is: [
+          'begins_with',
+          'bigger_or_equal_than',
+          'bigger_than',
+          'contains',
+          'equal',
+          'lower_or_equal_than',
+          'lower_than',
+          'not_contains',
+          'not_equal',
+        ],
+
+        then: () => [
+          ...acc,
+          [withPrefix(expression.property), (expression as BasicExpression<any>).value],
+        ],
+      },
+      {
+        is: 'between',
+        then: () => [
+          ...acc,
+          [withPrefix(`${expression.property}_low`), (expression as BetweenExpression<any>).low],
+          [withPrefix(`${expression.property}_high`), (expression as BetweenExpression<any>).high],
+        ],
+      },
+    ]);
+  }, [] as Array<[string, any]>) as Array<[string, any]>;
+
+  return Object.fromEntries(entries);
+}
