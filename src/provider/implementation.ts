@@ -35,8 +35,10 @@ import {
   buildConditionExpression,
   getConditionExpressionNames,
   getConditionExpressionValues,
+  getProjectionExpression,
+  getProjectionExpressionNames,
 } from './utils';
-import { getProjectionExpression, getProjectionExpressionNames } from './utils/projection';
+import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
 const NO_RETRIES = 0;
 const DYNAMO_BATCH_GET_LIMIT = 90;
@@ -517,19 +519,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     ]);
   }
 
-  private toPaginationToken(dynamoKey: AnyObject): string {
-    return Buffer.from(JSON.stringify(dynamoKey), 'utf-8').toString('base64');
-  }
-
-  private fromPaginationToken(token: string): AnyObject | undefined {
-    try {
-      return JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.log('Db pagination token parse error');
-    }
-  }
-
   private async recursivelyListCollection<Entity>({
     hashKey,
     table,
@@ -553,7 +542,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
       Limit: limit ? Math.max(limit - items.length, 1) : undefined,
 
-      ExclusiveStartKey: paginationToken ? this.fromPaginationToken(paginationToken) : undefined,
+      ExclusiveStartKey: paginationToken ? fromPaginationToken(paginationToken) : undefined,
 
       FilterExpression: filterValues?.FilterExpression,
 
@@ -592,9 +581,7 @@ export class DatabaseProvider implements IDatabaseProvider {
       !!(!fullRetrieval && !limit),
     ].some(Boolean);
 
-    const newPaginationToken = LastEvaluatedKey
-      ? this.toPaginationToken(LastEvaluatedKey)
-      : undefined;
+    const newPaginationToken = LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined;
 
     if (shouldStop)
       return {
