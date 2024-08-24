@@ -38,6 +38,8 @@ import {
   getExpressionNames,
   buildExpressionAttributeNames,
   buildExpressionAttributeValues,
+  CONDITION_PREFIX,
+  buildExpression,
 } from './utils';
 
 const NO_RETRIES = 0;
@@ -57,6 +59,9 @@ export interface RecursivelyGetItemsParams<Entity>
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
 
+  // add in constructor params like
+  // log
+  // future: service/v2-v3
   constructor() {
     this.dynamoService = new DynamoDB.DocumentClient();
   }
@@ -129,14 +134,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     return removeUndefinedProps(item);
   }
 
-  private toExpressionName(key: string): string {
-    return toExpressionName(key);
-  }
-
-  private toExpressionValue(key: string): string {
-    return toExpressionValue(key);
-  }
-
   private wrapFilterProp(prop: string): string {
     return `__filter_${prop}`;
   }
@@ -167,14 +164,11 @@ export class DatabaseProvider implements IDatabaseProvider {
     const allConditions = [...conditions, ...listConditions];
 
     return {
-      FilterExpression: this.buildConditionExpression(allConditions, {
-        mask: true,
-        masker: this.wrapFilterProp,
-      }),
+      FilterExpression: buildExpression(allConditions, '__filter_'),
 
       ExpressionAttributeValues: {
         ...Object.fromEntries(
-          direct.map(([key, value]) => [this.toExpressionValue(this.wrapFilterProp(key)), value]),
+          direct.map(([key, value]) => [toExpressionValue(this.wrapFilterProp(key)), value]),
         ),
 
         ...this.getConditionsExpressionValues(allConditions, {
@@ -259,7 +253,7 @@ export class DatabaseProvider implements IDatabaseProvider {
       TableName,
 
       ProjectionExpression: propertiesToGet?.length
-        ? propertiesToGet.map(this.toExpressionName).join(',')
+        ? propertiesToGet.map(toExpressionName).join(',')
         : undefined,
 
       ExclusiveStartKey: LastEvaluatedKey,
@@ -322,7 +316,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ...(propertiesToRetrieve?.length
           ? {
-              ProjectionExpression: propertiesToRetrieve.map(this.toExpressionName).join(','),
+              ProjectionExpression: propertiesToRetrieve.map(toExpressionName).join(','),
 
               ExpressionAttributeNames: getExpressionNames(propertiesToRetrieve),
             }
@@ -542,7 +536,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     if (!properties?.length) return currentExpression;
 
     const removeExpression = properties.reduce(
-      (acc, next) => this.mergeSameOperationExpressions('REMOVE', acc, this.toExpressionName(next)),
+      (acc, next) => this.mergeSameOperationExpressions('REMOVE', acc, toExpressionName(next)),
       '' as string, // ts compiler was wrongly complaining,
     );
 
@@ -560,21 +554,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     const withAtomic = this.addAtomicUpdates(atomicOperations, valuesExpression);
 
     return this.addRemovePropertiesUpdates(remove, withAtomic);
-  }
-
-  private buildConditionExpression(
-    conditions: SingleConditionExpression<any>[],
-    { mask, masker = maskConditionProp }: { mask?: boolean; masker?: (s: string) => string } = {},
-  ): string {
-    const expression = conditions.reduce((acc, { operation, property, joinAs = 'and' }) => {
-      const isFirst = !acc;
-
-      const nextExpression = expressionBuilders[operation](property, mask ? masker : undefined);
-
-      return isFirst ? nextExpression : `${acc} ${joinAs} ${nextExpression}`;
-    }, '');
-
-    return expression;
   }
 
   private convertAtomicValue({
@@ -626,7 +605,7 @@ export class DatabaseProvider implements IDatabaseProvider {
       }),
 
       ConditionExpression: conditions.length
-        ? this.buildConditionExpression(conditions, { mask: true })
+        ? buildExpression(conditions, CONDITION_PREFIX)
         : undefined,
 
       ExpressionAttributeNames: {
@@ -638,7 +617,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ...getExpressionNames(
           conditions.map(({ property }) => property),
-          { maskName: maskConditionProp },
+          CONDITION_PREFIX,
         ),
       },
 
@@ -672,11 +651,11 @@ export class DatabaseProvider implements IDatabaseProvider {
       case 'bigger_than':
       case 'bigger_or_equal_than':
       case 'begins_with':
-        return [[this.toExpressionValue(rangeKeyConfig.name), rangeKeyConfig.value]];
+        return [[toExpressionValue(rangeKeyConfig.name), rangeKeyConfig.value]];
       case 'between':
         return [
-          [this.toExpressionValue(`${rangeKeyConfig.name}_low`), rangeKeyConfig.low],
-          [this.toExpressionValue(`${rangeKeyConfig.name}_high`), rangeKeyConfig.high],
+          [toExpressionValue(`${rangeKeyConfig.name}_low`), rangeKeyConfig.low],
+          [toExpressionValue(`${rangeKeyConfig.name}_high`), rangeKeyConfig.high],
         ];
       default:
         throw new Error(`Unknown operation on range key found`);
@@ -688,7 +667,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     rangeKey,
   }: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>): Record<string, any> {
     return Object.fromEntries([
-      [this.toExpressionValue(hashKey.name), hashKey.value],
+      [toExpressionValue(hashKey.name), hashKey.value],
 
       ...(rangeKey ? this.getRangeKeyValueEntries(rangeKey) : []),
     ]);
@@ -815,7 +794,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
           ...(propertiesToRetrieve?.length
             ? {
-                ProjectionExpression: propertiesToRetrieve.map(this.toExpressionName).join(','),
+                ProjectionExpression: propertiesToRetrieve.map(toExpressionName).join(','),
 
                 ExpressionAttributeNames: getExpressionNames(propertiesToRetrieve),
               }
@@ -877,7 +856,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
       Key: key,
 
-      ConditionExpression: this.buildConditionExpression(conditions),
+      ConditionExpression: buildExpression(conditions),
 
       ExpressionAttributeNames: getExpressionNames(conditions.map(({ property }) => property)),
 

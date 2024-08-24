@@ -1,7 +1,9 @@
 import { AnyObject, StringKey } from 'types';
 import { ExpressionOperation } from './expressions';
 
-export const maskConditionProp = (property: string): string => `__condition_${property}`;
+export const CONDITION_PREFIX = '__condition_';
+
+export const maskConditionProp = (property: string): string => `${CONDITION_PREFIX}${property}`;
 
 export interface BaseConditions<Entity> {
   property: StringKey<Entity>;

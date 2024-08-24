@@ -14,12 +14,9 @@ export function toExpressionValue(property: string): string {
   return `${EXPRESSION_VALUES_CHAR}${property}`;
 }
 
-export function getExpressionNames(
-  properties: string[],
-  { maskName }: { maskName?: (prop: string) => string } = {},
-): Record<string, string> {
+export function getExpressionNames(properties: string[], prefix = ''): Record<string, string> {
   return Object.fromEntries(
-    properties.map((property) => [toExpressionName(maskName?.(property) ?? property), property]),
+    properties.map((property) => [toExpressionName(`${prefix}${property}`), property]),
   );
 }
 
@@ -27,58 +24,62 @@ export function buildExpressionAttributeNames(item: AnyObject): Record<string, s
   return getExpressionNames(Object.keys(item));
 }
 
-export function buildExpressionAttributeValues(item: AnyObject): AnyObject {
+export function buildExpressionAttributeValues(item: AnyObject, prefix = ''): AnyObject {
   return Object.fromEntries(
-    Object.entries(item).map(([key, value]) => [toExpressionValue(key), value]),
+    Object.entries(item).map(([key, value]) => [toExpressionValue(`${prefix}${key}`), value]),
   );
 }
 
-type Masker = (p: string) => string;
-
-const withMask = (prop: string, type: 'name' | 'value', mask?: Masker): string => {
-  const propRef = mask?.(prop) ?? prop;
-
+const addPrefix = (prop: string, type: 'name' | 'value', prefix = ''): string => {
   const converter = type === 'name' ? toExpressionName : toExpressionValue;
 
-  return converter(propRef);
+  return converter(`${prefix}${prop}`);
 };
 
 export const expressionBuilders: Record<
   ExpressionOperation,
-  (property: string, mask?: Masker) => string
+  (property: string, prefix?: string) => string
 > = {
-  equal: (prop, mask) => `${withMask(prop, 'name', mask)} = ${withMask(prop, 'value', mask)}`,
+  equal: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} = ${addPrefix(prop, 'value', prefix)}`,
 
-  not_equal: (prop, mask) => `${withMask(prop, 'name', mask)} <> ${withMask(prop, 'value', mask)}`,
+  not_equal: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} <> ${addPrefix(prop, 'value', prefix)}`,
 
-  lower_than: (prop, mask) => `${withMask(prop, 'name', mask)} < ${withMask(prop, 'value', mask)}`,
+  lower_than: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} < ${addPrefix(prop, 'value', prefix)}`,
 
-  lower_or_equal_than: (prop, mask) =>
-    `${withMask(prop, 'name', mask)} <= ${withMask(prop, 'value', mask)}`,
+  lower_or_equal_than: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} <= ${addPrefix(prop, 'value', prefix)}`,
 
-  bigger_than: (prop, mask) => `${withMask(prop, 'name', mask)} > ${withMask(prop, 'value', mask)}`,
+  bigger_than: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} > ${addPrefix(prop, 'value', prefix)}`,
 
-  bigger_or_equal_than: (prop, mask) =>
-    `${withMask(prop, 'name', mask)} >= ${withMask(prop, 'value', mask)}`,
+  bigger_or_equal_than: (prop, prefix) =>
+    `${addPrefix(prop, 'name', prefix)} >= ${addPrefix(prop, 'value', prefix)}`,
 
-  between: (prop, mask) =>
-    `${withMask(prop, 'name', mask)} between ${withMask(
-      `${prop}`,
-      'value',
-      mask,
-    )}_low and ${withMask(`${prop}`, 'value', mask)}_high`,
+  between: (prop, prefix) =>
+    [
+      addPrefix(prop, 'name', prefix),
+      'between',
+      `${addPrefix(`${prop}`, 'value', prefix)}_low`,
+      'and',
+      `${addPrefix(`${prop}`, 'value', prefix)}_high`,
+    ].join(' '),
 
-  begins_with: (prop, mask) =>
-    `begins_with(${withMask(prop, 'name', mask)}, ${withMask(prop, 'value', mask)})`,
+  begins_with: (prop, prefix) =>
+    `begins_with(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  contains: (prop, mask) =>
-    `contains(${withMask(prop, 'name', mask)}, ${withMask(prop, 'value', mask)})`,
+  contains: (prop, prefix) =>
+    `contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  not_contains: (prop, mask) =>
-    `not contains(${withMask(prop, 'name', mask)}, ${withMask(prop, 'value', mask)})`,
+  not_contains: (prop, prefix) =>
+    `not contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  exists: (prop, mask) => `attribute_exists(${withMask(prop, 'name', mask)})`,
-  not_exists: (prop, mask) => `attribute_not_exists(${withMask(prop, 'name', mask)})`,
+  exists: (prop, prefix) => `attribute_exists(${addPrefix(prop, 'name', prefix)})`,
+  not_exists: (prop, prefix) => `attribute_not_exists(${addPrefix(prop, 'name', prefix)})`,
 
-  in: (prop, mask) => `${withMask(prop, 'name', mask)} in ${withMask(prop, 'value', mask)}`,
+  in: (prop, prefix) => `${addPrefix(prop, 'name', prefix)} in ${addPrefix(prop, 'value', prefix)}`,
+  not_in: (prop, prefix) =>
+    `not ${addPrefix(prop, 'name', prefix)} in ${addPrefix(prop, 'value', prefix)}`,
 };

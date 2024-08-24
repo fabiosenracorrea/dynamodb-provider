@@ -50,24 +50,16 @@ describe('Provider: expressions - builders tests', () => {
         });
       });
 
-      it('should be able to accept a masker function that only masks the KEY values', () => {
+      it('should be able to accept a optional prefix param that is added only to the KEY values', () => {
         const properties = ['name', 'age', 'some_prop', '___hello___'];
-        const masker = (v: string) => `masked__${v}`;
 
-        expect(getExpressionNames(properties, { maskName: masker })).toEqual({
+        const prefix = 'masked__';
+
+        expect(getExpressionNames(properties, prefix)).toEqual({
           '#masked__name': 'name',
           '#masked__age': 'age',
           '#masked__some_prop': 'some_prop',
           '#masked_____hello___': '___hello___',
-        });
-      });
-
-      it('should be able to use only the value from the masker function return', () => {
-        const properties = ['name', 'age', 'some_prop', '___hello___'];
-        const masker = () => `masked__`;
-
-        expect(getExpressionNames(properties, { maskName: masker })).toEqual({
-          '#masked__': '___hello___',
         });
       });
     });
@@ -106,6 +98,24 @@ describe('Provider: expressions - builders tests', () => {
           ':___hello___': { xxx: 'random ass value' },
         });
       });
+
+      it('should accept an optional prefix param. When received, it adds it as a prefix on each key', () => {
+        const item = {
+          name: 'random ass value',
+          age: 23232,
+          some_prop: ['random ass value'],
+          ___hello___: { xxx: 'random ass value' },
+        };
+
+        const prefix = '__________________hello?';
+
+        expect(buildExpressionAttributeValues(item, prefix)).toEqual({
+          [`:${prefix}name`]: 'random ass value',
+          [`:${prefix}age`]: 23232,
+          [`:${prefix}some_prop`]: ['random ass value'],
+          [`:${prefix}___hello___`]: { xxx: 'random ass value' },
+        });
+      });
     });
   });
 
@@ -117,20 +127,12 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.equal(prop)).toBe(`#${prop} = :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.equal(prop, masker)).toBe(
+        expect(expressionBuilders.equal(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} = :MASKED____${prop}`,
         );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.equal(prop, masker)).toBe(`#___NEW_VALUE___ = :___NEW_VALUE___`);
       });
     });
 
@@ -141,21 +143,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.not_equal(prop)).toBe(`#${prop} <> :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.not_equal(prop, masker)).toBe(
+        expect(expressionBuilders.not_equal(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} <> :MASKED____${prop}`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.not_equal(prop, masker)).toBe(
-          `#___NEW_VALUE___ <> :___NEW_VALUE___`,
         );
       });
     });
@@ -167,21 +159,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.lower_than(prop)).toBe(`#${prop} < :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.lower_than(prop, masker)).toBe(
+        expect(expressionBuilders.lower_than(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} < :MASKED____${prop}`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.lower_than(prop, masker)).toBe(
-          `#___NEW_VALUE___ < :___NEW_VALUE___`,
         );
       });
     });
@@ -193,21 +175,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.lower_or_equal_than(prop)).toBe(`#${prop} <= :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.lower_or_equal_than(prop, masker)).toBe(
+        expect(expressionBuilders.lower_or_equal_than(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} <= :MASKED____${prop}`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.lower_or_equal_than(prop, masker)).toBe(
-          `#___NEW_VALUE___ <= :___NEW_VALUE___`,
         );
       });
     });
@@ -219,21 +191,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.bigger_than(prop)).toBe(`#${prop} > :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.bigger_than(prop, masker)).toBe(
+        expect(expressionBuilders.bigger_than(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} > :MASKED____${prop}`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.bigger_than(prop, masker)).toBe(
-          `#___NEW_VALUE___ > :___NEW_VALUE___`,
         );
       });
     });
@@ -245,21 +207,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.bigger_or_equal_than(prop)).toBe(`#${prop} >= :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.bigger_or_equal_than(prop, masker)).toBe(
+        expect(expressionBuilders.bigger_or_equal_than(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} >= :MASKED____${prop}`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.bigger_or_equal_than(prop, masker)).toBe(
-          `#___NEW_VALUE___ >= :___NEW_VALUE___`,
         );
       });
     });
@@ -271,21 +223,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.begins_with(prop)).toBe(`begins_with(#${prop}, :${prop})`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.begins_with(prop, masker)).toBe(
+        expect(expressionBuilders.begins_with(prop, 'MASKED____')).toBe(
           `begins_with(#MASKED____${prop}, :MASKED____${prop})`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.begins_with(prop, masker)).toBe(
-          `begins_with(#___NEW_VALUE___, :___NEW_VALUE___)`,
         );
       });
     });
@@ -297,21 +239,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.contains(prop)).toBe(`contains(#${prop}, :${prop})`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.contains(prop, masker)).toBe(
+        expect(expressionBuilders.contains(prop, 'MASKED____')).toBe(
           `contains(#MASKED____${prop}, :MASKED____${prop})`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.contains(prop, masker)).toBe(
-          `contains(#___NEW_VALUE___, :___NEW_VALUE___)`,
         );
       });
     });
@@ -323,21 +255,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.not_contains(prop)).toBe(`not contains(#${prop}, :${prop})`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.not_contains(prop, masker)).toBe(
+        expect(expressionBuilders.not_contains(prop, 'MASKED____')).toBe(
           `not contains(#MASKED____${prop}, :MASKED____${prop})`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.not_contains(prop, masker)).toBe(
-          `not contains(#___NEW_VALUE___, :___NEW_VALUE___)`,
         );
       });
     });
@@ -349,20 +271,12 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.exists(prop)).toBe(`attribute_exists(#${prop})`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.exists(prop, masker)).toBe(
+        expect(expressionBuilders.exists(prop, 'MASKED____')).toBe(
           `attribute_exists(#MASKED____${prop})`,
         );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.exists(prop, masker)).toBe(`attribute_exists(#___NEW_VALUE___)`);
       });
     });
 
@@ -373,21 +287,11 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.not_exists(prop)).toBe(`attribute_not_exists(#${prop})`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.not_exists(prop, masker)).toBe(
+        expect(expressionBuilders.not_exists(prop, 'MASKED____')).toBe(
           `attribute_not_exists(#MASKED____${prop})`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.not_exists(prop, masker)).toBe(
-          `attribute_not_exists(#___NEW_VALUE___)`,
         );
       });
     });
@@ -399,20 +303,28 @@ describe('Provider: expressions - builders tests', () => {
         expect(expressionBuilders.in(prop)).toBe(`#${prop} in :${prop}`);
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.in(prop, masker)).toBe(
+        expect(expressionBuilders.in(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} in :MASKED____${prop}`,
         );
       });
+    });
 
-      it('only the masker function return should be considered', () => {
+    describe('not_in', () => {
+      it('should properly create the not_in expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
 
-        expect(expressionBuilders.in(prop, masker)).toBe(`#___NEW_VALUE___ in :___NEW_VALUE___`);
+        expect(expressionBuilders.not_in(prop)).toBe(`not #${prop} in :${prop}`);
+      });
+
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
+        const prop = 'some_prop';
+
+        expect(expressionBuilders.not_in(prop, 'MASKED____')).toBe(
+          `not #MASKED____${prop} in :MASKED____${prop}`,
+        );
       });
     });
 
@@ -425,30 +337,11 @@ describe('Provider: expressions - builders tests', () => {
         );
       });
 
-      it('should be able to receive a masker function that returns the actual reference property value to be used in the expression', () => {
+      it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
-        const masker = (v: string) => `MASKED____${v}`;
 
-        expect(expressionBuilders.between(prop, masker)).toBe(
+        expect(expressionBuilders.between(prop, 'MASKED____')).toBe(
           `#MASKED____${prop} between :MASKED____${prop}_low and :MASKED____${prop}_high`,
-        );
-      });
-
-      it('only the masker function return should be considered', () => {
-        const prop = 'some_prop';
-        const masker = () => `___NEW_VALUE___`;
-
-        expect(expressionBuilders.between(prop, masker)).toBe(
-          `#___NEW_VALUE___ between :___NEW_VALUE____low and :___NEW_VALUE____high`,
-        );
-      });
-
-      it('it should always have the low/high suffix, even if masker has logic to prevent it', () => {
-        const prop = 'some_prop';
-        const masker = (v: string) => v.replace(/_low$/, '').replace(/_high$/, '');
-
-        expect(expressionBuilders.between(prop, masker)).toBe(
-          `#some_prop between :some_prop_low and :some_prop_high`,
         );
       });
     });
