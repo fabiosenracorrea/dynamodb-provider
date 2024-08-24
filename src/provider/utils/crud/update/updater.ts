@@ -80,7 +80,7 @@ export class ItemUpdater {
     const values = removeUndefinedProps(params.values || {});
     const conditions = params.conditions || [];
 
-    return {
+    return removeUndefinedProps({
       TableName: table,
 
       Key: key,
@@ -120,7 +120,7 @@ export class ItemUpdater {
       },
 
       ReturnValues: returnUpdatedProperties ? 'UPDATED_NEW' : undefined,
-    };
+    });
   }
 
   // To: enhance type to enable return type to vary from returnUpdatedProperties

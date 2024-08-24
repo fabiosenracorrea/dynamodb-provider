@@ -559,4 +559,472 @@ describe('Updater tests', () => {
       expect(result).toBe(undefined);
     });
   });
+
+  describe('getUpdateParams tests', () => {
+    describe('validation checks - same as ./validation - double ensure its executed', () => {
+      describe('key validation', () => {
+        it('should allow 1 property key updates', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'sss',
+              },
+            });
+          };
+
+          expect(caller).not.toThrow();
+        });
+
+        it('should allow 2 property key updates', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'ss',
+                name: 'ssss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'sss',
+              },
+            });
+          };
+
+          expect(caller).not.toThrow();
+        });
+
+        it('should not allow more than 2 property key updates', () => {
+          [3, 10, 20, 100].forEach((keyCount) => {
+            const updater = new ItemUpdater({
+              dynamoDB: {} as any,
+            });
+
+            const caller = () => {
+              updater.getUpdateParams<any>({
+                key: Object.fromEntries(
+                  Array.from({ length: keyCount }, (_, i) => [`prop${i}`, `prop${i}`]),
+                ),
+
+                table: 'table',
+
+                values: {
+                  some: 'sss',
+                },
+              });
+            };
+
+            expect(caller).toThrow();
+          });
+        });
+      });
+
+      describe('key references inside updates', () => {
+        it('should not allow key properties to be referenced in *values*', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                id: 'sss',
+                some: 'sss',
+              },
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow key properties to be referenced in *remove*', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              remove: ['name'] as unknown as any,
+
+              values: {
+                some: 'sss',
+              },
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow key properties to be referenced in *atomics*', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'sss',
+              },
+
+              atomicOperations: [
+                {
+                  property: 'name',
+                  type: 'add_to_set',
+                  value: '1',
+                },
+              ],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+      });
+
+      describe('update references passed', () => {
+        it('should not allow params without all 3 of values, remove and atomic', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow allow empty update references', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {},
+              remove: [],
+              atomicOperations: [],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow duplicate reference of properties between values and remove', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              remove: ['some'] as unknown as any,
+
+              values: {
+                some: 'sss',
+              },
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow duplicate reference of properties between values and atomic', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'sss',
+              },
+
+              atomicOperations: [
+                {
+                  property: 'some',
+                  type: 'add',
+                  value: 1,
+                },
+              ],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow duplicate reference of properties between remove and atomic', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              remove: ['some'] as unknown as any,
+
+              atomicOperations: [
+                {
+                  property: 'some',
+                  type: 'add',
+                  value: 1,
+                },
+              ],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+
+        it('should not allow duplicate reference of properties between remove and atomic and values', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'sss',
+              },
+
+              remove: ['some'] as unknown as any,
+
+              atomicOperations: [
+                {
+                  property: 'some',
+                  type: 'add',
+                  value: 1,
+                },
+              ],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+      });
+
+      describe('conditions', () => {
+        it('should not allow the same property to be reference on multiple conditions', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const caller = () => {
+            updater.getUpdateParams<any>({
+              key: {
+                id: 'sss',
+                name: 'sss',
+              },
+
+              table: 'table',
+
+              values: {
+                some: 'q',
+              },
+
+              atomicOperations: [
+                {
+                  property: 'other',
+                  type: 'remove_from_set',
+                  value: '1',
+                },
+                {
+                  property: 'other',
+                  type: 'add_to_set',
+                  value: '3',
+                },
+              ],
+            });
+          };
+
+          expect(caller).toThrow();
+        });
+      });
+    });
+
+    describe('handle a complex scenario', () => {
+      const createSet = (v: any) => ({
+        value: v,
+        isSet: true,
+      });
+
+      const updater = new ItemUpdater({
+        dynamoDB: {
+          createSet,
+        } as any,
+      });
+
+      const conditions = [
+        {
+          operation: 'equal' as const,
+          value: 20,
+          property: 'some',
+        },
+        {
+          operation: 'exists' as const,
+          property: 'list',
+        },
+      ];
+
+      const params = updater.getUpdateParams<any>({
+        table: 'table',
+
+        key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        values: {
+          name: '1das',
+          age: 13,
+        },
+
+        conditions,
+
+        remove: ['removeProp1', 'removeProp2'],
+
+        atomicOperations: [
+          {
+            property: 'prop',
+            type: 'sum',
+            value: 100,
+          },
+          {
+            property: 'other',
+            type: 'add',
+            value: 1,
+          },
+          {
+            property: 'set',
+            type: 'set_if_not_exists',
+            refProperty: 'refSet',
+            value: '10',
+          },
+          {
+            property: 'setAdd',
+            type: 'add_to_set',
+            value: 1,
+          },
+          {
+            property: 'removeSet',
+            type: 'remove_from_set',
+            value: '1',
+          },
+        ],
+      });
+
+      expect(params).toStrictEqual({
+        TableName: 'table',
+
+        Key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        UpdateExpression:
+          'SET #name = :name, #age = :age, #prop = #prop + :prop, #set = if_not_exists(#refSet, :set) ADD #other :other, #setAdd :setAdd DELETE #removeSet :removeSet REMOVE #removeProp1, #removeProp2',
+
+        ConditionExpression: buildConditionExpression(conditions),
+
+        ExpressionAttributeNames: {
+          '#name': 'name',
+          '#age': 'age',
+          '#prop': 'prop',
+          '#set': 'set',
+          '#refSet': 'refSet',
+          '#other': 'other',
+          '#setAdd': 'setAdd',
+          '#removeSet': 'removeSet',
+          '#removeProp1': 'removeProp1',
+          '#removeProp2': 'removeProp2',
+          ...getConditionExpressionNames(conditions),
+        },
+
+        ExpressionAttributeValues: {
+          ':name': '1das',
+          ':age': 13,
+          ':prop': 100,
+          ':set': '10',
+          ':other': 1,
+          ':setAdd': createSet([1]),
+          ':removeSet': createSet(['1']),
+          ...getConditionExpressionValues(conditions),
+        },
+      });
+    });
+  });
 });
