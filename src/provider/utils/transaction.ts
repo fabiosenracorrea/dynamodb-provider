@@ -13,7 +13,7 @@ export interface UpdateTransaction<
 }
 
 export interface CreateTransaction<E extends Record<string, unknown> = Record<string, unknown>> {
-  create: CreateItemParams<E>;
+  create: CreateItemParams<E, keyof E>;
   update?: never;
   erase?: never;
   validate?: never;

@@ -120,6 +120,28 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.dynamoService.transactWrite(params).promise();
   }
 
+  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: GetItemParams<Entity, PKs>,
+  ): Promise<Entity | undefined> {
+    return this.getter.get(params);
+  }
+
+  async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
+    return this.creator.create(params);
+  }
+
+  async delete<Entity extends Record<string, any>>(
+    params: DeleteItemParams<Entity>,
+  ): Promise<void> {
+    await this.remover.delete(params);
+  }
+
+  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: UpdateParams<Entity, PKs>,
+  ): Promise<Partial<Entity> | undefined> {
+    return this.updater.update(params);
+  }
+
   private async recursivelyGetAllItems<Entity extends AnyObject>({
     TableName,
     items = [],
@@ -174,28 +196,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     });
 
     return items as Entity[];
-  }
-
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: GetItemParams<Entity, PKs>,
-  ): Promise<Entity | undefined> {
-    return this.getter.get(params);
-  }
-
-  async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
-    return this.creator.create(params);
-  }
-
-  async delete<Entity extends Record<string, any>>(
-    params: DeleteItemParams<Entity>,
-  ): Promise<void> {
-    await this.remover.delete(params);
-  }
-
-  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: UpdateParams<Entity, PKs>,
-  ): Promise<Partial<Entity> | undefined> {
-    return this.updater.update(params);
   }
 
   private getRangeKeyValueEntries(
