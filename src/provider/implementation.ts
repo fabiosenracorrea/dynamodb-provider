@@ -9,13 +9,10 @@ import { printLog } from 'utils/log';
 
 import { StringKey, AnyObject } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
 import { IDatabaseProvider, ListAllOptions } from './definition';
 
 import {
-  atomicExpressionBuilders,
   expressionBuilders,
-  toExpressionName,
   toExpressionValue,
   CollectionListParams,
   CollectionListResult,
@@ -28,12 +25,8 @@ import {
   BatchListItemsArgs,
   GetItemParams,
   getExpressionNames,
-  buildExpressionAttributeNames,
-  buildExpressionAttributeValues,
   buildExpression,
   getFilterParams,
-  buildConditionExpression,
-  getConditionExpressionNames,
   getConditionExpressionValues,
   getProjectionExpression,
   getProjectionExpressionNames,
@@ -41,6 +34,7 @@ import {
   ItemRemover,
   getProjectExpressionParams,
   ItemGetter,
+  ItemUpdater,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -65,6 +59,8 @@ export class DatabaseProvider implements IDatabaseProvider {
 
   private getter: ItemGetter;
 
+  private updater: ItemUpdater;
+
   // add in constructor params like
   // log
   // future: service/v2-v3
@@ -82,6 +78,11 @@ export class DatabaseProvider implements IDatabaseProvider {
     });
 
     this.getter = new ItemGetter({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
+
+    this.updater = new ItemUpdater({
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
@@ -103,14 +104,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.dynamoService.batchGet(params).promise();
   }
 
-  private async _updateItem(
-    params: DynamoDB.DocumentClient.UpdateItemInput,
-  ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
-    printLog(params, 'updateItem');
-
-    return this.dynamoService.update(params).promise();
-  }
-
   private async _query<Entity = any>(
     params: DynamoDB.DocumentClient.QueryInput,
   ): Promise<QueryOutput<Entity>> {
@@ -125,10 +118,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     printLog(params, 'transactionWrite');
 
     return this.dynamoService.transactWrite(params).promise();
-  }
-
-  private removeUndefinedFields(item: Record<string, any>): Record<string, any> {
-    return removeUndefinedProps(item);
   }
 
   private async recursivelyGetAllItems<Entity extends AnyObject>({
@@ -203,235 +192,10 @@ export class DatabaseProvider implements IDatabaseProvider {
     await this.remover.delete(params);
   }
 
-  private validateUpdateParams({
-    key,
-    atomicOperations,
-    remove,
-    values,
-    conditions,
-  }: UpdateParams<any>): void {
-    const actualConditions = conditions || [];
-
-    const propertiesInvolvedInEachOp = [
-      Object.keys(values || {}),
-      remove || [],
-      (atomicOperations || []).map(({ property }) => property),
-    ];
-
-    const uniqueProperties = new Set(propertiesInvolvedInEachOp.flat(2));
-    const allPropertiesMentioned = propertiesInvolvedInEachOp.reduce(
-      (acc, next) => acc + next.length,
-      0,
-    );
-
-    const malformed = [
-      ![1, 2].includes(Object.keys(key).length),
-      Object.keys(key).some((prop) => uniqueProperties.has(prop)),
-      [values, remove, atomicOperations].every((params) => !params),
-      uniqueProperties.size !== allPropertiesMentioned,
-      uniqueProperties.size === 0,
-      actualConditions.length !== new Set(actualConditions.map(({ property }) => property)).size,
-    ].some(Boolean);
-
-    if (malformed) throw new Error('Malformed Update params');
-  }
-
-  private mergeSameOperationExpressions(
-    operation: 'SET' | 'REMOVE' | 'ADD' | 'DELETE',
-    current: string,
-    toAdd: string,
-  ): string {
-    if (!current) return `${operation} ${toAdd}`;
-
-    // falling into the false here probably means misusage
-    const mergeToken = current.startsWith(operation) ? ',' : `${operation},`;
-
-    const expression = `${current}${mergeToken} ${toAdd}`;
-
-    return expression;
-  }
-
-  private getValuesUpdateExpression(values: UpdateParams<any>['values']): string {
-    return Object.keys(values || {}).reduce((acc, property) => {
-      return this.mergeSameOperationExpressions('SET', acc, expressionBuilders.equal(property));
-    }, '');
-  }
-
-  private addAtomicSetUpdates(
-    atomic: Exclude<UpdateParams<any>['atomicOperations'], undefined>,
-    currentExpression: string,
-  ): string {
-    const operationsThatUseSet = atomic.filter(({ type }) =>
-      ['sum', 'subtract', 'set_if_not_exists'].includes(type),
-    );
-
-    const withSet = operationsThatUseSet.reduce(
-      (acc, next) =>
-        this.mergeSameOperationExpressions('SET', acc, atomicExpressionBuilders[next.type](next)),
-      currentExpression,
-    );
-
-    return withSet;
-  }
-
-  private addAtomicAddUpdates(
-    atomic: Exclude<UpdateParams<any>['atomicOperations'], undefined>,
-    currentExpression: string,
-  ): string {
-    const addOperations = atomic.filter(({ type }) => type === 'add' || type === 'add_to_set');
-
-    if (!addOperations.length) return currentExpression;
-
-    const addExpression = addOperations.reduce(
-      (acc, next) =>
-        this.mergeSameOperationExpressions('ADD', acc, atomicExpressionBuilders[next.type](next)),
-      '' as string, // ts compiler was wrongly complaining,
-    );
-
-    return `${currentExpression}${currentExpression.length ? ' ' : ''}${addExpression}`;
-  }
-
-  private addAtomicRemoveUpdates(
-    atomic: Exclude<UpdateParams<any>['atomicOperations'], undefined>,
-    currentExpression: string,
-  ): string {
-    const addOperations = atomic.filter(({ type }) => type === 'remove_from_set');
-
-    if (!addOperations.length) return currentExpression;
-
-    const addExpression = addOperations.reduce(
-      (acc, next) =>
-        this.mergeSameOperationExpressions(
-          'DELETE',
-          acc,
-          atomicExpressionBuilders[next.type](next),
-        ),
-      '' as string, // ts compiler was wrongly complaining,
-    );
-
-    return `${currentExpression}${currentExpression.length ? ' ' : ''}${addExpression}`;
-  }
-
-  private addAtomicUpdates(
-    atomic: UpdateParams<any>['atomicOperations'],
-    currentExpression: string,
-  ): string {
-    if (!atomic?.length) return currentExpression;
-
-    const final = [
-      this.addAtomicSetUpdates.bind(this),
-      this.addAtomicAddUpdates.bind(this),
-      this.addAtomicRemoveUpdates.bind(this),
-    ].reduce((acc, resolver) => resolver(atomic, acc), currentExpression);
-
-    return final;
-  }
-
-  private addRemovePropertiesUpdates(
-    properties: UpdateParams<any>['remove'],
-    currentExpression: string,
-  ): string {
-    if (!properties?.length) return currentExpression;
-
-    const removeExpression = properties.reduce(
-      (acc, next) => this.mergeSameOperationExpressions('REMOVE', acc, toExpressionName(next)),
-      '' as string, // ts compiler was wrongly complaining,
-    );
-
-    return `${currentExpression}${currentExpression.length ? ' ' : ''}${removeExpression}`;
-  }
-
-  private buildUpdateExpression({
-    atomicOperations,
-    remove,
-    values,
-  }: Pick<UpdateParams<any>, 'atomicOperations' | 'values' | 'remove'>): string {
-    // starts with SET
-    const valuesExpression = this.getValuesUpdateExpression(values);
-
-    const withAtomic = this.addAtomicUpdates(atomicOperations, valuesExpression);
-
-    return this.addRemovePropertiesUpdates(remove, withAtomic);
-  }
-
-  private convertAtomicValue({
-    type,
-    value,
-  }: Pick<Exclude<UpdateParams<any>['atomicOperations'], undefined>[0], 'type' | 'value'>): any {
-    switch (type) {
-      case 'add_to_set':
-      case 'remove_from_set':
-        return this.createSet(Array.isArray(value) ? value : [value]);
-      default:
-        return value;
-    }
-  }
-
-  private buildAtomicAttributeValues(
-    atomic: Exclude<UpdateParams<any>['atomicOperations'], undefined>,
-  ): Record<string, any> {
-    return buildExpressionAttributeValues(
-      Object.fromEntries(
-        atomic.map(({ property, value, type }) => [
-          property,
-          this.convertAtomicValue({ type, value }),
-        ]),
-      ),
-    );
-  }
-
-  private _getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: UpdateParams<Entity, PKs>,
-  ): DynamoDB.DocumentClient.UpdateItemInput {
-    this.validateUpdateParams(params);
-
-    const { key, table, remove, returnUpdatedProperties } = params;
-
-    const atomic = params.atomicOperations || [];
-    const values = this.removeUndefinedFields(params.values || {});
-    const conditions = params.conditions || [];
-
-    return {
-      TableName: table,
-
-      Key: key,
-
-      UpdateExpression: this.buildUpdateExpression({
-        atomicOperations: atomic,
-        remove,
-        values,
-      }),
-
-      ConditionExpression: conditions.length ? buildConditionExpression(conditions) : undefined,
-
-      ExpressionAttributeNames: {
-        ...buildExpressionAttributeNames(values),
-
-        ...getExpressionNames(remove || []),
-
-        ...getExpressionNames(atomic.map(({ property }) => property)),
-
-        ...getConditionExpressionNames(conditions),
-      },
-
-      ExpressionAttributeValues: {
-        ...buildExpressionAttributeValues(values),
-
-        ...this.buildAtomicAttributeValues(atomic),
-
-        ...getConditionExpressionValues(conditions),
-      },
-
-      ReturnValues: returnUpdatedProperties ? 'UPDATED_NEW' : undefined,
-    };
-  }
-
   async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined> {
-    const { Attributes } = await this._updateItem(this._getUpdateParams(params));
-
-    return Attributes as Partial<Entity> | undefined;
+    return this.updater.update(params);
   }
 
   private getRangeKeyValueEntries(
@@ -640,7 +404,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     configs: TransactionConfig[],
   ): DynamoDB.DocumentClient.TransactWriteItemsInput {
     const params = configs.map(({ create, erase, update, validate }) => {
-      if (update) return { Update: this._getUpdateParams(update) };
+      if (update) return { Update: this.updater.getUpdateParams(update) };
 
       if (erase) return { Delete: this.remover.getDeleteParams(erase) };
 
