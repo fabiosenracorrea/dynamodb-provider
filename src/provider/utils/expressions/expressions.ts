@@ -7,7 +7,8 @@ export function buildExpression(conditions: ItemExpression<any>[], prefix = ''):
   const expression = conditions.reduce((acc, { operation, property, joinAs = 'and' }) => {
     const isFirst = !acc;
 
-    const nextExpression = expressionBuilders[operation](property, prefix);
+    // containing each expression to its own context
+    const nextExpression = `(${expressionBuilders[operation](property, prefix)})`;
 
     return isFirst ? nextExpression : `${acc} ${joinAs} ${nextExpression}`;
   }, '');
