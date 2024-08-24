@@ -1,4 +1,4 @@
-import { StringKey } from 'types';
+import { IsNever, StringKey } from 'types';
 
 import { ItemExpression } from '../../expressions';
 import { EntityPK } from '../types';
@@ -21,7 +21,11 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
    *
    * Currently, this only supports root-level exclusions
    */
-  remove?: PKs extends StringKey<Entity> ? Exclude<StringKey<Entity>, PKs>[] : StringKey<Entity>[];
+  remove?: PKs extends StringKey<Entity>
+    ? (IsNever<Exclude<StringKey<Entity>, PKs>> extends true
+        ? string
+        : Exclude<StringKey<Entity>, PKs>)[]
+    : StringKey<Entity>[];
 
   /**
    * Values to be directly added to the item
