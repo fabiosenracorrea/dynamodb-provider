@@ -1,6 +1,6 @@
 import { StringKey } from 'types';
 
-import { SingleConditionExpression } from './conditions';
+import { ItemExpression } from './expressions';
 import { AtomicOperation } from './updates';
 
 type EntityPK<
@@ -132,9 +132,7 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
    *
    * Currently this does not support nested conditions (parenthesis)
    */
-  conditions?: SingleConditionExpression<
-    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
-  >[];
+  conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
 
   /**
    * Defines wether or not the call will return the properties

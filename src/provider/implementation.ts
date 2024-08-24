@@ -28,13 +28,14 @@ import {
   DBSet,
   BatchListItemsArgs,
   GetItemParams,
-  maskConditionProp,
   getExpressionNames,
   buildExpressionAttributeNames,
   buildExpressionAttributeValues,
-  CONDITION_PREFIX,
   buildExpression,
   getFilterParams,
+  buildConditionExpression,
+  getConditionExpressionNames,
+  getConditionExpressionValues,
 } from './utils';
 
 const NO_RETRIES = 0;
@@ -48,8 +49,6 @@ export interface RecursivelyGetItemsParams<Entity>
   TableName: string;
   items?: Entity[];
 }
-
-// helpers => utils.ts after
 
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
@@ -297,36 +296,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     if (malformed) throw new Error('Malformed Update params');
   }
 
-  private getConditionsExpressionValues(
-    conditions: UpdateParams<any>['conditions'],
-    { mask, masker = maskConditionProp }: { mask?: boolean; masker?: (s: string) => string } = {},
-  ): Record<string, any> {
-    if (!conditions) return {};
-
-    const toMasked = (prop: string): string => toExpressionValue(mask ? masker(prop) : prop);
-
-    const entries = conditions.reduce((acc, condition) => {
-      switch (condition.type) {
-        case 'BASIC':
-          return [...acc, [toMasked(condition.property), condition.value]];
-        case 'EXISTENCE_CHECK':
-          return acc;
-        case 'LIST_IN':
-          return [...acc, [toMasked(condition.property), condition.values]];
-        case 'BETWEEN':
-          return [
-            ...acc,
-            [toMasked(`${condition.property}_low`), condition.low],
-            [toMasked(`${condition.property}_high`), condition.high],
-          ];
-        default:
-          return acc;
-      }
-    }, [] as Array<[string, any]>) as Array<[string, any]>;
-
-    return Object.fromEntries(entries);
-  }
-
   private mergeSameOperationExpressions(
     operation: 'SET' | 'REMOVE' | 'ADD' | 'DELETE',
     current: string,
@@ -493,9 +462,7 @@ export class DatabaseProvider implements IDatabaseProvider {
         values,
       }),
 
-      ConditionExpression: conditions.length
-        ? buildExpression(conditions, CONDITION_PREFIX)
-        : undefined,
+      ConditionExpression: conditions.length ? buildConditionExpression(conditions) : undefined,
 
       ExpressionAttributeNames: {
         ...buildExpressionAttributeNames(values),
@@ -504,10 +471,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ...getExpressionNames(atomic.map(({ property }) => property)),
 
-        ...getExpressionNames(
-          conditions.map(({ property }) => property),
-          CONDITION_PREFIX,
-        ),
+        ...getConditionExpressionNames(conditions),
       },
 
       ExpressionAttributeValues: {
@@ -515,7 +479,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ...this.buildAtomicAttributeValues(atomic),
 
-        ...this.getConditionsExpressionValues(conditions, { mask: true }),
+        ...getConditionExpressionValues(conditions),
       },
 
       ReturnValues: returnUpdatedProperties ? 'UPDATED_NEW' : undefined,
@@ -749,7 +713,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
       ExpressionAttributeNames: getExpressionNames(conditions.map(({ property }) => property)),
 
-      ExpressionAttributeValues: this.getConditionsExpressionValues(conditions),
+      ExpressionAttributeValues: getConditionExpressionValues(conditions),
     };
   }
 

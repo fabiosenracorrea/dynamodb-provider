@@ -1,5 +1,5 @@
 import { StringKey } from 'types';
-import { SingleConditionExpression } from './conditions';
+import { ItemExpression } from './expressions';
 import { CreateItemParams, DeleteItemParams, UpdateParams } from './crud';
 
 export interface UpdateTransaction<
@@ -36,9 +36,7 @@ export interface ValidateTransactParams<
   table: string;
   key: PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
 
-  conditions: SingleConditionExpression<
-    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
-  >[];
+  conditions: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
 }
 
 export interface ConditionCheckTransaction<
