@@ -1,4 +1,4 @@
-import { buildExpression } from './expressions';
+import { buildExpression, getExpression } from './expressions';
 
 describe('expression builder', () => {
   describe('single expressions', () => {
@@ -582,6 +582,18 @@ describe('expression builder', () => {
           'and (not contains(#contains_prop, :contains_prop))',
         ].join(' '),
       );
+    });
+  });
+
+  describe('get expression type helper', () => {
+    it('should just return its parameter', () => {
+      const config = {
+        operation: 'equal' as const,
+        property: 'some',
+        value: 1,
+      };
+
+      expect(getExpression(config)).toBe(config);
     });
   });
 });
