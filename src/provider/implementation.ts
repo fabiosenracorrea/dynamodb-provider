@@ -37,6 +37,7 @@ import {
   getConditionExpressionValues,
   getProjectionExpression,
   getProjectionExpressionNames,
+  ItemCreator,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -55,11 +56,18 @@ export interface RecursivelyGetItemsParams<Entity>
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
 
+  private creator: ItemCreator;
+
   // add in constructor params like
   // log
   // future: service/v2-v3
   constructor() {
     this.dynamoService = new DynamoDB.DocumentClient();
+
+    this.creator = new ItemCreator({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
   }
 
   private async _scanTable<Entity>(
@@ -84,14 +92,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     printLog(params, 'getItem');
 
     return this.dynamoService.get(params).promise() as unknown as Promise<GetItemOutput<Entity>>;
-  }
-
-  private async _insertItem(
-    params: DynamoDB.DocumentClient.PutItemInput,
-  ): Promise<DynamoDB.DocumentClient.PutItemOutput> {
-    printLog(params, 'insertItem');
-
-    return this.dynamoService.put(params).promise();
   }
 
   private async _updateItem(
@@ -220,21 +220,8 @@ export class DatabaseProvider implements IDatabaseProvider {
     return item;
   }
 
-  private _getCreateParams<Entity>({
-    item,
-    table,
-  }: CreateItemParams<Entity>): DynamoDB.DocumentClient.PutItemInput {
-    return {
-      TableName: table,
-
-      Item: item as DynamoDB.DocumentClient.PutItemInputAttributeMap,
-    };
-  }
-
   async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
-    await this._insertItem(this._getCreateParams(params));
-
-    return params.item;
+    return this.creator.create(params);
   }
 
   private _getDeleteParams<Entity>({
@@ -703,7 +690,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
       if (erase) return { Delete: this._getDeleteParams(erase) };
 
-      if (create) return { Put: this._getCreateParams(create) };
+      if (create) return { Put: this.creator.getCreateParams(create) };
 
       if (validate) return { ConditionCheck: this._getConditionCheckParams(validate) };
 

@@ -1,12 +1,9 @@
 import { StringKey } from 'types';
 
-import { ItemExpression } from './expressions';
-import { AtomicOperation } from './updates';
+import { ItemExpression } from '../expressions';
+import { AtomicOperation } from '../updates';
 
-type EntityPK<
-  Entity,
-  PKs extends StringKey<Entity> | unknown = unknown,
-> = PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
+import { EntityPK } from './types';
 
 export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
@@ -58,18 +55,6 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
    * Currently this only supports root-level properties
    */
   propertiesToRetrieve?: StringKey<Entity>[];
-}
-
-export interface CreateItemParams<Entity> {
-  /**
-   * Dynamodb Table
-   */
-  table: string;
-
-  /**
-   * Item to create
-   */
-  item: Entity;
 }
 
 export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {

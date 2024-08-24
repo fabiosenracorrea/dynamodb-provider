@@ -31,8 +31,9 @@ export interface IDatabaseProvider {
     options: BatchListItemsArgs<Entity, PKs>,
   ): Promise<Entity[]>;
 
-  // add condition param, option to not use the createdAt etc
-  create<Entity>(params: CreateItemParams<Entity>): Promise<Entity>;
+  create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: CreateItemParams<Entity, PKs>,
+  ): Promise<Entity>;
 
   // workout which return params would be interesting to return
   update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
