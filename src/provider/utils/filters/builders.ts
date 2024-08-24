@@ -82,7 +82,7 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
               quickSwitch((value as FilterConfig)?.operation, [
                 { is: ['exists', 'not_exists'], then: true },
                 {
-                  is: 'begins_with',
+                  is: 'between',
                   then: !!(
                     (value as BetweenFilterConfig)?.high && (value as BetweenFilterConfig)?.low
                   ),

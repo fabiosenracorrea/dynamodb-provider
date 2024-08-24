@@ -1,4 +1,8 @@
-import { buildFilterExpressionValuesAndExpression, purgeUndefinedFilters } from './builders';
+import {
+  buildFilterExpressionValuesAndExpression,
+  getFilterParams,
+  purgeUndefinedFilters,
+} from './builders';
 
 describe('filter helpers', () => {
   describe('filter expression + values', () => {
@@ -257,6 +261,69 @@ describe('filter helpers', () => {
         status: {
           operation: 'lower_than',
           value: '9',
+        },
+      });
+    });
+  });
+
+  describe('filter params getter', () => {
+    it('should return empty object if no params', () => {
+      expect(getFilterParams()).toEqual({});
+    });
+
+    it('should return empty object if only nullable params', () => {
+      expect(
+        getFilterParams({
+          some: null,
+          other: undefined,
+          hello: [],
+        }),
+      ).toEqual({});
+    });
+
+    it('should handle direct + lists + expressions, handling direct then expressions then lists', () => {
+      const result = getFilterParams({
+        status: '0',
+
+        other: null,
+
+        remove: [],
+
+        age: {
+          operation: 'bigger_than',
+          value: 21,
+        },
+
+        counts: [10, 20, 30, 40, undefined],
+
+        startedAt: {
+          operation: 'between',
+          high: '2024-08-31T23:59:59.999Z',
+          low: '2024-08-01T00:00:00.000Z',
+        },
+      });
+
+      expect(result).toEqual({
+        FilterExpression: [
+          '(#__filter_status = :__filter_status)',
+          'and (#__filter_age > :__filter_age)',
+          'and (#__filter_startedAt between :__filter_startedAt_low and :__filter_startedAt_high)',
+          'and (#__filter_counts in :__filter_counts)',
+        ].join(' '),
+
+        ExpressionAttributeValues: {
+          ':__filter_age': 21,
+          ':__filter_status': '0',
+          ':__filter_counts': [10, 20, 30, 40],
+          ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
+          ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
+        },
+
+        ExpressionAttributeNames: {
+          '#__filter_age': 'age',
+          '#__filter_status': 'status',
+          '#__filter_counts': 'counts',
+          '#__filter_startedAt': 'startedAt',
         },
       });
     });
