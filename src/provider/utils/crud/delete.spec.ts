@@ -128,7 +128,7 @@ describe('DeleteItem actions', () => {
     });
   });
 
-  describe('creation params generation', () => {
+  describe('deletion params generation', () => {
     it('should properly build PutItem params', async () => {
       const remover = new ItemRemover({
         dynamoDB: {

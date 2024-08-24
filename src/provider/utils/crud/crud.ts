@@ -5,32 +5,6 @@ import { AtomicOperation } from '../updates';
 
 import { EntityPK } from './types';
 
-export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
-  /**
-   * Dynamodb Table
-   */
-  table: string;
-
-  /**
-   * Primary key of the Item
-   */
-  key: EntityPK<Entity, PKs>;
-
-  /**
-   *  If set to `true`, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
-   *
-   * Default is `false`
-   */
-  consistentRead?: boolean;
-
-  /**
-   * Which properties should be retrieved
-   *
-   * Currently this only supports root-level properties
-   */
-  propertiesToRetrieve?: StringKey<Entity>[];
-}
-
 export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
    * Dynamodb Table

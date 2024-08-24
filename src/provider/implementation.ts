@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB, ScanOutput, GetItemOutput, QueryOutput } from 'aws-sdk';
+import { DynamoDB, ScanOutput, QueryOutput } from 'aws-sdk';
 
 import { cascadeEval } from 'utils/conditions';
 import { waitExponentially } from 'utils/backOff';
@@ -40,6 +40,7 @@ import {
   ItemCreator,
   ItemRemover,
   getProjectExpressionParams,
+  ItemGetter,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -62,6 +63,8 @@ export class DatabaseProvider implements IDatabaseProvider {
 
   private remover: ItemRemover;
 
+  private getter: ItemGetter;
+
   // add in constructor params like
   // log
   // future: service/v2-v3
@@ -74,6 +77,11 @@ export class DatabaseProvider implements IDatabaseProvider {
     });
 
     this.remover = new ItemRemover({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
+
+    this.getter = new ItemGetter({
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
@@ -93,14 +101,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     printLog(params, 'batchGetItems');
 
     return this.dynamoService.batchGet(params).promise();
-  }
-
-  private async _getItem<Entity>(
-    params: DynamoDB.DocumentClient.GetItemInput,
-  ): Promise<GetItemOutput<Entity>> {
-    printLog(params, 'getItem');
-
-    return this.dynamoService.get(params).promise() as unknown as Promise<GetItemOutput<Entity>>;
   }
 
   private async _updateItem(
@@ -187,32 +187,10 @@ export class DatabaseProvider implements IDatabaseProvider {
     return items as Entity[];
   }
 
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
-    key,
-    table,
-    consistentRead,
-    propertiesToRetrieve,
-  }: GetItemParams<Entity, PKs>): Promise<Entity | undefined> {
-    let item: Entity | undefined;
-
-    try {
-      const { Item } = await this._getItem<Entity>({
-        TableName: table,
-
-        Key: key,
-
-        ConsistentRead: consistentRead,
-
-        ...getProjectExpressionParams(propertiesToRetrieve),
-      });
-
-      item = Item;
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.log('GET ITEM ERROR', table, key, (err as Error)?.stack);
-    }
-
-    return item;
+  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: GetItemParams<Entity, PKs>,
+  ): Promise<Entity | undefined> {
+    return this.getter.get(params);
   }
 
   async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
