@@ -194,6 +194,12 @@ describe('filter helpers', () => {
             value: null,
           },
 
+          startedAt: {
+            operation: 'between',
+            high: '2024-08-31T23:59:59.999Z',
+            low: undefined,
+          },
+
           age: {
             operation: 'not_in',
             values: [3, null, 14, undefined],
