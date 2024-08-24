@@ -5,7 +5,6 @@ import { DynamoDB, ScanOutput, GetItemOutput, QueryOutput } from 'aws-sdk';
 import { cascadeEval } from 'utils/conditions';
 import { waitExponentially } from 'utils/backOff';
 import { ensureMaxArraySize } from 'utils/array';
-import { getCurrentFormattedTime } from 'utils/date';
 import { printLog } from 'utils/log';
 
 import { StringKey, AnyObject } from 'types';
@@ -37,6 +36,7 @@ import {
   getConditionExpressionNames,
   getConditionExpressionValues,
 } from './utils';
+import { getProjectionExpression, getProjectionExpressionNames } from './utils/projection';
 
 const NO_RETRIES = 0;
 const DYNAMO_BATCH_GET_LIMIT = 90;
@@ -140,9 +140,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     const params = {
       TableName,
 
-      ProjectionExpression: propertiesToGet?.length
-        ? propertiesToGet.map(toExpressionName).join(',')
-        : undefined,
+      ProjectionExpression: getProjectionExpression(propertiesToGet),
 
       ExclusiveStartKey: LastEvaluatedKey,
 
@@ -152,7 +150,7 @@ export class DatabaseProvider implements IDatabaseProvider {
         filterParams.ExpressionAttributeNames || propertiesToGet?.length
           ? {
               ...filterParams.ExpressionAttributeNames,
-              ...getExpressionNames(propertiesToGet || []),
+              ...getProjectionExpressionNames(propertiesToGet),
             }
           : undefined,
     };
@@ -204,9 +202,9 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ...(propertiesToRetrieve?.length
           ? {
-              ProjectionExpression: propertiesToRetrieve.map(toExpressionName).join(','),
+              ProjectionExpression: getProjectionExpression(propertiesToRetrieve),
 
-              ExpressionAttributeNames: getExpressionNames(propertiesToRetrieve),
+              ExpressionAttributeNames: getProjectionExpressionNames(propertiesToRetrieve),
             }
           : {}),
       });
@@ -232,16 +230,9 @@ export class DatabaseProvider implements IDatabaseProvider {
   }
 
   async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
-    const createdAt = getCurrentFormattedTime();
-
-    const created = {
-      createdAt,
-      ...params.item,
-    };
-
     await this._insertItem(this._getCreateParams(params));
 
-    return created;
+    return params.item;
   }
 
   private _getDeleteParams<Entity>({
@@ -647,9 +638,9 @@ export class DatabaseProvider implements IDatabaseProvider {
 
           ...(propertiesToRetrieve?.length
             ? {
-                ProjectionExpression: propertiesToRetrieve.map(toExpressionName).join(','),
+                ProjectionExpression: getProjectionExpression(propertiesToRetrieve),
 
-                ExpressionAttributeNames: getExpressionNames(propertiesToRetrieve),
+                ExpressionAttributeNames: getProjectionExpressionNames(propertiesToRetrieve),
               }
             : {}),
         },
