@@ -1,4 +1,4 @@
-import { buildFilterExpressionValuesAndExpression } from './builders';
+import { buildFilterExpressionValuesAndExpression, purgeUndefinedFilters } from './builders';
 
 describe('filter helpers', () => {
   describe('filter expression + values', () => {
@@ -127,6 +127,136 @@ describe('filter helpers', () => {
           ':__filter_counts': [10, 20, 30, 40],
           ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
           ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
+        },
+      });
+    });
+  });
+
+  describe('filter purge helper', () => {
+    it('should properly remove null/undefined direct values', () => {
+      expect(
+        purgeUndefinedFilters({
+          some: null,
+          other: undefined,
+        }),
+      ).toEqual({});
+    });
+
+    it('should properly keep non nullable falsy values', () => {
+      expect(
+        purgeUndefinedFilters({
+          some: null,
+          other: undefined,
+          count: 0,
+          no: false,
+          char: '',
+        }),
+      ).toEqual({
+        count: 0,
+        no: false,
+        char: '',
+      });
+    });
+
+    it('should properly remove remove empty, nullable lists', () => {
+      expect(
+        purgeUndefinedFilters({
+          some: [null, 2],
+          other: [null, undefined],
+          count: [0],
+          no: [false],
+          char: [''],
+          hello: 'fala',
+        }),
+      ).toEqual({
+        some: [2],
+        count: [0],
+        no: [false],
+        char: [''],
+        hello: 'fala',
+      });
+    });
+
+    it('should properly purge expressions', () => {
+      expect(
+        purgeUndefinedFilters({
+          some: {
+            operation: 'in',
+            values: [null, 2, 8, undefined],
+          },
+
+          other: {
+            operation: 'equal',
+            value: null,
+          },
+
+          age: {
+            operation: 'not_in',
+            values: [3, null, 14, undefined],
+          },
+        }),
+      ).toEqual({
+        some: {
+          operation: 'in',
+          values: [2, 8],
+        },
+
+        age: {
+          operation: 'not_in',
+          values: [3, 14],
+        },
+      });
+    });
+
+    it('should properly purge mixed filters', () => {
+      expect(
+        purgeUndefinedFilters({
+          some: {
+            operation: 'in',
+            values: [null, 2, 8, undefined],
+          },
+
+          remove: null,
+
+          purgeThis: [null, undefined],
+
+          keepZero: [0],
+
+          no: false,
+
+          other: {
+            operation: 'equal',
+            value: null,
+          },
+
+          age: {
+            operation: 'not_in',
+            values: [3, null, 14, undefined],
+          },
+
+          status: {
+            operation: 'lower_than',
+            value: '9',
+          },
+        }),
+      ).toEqual({
+        some: {
+          operation: 'in',
+          values: [2, 8],
+        },
+
+        keepZero: [0],
+
+        no: false,
+
+        age: {
+          operation: 'not_in',
+          values: [3, 14],
+        },
+
+        status: {
+          operation: 'lower_than',
+          value: '9',
         },
       });
     });

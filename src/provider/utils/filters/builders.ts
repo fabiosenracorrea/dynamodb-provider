@@ -4,6 +4,7 @@ import { DynamoDB } from 'aws-sdk';
 import { AnyObject } from 'types';
 
 import { cascadeEval, quickSwitch } from 'utils/conditions';
+import { isNonNullable } from 'utils/checkers';
 import {
   buildExpression,
   buildExpressionAttributeValues,
@@ -71,33 +72,60 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
   filters: Filters<Entity>,
 ): Filters<Entity> {
   return Object.fromEntries(
-    Object.entries(filters).filter(([, value]) =>
-      cascadeEval([
-        { is: Array.isArray(value), then: () => (value as any[]).filter(Boolean).length },
-        {
-          is: typeof value === 'object',
-          then: () =>
-            quickSwitch((value as FilterConfig).operation, [
-              { is: ['exists', 'not_exists'], then: true },
-              {
-                is: 'begins_with',
-                then: !!(
-                  (value as BetweenFilterConfig)?.high && (value as BetweenFilterConfig)?.low
-                ),
-              },
-              {
-                is: ['in', 'not_in'],
-                then: () => (value as ListFilterConfig).values.length,
-              },
-              {
-                is: true,
-                then: (value as BasicFilterConfig).value !== undefined,
-              },
-            ]),
-        },
-        { is: true, then: value !== undefined },
-      ]),
-    ),
+    Object.entries(filters)
+      .filter(([, value]) =>
+        cascadeEval([
+          { is: Array.isArray(value), then: () => (value as any[]).filter(isNonNullable).length },
+          {
+            is: typeof value === 'object',
+            then: () =>
+              quickSwitch((value as FilterConfig)?.operation, [
+                { is: ['exists', 'not_exists'], then: true },
+                {
+                  is: 'begins_with',
+                  then: !!(
+                    (value as BetweenFilterConfig)?.high && (value as BetweenFilterConfig)?.low
+                  ),
+                },
+                {
+                  is: ['in', 'not_in'],
+                  then: () => (value as ListFilterConfig).values.filter(isNonNullable).length,
+                },
+                {
+                  is: true,
+                  then: () => isNonNullable((value as BasicFilterConfig)?.value),
+                },
+              ]),
+          },
+          { is: true, then: isNonNullable(value) },
+        ]),
+      )
+      .map(([key, value]) =>
+        cascadeEval([
+          { is: Array.isArray(value), then: () => [key, (value as any[]).filter(isNonNullable)] },
+          {
+            is: typeof value === 'object',
+            then: () =>
+              quickSwitch((value as FilterConfig)?.operation, [
+                {
+                  is: ['in', 'not_in'],
+                  then: () => [
+                    key,
+                    {
+                      ...(value as ListFilterConfig),
+                      values: (value as ListFilterConfig).values.filter(isNonNullable),
+                    },
+                  ],
+                },
+                {
+                  is: true,
+                  then: [key, value],
+                },
+              ]),
+          },
+          { is: true, then: [key, value] },
+        ]),
+      ),
   ) as Filters<Entity>;
 }
 
