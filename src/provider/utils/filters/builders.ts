@@ -23,12 +23,20 @@ import {
 // This ensures values used for filter do not interfere with other values from conditions etc
 const FILTER_PREFIX = '__filter_';
 
-function buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
+export function buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
   filters: Filters<Entity>,
 ): Pick<DynamoDB.DocumentClient.ScanInput, 'FilterExpression' | 'ExpressionAttributeValues'> {
   const direct = Object.entries(filters).filter(([, value]) => typeof value !== 'object');
 
-  const conditions = Object.entries(filters)
+  const directEquals = direct.map(([property, value]) =>
+    getExpression({
+      operation: 'equal',
+      property,
+      value: value as string,
+    }),
+  );
+
+  const otherConditions = Object.entries(filters)
     .filter(([, value]) => typeof value === 'object' && !Array.isArray(value))
     .map(([property, config]) => ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +54,7 @@ function buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
       }),
     );
 
-  const allConditions = [...conditions, ...listConditions];
+  const allConditions = [...directEquals, ...otherConditions, ...listConditions];
 
   return {
     FilterExpression: buildExpression(allConditions, FILTER_PREFIX),
@@ -59,7 +67,7 @@ function buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
   };
 }
 
-function purgeUndefinedFilters<Entity extends AnyObject>(
+export function purgeUndefinedFilters<Entity extends AnyObject>(
   filters: Filters<Entity>,
 ): Filters<Entity> {
   return Object.fromEntries(

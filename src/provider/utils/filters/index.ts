@@ -1,2 +1,2 @@
 export * from './types';
-export * from './builders';
+export { getFilterParams } from './builders';
