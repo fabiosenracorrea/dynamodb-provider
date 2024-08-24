@@ -22,6 +22,7 @@ import { ExecutorParams } from '../types';
 import { buildUpdateExpression } from './updateExpression';
 import { validateUpdateParams } from './validate';
 import { UpdateParams } from './types';
+import { UpdateIfNotExistsOperation } from './atomic';
 
 export class ItemUpdater {
   private dynamoDB: ExecutorParams['dynamoDB'];
@@ -37,7 +38,7 @@ export class ItemUpdater {
   private async _updateItem(
     params: DynamoDB.DocumentClient.UpdateItemInput,
   ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
-    if (this.options.logCallParams) printLog(params, 'updateItem');
+    if (this.options.logCallParams) printLog(params, 'updateItem - dynamodb call params');
 
     return this.dynamoDB.update(params).promise();
   }
@@ -97,7 +98,15 @@ export class ItemUpdater {
 
         ...getExpressionNames(remove || []),
 
-        ...getExpressionNames(atomic.map(({ property }) => property)),
+        ...getExpressionNames(
+          atomic
+            .map(({ property, ...rest }) =>
+              [(rest as UpdateIfNotExistsOperation<any>).refProperty as string, property].filter(
+                Boolean,
+              ),
+            )
+            .flat(),
+        ),
 
         ...getConditionExpressionNames(conditions),
       },
@@ -120,6 +129,6 @@ export class ItemUpdater {
   ): Promise<Partial<Entity> | undefined> {
     const { Attributes } = await this._updateItem(this.getUpdateParams(params));
 
-    return Attributes as Partial<Entity> | undefined;
+    if (params.returnUpdatedProperties) return Attributes as Partial<Entity> | undefined;
   }
 }

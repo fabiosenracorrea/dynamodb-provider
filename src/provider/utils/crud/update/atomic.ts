@@ -34,7 +34,7 @@ interface SetOperation<Entity> {
 }
 
 // Uses "SET" keyword
-interface UpdateIfNotExistsOperation<Entity> {
+export interface UpdateIfNotExistsOperation<Entity> {
   /**
    * The property to update
    */
@@ -61,6 +61,7 @@ export type AtomicOperation<Entity> =
   | SetOperation<Entity>
   | UpdateIfNotExistsOperation<Entity>;
 
+// these are tested within the updateExpression tests
 export const atomicExpressionBuilders: Record<
   AtomicOperation<any>['type'],
   (atomic: AtomicOperation<any>) => string
