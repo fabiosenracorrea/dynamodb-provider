@@ -1,5 +1,9 @@
 import { getExpressionNames } from '../expressions';
-import { getProjectionExpression, getProjectionExpressionNames } from './helpers';
+import {
+  getProjectExpressionParams,
+  getProjectionExpression,
+  getProjectionExpressionNames,
+} from './helpers';
 
 describe('Projection expression helpers', () => {
   it('getProjectionExpression: should properly build the expression with the prefix', () => {
@@ -30,5 +34,20 @@ describe('Projection expression helpers', () => {
 
   it('getProjectionExpressionNames: should return empty object if empty list passed', () => {
     expect(getProjectionExpressionNames([])).toEqual({});
+  });
+
+  it('getProjectExpressionParams: properly encapsulates all dynamoBD params from prop list', () => {
+    const properties = ['name', 'id', 'hello', 'prop'];
+
+    expect(getProjectExpressionParams(properties)).toStrictEqual({
+      ProjectionExpression: getProjectionExpression(properties),
+
+      ExpressionAttributeNames: getProjectionExpressionNames(properties),
+    });
+  });
+
+  it('getProjectExpressionParams: returns empty object if invalid params', () => {
+    expect(getProjectExpressionParams()).toStrictEqual({});
+    expect(getProjectExpressionParams([])).toStrictEqual({});
   });
 });

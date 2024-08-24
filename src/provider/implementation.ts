@@ -39,6 +39,7 @@ import {
   getProjectionExpressionNames,
   ItemCreator,
   ItemRemover,
+  getProjectExpressionParams,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -202,13 +203,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
         ConsistentRead: consistentRead,
 
-        ...(propertiesToRetrieve?.length
-          ? {
-              ProjectionExpression: getProjectionExpression(propertiesToRetrieve),
-
-              ExpressionAttributeNames: getProjectionExpressionNames(propertiesToRetrieve),
-            }
-          : {}),
+        ...getProjectExpressionParams(propertiesToRetrieve),
       });
 
       item = Item;
@@ -597,13 +592,7 @@ export class DatabaseProvider implements IDatabaseProvider {
 
           Keys: keys,
 
-          ...(propertiesToRetrieve?.length
-            ? {
-                ProjectionExpression: getProjectionExpression(propertiesToRetrieve),
-
-                ExpressionAttributeNames: getProjectionExpressionNames(propertiesToRetrieve),
-              }
-            : {}),
+          ...getProjectExpressionParams(propertiesToRetrieve),
         },
       },
     };
