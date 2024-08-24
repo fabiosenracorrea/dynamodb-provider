@@ -57,18 +57,6 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
   propertiesToRetrieve?: StringKey<Entity>[];
 }
 
-export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
-  /**
-   * Dynamodb Table
-   */
-  table: string;
-
-  /**
-   * Primary key of the Item
-   */
-  key: EntityPK<Entity, PKs>;
-}
-
 export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
    * Dynamodb Table

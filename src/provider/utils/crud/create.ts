@@ -5,11 +5,7 @@ import { printLog } from 'utils/log';
 import { StringKey } from 'types';
 
 import { ItemExpression } from '../expressions';
-import {
-  buildConditionExpression,
-  getConditionExpressionNames,
-  getConditionExpressionValues,
-} from '../conditions';
+import { getConditionParams } from '../conditions';
 
 import { ExecutorParams } from './types';
 
@@ -58,17 +54,7 @@ export class ItemCreator {
 
       Item: item as DynamoDB.DocumentClient.PutItemInputAttributeMap,
 
-      ...(conditions?.length
-        ? {
-            ConditionExpression: conditions.length
-              ? buildConditionExpression(conditions)
-              : undefined,
-
-            ExpressionAttributeNames: getConditionExpressionNames(conditions),
-
-            ExpressionAttributeValues: getConditionExpressionValues(conditions),
-          }
-        : {}),
+      ...getConditionParams(conditions),
     };
   }
 

@@ -38,6 +38,7 @@ import {
   getProjectionExpression,
   getProjectionExpressionNames,
   ItemCreator,
+  ItemRemover,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -58,6 +59,8 @@ export class DatabaseProvider implements IDatabaseProvider {
 
   private creator: ItemCreator;
 
+  private remover: ItemRemover;
+
   // add in constructor params like
   // log
   // future: service/v2-v3
@@ -65,6 +68,11 @@ export class DatabaseProvider implements IDatabaseProvider {
     this.dynamoService = new DynamoDB.DocumentClient();
 
     this.creator = new ItemCreator({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
+
+    this.remover = new ItemRemover({
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
@@ -100,14 +108,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     printLog(params, 'updateItem');
 
     return this.dynamoService.update(params).promise();
-  }
-
-  private async _deleteItem(
-    params: DynamoDB.DocumentClient.DeleteItemInput,
-  ): Promise<DynamoDB.DocumentClient.DeleteItemOutput> {
-    printLog(params, 'deleteItem');
-
-    return this.dynamoService.delete(params).promise();
   }
 
   private async _query<Entity = any>(
@@ -224,23 +224,10 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.creator.create(params);
   }
 
-  private _getDeleteParams<Entity>({
-    key,
-    table,
-  }: DeleteItemParams<Entity>): DynamoDB.DocumentClient.DeleteItemInput {
-    return {
-      TableName: table,
-
-      Key: key,
-    };
-  }
-
   async delete<Entity extends Record<string, any>>(
     params: DeleteItemParams<Entity>,
   ): Promise<void> {
-    await this._deleteItem({
-      ...this._getDeleteParams(params),
-    });
+    await this.remover.delete(params);
   }
 
   private validateUpdateParams({
@@ -688,7 +675,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     const params = configs.map(({ create, erase, update, validate }) => {
       if (update) return { Update: this._getUpdateParams(update) };
 
-      if (erase) return { Delete: this._getDeleteParams(erase) };
+      if (erase) return { Delete: this.remover.getDeleteParams(erase) };
 
       if (create) return { Put: this.creator.getCreateParams(create) };
 
