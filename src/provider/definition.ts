@@ -11,9 +11,13 @@ import {
   DBSet,
   GetItemParams,
   BatchListItemsArgs,
+  ListAllOptions,
+  ListOptions,
+  ListTableResult,
 } from './utils';
 
 export interface IDatabaseProvider {
+  list<Entity>(tableName: string, options?: ListOptions<Entity>): Promise<ListTableResult<Entity>>;
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;
 
   get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(

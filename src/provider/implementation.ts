@@ -33,6 +33,10 @@ import {
   getProjectExpressionParams,
   ItemGetter,
   ItemUpdater,
+  ItemLister,
+  ListTableResult,
+  ListOptions,
+  ListAllOptions,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
@@ -51,6 +55,8 @@ export class DatabaseProvider implements IDatabaseProvider {
   private getter: ItemGetter;
 
   private updater: ItemUpdater;
+
+  private lister: ItemLister;
 
   // add in constructor params like
   // log
@@ -74,6 +80,11 @@ export class DatabaseProvider implements IDatabaseProvider {
     });
 
     this.updater = new ItemUpdater({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
+
+    this.lister = new ItemLister({
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
@@ -123,6 +134,17 @@ export class DatabaseProvider implements IDatabaseProvider {
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined> {
     return this.updater.update(params);
+  }
+
+  async list<Entity>(
+    table: string,
+    options = {} as ListOptions<Entity>,
+  ): Promise<ListTableResult<Entity>> {
+    return this.lister.list(table, options);
+  }
+
+  async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
+    return this.lister.listAll(table, options);
   }
 
   private getRangeKeyValueEntries(

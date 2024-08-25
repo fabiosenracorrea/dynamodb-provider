@@ -3,8 +3,8 @@ import { DynamoDB, ScanOutput } from 'aws-sdk';
 import { AnyObject, StringKey } from 'types';
 
 import { printLog } from 'utils/log';
-
 import { removeUndefinedProps } from 'utils/object';
+
 import { Filters, getFilterParams } from '../filters';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 import { ExecutorParams } from '../executor';
@@ -79,7 +79,7 @@ export interface ListOptions<Entity> {
   paginationToken?: string;
 }
 
-export type LisAllOptions<Entity> = Omit<ListOptions<Entity>, 'paginationToken' | 'limit'>;
+export type ListAllOptions<Entity> = Omit<ListOptions<Entity>, 'paginationToken' | 'limit'>;
 
 type GetScanParams<Entity> = ListOptions<Entity> & {
   table: string;
@@ -195,7 +195,7 @@ export class ItemLister {
     });
   }
 
-  async listAll<Entity>(table: string, options = {} as LisAllOptions<Entity>): Promise<Entity[]> {
+  async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
     const items = await this.recursivelyGetAllItems({
       table,
       ...options,
