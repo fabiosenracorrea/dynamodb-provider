@@ -3,11 +3,12 @@ import { DynamoDB, GetItemOutput } from 'aws-sdk';
 import { StringKey } from 'types';
 
 import { printLog } from 'utils/log';
-
 import { removeUndefinedProps } from 'utils/object';
-import { getProjectExpressionParams } from '../projection';
 
-import { EntityPK, ExecutorParams } from './types';
+import { getProjectExpressionParams } from '../projection';
+import { ExecutorParams } from '../executor';
+
+import { EntityPK } from './types';
 
 export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**

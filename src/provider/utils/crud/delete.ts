@@ -7,8 +7,9 @@ import { StringKey } from 'types';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
+import { ExecutorParams } from '../executor';
 
-import { EntityPK, ExecutorParams } from './types';
+import { EntityPK } from './types';
 
 export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**

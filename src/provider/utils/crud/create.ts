@@ -6,8 +6,7 @@ import { StringKey } from 'types';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
-
-import { ExecutorParams } from './types';
+import { ExecutorParams } from '../executor';
 
 export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**

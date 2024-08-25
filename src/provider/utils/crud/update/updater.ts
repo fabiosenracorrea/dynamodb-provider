@@ -16,8 +16,7 @@ import {
   buildExpressionAttributeValues,
   getExpressionNames,
 } from '../../expressions';
-
-import { ExecutorParams } from '../types';
+import { ExecutorParams } from '../../executor';
 
 import { buildUpdateExpression } from './updateExpression';
 import { validateUpdateParams } from './validate';

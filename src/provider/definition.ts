@@ -11,14 +11,7 @@ import {
   DBSet,
   GetItemParams,
   BatchListItemsArgs,
-  Filters,
 } from './utils';
-
-export interface ListAllOptions<Entity> {
-  propertiesToGet?: StringKey<Entity>[];
-
-  filters?: Filters<Entity>;
-}
 
 export interface IDatabaseProvider {
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;

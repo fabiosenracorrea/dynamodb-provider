@@ -1,15 +1,15 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB, ScanOutput, QueryOutput } from 'aws-sdk';
+import { DynamoDB, QueryOutput } from 'aws-sdk';
 
 import { cascadeEval } from 'utils/conditions';
 import { waitExponentially } from 'utils/backOff';
 import { ensureMaxArraySize } from 'utils/array';
 import { printLog } from 'utils/log';
 
-import { StringKey, AnyObject } from 'types';
+import { StringKey } from 'types';
 
-import { IDatabaseProvider, ListAllOptions } from './definition';
+import { IDatabaseProvider } from './definition';
 
 import {
   expressionBuilders,
@@ -28,8 +28,6 @@ import {
   buildExpression,
   getFilterParams,
   getConditionExpressionValues,
-  getProjectionExpression,
-  getProjectionExpressionNames,
   ItemCreator,
   ItemRemover,
   getProjectExpressionParams,
@@ -42,13 +40,6 @@ const NO_RETRIES = 0;
 const DYNAMO_BATCH_GET_LIMIT = 90;
 const MAX_TRANSACT_ACTIONS = 99;
 const MAX_BATCH_GET_RETIRES = 8;
-
-export interface RecursivelyGetItemsParams<Entity>
-  extends ListAllOptions<Entity>,
-    Pick<DynamoDB.DocumentClient.QueryOutput, 'LastEvaluatedKey'> {
-  TableName: string;
-  items?: Entity[];
-}
 
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
@@ -86,14 +77,6 @@ export class DatabaseProvider implements IDatabaseProvider {
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
-  }
-
-  private async _scanTable<Entity>(
-    params: DynamoDB.DocumentClient.ScanInput,
-  ): Promise<ScanOutput<Entity>> {
-    printLog(params, 'scanTable');
-
-    return this.dynamoService.scan(params).promise() as unknown as Promise<ScanOutput<Entity>>;
   }
 
   private async _batchGetItems(
@@ -140,62 +123,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined> {
     return this.updater.update(params);
-  }
-
-  private async recursivelyGetAllItems<Entity extends AnyObject>({
-    TableName,
-    items = [],
-    LastEvaluatedKey,
-    propertiesToGet,
-    filters = {},
-  }: RecursivelyGetItemsParams<Entity>): Promise<Entity[]> {
-    const filterParams = getFilterParams<Entity>(filters);
-
-    const params = {
-      TableName,
-
-      ProjectionExpression: getProjectionExpression(propertiesToGet),
-
-      ExclusiveStartKey: LastEvaluatedKey,
-
-      ...filterParams,
-
-      ExpressionAttributeNames:
-        filterParams.ExpressionAttributeNames || propertiesToGet?.length
-          ? {
-              ...filterParams.ExpressionAttributeNames,
-              ...getProjectionExpressionNames(propertiesToGet),
-            }
-          : undefined,
-    };
-
-    const { Items, LastEvaluatedKey: lastKey } = await this._scanTable<Entity>(params);
-
-    const updatedItems = [...items, ...Items];
-
-    if (!lastKey) return updatedItems;
-
-    const allItems = await this.recursivelyGetAllItems({
-      TableName,
-      items: updatedItems,
-      LastEvaluatedKey: lastKey,
-      propertiesToGet,
-      filters,
-    });
-
-    return allItems;
-  }
-
-  async listAll<Entity>(
-    TableName: string,
-    options = {} as ListAllOptions<Entity>,
-  ): Promise<Entity[]> {
-    const items = await this.recursivelyGetAllItems({
-      TableName,
-      ...options,
-    });
-
-    return items as Entity[];
   }
 
   private getRangeKeyValueEntries(
