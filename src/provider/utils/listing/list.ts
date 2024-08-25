@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DynamoDB, ScanOutput } from 'aws-sdk';
 
-import { AnyObject, StringKey } from 'types';
+import { AnyObject } from 'types';
 
 import { printLog } from 'utils/log';
 import { removeUndefinedProps } from 'utils/object';
@@ -14,7 +15,7 @@ export interface ListOptions<Entity> {
   /**
    * Which properties to return from each entity
    */
-  propertiesToGet?: StringKey<Entity>[];
+  propertiesToGet?: (keyof Entity)[];
 
   /**
    * Filter for conditions to match for each entity
@@ -114,7 +115,7 @@ export class ItemLister {
     return this.dynamoDB.scan(params).promise() as unknown as Promise<ScanOutput<Entity>>;
   }
 
-  getListParams<Entity extends AnyObject>({
+  private getListParams<Entity>({
     table,
     consistentRead,
     filters,
@@ -125,7 +126,7 @@ export class ItemLister {
     propertiesToGet,
     _internalStartKey,
   }: GetScanParams<Entity>): DynamoDB.DocumentClient.ScanInput {
-    const filterParams = getFilterParams<Entity>(filters);
+    const filterParams = getFilterParams(filters);
 
     const isPaginated = _internalStartKey || paginationToken;
 
@@ -134,7 +135,7 @@ export class ItemLister {
 
       ConsistentRead: consistentRead,
 
-      ProjectionExpression: getProjectionExpression(propertiesToGet),
+      ProjectionExpression: getProjectionExpression(propertiesToGet as string[]),
 
       ExclusiveStartKey: isPaginated
         ? _internalStartKey || fromPaginationToken(paginationToken!)
@@ -153,7 +154,7 @@ export class ItemLister {
         filterParams.ExpressionAttributeNames || propertiesToGet?.length
           ? {
               ...filterParams.ExpressionAttributeNames,
-              ...getProjectionExpressionNames(propertiesToGet),
+              ...getProjectionExpressionNames(propertiesToGet as string[]),
             }
           : undefined,
     });
@@ -176,12 +177,12 @@ export class ItemLister {
     });
   }
 
-  private async recursivelyGetAllItems<Entity extends AnyObject>({
+  private async recursivelyGetAllItems<Entity>({
     items = [],
     ...options
   }: RecursivelyGetItemsParams<Entity>): Promise<Entity[]> {
     const { Items, LastEvaluatedKey: lastKey } = await this._scanTable<Entity>(
-      this.getListParams(options),
+      this.getListParams(options as any),
     );
 
     const updatedItems = [...items, ...Items];

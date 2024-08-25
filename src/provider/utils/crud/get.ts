@@ -33,7 +33,7 @@ export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown =
    *
    * Currently this only supports root-level properties
    */
-  propertiesToRetrieve?: StringKey<Entity>[];
+  propertiesToRetrieve?: (keyof Entity)[];
 }
 
 export class ItemGetter {
@@ -55,7 +55,7 @@ export class ItemGetter {
     return this.dynamoDB.get(params).promise() as unknown as Promise<GetItemOutput<Entity>>;
   }
 
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
+  async get<Entity, PKs extends StringKey<Entity> | unknown = StringKey<Entity>>({
     key,
     table,
     consistentRead,
@@ -69,7 +69,7 @@ export class ItemGetter {
 
         ConsistentRead: consistentRead,
 
-        ...getProjectExpressionParams(propertiesToRetrieve),
+        ...getProjectExpressionParams(propertiesToRetrieve as string[]),
       }),
     );
 
