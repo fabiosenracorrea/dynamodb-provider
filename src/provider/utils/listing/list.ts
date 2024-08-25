@@ -79,6 +79,8 @@ export interface ListOptions<Entity> {
   paginationToken?: string;
 }
 
+export type LisAllOptions<Entity> = Omit<ListOptions<Entity>, 'paginationToken' | 'limit'>;
+
 type GetScanParams<Entity> = ListOptions<Entity> & {
   table: string;
   _internalStartKey?: AnyObject;
@@ -193,7 +195,7 @@ export class ItemLister {
     });
   }
 
-  async listAll<Entity>(table: string, options = {} as ListOptions<Entity>): Promise<Entity[]> {
+  async listAll<Entity>(table: string, options = {} as LisAllOptions<Entity>): Promise<Entity[]> {
     const items = await this.recursivelyGetAllItems({
       table,
       ...options,
