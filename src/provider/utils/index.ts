@@ -8,3 +8,4 @@ export * from './set';
 export * from './filters';
 export * from './projection';
 export * from './listing';
+export * from './batch';

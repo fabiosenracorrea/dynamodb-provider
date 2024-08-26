@@ -3,8 +3,6 @@
 import { DynamoDB, QueryOutput } from 'aws-sdk';
 
 import { cascadeEval } from 'utils/conditions';
-import { waitExponentially } from 'utils/backOff';
-import { ensureMaxArraySize } from 'utils/array';
 import { printLog } from 'utils/log';
 
 import { StringKey } from 'types';
@@ -30,20 +28,17 @@ import {
   getConditionExpressionValues,
   ItemCreator,
   ItemRemover,
-  getProjectExpressionParams,
   ItemGetter,
   ItemUpdater,
   ItemLister,
   ListTableResult,
   ListOptions,
   ListAllOptions,
+  BatchGetter,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
 
-const NO_RETRIES = 0;
-const DYNAMO_BATCH_GET_LIMIT = 90;
-const MAX_TRANSACT_ACTIONS = 99;
-const MAX_BATCH_GET_RETIRES = 8;
+const MAX_TRANSACT_ACTIONS = 100;
 
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
@@ -57,6 +52,8 @@ export class DatabaseProvider implements IDatabaseProvider {
   private updater: ItemUpdater;
 
   private lister: ItemLister;
+
+  private batchGetter: BatchGetter;
 
   // add in constructor params like
   // log
@@ -88,14 +85,11 @@ export class DatabaseProvider implements IDatabaseProvider {
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
-  }
 
-  private async _batchGetItems(
-    params: DynamoDB.DocumentClient.BatchGetItemInput,
-  ): Promise<DynamoDB.DocumentClient.BatchGetItemOutput> {
-    printLog(params, 'batchGetItems');
-
-    return this.dynamoService.batchGet(params).promise();
+    this.batchGetter = new BatchGetter({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
   }
 
   private async _query<Entity = any>(
@@ -145,6 +139,12 @@ export class DatabaseProvider implements IDatabaseProvider {
 
   async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
     return this.lister.listAll(table, options);
+  }
+
+  async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchListItemsArgs<Entity, PKs>,
+  ): Promise<Entity[]> {
+    return this.batchGetter.batchGet(options);
   }
 
   private getRangeKeyValueEntries(
@@ -267,68 +267,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     params: CollectionListParams<Entity>,
   ): Promise<CollectionListResult<Entity>> {
     return this.recursivelyListCollection(params);
-  }
-
-  private async safeBatchGetOperation<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    args: BatchListItemsArgs<Entity, PKs>,
-    items: Entity[] = [],
-    retries = NO_RETRIES,
-  ): Promise<Entity[]> {
-    const { keys, table, propertiesToRetrieve, consistentRead = true } = args;
-
-    const params = {
-      RequestItems: {
-        [table]: {
-          ConsistentRead: consistentRead,
-
-          Keys: keys,
-
-          ...getProjectExpressionParams(propertiesToRetrieve),
-        },
-      },
-    };
-
-    const { UnprocessedKeys, Responses } = await this._batchGetItems(params);
-
-    const returnItems = Responses?.[table] || [];
-
-    const updatedItems = [...items, ...returnItems] as Entity[];
-
-    if (!UnprocessedKeys?.[table] || retries > MAX_BATCH_GET_RETIRES) return updatedItems;
-
-    await waitExponentially(retries);
-
-    const newRetryCount = retries + 1;
-    const unprocessedItems = UnprocessedKeys[table].Keys as BatchListItemsArgs<Entity, PKs>['keys'];
-
-    return this.safeBatchGetOperation(
-      { ...args, keys: unprocessedItems },
-      updatedItems,
-      newRetryCount,
-    );
-  }
-
-  async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    options: BatchListItemsArgs<Entity, PKs>,
-  ): Promise<Entity[]> {
-    const { keys } = options;
-
-    if (!keys.length) return [];
-
-    const withSafeLimit = ensureMaxArraySize(keys, DYNAMO_BATCH_GET_LIMIT);
-
-    const items = await Promise.all(
-      withSafeLimit.map(async (batchKeys) => {
-        const batchItems = await this.safeBatchGetOperation({
-          ...options,
-          keys: batchKeys,
-        });
-
-        return batchItems;
-      }),
-    );
-
-    return items.flat();
   }
 
   private _getConditionCheckParams({
