@@ -17,15 +17,12 @@ import {
   CreateItemParams,
   DeleteItemParams,
   UpdateParams,
-  ValidateTransactParams,
   TransactionConfig,
   DBSet,
   BatchListItemsArgs,
   GetItemParams,
   getExpressionNames,
-  buildExpression,
   getFilterParams,
-  getConditionExpressionValues,
   ItemCreator,
   ItemRemover,
   ItemGetter,
@@ -35,10 +32,9 @@ import {
   ListOptions,
   ListAllOptions,
   BatchGetter,
+  TransactionWriter,
 } from './utils';
 import { fromPaginationToken, toPaginationToken } from './utils/pagination';
-
-const MAX_TRANSACT_ACTIONS = 100;
 
 export class DatabaseProvider implements IDatabaseProvider {
   private dynamoService: DynamoDB.DocumentClient;
@@ -54,6 +50,8 @@ export class DatabaseProvider implements IDatabaseProvider {
   private lister: ItemLister;
 
   private batchGetter: BatchGetter;
+
+  private transactWriter: TransactionWriter;
 
   // add in constructor params like
   // log
@@ -90,6 +88,11 @@ export class DatabaseProvider implements IDatabaseProvider {
       logCallParams: true,
       dynamoDB: this.dynamoService,
     });
+
+    this.transactWriter = new TransactionWriter({
+      logCallParams: true,
+      dynamoDB: this.dynamoService,
+    });
   }
 
   private async _query<Entity = any>(
@@ -98,14 +101,6 @@ export class DatabaseProvider implements IDatabaseProvider {
     printLog(params, 'query');
 
     return this.dynamoService.query(params).promise() as unknown as Promise<QueryOutput<Entity>>;
-  }
-
-  private async _transactionWrite(
-    params: DynamoDB.DocumentClient.TransactWriteItemsInput,
-  ): Promise<DynamoDB.DocumentClient.TransactWriteItemsOutput> {
-    printLog(params, 'transactionWrite');
-
-    return this.dynamoService.transactWrite(params).promise();
   }
 
   async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -269,97 +264,15 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.recursivelyListCollection(params);
   }
 
-  private _getConditionCheckParams({
-    conditions,
-    key,
-    table,
-  }: ValidateTransactParams): DynamoDB.DocumentClient.ConditionCheck {
-    return {
-      TableName: table,
-
-      Key: key,
-
-      ConditionExpression: buildExpression(conditions),
-
-      ExpressionAttributeNames: getExpressionNames(conditions.map(({ property }) => property)),
-
-      ExpressionAttributeValues: getConditionExpressionValues(conditions),
-    };
-  }
-
-  private _getTransactParams(
-    configs: TransactionConfig[],
-  ): DynamoDB.DocumentClient.TransactWriteItemsInput {
-    const params = configs.map(({ create, erase, update, validate }) => {
-      if (update) return { Update: this.updater.getUpdateParams(update) };
-
-      if (erase) return { Delete: this.remover.getDeleteParams(erase) };
-
-      if (create) return { Put: this.creator.getCreateParams(create) };
-
-      if (validate) return { ConditionCheck: this._getConditionCheckParams(validate) };
-
-      throw new Error('Unknown transact type');
-    });
-
-    const actualParams = params.filter(Boolean);
-
-    return { TransactItems: actualParams } as DynamoDB.DocumentClient.TransactWriteItemsInput;
-  }
-
-  private async executeSingleTransaction(configs: TransactionConfig[]): Promise<void> {
-    printLog(configs, 'TRANSACT PARAMS');
-
-    const params = this._getTransactParams(configs);
-
-    printLog(params, 'DYNAMODB LOW LEVEL TRANSACTION PARAMS');
-
-    await this._transactionWrite(params);
-  }
-
-  validateTransactions(configs: TransactionConfig[]): void {
-    const params = this._getTransactParams(configs);
-
-    const itemKeys = params.TransactItems.map(({ Delete, Put, Update }) => {
-      const modifier = Update ?? Delete;
-
-      if (modifier) return `${modifier.Key._pk}--${modifier.Key._sk}`;
-
-      if (Put) return `${Put.Item._pk}--${Put.Item._sk}`;
-
-      throw new Error('Invalid Transaction');
-    });
-
-    const uniqueKeys = Array.from(new Set(itemKeys));
-
-    printLog({ uniqueKeys, itemKeys });
-
-    if (uniqueKeys.length !== configs.length)
-      throw new Error('MULTIPLE OPERATIONS ON THE SAME ITEM FOUND...');
-  }
-
   async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
-    const validConfigs = configs.filter(Boolean) as TransactionConfig[];
-
-    if (!validConfigs.length) return console.log('EMPTY TRANSACTION RESOLVED');
-
-    // for the future: validates already if n > 100 (max supported amount)
-    this.validateTransactions(validConfigs);
-
-    if (configs.length < MAX_TRANSACT_ACTIONS)
-      throw new Error(`Max supported transaction size is ${MAX_TRANSACT_ACTIONS}`);
-
-    await this.executeSingleTransaction(validConfigs);
+    await this.transactWriter.executeTransaction(configs);
   }
 
   generateTransactionConfigList<Item>(
     items: Item[],
     generator: (item: Item) => (TransactionConfig | null)[],
   ): TransactionConfig[] {
-    return items
-      .map((item) => generator(item))
-      .flat()
-      .filter(Boolean) as TransactionConfig[];
+    return this.transactWriter.generateTransactionConfigList(items, generator);
   }
 
   createSet(items: string[]): DBSet {

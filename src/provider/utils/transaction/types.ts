@@ -1,6 +1,6 @@
 import { StringKey } from 'types';
-import { ItemExpression } from './expressions';
-import { CreateItemParams, DeleteItemParams, UpdateParams } from './crud';
+import { ItemExpression } from '../expressions';
+import { CreateItemParams, DeleteItemParams, UpdateParams } from '../crud';
 
 export interface UpdateTransaction<
   E extends Record<string, unknown> = Record<string, unknown>,
