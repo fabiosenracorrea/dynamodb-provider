@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { getFilterParams } from '../filters';
+import { toPaginationToken } from '../pagination';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 
 import { ItemLister } from './list';
@@ -6,8 +8,16 @@ import { ItemLister } from './list';
 describe('Lister', () => {
   describe('standard list', () => {
     it('should properly call the dynamoDB scan operation', async () => {
+      const items = [
+        { id: 1, name: 'fa' },
+        { id: 2, name: 'ga' },
+        { id: 3, name: 'ha' },
+      ];
+
       const scanMock = jest.fn().mockReturnValue({
-        promise: jest.fn().mockResolvedValue({}),
+        promise: jest.fn().mockResolvedValue({
+          Items: items,
+        }),
       });
 
       const lister = new ItemLister({
@@ -16,12 +26,14 @@ describe('Lister', () => {
         } as any,
       });
 
-      await lister.list('table');
+      const result = await lister.list('table');
 
       expect(scanMock).toHaveBeenCalledTimes(1);
       expect(scanMock).toHaveBeenCalledWith({
         TableName: 'table',
       });
+
+      expect(result.items).toBe(items);
     });
 
     it('should apply ConsistentRead if param received', async () => {
@@ -166,6 +178,237 @@ describe('Lister', () => {
         ProjectionExpression: getProjectionExpression(properties),
         ExpressionAttributeNames: getProjectionExpressionNames(properties),
       });
+    });
+
+    it('should apply Direct filter params if applicable', async () => {
+      const scanMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          scan: scanMock,
+        } as any,
+      });
+
+      const properties = ['name', 'age', 'id'];
+
+      await lister.list<any>('table', {
+        consistentRead: true,
+        index: 'SomeIndex',
+        limit: 40,
+
+        propertiesToGet: properties,
+
+        filters: {
+          age: 17,
+          state: ['MG', 'SP'],
+        },
+
+        parallelRetrieval: {
+          segment: 0,
+          total: 3,
+        },
+      });
+
+      const filterParams = getFilterParams({
+        age: 17,
+        state: ['MG', 'SP'],
+      });
+
+      expect(scanMock).toHaveBeenCalledTimes(1);
+      expect(scanMock).toHaveBeenCalledWith({
+        TableName: 'table',
+        ConsistentRead: true,
+        IndexName: 'SomeIndex',
+        Limit: 40,
+        Segment: 0,
+        TotalSegments: 3,
+
+        ...filterParams,
+        ProjectionExpression: getProjectionExpression(properties),
+        ExpressionAttributeNames: {
+          ...getProjectionExpressionNames(properties),
+          ...filterParams.ExpressionAttributeNames,
+        },
+      });
+    });
+
+    it('should apply Complex filter params if applicable', async () => {
+      const scanMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          scan: scanMock,
+        } as any,
+      });
+
+      const properties = ['name', 'age', 'id'];
+
+      await lister.list<any>('table', {
+        consistentRead: true,
+        index: 'SomeIndex',
+        limit: 40,
+
+        propertiesToGet: properties,
+
+        filters: {
+          age: 17,
+          state: ['MG', 'SP'],
+          birthDay: {
+            operation: 'between',
+            high: '1995-12-31',
+            low: '1995-01-31',
+          },
+        },
+
+        parallelRetrieval: {
+          segment: 0,
+          total: 3,
+        },
+      });
+
+      const filterParams = getFilterParams({
+        age: 17,
+        state: ['MG', 'SP'],
+        birthDay: {
+          operation: 'between',
+          high: '1995-12-31',
+          low: '1995-01-31',
+        },
+      });
+
+      expect(scanMock).toHaveBeenCalledTimes(1);
+      expect(scanMock).toHaveBeenCalledWith({
+        TableName: 'table',
+        ConsistentRead: true,
+        IndexName: 'SomeIndex',
+        Limit: 40,
+        Segment: 0,
+        TotalSegments: 3,
+
+        ...filterParams,
+        ProjectionExpression: getProjectionExpression(properties),
+        ExpressionAttributeNames: {
+          ...getProjectionExpressionNames(properties),
+          ...filterParams.ExpressionAttributeNames,
+        },
+      });
+    });
+
+    it('should properly return paginationToken', async () => {
+      const fakeLastKey = {
+        id: '11',
+        name: 'fa',
+      };
+
+      const scanMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [],
+          LastEvaluatedKey: fakeLastKey,
+        }),
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          scan: scanMock,
+        } as any,
+      });
+
+      const result = await lister.list<any>('table');
+
+      expect(scanMock).toHaveBeenCalledTimes(1);
+      expect(scanMock).toHaveBeenCalledWith({
+        TableName: 'table',
+      });
+
+      expect(result.paginationToken).toBeDefined();
+      expect(result.paginationToken).toBe(toPaginationToken(fakeLastKey));
+    });
+
+    it('should properly accept paginationToken', async () => {
+      const fakeLastKey = {
+        id: '11',
+        name: 'fa',
+      };
+
+      const scanMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          scan: scanMock,
+        } as any,
+      });
+
+      await lister.list<any>('table', {
+        paginationToken: toPaginationToken(fakeLastKey),
+      });
+
+      expect(scanMock).toHaveBeenCalledTimes(1);
+      expect(scanMock).toHaveBeenCalledWith({
+        TableName: 'table',
+
+        ExclusiveStartKey: fakeLastKey,
+      });
+    });
+  });
+
+  describe('list all', () => {
+    it('should properly handle sequential loads', async () => {
+      const firstItems = [
+        { id: 1, name: 'fa' },
+        { id: 2, name: 'ga' },
+        { id: 3, name: 'ha' },
+      ];
+
+      const fakeLastKey = {
+        id: '11',
+        name: 'fa',
+      };
+
+      const otherItems = [
+        { id: 4, name: 'ia' },
+        { id: 5, name: 'ja' },
+        { id: 6, name: 'ka' },
+      ];
+
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: firstItems,
+        LastEvaluatedKey: fakeLastKey,
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: otherItems,
+      });
+
+      const scanMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          scan: scanMock,
+        } as any,
+      });
+
+      const allItems = await lister.listAll<any>('table');
+
+      expect(scanMock).toHaveBeenCalledTimes(2);
+      expect(scanMock).toHaveBeenNthCalledWith(1, {
+        TableName: 'table',
+      });
+      expect(scanMock).toHaveBeenNthCalledWith(2, {
+        TableName: 'table',
+        ExclusiveStartKey: fakeLastKey,
+      });
+
+      expect(allItems).toEqual([...firstItems, ...otherItems]);
     });
   });
 });

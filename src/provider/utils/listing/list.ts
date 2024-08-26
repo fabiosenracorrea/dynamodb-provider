@@ -23,7 +23,9 @@ export interface ListOptions<Entity> {
    * You can use 3 different syntaxes:
    *
    * 1. key:value will filter for equality
+   *
    * 2. key:value[] will filter for any of those values
+   *
    * 3: key:{<FilterConfig>} will handle more complex cases
    */
   filters?: Filters<Entity>;
@@ -191,7 +193,7 @@ export class ItemLister {
 
     return this.recursivelyGetAllItems({
       ...options,
-      items,
+      items: updatedItems,
       _internalStartKey: lastKey,
     });
   }
