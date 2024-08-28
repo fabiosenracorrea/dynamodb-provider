@@ -95,36 +95,34 @@ export class TransactionWriter {
     await this._transactionWrite(params);
   }
 
-  private validateTransactions(configs: TransactionConfig[]): void {
-    const params = this._getTransactParams(configs);
+  // Should be an argument
+  // private validateTransactions(configs: TransactionConfig[]): void {
+  //   const params = this._getTransactParams(configs);
 
-    const itemKeys = params.TransactItems.map(({ Delete, Put, Update }) => {
-      const modifier = Update ?? Delete;
+  //   const itemKeys = params.TransactItems.map(({ Delete, Put, Update }) => {
+  //     const modifier = Update ?? Delete;
 
-      if (modifier) return `${modifier.Key._pk}--${modifier.Key._sk}`;
+  //     if (modifier) return `${modifier.Key._pk}--${modifier.Key._sk}`;
 
-      if (Put) return `${Put.Item._pk}--${Put.Item._sk}`;
+  //     if (Put) return `${Put.Item._pk}--${Put.Item._sk}`;
 
-      throw new Error('Invalid Transaction');
-    });
+  //     throw new Error('Invalid Transaction');
+  //   });
 
-    const uniqueKeys = Array.from(new Set(itemKeys));
+  //   const uniqueKeys = Array.from(new Set(itemKeys));
 
-    printLog({ uniqueKeys, itemKeys });
+  //   printLog({ uniqueKeys, itemKeys });
 
-    if (uniqueKeys.length !== configs.length)
-      throw new Error('MULTIPLE OPERATIONS ON THE SAME ITEM FOUND...');
-  }
+  //   if (uniqueKeys.length !== configs.length)
+  //     throw new Error('MULTIPLE OPERATIONS ON THE SAME ITEM FOUND...');
+  // }
 
   async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
     const validConfigs = configs.filter(Boolean) as TransactionConfig[];
 
     if (!validConfigs.length) return console.log('EMPTY TRANSACTION RESOLVED');
 
-    // for the future: validates already if n > 100 (max supported amount)
-    this.validateTransactions(validConfigs);
-
-    if (configs.length < MAX_TRANSACT_ACTIONS)
+    if (configs.length > MAX_TRANSACT_ACTIONS)
       throw new Error(`Max supported transaction size is ${MAX_TRANSACT_ACTIONS}`);
 
     await this.executeSingleTransaction(validConfigs);
@@ -132,7 +130,7 @@ export class TransactionWriter {
 
   generateTransactionConfigList<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[],
+    generator: (item: Item) => (TransactionConfig | null)[] | TransactionConfig | null,
   ): TransactionConfig[] {
     return items
       .map((item) => generator(item))
