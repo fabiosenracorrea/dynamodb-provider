@@ -6,6 +6,7 @@ import { printLog } from 'utils/log';
 import { cascadeEval } from 'utils/conditions';
 import { omit } from 'utils/object';
 
+import { AnyObject } from 'types';
 import { ExecutorParams } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 import {
@@ -60,7 +61,7 @@ export class QueryBuilder {
     ];
   }
 
-  private getQueryAttributes(
+  private getKeyParams(
     keys: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>,
   ): Pick<
     DynamoDB.DocumentClient.QueryInput,
@@ -79,33 +80,24 @@ export class QueryBuilder {
     };
   }
 
-  private async recursivelyListCollection<Entity>({
+  private getExpressionParams({
     hashKey,
-    table,
-    fullRetrieval = true,
-    index,
-    limit,
-    paginationToken,
-    rangeKey,
-    retrieveOrder = 'ASC',
-    items = [],
     filters,
-  }: CollectionListParams<Entity> & { items?: Entity[] }): Promise<CollectionListResult<Entity>> {
+    rangeKey,
+  }: Pick<CollectionListParams<any>, 'filters' | 'hashKey' | 'rangeKey'>): Pick<
+    DynamoDB.DocumentClient.QueryInput,
+    | 'KeyConditionExpression'
+    | 'ExpressionAttributeNames'
+    | 'ExpressionAttributeValues'
+    | 'FilterExpression'
+  > {
     const filterValues = getFilterParams(filters);
-    const expressionValues = this.getQueryAttributes({ hashKey, rangeKey });
+    const expressionValues = this.getKeyParams({ hashKey, rangeKey });
 
-    const { LastEvaluatedKey, Items } = await this._query({
-      TableName: table,
-
-      IndexName: index,
-
-      ScanIndexForward: retrieveOrder === 'ASC',
-
-      Limit: limit ? Math.max(limit - items.length, 1) : undefined,
-
-      ExclusiveStartKey: paginationToken ? fromPaginationToken(paginationToken) : undefined,
-
+    return {
       FilterExpression: filterValues?.FilterExpression,
+
+      KeyConditionExpression: expressionValues.KeyConditionExpression,
 
       ExpressionAttributeNames: {
         ...expressionValues.ExpressionAttributeNames,
@@ -117,8 +109,38 @@ export class QueryBuilder {
         ...expressionValues.ExpressionAttributeValues,
         ...filterValues.ExpressionAttributeValues,
       },
+    };
+  }
 
-      KeyConditionExpression: expressionValues.KeyConditionExpression,
+  private async recursivelyListCollection<Entity>({
+    table,
+    fullRetrieval = true,
+    index,
+    limit,
+    paginationToken,
+    retrieveOrder = 'ASC',
+    items = [],
+    _lastKey,
+    ...expressionParams
+  }: CollectionListParams<Entity> & { items?: Entity[]; _lastKey?: AnyObject }): Promise<
+    CollectionListResult<Entity>
+  > {
+    const isPaginated = _lastKey || paginationToken;
+
+    const { LastEvaluatedKey, Items } = await this._query({
+      TableName: table,
+
+      IndexName: index,
+
+      ScanIndexForward: retrieveOrder === 'ASC',
+
+      Limit: limit ? Math.max(limit - items.length, 1) : undefined,
+
+      ExclusiveStartKey: isPaginated
+        ? _lastKey || fromPaginationToken(paginationToken!)
+        : undefined,
+
+      ...this.getExpressionParams(expressionParams),
     });
 
     const updatedItems = [...items, ...(Items || [])];
@@ -134,31 +156,25 @@ export class QueryBuilder {
       !!(!fullRetrieval && !limit),
     ].some(Boolean);
 
-    const newPaginationToken = LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined;
-
     if (shouldStop)
       return {
         items: updatedItems,
-        paginationToken: newPaginationToken,
+        paginationToken: LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined,
       } as CollectionListResult<Entity>;
 
     return this.recursivelyListCollection({
-      hashKey,
+      ...expressionParams,
       table,
       fullRetrieval,
       index,
       limit,
-      paginationToken: newPaginationToken,
       retrieveOrder,
-      rangeKey,
       items: updatedItems,
-      filters,
+      _lastKey: LastEvaluatedKey,
     });
   }
 
-  async listCollection<Entity>(
-    params: CollectionListParams<Entity>,
-  ): Promise<CollectionListResult<Entity>> {
+  async query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>> {
     return this.recursivelyListCollection(params);
   }
 }

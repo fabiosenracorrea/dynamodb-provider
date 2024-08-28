@@ -134,10 +134,8 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.batchGetter.batchGet(options);
   }
 
-  async listCollection<Entity>(
-    params: CollectionListParams<Entity>,
-  ): Promise<CollectionListResult<Entity>> {
-    return this.queryBuilder.listCollection(params);
+  async query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>> {
+    return this.queryBuilder.query(params);
   }
 
   async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {

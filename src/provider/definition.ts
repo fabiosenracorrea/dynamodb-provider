@@ -40,9 +40,7 @@ export interface IDatabaseProvider {
   // add condition param, etc
   delete<Entity extends Record<string, any>>(params: DeleteItemParams<Entity>): Promise<void>;
 
-  listCollection<Entity>(
-    params: CollectionListParams<Entity>,
-  ): Promise<CollectionListResult<Entity>>;
+  query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>>;
 
   executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
 

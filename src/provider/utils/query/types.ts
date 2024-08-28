@@ -85,6 +85,8 @@ export interface CollectionListParams<Entity> {
    *
    * This will continue to execute sequential query operations
    * until all partition items are returned
+   *
+   * IMPORTANT: default is `true`
    */
   fullRetrieval?: boolean;
 
