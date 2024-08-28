@@ -103,6 +103,8 @@ describe('Updater tests', () => {
           },
         }),
       );
+
+      consoleLogMock.mockRestore();
     });
 
     it('should properly create dynamoDB sets on set operations', async () => {

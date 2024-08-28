@@ -135,6 +135,8 @@ describe('GetItem actions', () => {
           },
         }),
       );
+
+      consoleLogMock.mockRestore();
     });
   });
 });

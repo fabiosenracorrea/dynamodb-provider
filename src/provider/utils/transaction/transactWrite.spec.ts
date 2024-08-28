@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
@@ -528,6 +530,8 @@ describe('transactionWriter', () => {
     });
 
     it('should not call dynamodb if no params in list', async () => {
+      const consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
+
       const transactMock = jest.fn().mockReturnValue({
         promise: jest.fn(),
       });
@@ -541,9 +545,13 @@ describe('transactionWriter', () => {
       await writer.executeTransaction([]);
 
       expect(transactMock).not.toHaveBeenCalled();
+
+      consoleLogMock.mockRestore();
     });
 
     it('should not call dynamodb if null params in list', async () => {
+      const consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
+
       const transactMock = jest.fn().mockReturnValue({
         promise: jest.fn(),
       });
@@ -555,6 +563,41 @@ describe('transactionWriter', () => {
       });
 
       await writer.executeTransaction([null, null, null]);
+
+      expect(transactMock).not.toHaveBeenCalled();
+
+      consoleLogMock.mockRestore();
+    });
+
+    it('should block 100+ items', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      const execute = async () => {
+        await writer.executeTransaction(
+          Array.from({ length: 101 }, (_, i) => ({
+            create: {
+              table: 'some_table',
+              item: {
+                name: `Charlie Davis${i}`,
+                age: 37,
+                dob: '1987-11-03',
+                address: '202 Pine St, Springfield, IL',
+                type: 'admin',
+              },
+            },
+          })),
+        );
+      };
+
+      await expect(execute()).rejects.toThrow();
 
       expect(transactMock).not.toHaveBeenCalled();
     });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { fromPaginationToken, toPaginationToken } from './index';
 
 describe('pagination token helpers', () => {
@@ -29,10 +30,16 @@ describe('pagination token helpers', () => {
     });
 
     it('should return undefined if bad token provided', () => {
+      const consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
+
       expect(fromPaginationToken('bad_token')).toBe(undefined);
+
+      consoleLogMock.mockRestore();
     });
 
     it('should return undefined if token that does not originate an object is provided', () => {
+      const consoleLogMock = jest.spyOn(console, 'log').mockImplementation(() => {});
+
       const badButValidJSONtokens = [null, 'hello', [2, 3]].map((x) =>
         Buffer.from(JSON.stringify(x), 'utf-8').toString('base64'),
       );
@@ -40,6 +47,8 @@ describe('pagination token helpers', () => {
       badButValidJSONtokens.forEach((badToken) => {
         expect(fromPaginationToken(badToken)).toBe(undefined);
       });
+
+      consoleLogMock.mockRestore();
     });
   });
 });

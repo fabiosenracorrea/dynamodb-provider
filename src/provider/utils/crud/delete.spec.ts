@@ -125,6 +125,8 @@ describe('DeleteItem actions', () => {
           },
         }),
       );
+
+      consoleLogMock.mockRestore();
     });
   });
 

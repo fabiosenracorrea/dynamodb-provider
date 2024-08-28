@@ -125,6 +125,8 @@ describe('CreateItem actions', () => {
           },
         }),
       );
+
+      consoleLogMock.mockRestore();
     });
   });
 
