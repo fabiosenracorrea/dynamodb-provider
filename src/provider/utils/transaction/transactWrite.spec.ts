@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
-import { ItemUpdater } from '../crud';
+import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
 import { buildExpression } from '../expressions';
 import { TransactionWriter } from './transactionWrite';
 
@@ -600,6 +600,245 @@ describe('transactionWriter', () => {
       await expect(execute()).rejects.toThrow();
 
       expect(transactMock).not.toHaveBeenCalled();
+    });
+
+    it('should handle complex scenarios', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      const creator = new ItemCreator({ dynamoDB: {} as any });
+      const remover = new ItemRemover({ dynamoDB: {} as any });
+      const updater = new ItemUpdater({ dynamoDB: {} as any });
+
+      await writer.executeTransaction([
+        {
+          create: {
+            table: 'some_table',
+            item: {
+              name: 'Charlie Davis',
+              age: 37,
+              dob: '1987-11-03',
+              address: '202 Pine St, Springfield, IL',
+              type: 'admin',
+              id: '12',
+            },
+          },
+        },
+        {
+          create: {
+            table: 'backup_table',
+            item: {
+              name: 'Charlie Davis',
+              age: 37,
+              dob: '1987-11-03',
+              address: '202 Pine St, Springfield, IL',
+              type: 'admin',
+              timestamp: 'some_date',
+              createdBy: 'admin_ultra',
+            },
+          },
+        },
+        {
+          update: {
+            table: 'some_table',
+            key: {
+              id: '14',
+            },
+            values: {
+              name: 'Some name',
+            },
+            atomicOperations: [
+              {
+                property: 'count',
+                type: 'add',
+                value: 1,
+              },
+            ],
+          },
+        },
+        {
+          update: {
+            table: 'counts',
+            key: {
+              pk: 'CONNECTIONS',
+            },
+            atomicOperations: [
+              {
+                property: 'users',
+                type: 'subtract',
+                value: 1,
+              },
+            ],
+            conditions: [
+              {
+                operation: 'bigger_or_equal_than',
+                property: 'users',
+                value: 1,
+              },
+            ],
+          },
+        },
+        {
+          validate: {
+            table: 'control',
+            key: {
+              _pk: 'currently_playing',
+            },
+            conditions: [
+              {
+                operation: 'between',
+                high: 10,
+                low: 1,
+                property: 'balance',
+              },
+            ],
+          },
+        },
+        {
+          erase: {
+            table: 'other',
+            key: {
+              id: '99',
+            },
+            conditions: [
+              {
+                operation: 'exists',
+                property: 'deleted',
+              },
+            ],
+          },
+        },
+      ]);
+
+      expect(transactMock).toHaveBeenCalledTimes(1);
+      expect(transactMock).toHaveBeenCalledWith({
+        TransactItems: [
+          {
+            Put: creator.getCreateParams<any>({
+              table: 'some_table',
+              item: {
+                name: 'Charlie Davis',
+                age: 37,
+                dob: '1987-11-03',
+                address: '202 Pine St, Springfield, IL',
+                type: 'admin',
+                id: '12',
+              },
+            }),
+          },
+          {
+            Put: creator.getCreateParams<any>({
+              table: 'backup_table',
+              item: {
+                name: 'Charlie Davis',
+                age: 37,
+                dob: '1987-11-03',
+                address: '202 Pine St, Springfield, IL',
+                type: 'admin',
+                timestamp: 'some_date',
+                createdBy: 'admin_ultra',
+              },
+            }),
+          },
+          {
+            Update: updater.getUpdateParams<any>({
+              table: 'some_table',
+              key: {
+                id: '14',
+              },
+              values: {
+                name: 'Some name',
+              },
+              atomicOperations: [
+                {
+                  property: 'count',
+                  type: 'add',
+                  value: 1,
+                },
+              ],
+            }),
+          },
+          {
+            Update: updater.getUpdateParams<any>({
+              table: 'counts',
+              key: {
+                pk: 'CONNECTIONS',
+              },
+              atomicOperations: [
+                {
+                  property: 'users',
+                  type: 'subtract',
+                  value: 1,
+                },
+              ],
+              conditions: [
+                {
+                  operation: 'bigger_or_equal_than',
+                  property: 'users',
+                  value: 1,
+                },
+              ],
+            }),
+          },
+          {
+            ConditionCheck: {
+              TableName: 'control',
+
+              Key: {
+                _pk: 'currently_playing',
+              },
+
+              ConditionExpression: buildExpression([
+                {
+                  operation: 'between',
+                  high: 10,
+                  low: 1,
+                  property: 'balance',
+                },
+              ]),
+
+              ExpressionAttributeNames: getConditionExpressionNames([
+                {
+                  operation: 'between',
+                  high: 10,
+                  low: 1,
+                  property: 'balance',
+                },
+              ]),
+
+              ExpressionAttributeValues: getConditionExpressionValues([
+                {
+                  operation: 'between',
+                  high: 10,
+                  low: 1,
+                  property: 'balance',
+                },
+              ]),
+            },
+          },
+          {
+            Delete: remover.getDeleteParams<any>({
+              table: 'other',
+              key: {
+                id: '99',
+              },
+              conditions: [
+                {
+                  operation: 'exists',
+                  property: 'deleted',
+                },
+              ],
+            }),
+          },
+        ],
+      });
     });
   });
 });
