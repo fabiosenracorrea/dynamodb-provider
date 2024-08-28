@@ -35,7 +35,7 @@ export class QueryBuilder {
   private async _query<Entity = any>(
     params: DynamoDB.DocumentClient.QueryInput,
   ): Promise<QueryOutput<Entity>> {
-    if (this.options.logCallParams) printLog(params, 'query');
+    if (this.options.logCallParams) printLog(params, 'query - dynamodb params');
 
     return this.dynamoDB.query(params).promise() as unknown as Promise<QueryOutput<Entity>>;
   }

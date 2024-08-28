@@ -10,6 +10,8 @@ export type StringKey<Entity> = Extract<keyof Entity, string>;
 // https://stackoverflow.com/questions/61624719/how-to-conditionally-detect-the-any-type-in-typescript
 export type IfAny<T, Y, N> = 0 extends 1 & T ? Y : N;
 
+export type IsAny<T> = 0 extends 1 & T ? true : false;
+
 export type IsNever<T> = [T] extends [never] ? true : false;
 
 export type OmitUndefined<T> = {

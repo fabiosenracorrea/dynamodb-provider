@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { StringKey } from 'types';
-
 import { ExpressionOperation } from '../expressions';
 import { Filters } from '../filters';
 
 export interface BasicRangeKeyConfig<Entity> {
-  name: keyof Entity;
+  name: Extract<keyof Entity, string>;
   value: string | number;
   operation: Extract<
     ExpressionOperation,
@@ -19,7 +17,7 @@ export interface BasicRangeKeyConfig<Entity> {
 }
 
 export interface BetweenRangeKeyConfig<Entity> {
-  name: keyof Entity;
+  name: Extract<keyof Entity, string>;
   low: string | number;
   high: string | number;
   operation: Extract<ExpressionOperation, 'between'>;
@@ -44,7 +42,7 @@ export interface CollectionListParams<Entity> {
    * Pass in the column name + value
    */
   hashKey: {
-    name: StringKey<Entity>;
+    name: Extract<keyof Entity, string>;
 
     value: string;
   };
