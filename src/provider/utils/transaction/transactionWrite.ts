@@ -3,8 +3,8 @@ import { DynamoDB } from 'aws-sdk';
 import { printLog } from 'utils/log';
 import { ExecutorParams } from '../executor';
 import { TransactionConfig, ValidateTransactParams } from './types';
-import { buildExpression, getExpressionNames } from '../expressions';
-import { getConditionExpressionValues } from '../conditions';
+import { buildExpression } from '../expressions';
+import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
 import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
 
 const MAX_TRANSACT_ACTIONS = 100;
@@ -59,7 +59,7 @@ export class TransactionWriter {
 
       ConditionExpression: buildExpression(conditions),
 
-      ExpressionAttributeNames: getExpressionNames(conditions.map(({ property }) => property)),
+      ExpressionAttributeNames: getConditionExpressionNames(conditions),
 
       ExpressionAttributeValues: getConditionExpressionValues(conditions),
     };

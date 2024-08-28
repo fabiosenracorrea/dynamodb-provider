@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
+import { ItemUpdater } from '../crud';
+import { buildExpression } from '../expressions';
 import { TransactionWriter } from './transactionWrite';
 
 describe('transactionWriter', () => {
@@ -325,6 +328,235 @@ describe('transactionWriter', () => {
           },
         ],
       });
+    });
+
+    it('should properly call the dynamodb transactionWrite for update', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      const updater = new ItemUpdater({
+        dynamoDB: {} as any,
+      });
+
+      await writer.executeTransaction([
+        {
+          update: {
+            table: 'some_table',
+            key: {
+              name: 'Charlie Davis',
+              type: 'admin',
+            },
+            values: {
+              age: 37,
+              dob: '1987-11-03',
+              address: '202 Pine St, Springfield, IL',
+            },
+          },
+        },
+        {
+          update: {
+            table: 'backup_table',
+            key: {
+              name: 'Charlie Davis',
+              type: 'admin',
+            },
+            values: {
+              age: 37,
+              dob: '1987-11-03',
+              address: '202 Pine St, Springfield, IL',
+              timestamp: 'some_date',
+              createdBy: 'admin_ultra',
+            },
+          },
+        },
+      ]);
+
+      expect(transactMock).toHaveBeenCalledTimes(1);
+      expect(transactMock).toHaveBeenCalledWith({
+        TransactItems: [
+          {
+            Update: updater.getUpdateParams<any>({
+              table: 'some_table',
+              key: {
+                name: 'Charlie Davis',
+                type: 'admin',
+              },
+              values: {
+                age: 37,
+                dob: '1987-11-03',
+                address: '202 Pine St, Springfield, IL',
+              },
+            }),
+          },
+          {
+            Update: updater.getUpdateParams<any>({
+              table: 'backup_table',
+              key: {
+                name: 'Charlie Davis',
+                type: 'admin',
+              },
+              values: {
+                age: 37,
+                dob: '1987-11-03',
+                address: '202 Pine St, Springfield, IL',
+                timestamp: 'some_date',
+                createdBy: 'admin_ultra',
+              },
+            }),
+          },
+        ],
+      });
+    });
+
+    it('should properly call the dynamodb transactionWrite for delete', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      await writer.executeTransaction([
+        {
+          erase: {
+            table: 'some_table',
+            key: {
+              name: 'Charlie Davis',
+              type: 'admin',
+            },
+          },
+        },
+        {
+          erase: {
+            table: 'backup_table',
+            key: {
+              name: 'Charlie Davis',
+              type: 'admin',
+            },
+          },
+        },
+      ]);
+
+      expect(transactMock).toHaveBeenCalledTimes(1);
+      expect(transactMock).toHaveBeenCalledWith({
+        TransactItems: [
+          {
+            Delete: {
+              TableName: 'some_table',
+              Key: {
+                name: 'Charlie Davis',
+                type: 'admin',
+              },
+            },
+          },
+          {
+            Delete: {
+              TableName: 'backup_table',
+              Key: {
+                name: 'Charlie Davis',
+                type: 'admin',
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    it('should properly call the dynamodb transactionWrite for Condition', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      const conditions = [
+        {
+          operation: 'bigger_than' as const,
+          property: 'count',
+          value: 0,
+        },
+      ];
+
+      await writer.executeTransaction([
+        {
+          validate: {
+            table: 'some_table',
+            key: {
+              name: 'Charlie Davis',
+              type: 'admin',
+            },
+            conditions,
+          },
+        },
+      ]);
+
+      expect(transactMock).toHaveBeenCalledTimes(1);
+      expect(transactMock).toHaveBeenCalledWith({
+        TransactItems: [
+          {
+            ConditionCheck: {
+              TableName: 'some_table',
+
+              Key: {
+                name: 'Charlie Davis',
+                type: 'admin',
+              },
+
+              ConditionExpression: buildExpression(conditions),
+
+              ExpressionAttributeNames: getConditionExpressionNames(conditions),
+
+              ExpressionAttributeValues: getConditionExpressionValues(conditions),
+            },
+          },
+        ],
+      });
+    });
+
+    it('should not call dynamodb if no params in list', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      await writer.executeTransaction([]);
+
+      expect(transactMock).not.toHaveBeenCalled();
+    });
+
+    it('should not call dynamodb if null params in list', async () => {
+      const transactMock = jest.fn().mockReturnValue({
+        promise: jest.fn(),
+      });
+
+      const writer = new TransactionWriter({
+        dynamoDB: {
+          transactWrite: transactMock,
+        } as any,
+      });
+
+      await writer.executeTransaction([null, null, null]);
+
+      expect(transactMock).not.toHaveBeenCalled();
     });
   });
 });
