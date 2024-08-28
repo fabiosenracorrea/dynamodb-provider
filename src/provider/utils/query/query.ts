@@ -4,10 +4,17 @@ import { DynamoDB, QueryOutput } from 'aws-sdk';
 
 import { printLog } from 'utils/log';
 import { cascadeEval } from 'utils/conditions';
+import { omit } from 'utils/object';
 
 import { ExecutorParams } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
-import { expressionBuilders, getExpressionNames, toExpressionValue } from '../expressions';
+import {
+  buildExpression,
+  getExpression,
+  getExpressionNames,
+  getExpressionValues,
+  ItemExpression,
+} from '../expressions';
 import { getFilterParams } from '../filters';
 
 import { CollectionListParams, CollectionListResult } from './types';
@@ -31,36 +38,45 @@ export class QueryBuilder {
     return this.dynamoDB.query(params).promise() as unknown as Promise<QueryOutput<Entity>>;
   }
 
-  private getRangeKeyValueEntries(
-    rangeKeyConfig: Exclude<CollectionListParams<any>['rangeKey'], undefined>,
-  ): Array<[string, string | number]> {
-    switch (rangeKeyConfig.operation) {
-      case 'equal':
-      case 'lower_than':
-      case 'lower_or_equal_than':
-      case 'bigger_than':
-      case 'bigger_or_equal_than':
-      case 'begins_with':
-        return [[toExpressionValue(rangeKeyConfig.name), rangeKeyConfig.value]];
-      case 'between':
-        return [
-          [toExpressionValue(`${rangeKeyConfig.name}_low`), rangeKeyConfig.low],
-          [toExpressionValue(`${rangeKeyConfig.name}_high`), rangeKeyConfig.high],
-        ];
-      default:
-        throw new Error(`Unknown operation on range key found`);
-    }
-  }
-
-  private getListCollectionAttributeValues({
+  private transformKeysToExpressions({
     hashKey,
     rangeKey,
-  }: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>): Record<string, any> {
-    return Object.fromEntries([
-      [toExpressionValue(hashKey.name), hashKey.value],
+  }: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>): ItemExpression<any>[] {
+    const hashKeyExpression = getExpression({
+      operation: 'equal',
+      property: hashKey.name,
+      value: hashKey.value,
+    });
 
-      ...(rangeKey ? this.getRangeKeyValueEntries(rangeKey) : []),
-    ]);
+    if (!rangeKey) return [hashKeyExpression];
+
+    return [
+      hashKeyExpression,
+
+      getExpression({
+        property: rangeKey.name as string,
+        ...omit(rangeKey, ['name']),
+      } as ItemExpression<any>),
+    ];
+  }
+
+  private getQueryAttributes(
+    keys: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>,
+  ): Pick<
+    DynamoDB.DocumentClient.QueryInput,
+    'KeyConditionExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
+  > {
+    const keyExpressions = this.transformKeysToExpressions(keys);
+
+    return {
+      KeyConditionExpression: buildExpression(keyExpressions),
+
+      ExpressionAttributeNames: getExpressionNames(
+        [keys.hashKey.name, keys.rangeKey?.name].filter(Boolean) as string[],
+      ),
+
+      ExpressionAttributeValues: getExpressionValues(keyExpressions),
+    };
   }
 
   private async recursivelyListCollection<Entity>({
@@ -76,6 +92,7 @@ export class QueryBuilder {
     filters,
   }: CollectionListParams<Entity> & { items?: Entity[] }): Promise<CollectionListResult<Entity>> {
     const filterValues = getFilterParams(filters);
+    const expressionValues = this.getQueryAttributes({ hashKey, rangeKey });
 
     const { LastEvaluatedKey, Items } = await this._query({
       TableName: table,
@@ -91,25 +108,17 @@ export class QueryBuilder {
       FilterExpression: filterValues?.FilterExpression,
 
       ExpressionAttributeNames: {
-        ...getExpressionNames([hashKey.name, rangeKey?.name].filter(Boolean) as string[]),
+        ...expressionValues.ExpressionAttributeNames,
 
         ...filterValues.ExpressionAttributeNames,
       },
 
       ExpressionAttributeValues: {
-        ...this.getListCollectionAttributeValues({
-          hashKey,
-          rangeKey,
-        }),
-
+        ...expressionValues.ExpressionAttributeValues,
         ...filterValues.ExpressionAttributeValues,
       },
 
-      KeyConditionExpression: rangeKey
-        ? `${expressionBuilders.equal(hashKey.name)} and ${expressionBuilders[rangeKey.operation](
-            rangeKey.name,
-          )}`
-        : expressionBuilders.equal(hashKey.name),
+      KeyConditionExpression: expressionValues.KeyConditionExpression,
     });
 
     const updatedItems = [...items, ...(Items || [])];
