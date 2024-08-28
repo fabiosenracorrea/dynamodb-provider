@@ -2,11 +2,12 @@
 
 import { DynamoDB, QueryOutput } from 'aws-sdk';
 
+import { AnyObject } from 'types';
+
 import { printLog } from 'utils/log';
 import { cascadeEval } from 'utils/conditions';
 import { omit } from 'utils/object';
 
-import { AnyObject } from 'types';
 import { ExecutorParams } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 import {
