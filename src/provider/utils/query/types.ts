@@ -1,6 +1,7 @@
 import { StringKey } from 'types';
-import { ExpressionOperation } from './expressions';
-import { Filters } from './filters';
+
+import { ExpressionOperation } from '../expressions';
+import { Filters } from '../filters';
 
 export interface BasicRangeKeyConfig<Entity> {
   name: StringKey<Entity>;
