@@ -1,19 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface Condition<Result> {
+import { AnyFunction } from 'types';
+
+interface Condition {
   is: any;
-  then: Result | (() => Result);
+  then: any | (() => any);
 }
 
-export function cascadeEval<Result>(conditions: Condition<Result>[]): Result {
+type ConditionResult<T> = T extends () => infer R ? R : T;
+
+export function cascadeEval<Cond extends Condition>(
+  conditions: Cond[],
+): ConditionResult<Cond['then']> {
   const firstTrue = conditions.find(({ is }) => is);
   const [lastCondition] = conditions.slice().reverse();
 
   const matchCondition = firstTrue ? firstTrue.then : lastCondition?.then;
 
   return (
-    typeof matchCondition === 'function' ? (matchCondition as () => Result)?.() : matchCondition
-  ) as Result;
+    typeof matchCondition === 'function' ? (matchCondition as AnyFunction)?.() : matchCondition
+  ) as ConditionResult<Cond>;
 }
 
 interface SwitchCondition<Ref> {

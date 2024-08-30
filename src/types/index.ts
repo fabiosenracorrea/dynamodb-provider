@@ -24,6 +24,10 @@ export type OnlyOptional<T> = {
 
 export type MakePartial<T> = OmitUndefined<T> & OnlyOptional<T>;
 
+export type AnyFunction = (...p: any[]) => any;
+
+export type FirstParameter<Fn extends AnyFunction> = Parameters<Fn>[0];
+
 // type PrettifyObject<Obj> = { [Key in keyof Obj]: Obj[Key] };
 export type PrettifyObject<T> = {
   [K in keyof T]: T[K] extends Record<string, any> ? PrettifyObject<T[K]> : T[K];
