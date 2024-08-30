@@ -29,10 +29,3 @@ export function removeUndefinedProps<Obj extends AnyObject>(object: Obj): Obj {
 
   return curated as Obj;
 }
-
-export function logObject(object: AnyObject, description?: string): void {
-  const logs = [description, JSON.stringify(object, null, 2)].filter(Boolean);
-
-  // eslint-disable-next-line no-console
-  console.log(...logs);
-}
