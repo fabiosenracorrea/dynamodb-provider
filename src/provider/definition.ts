@@ -32,12 +32,10 @@ export interface IDatabaseProvider {
     params: CreateItemParams<Entity, PKs>,
   ): Promise<Entity>;
 
-  // workout which return params would be interesting to return
   update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined>;
 
-  // add condition param, etc
   delete<Entity extends Record<string, any>>(params: DeleteItemParams<Entity>): Promise<void>;
 
   query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>>;
