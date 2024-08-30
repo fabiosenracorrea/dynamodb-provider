@@ -1,7 +1,16 @@
 import { DatabaseProvider } from './implementation';
 
-export * from './definition';
+export { IDatabaseProvider } from './definition';
 
-export { TransactionConfig, DBSet } from './utils';
+export {
+  TransactionConfig,
+  DBSet,
+  QueryParams,
+  QueryResult,
+  UpdateParams,
+  CreateItemParams,
+  DeleteItemParams,
+  ListOptions,
+} from './utils';
 
 export default DatabaseProvider;

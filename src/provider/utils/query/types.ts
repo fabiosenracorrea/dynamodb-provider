@@ -25,7 +25,7 @@ export interface BetweenRangeKeyConfig<Entity> {
 
 export type RangeKeyConfig<Entity> = BasicRangeKeyConfig<Entity> | BetweenRangeKeyConfig<Entity>;
 
-export interface CollectionListParams<Entity> {
+export interface QueryParams<Entity> {
   /**
    * The table to perform the query
    */
@@ -102,7 +102,7 @@ export interface CollectionListParams<Entity> {
   filters?: Filters<Entity>;
 }
 
-export interface CollectionListResult<Entity = any> {
+export interface QueryResult<Entity = any> {
   items: Entity[];
 
   paginationToken: string;
