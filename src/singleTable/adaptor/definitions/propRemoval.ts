@@ -5,7 +5,7 @@ import { AnyObject } from 'types';
 import { SingleTableConfig } from './config';
 
 function resolveCleanUp({
-  autoRemoveTableProperties,
+  autoRemoveTableProperties = true,
   propertyCleanup,
   keepTypeProperty,
   partitionKey,

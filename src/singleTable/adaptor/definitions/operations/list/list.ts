@@ -8,20 +8,16 @@ import { SingleTableConfig } from '../../config';
 import { SingleTableOperatorParams } from '../../executor';
 import { cleanInternalPropsFromList } from '../../propRemoval';
 
-type BasicRangeConfig = {
-  value: string;
-  operation: Extract<
-    BasicRangeKeyConfig<AnyObject>['operation'],
-    'lower_than' | 'lower_or_equal_than' | 'bigger_than' | 'bigger_or_equal_than'
-  >;
-};
+type BasicRangeConfig = Pick<BasicRangeKeyConfig<AnyObject>, 'operation' | 'value'>;
 
-type BetweenRangeConfig = Omit<BetweenRangeKeyConfig<AnyObject>, 'name'>;
+type BetweenRangeConfig = Pick<BetweenRangeKeyConfig<AnyObject>, 'high' | 'low' | 'operation'>;
 
 export interface ListItemTypeParams
-  extends Pick<
-    QueryParams<AnyObject>,
-    'fullRetrieval' | 'paginationToken' | 'limit' | 'retrieveOrder' | 'filters'
+  extends Partial<
+    Pick<
+      QueryParams<AnyObject>,
+      'fullRetrieval' | 'paginationToken' | 'limit' | 'retrieveOrder' | 'filters'
+    >
   > {
   type: string;
 
@@ -76,6 +72,8 @@ export class SingleTableLister {
       hashKey: this.getHashKey(type),
 
       index: this.config.typeIndex.name,
+
+      fullRetrieval: false,
 
       ...collectionListConfig,
 
