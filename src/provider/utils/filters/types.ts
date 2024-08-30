@@ -34,6 +34,8 @@ type KeysWithValuesOfType<T, V> = keyof { [P in keyof T as T[P] extends V ? P : 
 
 type GoodFilterTargets = string | number | boolean | null | undefined;
 
+// type SafeTarget<T> = IfAny<T, GoodFilterTargets, T>;
+
 type OrArray<T> = T | T[];
 
 export type Filters<Entity = AnyObject> = {
