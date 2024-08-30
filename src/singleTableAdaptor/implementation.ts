@@ -1,8 +1,10 @@
-import { removeUndefinedProperties } from 'utils/object';
-import { AnyObject, SingleTableItem } from 'types/general';
+import { removeUndefinedProps } from 'utils/object';
+import { SingleTableItem } from 'types/general';
 import { getCurrentFormattedTime } from 'utils/date';
 import { getFirstItem, getLastIndex } from 'utils/array';
 import { cascadeEval } from 'utils/conditions';
+import { StringKey, AnyObject } from 'types';
+
 import DatabaseProvider, { IDatabaseProvider } from '../provider';
 
 import {
@@ -11,7 +13,6 @@ import {
   DBSet,
   DeleteItemParams,
   RangeKeyConfig,
-  StringKey,
   UpdateParams,
   ValidateTransactParams,
 } from '../provider/utils';
@@ -113,7 +114,7 @@ export class SingleTableProvider implements SingleTableAdaptor {
       return this.convertKey(key);
     });
 
-    return removeUndefinedProperties({
+    return removeUndefinedProps({
       [hashName]: hashValue,
 
       [rangeName]: rangeValue,
@@ -368,7 +369,7 @@ export class SingleTableProvider implements SingleTableAdaptor {
       },
 
       rangeKey: range
-        ? removeUndefinedProperties({
+        ? removeUndefinedProps({
             ...range,
 
             high: range.operation === 'between' ? this.convertKey(range.high) : undefined,
