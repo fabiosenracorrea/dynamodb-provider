@@ -5,7 +5,7 @@ import { getFirstItem, getLastIndex } from 'utils/array';
 import { cascadeEval } from 'utils/conditions';
 import { StringKey, AnyObject } from 'types';
 
-import DatabaseProvider, { IDatabaseProvider } from '../provider';
+import DatabaseProvider, { IDatabaseProvider } from 'provider';
 
 import {
   QueryResult,
@@ -15,7 +15,7 @@ import {
   RangeKeyConfig,
   UpdateParams,
   ValidateTransactParams,
-} from '../provider/utils';
+} from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -28,22 +28,11 @@ import {
   SingleTableUpdateParams,
   SingleTableValidateTransactParams,
   UpdateIndexMapping,
+  SingleTableLister,
+  SingleTableConfig,
 } from './definitions';
 
 import { SingleTableAdaptor } from './definition';
-import {
-  ExtendableRegisteredEntity,
-  ExtendableWithIndexRegisteredEntity,
-  FromCollection,
-  FromEntity,
-  IndexQueryMethods,
-  PartitionQueryMethods,
-  ExtendablePartitionCollection,
-  JoinResolutionParams,
-  GetCollectionResult,
-} from './model';
-import { Extractor, Sorter } from './model/partitionCollection';
-import { SingleTableLister } from './adaptor/definitions';
 
 interface Params extends SingleTableConfig {
   databaseProvider?: IDatabaseProvider;
@@ -160,53 +149,11 @@ export class SingleTableProvider implements SingleTableAdaptor {
   }
 
   async listAllFromType<Entity>(type: string): Promise<Entity[]> {
-    const { items } = await this.databaseProvider.listCollection({
-      table: this.config.table,
-
-      hashKey: {
-        value: type,
-        name: this.config.itemTypeProp,
-      },
-
-      fullRetrieval: true,
-
-      index: this.config.typeIndex,
-    });
-
-    return this.cleanInternalPropsFromList(items as AnyObject[]) as Entity[];
+    return this.lister.listAllFromType(type);
   }
 
-  async listType<Entity>({
-    type,
-    dateRange,
-    ...collectionListConfig
-  }: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
-    const { items, paginationToken } = await this.databaseProvider.listCollection({
-      table: this.config.table,
-
-      hashKey: {
-        value: type,
-        name: this.config.itemTypeProp,
-      },
-
-      index: this.config.typeIndex,
-
-      ...collectionListConfig,
-
-      rangeKey: dateRange
-        ? {
-            ...dateRange,
-
-            name: this.config.rangeKey,
-          }
-        : undefined,
-    });
-
-    return {
-      items: this.cleanInternalPropsFromList(items as AnyObject[]) as Entity[],
-
-      paginationToken,
-    };
+  async listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
+    return this.lister.listType(params);
   }
 
   private transformIndexMappingToRecord(mapping: UpdateIndexMapping): Record<string, string> {

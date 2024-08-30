@@ -2,7 +2,7 @@ import { AnyObject } from 'types/general';
 import {
   BasicRangeKeyConfig,
   BetweenRangeKeyConfig,
-  CollectionListParams,
+  QueryParams,
 } from '../../../provider/utils';
 
 type BasicRangeConfig = {
@@ -17,7 +17,7 @@ type BetweenRangeConfig = Omit<BetweenRangeKeyConfig<AnyObject>, 'name'>;
 
 export interface ListItemTypeParams
   extends Pick<
-    CollectionListParams<AnyObject>,
+    QueryParams<AnyObject>,
     'fullRetrieval' | 'paginationToken' | 'limit' | 'retrieveOrder'
   > {
   type: string;

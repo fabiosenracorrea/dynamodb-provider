@@ -5,8 +5,8 @@ import {
   CreateItemParams,
   DeleteItemParams,
   UpdateParams,
-  CollectionListParams,
-  CollectionListResult,
+  QueryParams,
+  QueryResult,
   TransactionConfig,
   DBSet,
   GetItemParams,
@@ -38,7 +38,7 @@ export interface IDatabaseProvider {
 
   delete<Entity extends Record<string, any>>(params: DeleteItemParams<Entity>): Promise<void>;
 
-  query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>>;
+  query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
 
   executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
 

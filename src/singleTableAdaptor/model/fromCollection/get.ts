@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DefinedNameRangeKeyConfig, SingleTableCollectionListParams } from '../../definitions';
+import { DefinedNameRangeKeyConfig, SingleTableQueryParams } from '../../definitions';
 import { ExtendablePartitionCollection } from '../partitionCollection';
 
-type BaseParams = Pick<SingleTableCollectionListParams<any>, 'retrieveOrder'>;
+type BaseParams = Pick<SingleTableQueryParams<any>, 'retrieveOrder'>;
 
 type NarrowParams<Registered extends ExtendablePartitionCollection> =
   Registered['narrow'] extends 'RANGE_KEY'

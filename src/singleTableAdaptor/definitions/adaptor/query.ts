@@ -1,7 +1,7 @@
 import {
   BasicRangeKeyConfig,
   BetweenRangeKeyConfig,
-  CollectionListParams,
+  QueryParams,
 } from '../../../provider/utils';
 
 import { KeyValue, TableIndex } from '../../config';
@@ -17,8 +17,8 @@ export type DefinedNameRangeKeyConfig =
       high: KeyValue | BetweenRangeKeyConfig<unknown>['high'];
     });
 
-export type SingleTableCollectionListParams<Entity> = Omit<
-  CollectionListParams<Entity>,
+export type SingleTableQueryParams<Entity> = Omit<
+  QueryParams<Entity>,
   'index' | 'hashKey' | 'rangeKey' | 'table'
 > & {
   index?: TableIndex;

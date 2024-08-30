@@ -1,11 +1,7 @@
-import { SingleTableItem } from 'types/general';
-import { IDatabaseProvider } from '../provider';
+import { AnyObject, StringKey } from 'types';
 
-import { QueryResult, StringKey } from '../provider/utils';
+import { IDatabaseProvider, QueryResult } from 'provider';
 
-import { SingleTableKeyReference } from './config';
-
-import { FromCollectionMethods, FromEntityMethods } from './model';
 import {
   SingleTableCreateItemParams,
   SingleTableTransactionConfig,
@@ -15,12 +11,10 @@ import {
   SingleTableQueryParams,
   ListItemTypeParams,
   ListItemTypeResult,
+  SingleTableKeyReference,
 } from './definitions';
 
-export interface SingleTableAdaptor
-  extends Pick<IDatabaseProvider, 'createSetEntity'>,
-    FromEntityMethods,
-    FromCollectionMethods {
+export interface SingleTableAdaptor extends Pick<IDatabaseProvider, 'createSet'> {
   get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableGetParams<Entity, PKs>,
   ): Promise<Entity | undefined>;
@@ -40,7 +34,7 @@ export interface SingleTableAdaptor
   listAllFromType<Entity>(type: string): Promise<Entity[]>;
   listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>>;
 
-  listCollection<Entity = SingleTableItem>(
+  listCollection<Entity = AnyObject>(
     params: SingleTableQueryParams<Entity>,
   ): Promise<QueryResult<Entity>>;
 

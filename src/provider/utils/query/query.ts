@@ -19,7 +19,7 @@ import {
 } from '../expressions';
 import { getFilterParams } from '../filters';
 
-import { CollectionListParams, CollectionListResult } from './types';
+import { QueryParams, QueryResult } from './types';
 
 export class QueryBuilder {
   private dynamoDB: ExecutorParams['dynamoDB'];
@@ -43,7 +43,7 @@ export class QueryBuilder {
   private transformKeysToExpressions({
     hashKey,
     rangeKey,
-  }: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>): ItemExpression<any>[] {
+  }: Pick<QueryParams<any>, 'hashKey' | 'rangeKey'>): ItemExpression<any>[] {
     const hashKeyExpression = getExpression({
       operation: 'equal',
       property: hashKey.name,
@@ -63,7 +63,7 @@ export class QueryBuilder {
   }
 
   private getKeyParams(
-    keys: Pick<CollectionListParams<any>, 'hashKey' | 'rangeKey'>,
+    keys: Pick<QueryParams<any>, 'hashKey' | 'rangeKey'>,
   ): Pick<
     DynamoDB.DocumentClient.QueryInput,
     'KeyConditionExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
@@ -85,7 +85,7 @@ export class QueryBuilder {
     hashKey,
     filters,
     rangeKey,
-  }: Pick<CollectionListParams<any>, 'filters' | 'hashKey' | 'rangeKey'>): Pick<
+  }: Pick<QueryParams<any>, 'filters' | 'hashKey' | 'rangeKey'>): Pick<
     DynamoDB.DocumentClient.QueryInput,
     | 'KeyConditionExpression'
     | 'ExpressionAttributeNames'
@@ -123,8 +123,8 @@ export class QueryBuilder {
     items = [],
     _lastKey,
     ...expressionParams
-  }: CollectionListParams<Entity> & { items?: Entity[]; _lastKey?: AnyObject }): Promise<
-    CollectionListResult<Entity>
+  }: QueryParams<Entity> & { items?: Entity[]; _lastKey?: AnyObject }): Promise<
+    QueryResult<Entity>
   > {
     const isPaginated = _lastKey || paginationToken;
 
@@ -161,7 +161,7 @@ export class QueryBuilder {
       return {
         items: updatedItems,
         paginationToken: LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined,
-      } as CollectionListResult<Entity>;
+      } as QueryResult<Entity>;
 
     return this.recursivelyListCollection({
       ...expressionParams,
@@ -175,7 +175,7 @@ export class QueryBuilder {
     });
   }
 
-  async query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>> {
+  async query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
     return this.recursivelyListCollection(params);
   }
 }

@@ -25,8 +25,8 @@ import {
   BatchGetter,
   TransactionWriter,
   QueryBuilder,
-  CollectionListParams,
-  CollectionListResult,
+  QueryParams,
+  QueryResult,
 } from './utils';
 
 export class DatabaseProvider implements IDatabaseProvider {
@@ -134,7 +134,7 @@ export class DatabaseProvider implements IDatabaseProvider {
     return this.batchGetter.batchGet(options);
   }
 
-  async query<Entity>(params: CollectionListParams<Entity>): Promise<CollectionListResult<Entity>> {
+  async query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
     return this.queryBuilder.query(params);
   }
 

@@ -1,6 +1,6 @@
-import { CollectionListResult } from 'providers/database/provider/utils';
+import { QueryResult } from 'providers/database/provider/utils';
 import { ExtendableRegisteredEntity } from '../../defined';
-import { SingleTableCollectionListParams } from '../../../definitions';
+import { SingleTableQueryParams } from '../../../definitions';
 import { RangeQuery, RangeQueryGetters } from '../../entity';
 import { EmptyObject, SafeObjectUnion } from '../../entity/helpers';
 import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
@@ -12,9 +12,9 @@ type BaseQueryParams<Registered extends ExtendableRegisteredEntity> = QueryConfi
 
 type CustomQueryParams<Registered extends ExtendableRegisteredEntity> =
   BaseQueryParams<Registered> &
-    Pick<SingleTableCollectionListParams<Registered['__entity']>, 'range'>;
+    Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
 
-type QueryResult<Registered extends ExtendableRegisteredEntity> = CollectionListResult<
+type QueryResult<Registered extends ExtendableRegisteredEntity> = QueryResult<
   Registered['__entity']
 >;
 

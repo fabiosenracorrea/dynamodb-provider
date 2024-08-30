@@ -1,7 +1,7 @@
-import { CollectionListResult } from 'providers/database/provider/utils';
+import { QueryResult } from 'providers/database/provider/utils';
 import { AnyObject, IfAny } from 'types/general';
 import { ExtendableRegisteredEntity, ExtendableWithIndexRegisteredEntity } from '../../defined';
-import { SingleTableCollectionListParams } from '../../../definitions';
+import { SingleTableQueryParams } from '../../../definitions';
 import { RangeQuery, RangeQueryGetters } from '../../entity';
 import { EmptyObject, SafeObjectUnion } from '../../entity/helpers';
 import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
@@ -24,9 +24,9 @@ type BaseQueryParams<
 > = QueryConfigParams<Entity> & IndexPartitionParams<Index>;
 
 type CustomQueryParams<Entity, Index extends RegisteredIndex> = BaseQueryParams<Index, Entity> &
-  Pick<SingleTableCollectionListParams<Entity>, 'range'>;
+  Pick<SingleTableQueryParams<Entity>, 'range'>;
 
-type QueryResult<Entity> = CollectionListResult<Entity>;
+type QueryResult<Entity> = QueryResult<Entity>;
 
 type RangeQueryParams<BaseParams, RangeParams> = BaseParams & SafeObjectUnion<RangeParams>;
 

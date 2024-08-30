@@ -1,8 +1,8 @@
-import { CollectionListParams } from 'providers/database/provider/utils';
+import { QueryParams } from 'providers/database/provider/utils';
 import { AnyObject } from 'types/general';
 
 export type QueryConfigParams<Entity = AnyObject> = Omit<
-  CollectionListParams<Entity>,
+  QueryParams<Entity>,
   'index' | 'hashKey' | 'rangeKey' | 'table'
 >;
 

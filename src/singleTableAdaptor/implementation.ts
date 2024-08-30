@@ -8,7 +8,7 @@ import { StringKey, AnyObject } from 'types';
 import DatabaseProvider, { IDatabaseProvider } from '../provider';
 
 import {
-  CollectionListResult,
+  QueryResult,
   CreateItemParams,
   DBSet,
   DeleteItemParams,
@@ -21,7 +21,7 @@ import {
   ListItemTypeParams,
   ListItemTypeResult,
   SingleTableBatchGetParams,
-  SingleTableCollectionListParams,
+  SingleTableQueryParams,
   SingleTableCreateItemParams,
   SingleTableGetParams,
   SingleTableTransactionConfig,
@@ -352,8 +352,8 @@ export class SingleTableProvider implements SingleTableAdaptor {
     range,
     cleanDBProps = true,
     ...options
-  }: SingleTableCollectionListParams<Entity> & { cleanDBProps?: boolean }): Promise<
-    CollectionListResult<Entity>
+  }: SingleTableQueryParams<Entity> & { cleanDBProps?: boolean }): Promise<
+    QueryResult<Entity>
   > {
     const { items, paginationToken } = await this.databaseProvider.listCollection({
       ...options,
@@ -389,12 +389,12 @@ export class SingleTableProvider implements SingleTableAdaptor {
       paginationToken,
 
       items: cleanDBProps ? this.cleanInternalPropsFromList(items as AnyObject[]) : items,
-    } as CollectionListResult<Entity>;
+    } as QueryResult<Entity>;
   }
 
   async listCollection<Entity = SingleTableItem>(
-    params: SingleTableCollectionListParams<Entity>,
-  ): Promise<CollectionListResult<Entity>> {
+    params: SingleTableQueryParams<Entity>,
+  ): Promise<QueryResult<Entity>> {
     const result = this._listCollection<Entity>(params);
 
     return result;
