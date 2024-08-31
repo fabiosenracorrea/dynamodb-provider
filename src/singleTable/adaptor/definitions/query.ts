@@ -1,8 +1,4 @@
-import {
-  BasicRangeKeyConfig,
-  BetweenRangeKeyConfig,
-  QueryParams,
-} from '../../../provider/utils';
+import { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from '../../../provider/utils';
 
 import { KeyValue, TableIndex } from '../../config';
 

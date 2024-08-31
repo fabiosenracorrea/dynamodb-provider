@@ -3,7 +3,7 @@ import { StringKey, AnyObject } from 'types';
 
 import DatabaseProvider, { IDatabaseProvider } from 'provider';
 
-import { QueryResult, DBSet, RangeKeyConfig, ValidateTransactParams } from 'provider/utils';
+import { QueryResult, DBSet, RangeKeyConfig } from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -14,7 +14,6 @@ import {
   SingleTableGetParams,
   SingleTableTransactionConfig,
   SingleTableUpdateParams,
-  SingleTableValidateTransactParams,
   SingleTableLister,
   SingleTableConfig,
   SingleTableBatchGetter,
@@ -26,6 +25,7 @@ import {
 } from './definitions';
 
 import { ISingleTableProvider, SingleTableProviderParams } from './definition';
+import { SingleTableTransactionWriter } from './definitions/operations/transactions';
 
 export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   implements ISingleTableProvider<SingleParams>
@@ -46,6 +46,8 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   private updater: SingleTableUpdater;
 
+  private transactWriter: SingleTableTransactionWriter;
+
   constructor({ databaseProvider, ...config }: SingleParams) {
     this.db = databaseProvider || new DatabaseProvider();
 
@@ -57,6 +59,7 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     this.creator = new SingleTableCreator({ db: this.db, config });
     this.getter = new SingleTableGetter({ db: this.db, config });
     this.updater = new SingleTableUpdater({ db: this.db, config });
+    this.transactWriter = new SingleTableTransactionWriter({ db: this.db, config });
   }
 
   async get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
@@ -143,46 +146,17 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     return result;
   }
 
-  private getValidateParams({
-    conditions,
-    partitionKey,
-    rangeKey,
-  }: SingleTableValidateTransactParams): ValidateTransactParams {
-    return {
-      conditions,
-
-      table: this.config.table,
-
-      key: this.getPrimaryKeyRecord({
-        partitionKey,
-        rangeKey,
-      }),
-    };
-  }
-
   async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
-    await this.db.executeTransaction(
-      (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
-        ({ create, erase, update, validate }) => {
-          if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
-
-          if (create) return { create: { ...this.creator.getCreateParams(create) } };
-
-          if (update) return { update: { ...this.updater.getUpdateParams(update) } };
-
-          if (validate) return { validate: this.getValidateParams(validate) };
-
-          throw new Error('Invalid transaction type');
-        },
-      ),
-    );
+    return this.transactWriter.executeTransaction(configs);
   }
 
   generateTransactionConfigList<Item>(
     items: Item[],
-    generator: (item: Item) => (SingleTableTransactionConfig<AnyObject, unknown> | null)[],
-  ): (SingleTableTransactionConfig<AnyObject, unknown> | null)[] {
-    return items.map(generator).flat().filter(Boolean);
+    generator: (
+      item: Item,
+    ) => (SingleTableTransactionConfig | null)[] | SingleTableTransactionConfig | null,
+  ): SingleTableTransactionConfig[] {
+    return this.transactWriter.generateTransactionConfigList(items, generator);
   }
 
   createSet(items: string[]): DBSet {
