@@ -7,7 +7,7 @@ import { StringKey } from 'types';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 
 import { EntityPK } from './types';
 
@@ -31,17 +31,7 @@ export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknow
   conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
 }
 
-export class ItemRemover {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class ItemRemover extends DynamodbExecutor {
   private async _deleteItem(
     params: DynamoDB.DocumentClient.DeleteItemInput,
   ): Promise<DynamoDB.DocumentClient.DeleteItemOutput> {

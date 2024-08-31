@@ -7,7 +7,7 @@ import { waitExponentially } from 'utils/backOff';
 
 import { StringKey } from 'types';
 
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 import { getProjectExpressionParams } from '../projection';
 import { EntityPK } from '../crud/types';
 
@@ -53,17 +53,7 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
 //   key: AnyObject;
 // };
 
-export class BatchGetter {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class BatchGetter extends DynamodbExecutor {
   private async _batchGetItems(
     params: DynamoDB.DocumentClient.BatchGetItemInput,
   ): Promise<DynamoDB.DocumentClient.BatchGetItemOutput> {

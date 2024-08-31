@@ -6,7 +6,7 @@ import { StringKey } from 'types';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 
 export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
@@ -32,17 +32,7 @@ export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknow
   conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
 }
 
-export class ItemCreator {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class ItemCreator extends DynamodbExecutor {
   getCreateParams<Entity>({
     item,
     table,

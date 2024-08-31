@@ -8,7 +8,7 @@ import { printLog } from 'utils/log';
 import { cascadeEval } from 'utils/conditions';
 import { omit } from 'utils/object';
 
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 import {
   buildExpression,
@@ -21,17 +21,7 @@ import { getFilterParams } from '../filters';
 
 import { QueryParams, QueryResult } from './types';
 
-export class QueryBuilder {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class QueryBuilder extends DynamodbExecutor {
   private async _query<Entity = any>(
     params: DynamoDB.DocumentClient.QueryInput,
   ): Promise<QueryOutput<Entity>> {

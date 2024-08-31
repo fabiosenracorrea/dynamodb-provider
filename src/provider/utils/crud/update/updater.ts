@@ -16,24 +16,14 @@ import {
   buildExpressionAttributeValues,
   getExpressionNames,
 } from '../../expressions';
-import { ExecutorParams } from '../../executor';
+import { DynamodbExecutor } from '../../executor';
 
 import { buildUpdateExpression } from './updateExpression';
 import { validateUpdateParams } from './validate';
 import { UpdateParams } from './types';
 import { UpdateIfNotExistsOperation } from './atomic';
 
-export class ItemUpdater {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class ItemUpdater extends DynamodbExecutor {
   private async _updateItem(
     params: DynamoDB.DocumentClient.UpdateItemInput,
   ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {

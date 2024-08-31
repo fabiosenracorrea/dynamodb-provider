@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DynamoDB } from 'aws-sdk';
 import { printLog } from 'utils/log';
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor, ExecutorParams } from '../executor';
 import { TransactionConfig, ValidateTransactParams } from './types';
 import { buildExpression } from '../expressions';
 import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
@@ -9,36 +9,21 @@ import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
 
 const MAX_TRANSACT_ACTIONS = 100;
 
-export class TransactionWriter {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
+export class TransactionWriter extends DynamodbExecutor {
   private creator: ItemCreator;
 
   private remover: ItemRemover;
 
   private updater: ItemUpdater;
 
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
+  constructor(params: ExecutorParams) {
+    super(params);
 
-    this.options = options;
+    this.creator = new ItemCreator(params);
 
-    this.creator = new ItemCreator({
-      dynamoDB,
-      ...options,
-    });
+    this.remover = new ItemRemover(params);
 
-    this.remover = new ItemRemover({
-      dynamoDB,
-      ...options,
-    });
-
-    this.updater = new ItemUpdater({
-      dynamoDB,
-      ...options,
-    });
+    this.updater = new ItemUpdater(params);
   }
 
   private async _transactionWrite(

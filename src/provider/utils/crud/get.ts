@@ -6,7 +6,7 @@ import { printLog } from 'utils/log';
 import { removeUndefinedProps } from 'utils/object';
 
 import { getProjectExpressionParams } from '../projection';
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 
 import { EntityPK } from './types';
 
@@ -36,17 +36,7 @@ export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown =
   propertiesToRetrieve?: (keyof Entity)[];
 }
 
-export class ItemGetter {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class ItemGetter extends DynamodbExecutor {
   private async _getItem<Entity>(
     params: DynamoDB.DocumentClient.GetItemInput,
   ): Promise<GetItemOutput<Entity>> {

@@ -8,7 +8,7 @@ import { removeUndefinedProps } from 'utils/object';
 
 import { Filters, getFilterParams } from '../filters';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
-import { ExecutorParams } from '../executor';
+import { DynamodbExecutor } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 
 export interface ListOptions<Entity> {
@@ -98,17 +98,7 @@ export type ListTableResult<Entity> = {
   paginationToken?: string;
 };
 
-export class ItemLister {
-  private dynamoDB: ExecutorParams['dynamoDB'];
-
-  private options: Pick<ExecutorParams, 'logCallParams'>;
-
-  constructor({ dynamoDB, ...options }: ExecutorParams) {
-    this.dynamoDB = dynamoDB;
-
-    this.options = options;
-  }
-
+export class ItemLister extends DynamodbExecutor {
   private async _scanTable<Entity>(
     params: DynamoDB.DocumentClient.ScanInput,
   ): Promise<ScanOutput<Entity>> {
