@@ -56,7 +56,7 @@ export interface SingleTableConfig {
      * @param item The item being created
      * @returns The rangeKey value of the type index
      */
-    rangeKeyGenerator?: (item: AnyObject) => string;
+    rangeKeyGenerator?: (item: AnyObject, type: string) => string;
   };
 
   /**

@@ -5,9 +5,7 @@ import DatabaseProvider, { IDatabaseProvider } from 'provider';
 
 import {
   QueryResult,
-  CreateItemParams,
   DBSet,
-  DeleteItemParams,
   RangeKeyConfig,
   UpdateParams,
   ValidateTransactParams,
@@ -23,19 +21,19 @@ import {
   SingleTableTransactionConfig,
   SingleTableUpdateParams,
   SingleTableValidateTransactParams,
-  UpdateIndexMapping,
   SingleTableLister,
   SingleTableConfig,
   SingleTableBatchGetter,
+  SingleTableRemover,
+  SingleTableKeyReference,
+  SingleTableCreator,
 } from './definitions';
 
-import { SingleTableAdaptor } from './definition';
+import { ISingleTableProvider, SingleTableProviderParams } from './definition';
 
-interface Params extends SingleTableConfig {
-  databaseProvider?: IDatabaseProvider;
-}
-
-export class SingleTableProvider implements SingleTableAdaptor {
+export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
+  implements ISingleTableProvider<SingleParams>
+{
   private db: IDatabaseProvider;
 
   private config: SingleTableConfig;
@@ -44,74 +42,19 @@ export class SingleTableProvider implements SingleTableAdaptor {
 
   private batchGetter: SingleTableBatchGetter;
 
-  constructor({ databaseProvider, ...config }: Params) {
+  private remover: SingleTableRemover;
+
+  private creator: SingleTableCreator;
+
+  constructor({ databaseProvider, ...config }: SingleParams) {
     this.db = databaseProvider || new DatabaseProvider();
 
     this.config = config;
 
     this.lister = new SingleTableLister({ db: this.db, config });
     this.batchGetter = new SingleTableBatchGetter({ db: this.db, config });
-  }
-
-  private cleanInternalProps<E extends AnyObject>(object: E): E {
-    return cleanInternalProps(object);
-  }
-
-  private cleanInternalPropsFromList<E extends AnyObject>(list: E[]): E[] {
-    return cleanInternalPropsFromList(list);
-  }
-
-  private convertKey(key: KeyValue | number): string {
-    if (Array.isArray(key)) return key.join(this.config.keySeparator);
-
-    return `${key}`;
-  }
-
-  private getIndexHashName(index: TableIndex): string {
-    return getIndexHashName(index);
-  }
-
-  private getIndexRangeName(index: TableIndex): string {
-    return getIndexRangeName(index);
-  }
-
-  private getIndexRecord({
-    index,
-    partitionKey,
-    rangeKey,
-  }: {
-    index: TableIndex;
-  } & Partial<SingleTableKeyReference>): Record<string, string> {
-    const [hashName, rangeName] = [
-      this.getIndexHashName.bind(this),
-      this.getIndexRangeName.bind(this),
-    ].map((cb) => cb(index));
-
-    const [hashValue, rangeValue] = [partitionKey, rangeKey].map((key) => {
-      // this makes sure if we get an partial index update, we only keep what is full
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!key || key.includes(undefined as any)) return;
-
-      return this.convertKey(key);
-    });
-
-    return removeUndefinedProps({
-      [hashName]: hashValue,
-
-      [rangeName]: rangeValue,
-    }) as Record<string, string>;
-  }
-
-  getPrimaryKeyRecord<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
-    partitionKey,
-    rangeKey,
-  }: SingleTableKeyReference): PKs extends StringKey<Entity>
-    ? { [K in PKs]: Entity[K] }
-    : Partial<Entity> {
-    return {
-      [`${this.config.hashKey}`]: this.convertKey(partitionKey),
-      [`${this.config.rangeKey}`]: this.convertKey(rangeKey),
-    } as PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
+    this.remover = new SingleTableRemover({ db: this.db, config });
+    this.creator = new SingleTableCreator({ db: this.db, config });
   }
 
   async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
@@ -133,6 +76,14 @@ export class SingleTableProvider implements SingleTableAdaptor {
     if (item) return this.cleanInternalProps(item);
   }
 
+  async create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity> {
+    return this.creator.create(params);
+  }
+
+  async delete(keyReference: SingleTableKeyReference): Promise<void> {
+    await this.remover.delete(keyReference);
+  }
+
   async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]> {
@@ -145,73 +96,6 @@ export class SingleTableProvider implements SingleTableAdaptor {
 
   async listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
     return this.lister.listType(params);
-  }
-
-  private transformIndexMappingToRecord(mapping: UpdateIndexMapping): Record<string, string> {
-    const allIndexes = Object.entries(mapping).reduce(
-      (acc, [index, key]) => ({
-        ...acc,
-
-        ...this.getIndexRecord({
-          index: index as TableIndex,
-          ...key,
-        }),
-      }),
-      {},
-    );
-
-    return allIndexes;
-  }
-
-  private getCreateParams<Entity>({
-    item,
-    key,
-    type,
-    indexes,
-    unixExpiresAt,
-  }: SingleTableCreateItemParams<Entity>): CreateItemParams<Entity> {
-    return {
-      table: this.config.table,
-
-      item: {
-        ...item,
-
-        ...(unixExpiresAt ? { [this.config.expiresAt]: unixExpiresAt } : {}),
-
-        [this.config.itemTypeProp]: type,
-
-        ...this.getPrimaryKeyRecord(key),
-
-        ...(indexes ? this.transformIndexMappingToRecord(indexes) : {}),
-
-        // type index
-        [this.config.addedAt]: getCurrentFormattedTime(),
-      },
-    };
-  }
-
-  async create<Entity>(params: SingleTableCreateItemParams<Entity>): Promise<Entity> {
-    const created = await this.db.create<Entity>(this.getCreateParams(params));
-
-    return this.cleanInternalProps(created as AnyObject) as Entity;
-  }
-
-  private getDeleteParams({
-    partitionKey,
-    rangeKey,
-  }: SingleTableKeyReference): DeleteItemParams<SingleTableKeyReference> {
-    return {
-      table: this.config.table,
-
-      key: this.getPrimaryKeyRecord({
-        partitionKey,
-        rangeKey,
-      }),
-    };
-  }
-
-  async delete(keyReference: SingleTableKeyReference): Promise<void> {
-    await this.db.delete(this.getDeleteParams(keyReference));
   }
 
   private validateUpdateProps({
@@ -349,9 +233,9 @@ export class SingleTableProvider implements SingleTableAdaptor {
     await this.db.executeTransaction(
       (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
         ({ create, erase, update, validate }) => {
-          if (erase) return { erase: { ...this.getDeleteParams(erase) } };
+          if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
 
-          if (create) return { create: { ...this.getCreateParams(create) } };
+          if (create) return { create: { ...this.creator.getCreateParams(create) } };
 
           if (update) return { update: { ...this.getUpdateParams(update) } };
 
@@ -370,7 +254,7 @@ export class SingleTableProvider implements SingleTableAdaptor {
     return items.map(generator).flat().filter(Boolean);
   }
 
-  createSetEntity(items: string[]): DBSet {
+  createSet(items: string[]): DBSet {
     return this.db.createSet(items);
   }
 

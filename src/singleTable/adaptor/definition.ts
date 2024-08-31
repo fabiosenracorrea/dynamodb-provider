@@ -12,9 +12,15 @@ import {
   ListItemTypeParams,
   ListItemTypeResult,
   SingleTableKeyReference,
+  SingleTableConfig,
 } from './definitions';
 
-export interface SingleTableAdaptor extends Pick<IDatabaseProvider, 'createSet'> {
+export interface SingleTableProviderParams extends SingleTableConfig {
+  databaseProvider?: IDatabaseProvider;
+}
+
+export interface ISingleTableProvider<SingleParams extends SingleTableProviderParams>
+  extends Pick<IDatabaseProvider, 'createSet'> {
   get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableGetParams<Entity, PKs>,
   ): Promise<Entity | undefined>;
@@ -23,7 +29,7 @@ export interface SingleTableAdaptor extends Pick<IDatabaseProvider, 'createSet'>
     options: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]>;
 
-  create<Entity>(params: SingleTableCreateItemParams<Entity>): Promise<Entity>;
+  create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity>;
 
   delete(params: SingleTableKeyReference): Promise<void>;
 

@@ -18,7 +18,7 @@ export type SingleTableKeyReference = {
   rangeKey: KeyValue;
 };
 
-function convertKey(key: KeyValue | number, config: SingleTableConfig): string {
+export function convertKey(key: KeyValue | number, config: SingleTableConfig): string {
   if (Array.isArray(key)) return key.join(config.keySeparator ?? KEY_SEPARATOR);
 
   return `${key}`;

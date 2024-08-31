@@ -9,9 +9,9 @@ export interface SingleTableOperatorParams {
 }
 
 export class BaseSingleTableOperator {
-  db: SingleTableOperatorParams['db'];
+  protected db: SingleTableOperatorParams['db'];
 
-  config: SingleTableOperatorParams['config'];
+  protected config: SingleTableOperatorParams['config'];
 
   constructor({ config, db }: SingleTableOperatorParams) {
     this.db = db;
