@@ -69,7 +69,20 @@ export interface SingleTableConfig {
    * A mapper object to configure your table indexes
    *
    * - `key` - The index name
-   * - `value` - The
+   * - `value` - The column config of said index
+   *
+   *
+   * @example
+   * {
+   *  index: {
+   *    SomeIndex: { partitionKey: '_indexH1', rangeKey: '_indexR1' },
+   *    OtherIndex: { partitionKey: '_indexH2', rangeKey: '_indexR2' }
+   *  }
+   * }
+   * @description
+   *
+   * Indicates your table has 2 indexes, `SomeIndex` and `OtherIndex`,
+   * with _indexH1 + _indexR1 and _indexH2 + _indexR2 as PKs
    */
   indexes?: Record<
     string,

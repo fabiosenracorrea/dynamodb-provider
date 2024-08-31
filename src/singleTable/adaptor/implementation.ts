@@ -27,6 +27,7 @@ import {
   SingleTableRemover,
   SingleTableKeyReference,
   SingleTableCreator,
+  SingleTableGetter,
 } from './definitions';
 
 import { ISingleTableProvider, SingleTableProviderParams } from './definition';
@@ -46,6 +47,8 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   private creator: SingleTableCreator;
 
+  private getter: SingleTableGetter;
+
   constructor({ databaseProvider, ...config }: SingleParams) {
     this.db = databaseProvider || new DatabaseProvider();
 
@@ -55,25 +58,13 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     this.batchGetter = new SingleTableBatchGetter({ db: this.db, config });
     this.remover = new SingleTableRemover({ db: this.db, config });
     this.creator = new SingleTableCreator({ db: this.db, config });
+    this.getter = new SingleTableGetter({ db: this.db, config });
   }
 
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
-    partitionKey,
-    rangeKey,
-    ...options
-  }: SingleTableGetParams<Entity, PKs>): Promise<Entity | undefined> {
-    const item = await this.db.get<Entity, PKs>({
-      ...options,
-
-      table: this.config.table,
-
-      key: this.getPrimaryKeyRecord({
-        partitionKey,
-        rangeKey,
-      }),
-    });
-
-    if (item) return this.cleanInternalProps(item);
+  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: SingleTableGetParams<Entity, PKs>,
+  ): Promise<Entity | undefined> {
+    return this.getter.get(params);
   }
 
   async create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity> {
