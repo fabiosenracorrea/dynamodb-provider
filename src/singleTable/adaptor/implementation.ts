@@ -3,13 +3,7 @@ import { StringKey, AnyObject } from 'types';
 
 import DatabaseProvider, { IDatabaseProvider } from 'provider';
 
-import {
-  QueryResult,
-  DBSet,
-  RangeKeyConfig,
-  UpdateParams,
-  ValidateTransactParams,
-} from 'provider/utils';
+import { QueryResult, DBSet, RangeKeyConfig, ValidateTransactParams } from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -25,9 +19,10 @@ import {
   SingleTableConfig,
   SingleTableBatchGetter,
   SingleTableRemover,
-  SingleTableKeyReference,
   SingleTableCreator,
   SingleTableGetter,
+  SingleTableDeleteParams,
+  SingleTableUpdater,
 } from './definitions';
 
 import { ISingleTableProvider, SingleTableProviderParams } from './definition';
@@ -49,6 +44,8 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   private getter: SingleTableGetter;
 
+  private updater: SingleTableUpdater;
+
   constructor({ databaseProvider, ...config }: SingleParams) {
     this.db = databaseProvider || new DatabaseProvider();
 
@@ -59,11 +56,10 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     this.remover = new SingleTableRemover({ db: this.db, config });
     this.creator = new SingleTableCreator({ db: this.db, config });
     this.getter = new SingleTableGetter({ db: this.db, config });
+    this.updater = new SingleTableUpdater({ db: this.db, config });
   }
 
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: SingleTableGetParams<Entity, PKs>,
-  ): Promise<Entity | undefined> {
+  async get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
     return this.getter.get(params);
   }
 
@@ -71,8 +67,14 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     return this.creator.create(params);
   }
 
-  async delete(keyReference: SingleTableKeyReference): Promise<void> {
-    await this.remover.delete(keyReference);
+  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: SingleTableUpdateParams<Entity, SingleParams, PKs>,
+  ): Promise<Partial<Entity> | undefined> {
+    return this.updater.update(params);
+  }
+
+  async delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void> {
+    await this.remover.delete(params);
   }
 
   async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -87,68 +89,6 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   async listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
     return this.lister.listType(params);
-  }
-
-  private validateUpdateProps({
-    values,
-    atomicOperations,
-    remove,
-  }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SingleTableUpdateParams<any>): void {
-    const allPropertiesMentioned = [
-      ...Object.values(values || []),
-      ...(remove || []),
-      ...(atomicOperations || []).map(({ property }) => property),
-    ];
-
-    const anyLowLevelRef = allPropertiesMentioned.some((prop) => `${prop}`.startsWith('_'));
-
-    if (anyLowLevelRef) throw new Error("Can't use any item property that starts with '_'");
-  }
-
-  private getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: SingleTableUpdateParams<Entity, PKs>,
-  ): UpdateParams<Entity, PKs> {
-    this.validateUpdateProps(params);
-
-    const {
-      conditions,
-      unixExpiresAt,
-      indexes,
-      atomicOperations,
-      remove,
-      values,
-      returnUpdatedProperties,
-    } = params;
-
-    const addValues = !!(params.indexes || params.unixExpiresAt);
-
-    return {
-      table: this.config.table,
-
-      key: this.getPrimaryKeyRecord(params),
-
-      atomicOperations,
-      conditions,
-      remove,
-      returnUpdatedProperties,
-
-      values: (addValues
-        ? {
-            ...params.values,
-
-            ...(unixExpiresAt ? { [this.config.expiresAt]: unixExpiresAt } : {}),
-
-            ...(indexes ? this.transformIndexMappingToRecord(indexes) : {}),
-          }
-        : values) as UpdateParams<Entity, PKs>['values'],
-    };
-  }
-
-  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: SingleTableUpdateParams<Entity, PKs>,
-  ): Promise<Partial<Entity> | undefined> {
-    return this.db.update(this.getUpdateParams(params));
   }
 
   private async _listCollection<Entity = SingleTableItem>({
@@ -228,7 +168,7 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
           if (create) return { create: { ...this.creator.getCreateParams(create) } };
 
-          if (update) return { update: { ...this.getUpdateParams(update) } };
+          if (update) return { update: { ...this.updater.getUpdateParams(update) } };
 
           if (validate) return { validate: this.getValidateParams(validate) };
 

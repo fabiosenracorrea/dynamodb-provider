@@ -1,23 +1,19 @@
-import { StringKey } from 'types';
-
 import { GetItemParams } from 'provider/utils';
 
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { cleanInternalProps } from '../../propRemoval';
 
-export type SingleTableGetParams<
-  Entity,
-  PKs extends StringKey<Entity> | unknown = unknown,
-> = SingleTableKeyReference & Omit<GetItemParams<Entity, PKs>, 'table' | 'key'>;
+export type SingleTableGetParams<Entity> = SingleTableKeyReference &
+  Omit<GetItemParams<Entity>, 'table' | 'key'>;
 
 export class SingleTableGetter extends BaseSingleTableOperator {
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>({
+  async get<Entity>({
     partitionKey,
     rangeKey,
     ...options
-  }: SingleTableGetParams<Entity, PKs>): Promise<Entity | undefined> {
-    const item = await this.db.get<Entity, PKs>({
+  }: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
+    const item = await this.db.get<Entity>({
       ...options,
 
       table: this.config.table,

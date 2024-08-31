@@ -147,4 +147,30 @@ export interface SingleTableConfig {
    * If this is provided, neither `autoRemoveTableProperties` and `keepTypeProperty` will have effect
    */
   propertyCleanup?: (item: AnyObject) => AnyObject;
+
+  /**
+   *
+   * @param propertiesInUpdate All the properties referenced in an update action (inside `values`, `remove` and `atomicOperations`)
+   * @returns If the proposed update is INVALID
+   *
+   * This will cause any update action to throw if it fails
+   *
+   * By default the only validation that is performed is the absence of the table PK inside the references. This will always run,
+   * as its a DynamoDB specific rule
+   *
+   * Possible return values:
+   *
+   * - `true`: The update is INVALID
+   * - `false`: The update is VALID
+   * - `string`: The error message to be thrown
+   *
+   * This could be relevant if you want to guard your application from messing with internal defined properties
+   *
+   * A common use case is to define each internal property as starting with 1 or 2 underscores (_pk or __pk and so on)
+   * so it would be safer to validate if any referenced property on an update has the agreed rule for an internal property
+   *
+   * It's important to note this happens *before* index/expires properties are added to the update values via their declarative
+   * params
+   */
+  badUpdateValidation?: (propertiesInUpdate: Set<string>) => boolean | string;
 }

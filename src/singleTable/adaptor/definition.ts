@@ -11,8 +11,8 @@ import {
   SingleTableQueryParams,
   ListItemTypeParams,
   ListItemTypeResult,
-  SingleTableKeyReference,
   SingleTableConfig,
+  SingleTableDeleteParams,
 } from './definitions';
 
 export interface SingleTableProviderParams extends SingleTableConfig {
@@ -21,9 +21,7 @@ export interface SingleTableProviderParams extends SingleTableConfig {
 
 export interface ISingleTableProvider<SingleParams extends SingleTableProviderParams>
   extends Pick<IDatabaseProvider, 'createSet'> {
-  get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: SingleTableGetParams<Entity, PKs>,
-  ): Promise<Entity | undefined>;
+  get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
 
   batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     options: SingleTableBatchGetParams<Entity, PKs>,
@@ -31,10 +29,10 @@ export interface ISingleTableProvider<SingleParams extends SingleTableProviderPa
 
   create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity>;
 
-  delete(params: SingleTableKeyReference): Promise<void>;
+  delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void>;
 
   update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: SingleTableUpdateParams<Entity, PKs>,
+    params: SingleTableUpdateParams<Entity, SingleParams, PKs>,
   ): Promise<Partial<Entity> | undefined>;
 
   listAllFromType<Entity>(type: string): Promise<Entity[]>;
