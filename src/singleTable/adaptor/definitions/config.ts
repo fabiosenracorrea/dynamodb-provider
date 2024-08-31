@@ -1,7 +1,5 @@
 import { AnyObject } from 'types';
 
-export const KEY_SEPARATOR = '#';
-
 export interface SingleTableConfig {
   /**
    * The logical separator that joins key paths

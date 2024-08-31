@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
 
-import { IDatabaseProvider } from 'provider';
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from 'provider/utils';
 
-import { SingleTableConfig } from '../../config';
-import { SingleTableOperatorParams } from '../../executor';
+import { BaseSingleTableOperator } from '../../executor';
 import { cleanInternalPropsFromList } from '../../propRemoval';
 
 type BasicRangeConfig = Pick<BasicRangeKeyConfig<AnyObject>, 'operation' | 'value'>;
@@ -30,16 +28,7 @@ export interface ListItemTypeResult<Entity = AnyObject> {
   paginationToken: string;
 }
 
-export class SingleTableLister {
-  db: IDatabaseProvider;
-
-  config: SingleTableConfig;
-
-  constructor({ config, db }: SingleTableOperatorParams) {
-    this.db = db;
-    this.config = config;
-  }
-
+export class SingleTableLister extends BaseSingleTableOperator {
   private getHashKey(type: string): QueryParams<any>['hashKey'] {
     return {
       value: type,

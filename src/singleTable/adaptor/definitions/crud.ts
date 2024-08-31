@@ -1,10 +1,6 @@
+import { StringKey } from 'types';
 import { SingleTableKeyReference, TableIndex } from '../../config';
-import {
-  GetItemParams,
-  StringKey,
-  UpdateParams,
-  BatchListItemsArgs,
-} from '../../../provider/utils';
+import { GetItemParams, UpdateParams } from '../../../provider/utils';
 
 import { AsSingleTableParams } from './helpers';
 
@@ -12,13 +8,6 @@ export type SingleTableGetParams<
   Entity,
   PKs extends StringKey<Entity> | unknown = unknown,
 > = AsSingleTableParams<GetItemParams<Entity, PKs>, 'table' | 'key'>;
-
-export type SingleTableBatchGetParams<
-  Entity,
-  PKs extends StringKey<Entity> | unknown = unknown,
-> = Omit<BatchListItemsArgs<Entity, PKs>, 'table' | 'keys'> & {
-  keys: SingleTableKeyReference[];
-};
 
 export type SingleTableCreateItemParams<Entity> = {
   item: Entity;
