@@ -2,8 +2,8 @@ import { ensureArray } from 'utils/array';
 import { isNonNullable } from 'utils/checkers';
 import { removeUndefinedProps } from 'utils/object';
 
-import { SingleTableConfig } from './config';
-import { convertKey, KeyValue, SingleTableKeyReference } from './key';
+import { SingleTableConfig } from '../config';
+import { convertKey, KeyValue, SingleTableKeyReference } from '../key';
 
 type IndexGenParams = Partial<SingleTableKeyReference> & {
   /**

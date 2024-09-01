@@ -2,7 +2,7 @@ import { omit } from 'utils/object';
 
 import { AnyObject } from 'types';
 
-import { SingleTableConfig } from './config';
+import { SingleTableConfig } from '../config';
 
 function resolveCleanUp({
   autoRemoveTableProperties = true,

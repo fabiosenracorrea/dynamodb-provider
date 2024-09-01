@@ -1,5 +1,6 @@
 import { StringKey } from 'types';
-import { SingleTableConfig } from './config';
+
+import { SingleTableConfig } from '../config';
 
 type KeyCompositionArray = (string | number | null)[];
 
