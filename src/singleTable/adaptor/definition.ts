@@ -38,8 +38,8 @@ export interface ISingleTableProvider<SingleParams extends SingleTableProviderPa
   listAllFromType<Entity>(type: string): Promise<Entity[]>;
   listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>>;
 
-  listCollection<Entity = AnyObject>(
-    params: SingleTableQueryParams<Entity>,
+  query<Entity = AnyObject>(
+    params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>>;
 
   executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void>;

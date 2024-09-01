@@ -14,11 +14,11 @@ type IndexGenParams = Partial<SingleTableKeyReference> & {
   config: SingleTableConfig;
 };
 
-function getIndexHashName(index: string, config: SingleTableConfig): string {
+export function getIndexHashName(index: string, config: SingleTableConfig): string {
   return config.indexes?.[index].partitionKey as string;
 }
 
-function getIndexRangeName(index: string, config: SingleTableConfig): string {
+export function getIndexRangeName(index: string, config: SingleTableConfig): string {
   return config.indexes?.[index].rangeKey as string;
 }
 
