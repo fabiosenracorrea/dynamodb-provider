@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { IDatabaseProvider, QueryResult } from 'provider';
+import { IDynamodbProvider, QueryResult } from 'provider';
 
 import {
   SingleTableCreateItemParams,
@@ -16,11 +16,11 @@ import {
 } from './definitions';
 
 export interface SingleTableProviderParams extends SingleTableConfig {
-  databaseProvider?: IDatabaseProvider;
+  databaseProvider?: IDynamodbProvider;
 }
 
 export interface ISingleTableProvider<SingleParams extends SingleTableProviderParams>
-  extends Pick<IDatabaseProvider, 'createSet'> {
+  extends Pick<IDynamodbProvider, 'createSet'> {
   get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
 
   batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(

@@ -1,6 +1,6 @@
 import { DynamodbProvider } from './implementation';
 
-export { IDynamodbProvider as IDatabaseProvider } from './definition';
+export { IDynamodbProvider } from './definition';
 
 export {
   TransactionConfig,

@@ -1,6 +1,6 @@
 import { StringKey, AnyObject } from 'types';
 
-import { DynamodbProvider, IDatabaseProvider } from 'provider';
+import { DynamodbProvider, IDynamodbProvider } from 'provider';
 
 import { QueryResult, DBSet } from 'provider/utils';
 
@@ -30,7 +30,7 @@ import { SingleTableTransactionWriter } from './definitions/operations/transacti
 export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   implements ISingleTableProvider<SingleParams>
 {
-  private db: IDatabaseProvider;
+  private db: IDynamodbProvider;
 
   private config: SingleTableConfig;
 

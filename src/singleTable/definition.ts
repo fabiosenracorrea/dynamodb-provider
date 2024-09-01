@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { IDatabaseProvider } from '../provider';
+import { IDynamodbProvider } from '../provider';
 import { QueryResult } from '../provider/utils';
 
 import { SingleTableKeyReference } from './config';
@@ -16,7 +16,7 @@ import {
   ListItemTypeResult,
 } from './definitions';
 
-export interface SingleTableAdaptor extends Pick<IDatabaseProvider, 'createSet'> {
+export interface SingleTableAdaptor extends Pick<IDynamodbProvider, 'createSet'> {
   get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableGetParams<Entity, PKs>,
   ): Promise<Entity | undefined>;

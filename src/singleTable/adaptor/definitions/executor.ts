@@ -1,9 +1,9 @@
-import { IDatabaseProvider } from 'provider';
+import { IDynamodbProvider } from 'provider';
 
 import { SingleTableConfig } from './config';
 
 export interface SingleTableOperatorParams {
-  db: IDatabaseProvider;
+  db: IDynamodbProvider;
 
   config: SingleTableConfig;
 }
