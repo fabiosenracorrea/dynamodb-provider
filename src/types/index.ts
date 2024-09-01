@@ -12,6 +12,14 @@ export type IfAny<T, Y, N> = 0 extends 1 & T ? Y : N;
 
 export type IsAny<T> = 0 extends 1 & T ? true : false;
 
+export type IsNull<T> = [T] extends [null] ? true : false;
+
+export type IsUnknown<T> = unknown extends T // `T` can be `unknown` or `any`
+  ? IsNull<T> extends false // `any` can be `null`, but `unknown` can't be
+    ? true
+    : false
+  : false;
+
 export type IsNever<T> = [T] extends [never] ? true : false;
 
 export type OmitUndefined<T> = {
