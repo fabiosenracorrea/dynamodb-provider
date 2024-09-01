@@ -16,14 +16,14 @@ import {
   SingleTableTransactConfigGenerator,
 } from './definitions';
 
-export interface SingleTableProviderParams extends SingleTableConfig {
+export interface SingleTableParams extends SingleTableConfig {
   /**
    * An instance of `DynamodbProvider`, configured to your needs
    */
   dynamodbProvider?: IDynamodbProvider;
 }
 
-export interface ISingleTableProvider<SingleParams extends SingleTableProviderParams>
+export interface ISingleTable<SingleParams extends SingleTableParams>
   extends Pick<IDynamodbProvider, 'createSet'> {
   get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
 

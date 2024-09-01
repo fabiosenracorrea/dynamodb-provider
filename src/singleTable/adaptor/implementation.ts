@@ -27,10 +27,10 @@ import {
   SingleTableTransactConfigGenerator,
 } from './definitions';
 
-import { ISingleTableProvider, SingleTableProviderParams } from './definition';
+import { ISingleTable, SingleTableParams } from './definition';
 
-export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
-  implements ISingleTableProvider<SingleParams>
+export class SingleTable<SingleParams extends SingleTableParams>
+  implements ISingleTable<SingleParams>
 {
   private db: IDynamodbProvider;
 
