@@ -52,3 +52,13 @@ export type SingleTableTransactionConfig<
   | SingleTableDeleteTransaction
   | SingleTableCreateTransaction<TableConfig>
   | SingleTableConditionCheckTransaction;
+
+export type SingleTableTransactConfigGenerator<
+  Item,
+  TableConfig extends SingleTableConfig = SingleTableConfig,
+> = (
+  item: Item,
+) =>
+  | (SingleTableTransactionConfig<TableConfig> | null)[]
+  | SingleTableTransactionConfig<TableConfig>
+  | null;

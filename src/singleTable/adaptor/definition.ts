@@ -13,6 +13,7 @@ import {
   ListItemTypeResult,
   SingleTableConfig,
   SingleTableDeleteParams,
+  SingleTableTransactConfigGenerator,
 } from './definitions';
 
 export interface SingleTableProviderParams extends SingleTableConfig {
@@ -48,12 +49,7 @@ export interface ISingleTableProvider<SingleParams extends SingleTableProviderPa
   executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
   generateTransactionConfigList<Item>(
     items: Item[],
-    generator: (
-      item: Item,
-    ) =>
-      | (SingleTableTransactionConfig<SingleParams> | null)[]
-      | SingleTableTransactionConfig<SingleParams>
-      | null,
+    generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
   ): SingleTableTransactionConfig<SingleParams>[];
 
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined;

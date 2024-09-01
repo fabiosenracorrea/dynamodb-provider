@@ -24,6 +24,7 @@ import {
   SingleTableUpdater,
   SingleTableQueryBuilder,
   SingleTableTransactionWriter,
+  SingleTableTransactConfigGenerator,
 } from './definitions';
 
 import { ISingleTableProvider, SingleTableProviderParams } from './definition';
@@ -107,12 +108,7 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   generateTransactionConfigList<Item>(
     items: Item[],
-    generator: (
-      item: Item,
-    ) =>
-      | (SingleTableTransactionConfig<SingleParams> | null)[]
-      | SingleTableTransactionConfig<SingleParams>
-      | null,
+    generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
   ): SingleTableTransactionConfig<SingleParams>[] {
     return this.transactWriter.generateTransactionConfigList(
       items,
