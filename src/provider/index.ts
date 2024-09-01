@@ -1,6 +1,6 @@
-import { DatabaseProvider } from './implementation';
+import { DynamodbProvider } from './implementation';
 
-export { IDatabaseProvider } from './definition';
+export { IDynamodbProvider as IDatabaseProvider } from './definition';
 
 export {
   TransactionConfig,
@@ -13,4 +13,4 @@ export {
   ListOptions,
 } from './utils';
 
-export default DatabaseProvider;
+export default DynamodbProvider;

@@ -4,7 +4,7 @@ import { DynamoDB } from 'aws-sdk';
 
 import { StringKey } from 'types';
 
-import { IDatabaseProvider } from './definition';
+import { IDynamodbProvider } from './definition';
 
 import {
   CreateItemParams,
@@ -29,7 +29,7 @@ import {
   QueryResult,
 } from './utils';
 
-export class DatabaseProvider implements IDatabaseProvider {
+export class DynamodbProvider implements IDynamodbProvider {
   private dynamoService: DynamoDB.DocumentClient;
 
   private creator: ItemCreator;

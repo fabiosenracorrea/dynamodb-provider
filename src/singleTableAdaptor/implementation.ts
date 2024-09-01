@@ -5,7 +5,7 @@ import { getFirstItem, getLastIndex } from 'utils/array';
 import { cascadeEval } from 'utils/conditions';
 import { StringKey, AnyObject } from 'types';
 
-import DatabaseProvider, { IDatabaseProvider } from '../provider';
+import DynamodbProvider, { IDatabaseProvider } from '../provider';
 
 import {
   QueryResult,
@@ -67,7 +67,7 @@ export class SingleTableProvider implements SingleTableAdaptor {
   private config: SingleTableConfig;
 
   constructor({ databaseProvider }: Params = {}) {
-    this.databaseProvider = databaseProvider || new DatabaseProvider();
+    this.databaseProvider = databaseProvider || new DynamodbProvider();
 
     this.config = singleTableConfig;
   }

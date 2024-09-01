@@ -16,7 +16,7 @@ import {
   ListTableResult,
 } from './utils';
 
-export interface IDatabaseProvider {
+export interface IDynamodbProvider {
   list<Entity>(tableName: string, options?: ListOptions<Entity>): Promise<ListTableResult<Entity>>;
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;
 

@@ -1,6 +1,6 @@
 import { StringKey, AnyObject } from 'types';
 
-import DatabaseProvider, { IDatabaseProvider } from 'provider';
+import DynamodbProvider, { IDatabaseProvider } from 'provider';
 
 import { QueryResult, DBSet } from 'provider/utils';
 
@@ -51,7 +51,7 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   private querBuilder: SingleTableQueryBuilder;
 
   constructor({ databaseProvider, ...config }: SingleParams) {
-    this.db = databaseProvider || new DatabaseProvider();
+    this.db = databaseProvider || new DynamodbProvider();
 
     this.config = config;
 
