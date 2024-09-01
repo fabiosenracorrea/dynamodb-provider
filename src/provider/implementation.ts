@@ -29,8 +29,25 @@ import {
   QueryResult,
 } from './utils';
 
+interface DynamoDbProviderParams {
+  /**
+   * DynamoDB Document Client from aws-sdk v2
+   *
+   * v3 support will be released in an upcoming version
+   */
+  dynamoDB?: DynamoDB.DocumentClient;
+
+  /**
+   * Defines if we should log the params constructed
+   * right before calling a dynamodb action.
+   *
+   * Useful for debugging param generation and such
+   */
+  logCallParams?: boolean;
+}
+
 export class DynamodbProvider implements IDynamodbProvider {
-  private dynamoService: DynamoDB.DocumentClient;
+  private dynamoDB: DynamoDB.DocumentClient;
 
   private creator: ItemCreator;
 
@@ -48,51 +65,26 @@ export class DynamodbProvider implements IDynamodbProvider {
 
   private queryBuilder: QueryBuilder;
 
-  // add in constructor params like
-  // log
-  // future: service/v2-v3
-  constructor() {
-    this.dynamoService = new DynamoDB.DocumentClient();
+  constructor(startParams: DynamoDbProviderParams = {}) {
+    this.dynamoDB = startParams.dynamoDB ?? new DynamoDB.DocumentClient();
 
-    this.creator = new ItemCreator({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    const params = { dynamoDB: this.dynamoDB, ...startParams };
 
-    this.remover = new ItemRemover({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.creator = new ItemCreator(params);
 
-    this.getter = new ItemGetter({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.remover = new ItemRemover(params);
 
-    this.updater = new ItemUpdater({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.getter = new ItemGetter(params);
 
-    this.lister = new ItemLister({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.updater = new ItemUpdater(params);
 
-    this.batchGetter = new BatchGetter({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.lister = new ItemLister(params);
 
-    this.transactWriter = new TransactionWriter({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.batchGetter = new BatchGetter(params);
 
-    this.queryBuilder = new QueryBuilder({
-      logCallParams: true,
-      dynamoDB: this.dynamoService,
-    });
+    this.transactWriter = new TransactionWriter(params);
+
+    this.queryBuilder = new QueryBuilder(params);
   }
 
   async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -150,6 +142,6 @@ export class DynamodbProvider implements IDynamodbProvider {
   }
 
   createSet(items: string[]): DBSet {
-    return this.dynamoService.createSet(items) as DBSet;
+    return this.dynamoDB.createSet(items) as DBSet;
   }
 }
