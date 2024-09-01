@@ -22,6 +22,12 @@ describe('single table adaptor - prop cleaner helpers', () => {
             partitionKey: '_type',
             rangeKey: '_ts',
           },
+          indexes: {
+            SomeIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+          },
         },
       );
 
@@ -53,6 +59,12 @@ describe('single table adaptor - prop cleaner helpers', () => {
             rangeKey: '_ts',
           },
           keepTypeProperty: true,
+          indexes: {
+            SomeIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+          },
         },
       );
 
@@ -155,6 +167,12 @@ describe('single table adaptor - prop cleaner helpers', () => {
             name: 'TypeIndexName',
             partitionKey: '_type',
             rangeKey: '_ts',
+          },
+          indexes: {
+            SomeIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
           },
         },
       );
