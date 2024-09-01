@@ -91,7 +91,9 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
     } as QueryResult<Entity>;
   }
 
-  async query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entity>> {
+  async query<Entity>(
+    params: SingleTableQueryParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<QueryResult<Entity>> {
     const result = await this._listCollection<Entity>(params);
 
     return result;

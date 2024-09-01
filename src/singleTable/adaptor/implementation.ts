@@ -102,7 +102,8 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   async query<Entity = AnyObject>(
     params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>> {
-    return this.querBuilder.query(params);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.querBuilder.query(params as any);
   }
 
   async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
