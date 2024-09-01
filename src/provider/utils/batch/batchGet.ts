@@ -36,6 +36,9 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
    * Which properties should be retrieved
    *
    * Currently this only supports root-level properties
+   *
+   * Known limitation: if you do not pass in the entity you want to batchGet,
+   * its type inference will be locked to 'keys' only
    */
   propertiesToRetrieve?: StringKey<Entity>[];
 
