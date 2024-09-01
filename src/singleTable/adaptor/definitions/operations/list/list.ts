@@ -25,18 +25,20 @@ export interface ListItemTypeParams
 export interface ListItemTypeResult<Entity = AnyObject> {
   items: Entity[];
 
-  paginationToken: string;
+  paginationToken?: string;
 }
 
 export class SingleTableLister extends BaseSingleTableOperator {
   private getHashKey(type: string): QueryParams<any>['hashKey'] {
     return {
       value: type,
-      name: this.config.typeIndex.partitionKey,
+      name: this.config.typeIndex!.partitionKey,
     };
   }
 
   async listAllFromType<Entity>(type: string): Promise<Entity[]> {
+    if (!this.config.typeIndex) return [];
+
     const { items } = await this.db.query<any>({
       table: this.config.table,
 
@@ -55,6 +57,8 @@ export class SingleTableLister extends BaseSingleTableOperator {
     range,
     ...collectionListConfig
   }: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
+    if (!this.config.typeIndex) return { items: [] };
+
     const { items, paginationToken } = await this.db.query<any>({
       table: this.config.table,
 

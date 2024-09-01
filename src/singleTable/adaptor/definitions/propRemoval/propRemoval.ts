@@ -20,8 +20,8 @@ function resolveCleanUp({
 
   const propsToRemove = [
     expiresAt,
-    typeIndex.rangeKey,
-    keepTypeProperty ? null : typeIndex.partitionKey,
+    typeIndex?.rangeKey,
+    keepTypeProperty ? null : typeIndex?.partitionKey,
     partitionKey,
     rangeKey,
     ...Object.values(indexes ?? {})

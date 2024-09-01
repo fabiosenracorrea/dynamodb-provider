@@ -32,9 +32,11 @@ export interface SingleTableConfig {
    *
    * You do not actually need to create the GSI on your table.
    *
-   * Just know that if you don't, the listType methods won't work
+   * Just know that if you don't, the listType/findType methods won't work
+   * Future versions will have a smart type that won't expose those methods if
+   * `typeIndex` is not provided
    */
-  typeIndex: {
+  typeIndex?: {
     /**
      * The partition/hash column of the index
      */

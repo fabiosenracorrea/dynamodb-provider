@@ -31,11 +31,24 @@ type ExpiresAtParams<TableConfig extends SingleTableConfig> =
         expiresAt?: number;
       };
 
+type TypeParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['typeIndex']
+  ? {}
+  : {
+      /**
+       * The entity type
+       *
+       * This will be assigned the to column described
+       * in your config.typeIndex.partitionKey
+       */
+      type: string;
+    };
+
 export type SingleTableCreateItemParams<
   Entity = AnyObject,
   TableConfig extends SingleTableConfig = SingleTableConfig,
 > = IndexParams<TableConfig> &
-  ExpiresAtParams<TableConfig> & {
+  ExpiresAtParams<TableConfig> &
+  TypeParams<TableConfig> & {
     /**
      * Any actual property of your item
      */
@@ -47,20 +60,14 @@ export type SingleTableCreateItemParams<
      * This is a separate prop to provide clarity and ease of understanding
      */
     key: SingleTableKeyReference;
-
-    /**
-     * The entity type
-     *
-     * This will be assigned the to column described
-     * in your config.typeIndex.partitionKey
-     */
-    type: string;
   };
 
 type RefConfig = Required<SingleTableConfig>;
 
 export class SingleTableCreator extends BaseSingleTableOperator {
   private getTypeIndexProps(item: any, type: string): AnyObject {
+    if (!this.config.typeIndex) return {};
+
     const { partitionKey, rangeKey, rangeKeyGenerator } = this.config.typeIndex;
 
     const rangeValue = rangeKeyGenerator?.(item, type) ?? new Date().toISOString();
@@ -97,8 +104,8 @@ export class SingleTableCreator extends BaseSingleTableOperator {
   }
 
   // We only need to extend config on our provider, this method here is not exposed to the application
-  async create<Entity>(params: SingleTableCreateItemParams<Entity, RefConfig>): Promise<Entity> {
-    const created = await this.db.create<any>(this.getCreateParams(params));
+  async create<Entity>(params: SingleTableCreateItemParams<Entity>): Promise<Entity> {
+    const created = await this.db.create<any>(this.getCreateParams(params as any));
 
     return cleanInternalProps(created, this.config);
   }

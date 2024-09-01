@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ValidateTransactParams } from 'provider/utils';
 
 import { BaseSingleTableOperator, SingleTableOperatorParams } from '../../executor';
@@ -57,7 +59,7 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
         ({ create, erase, update, validate }) => {
           if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
 
-          if (create) return { create: { ...this.creator.getCreateParams(create) } };
+          if (create) return { create: { ...this.creator.getCreateParams(create as any) } };
 
           if (update) return { update: { ...this.updater.getUpdateParams(update) } };
 

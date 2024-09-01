@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { StringKey, AnyObject } from 'types';
 
 import { DynamodbProvider, IDynamodbProvider } from 'provider';
@@ -22,10 +23,10 @@ import {
   SingleTableDeleteParams,
   SingleTableUpdater,
   SingleTableQueryBuilder,
+  SingleTableTransactionWriter,
 } from './definitions';
 
 import { ISingleTableProvider, SingleTableProviderParams } from './definition';
-import { SingleTableTransactionWriter } from './definitions/operations/transactions';
 
 export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   implements ISingleTableProvider<SingleParams>
@@ -50,8 +51,8 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
 
   private querBuilder: SingleTableQueryBuilder;
 
-  constructor({ databaseProvider, ...config }: SingleParams) {
-    this.db = databaseProvider || new DynamodbProvider();
+  constructor({ dynamodbProvider, ...config }: SingleParams) {
+    this.db = dynamodbProvider || new DynamodbProvider();
 
     this.config = config;
 
@@ -67,7 +68,7 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     this.querBuilder = new SingleTableQueryBuilder(params);
   }
 
-  async get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
+  async get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
     return this.getter.get(params);
   }
 
@@ -75,28 +76,20 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     return this.creator.create(params);
   }
 
-  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  async update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableUpdateParams<Entity, SingleParams, PKs>,
   ): Promise<Partial<Entity> | undefined> {
     return this.updater.update(params);
   }
 
-  async delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void> {
+  async delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void> {
     await this.remover.delete(params);
   }
 
-  async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  async batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]> {
     return this.batchGetter.batchGet<Entity, PKs>(params);
-  }
-
-  async listAllFromType<Entity>(type: string): Promise<Entity[]> {
-    return this.lister.listAllFromType(type);
-  }
-
-  async listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>> {
-    return this.lister.listType(params);
   }
 
   async query<Entity = AnyObject>(
@@ -106,7 +99,9 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     return this.querBuilder.query(params as any);
   }
 
-  async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
+  async executeTransaction(
+    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+  ): Promise<void> {
     return this.transactWriter.executeTransaction(configs);
   }
 
@@ -114,19 +109,34 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
     items: Item[],
     generator: (
       item: Item,
-    ) => (SingleTableTransactionConfig | null)[] | SingleTableTransactionConfig | null,
-  ): SingleTableTransactionConfig[] {
-    return this.transactWriter.generateTransactionConfigList(items, generator);
+    ) =>
+      | (SingleTableTransactionConfig<SingleParams> | null)[]
+      | SingleTableTransactionConfig<SingleParams>
+      | null,
+  ): SingleTableTransactionConfig<SingleParams>[] {
+    return this.transactWriter.generateTransactionConfigList(
+      items,
+      generator,
+    ) as SingleTableTransactionConfig<SingleParams>[];
   }
 
   createSet(items: string[]): DBSet {
     return this.db.createSet(items);
   }
 
-  // helps dealing with TS type checking when building our entity collections
-  // v2 will have an auto builder that receives an entity with collection references
-  // and create the item ready to be returned by the repo
-  isOfItemType(item: AnyObject, type: string): boolean {
+  async listAllFromType<Entity = AnyObject>(type: string): Promise<Entity[]> {
+    return this.lister.listAllFromType(type);
+  }
+
+  async listType<Entity = AnyObject>(
+    params: ListItemTypeParams,
+  ): Promise<ListItemTypeResult<Entity>> {
+    return this.lister.listType(params);
+  }
+
+  private isOfItemType(item: AnyObject, type: string): boolean {
+    if (!this.config.typeIndex) return false;
+
     return type === item[this.config.typeIndex.partitionKey];
   }
 

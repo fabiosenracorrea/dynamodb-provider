@@ -16,22 +16,25 @@ import {
 } from './definitions';
 
 export interface SingleTableProviderParams extends SingleTableConfig {
-  databaseProvider?: IDynamodbProvider;
+  /**
+   * An instance of `DynamodbProvider`, configured to your needs
+   */
+  dynamodbProvider?: IDynamodbProvider;
 }
 
 export interface ISingleTableProvider<SingleParams extends SingleTableProviderParams>
   extends Pick<IDynamodbProvider, 'createSet'> {
-  get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
+  get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
 
-  batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]>;
 
   create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity>;
 
-  delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void>;
+  delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void>;
 
-  update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableUpdateParams<Entity, SingleParams, PKs>,
   ): Promise<Partial<Entity> | undefined>;
 
@@ -42,11 +45,16 @@ export interface ISingleTableProvider<SingleParams extends SingleTableProviderPa
     params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>>;
 
-  executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void>;
+  executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
   generateTransactionConfigList<Item>(
     items: Item[],
-    generator: (item: Item) => (SingleTableTransactionConfig | null)[],
-  ): (SingleTableTransactionConfig | null)[];
+    generator: (
+      item: Item,
+    ) =>
+      | (SingleTableTransactionConfig<SingleParams> | null)[]
+      | SingleTableTransactionConfig<SingleParams>
+      | null,
+  ): SingleTableTransactionConfig<SingleParams>[];
 
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined;
   filterTableItens<Entity>(items: AnyObject[], type: string): Entity[];
