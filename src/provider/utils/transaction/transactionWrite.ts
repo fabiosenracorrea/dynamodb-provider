@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import { DynamoDB } from 'aws-sdk';
+
 import { printLog } from 'utils/log';
+
 import { DynamodbExecutor, ExecutorParams } from '../executor';
 import { TransactionConfig, ValidateTransactParams } from './types';
 import { buildExpression } from '../expressions';
