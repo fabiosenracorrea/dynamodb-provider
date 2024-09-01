@@ -6,6 +6,14 @@ import { SingleTableCreator, SingleTableRemover, SingleTableUpdater } from '../c
 import { SingleTableTransactionConfig, SingleTableValidateTransactParams } from './types';
 import { getPrimaryKey } from '../../key';
 
+interface SingleTableTransactorParams extends SingleTableOperatorParams {
+  creator?: SingleTableCreator;
+
+  updater?: SingleTableUpdater;
+
+  remover?: SingleTableRemover;
+}
+
 export class SingleTableTransactionWriter extends BaseSingleTableOperator {
   private creator: SingleTableCreator;
 
@@ -13,14 +21,14 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
 
   private remover: SingleTableRemover;
 
-  constructor(params: SingleTableOperatorParams) {
+  constructor({ creator, updater, remover, ...params }: SingleTableTransactorParams) {
     super(params);
 
-    this.creator = new SingleTableCreator(params);
+    this.creator = creator ?? new SingleTableCreator(params);
 
-    this.updater = new SingleTableUpdater(params);
+    this.updater = updater ?? new SingleTableUpdater(params);
 
-    this.remover = new SingleTableRemover(params);
+    this.remover = remover ?? new SingleTableRemover(params);
   }
 
   private getValidateParams({
