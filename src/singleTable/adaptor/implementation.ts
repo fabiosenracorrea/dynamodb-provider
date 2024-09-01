@@ -126,11 +126,15 @@ export class SingleTableProvider<SingleParams extends SingleTableProviderParams>
   // helps dealing with TS type checking when building our entity collections
   // v2 will have an auto builder that receives an entity with collection references
   // and create the item ready to be returned by the repo
-  findTableItem<Entity>(items: { _type?: string }[], type: string): Entity | undefined {
-    return items.find(({ _type }) => _type === type) as Entity | undefined;
+  isOfItemType(item: AnyObject, type: string): boolean {
+    return type === item[this.config.typeIndex.partitionKey];
   }
 
-  filterTableItens<Entity>(items: { _type?: string }[], type: string): Entity[] {
-    return items.filter(({ _type }) => _type === type) as Entity[];
+  findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined {
+    return items.find((item) => this.isOfItemType(item, type)) as Entity | undefined;
+  }
+
+  filterTableItens<Entity>(items: AnyObject[], type: string): Entity[] {
+    return items.filter((item) => this.isOfItemType(item, type)) as Entity[];
   }
 }

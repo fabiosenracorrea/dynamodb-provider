@@ -48,6 +48,6 @@ export interface ISingleTableProvider<SingleParams extends SingleTableProviderPa
     generator: (item: Item) => (SingleTableTransactionConfig | null)[],
   ): (SingleTableTransactionConfig | null)[];
 
-  findTableItem<Entity>(items: { _type?: string }[], type: string): Entity | undefined;
-  filterTableItens<Entity>(items: { _type?: string }[], type: string): Entity[];
+  findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined;
+  filterTableItens<Entity>(items: AnyObject[], type: string): Entity[];
 }
