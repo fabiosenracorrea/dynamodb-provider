@@ -13,4 +13,4 @@ export {
   ListOptions,
 } from './utils';
 
-export default DynamodbProvider;
+export { DynamodbProvider };

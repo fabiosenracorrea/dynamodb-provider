@@ -1,6 +1,6 @@
 import { StringKey, AnyObject } from 'types';
 
-import DynamodbProvider, { IDatabaseProvider } from 'provider';
+import { DynamodbProvider, IDatabaseProvider } from 'provider';
 
 import { QueryResult, DBSet } from 'provider/utils';
 
