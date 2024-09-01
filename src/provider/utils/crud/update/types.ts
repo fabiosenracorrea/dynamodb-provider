@@ -14,7 +14,7 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
   /**
    * Primary key of the Item to update
    */
-  key: EntityPK<Entity, PKs>;
+  key: EntityPK<NoInfer<Entity>, PKs>;
 
   /**
    * Properties you want to remove from the item
@@ -24,13 +24,15 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
   remove?: PKs extends StringKey<Entity>
     ? (IsNever<Exclude<StringKey<Entity>, PKs>> extends true
         ? string
-        : Exclude<StringKey<Entity>, PKs>)[]
-    : StringKey<Entity>[];
+        : Exclude<StringKey<NoInfer<Entity>>, PKs>)[]
+    : StringKey<NoInfer<Entity>>[];
 
   /**
    * Values to be directly added to the item
    */
-  values?: PKs extends StringKey<Entity> ? Partial<Omit<Entity, PKs>> : Partial<Entity>;
+  values?: PKs extends StringKey<Entity>
+    ? Partial<Omit<NoInfer<Entity>, PKs>>
+    : Partial<NoInfer<Entity>>;
 
   /**
    * Executes an special operations within the target.
@@ -49,7 +51,9 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
    * *Conditional Operations*
    * - `set_if_not_exists`
    */
-  atomicOperations?: AtomicOperation<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  atomicOperations?: AtomicOperation<
+    PKs extends StringKey<Entity> ? Omit<NoInfer<Entity>, PKs> : NoInfer<Entity>
+  >[];
 
   /**
    * A set of conditions you want to ensure are fulfilled
@@ -60,7 +64,9 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
    * Currently this does not support nested conditions (parenthesis)
    *
    */
-  conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions?: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<NoInfer<Entity>, PKs> : NoInfer<Entity>
+  >[];
 
   /**
    * Defines wether or not the call will return the properties

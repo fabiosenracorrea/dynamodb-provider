@@ -19,7 +19,7 @@ export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown =
   /**
    * Primary key of the Item
    */
-  key: EntityPK<Entity, PKs>;
+  key: EntityPK<NoInfer<Entity>, PKs>;
 
   /**
    *  If set to `true`, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
@@ -33,7 +33,7 @@ export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown =
    *
    * Currently this only supports root-level properties
    */
-  propertiesToRetrieve?: (keyof Entity)[];
+  propertiesToRetrieve?: (keyof NoInfer<Entity>)[];
 }
 
 export class ItemGetter extends DynamodbExecutor {

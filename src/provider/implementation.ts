@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DynamoDB } from 'aws-sdk';
 
-import { StringKey } from 'types';
+import { AnyObject, StringKey } from 'types';
 
 import { IDynamodbProvider } from './definition';
 
@@ -87,7 +87,7 @@ export class DynamodbProvider implements IDynamodbProvider {
     this.queryBuilder = new QueryBuilder(params);
   }
 
-  async get<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  async get<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: GetItemParams<Entity, PKs>,
   ): Promise<Entity | undefined> {
     return this.getter.get(params);
@@ -103,30 +103,33 @@ export class DynamodbProvider implements IDynamodbProvider {
     await this.remover.delete(params);
   }
 
-  async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  async update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined> {
     return this.updater.update(params);
   }
 
-  async list<Entity>(
+  async list<Entity = AnyObject>(
     table: string,
     options = {} as ListOptions<Entity>,
   ): Promise<ListTableResult<Entity>> {
     return this.lister.list(table, options);
   }
 
-  async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
+  async listAll<Entity = AnyObject>(
+    table: string,
+    options = {} as ListAllOptions<Entity>,
+  ): Promise<Entity[]> {
     return this.lister.listAll(table, options);
   }
 
-  async batchGet<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  async batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: BatchListItemsArgs<Entity, PKs>,
   ): Promise<Entity[]> {
     return this.batchGetter.batchGet(options);
   }
 
-  async query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
+  async query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
     return this.queryBuilder.query(params);
   }
 

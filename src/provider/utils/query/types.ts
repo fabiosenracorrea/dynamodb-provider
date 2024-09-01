@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { StringKey } from 'types';
+
 import { ExpressionOperation } from '../expressions';
 import { Filters } from '../filters';
 
 export interface BasicRangeKeyConfig<Entity> {
-  name: Extract<keyof Entity, string>;
+  /**
+   * The property name
+   */
+  name: StringKey<Entity>;
+
   value: string | number;
+
   operation: Extract<
     ExpressionOperation,
     | 'equal'
@@ -17,9 +24,14 @@ export interface BasicRangeKeyConfig<Entity> {
 }
 
 export interface BetweenRangeKeyConfig<Entity> {
-  name: Extract<keyof Entity, string>;
+  /**
+   * The property name
+   */
+  name: StringKey<Entity>;
+
   low: string | number;
   high: string | number;
+
   operation: Extract<ExpressionOperation, 'between'>;
 }
 
@@ -42,7 +54,7 @@ export interface QueryParams<Entity> {
    * Pass in the column name + value
    */
   hashKey: {
-    name: Extract<keyof Entity, string>;
+    name: StringKey<NoInfer<Entity>>;
 
     value: string;
   };
@@ -61,7 +73,7 @@ export interface QueryParams<Entity> {
    * - begins_with
    * - between
    */
-  rangeKey?: RangeKeyConfig<Entity>;
+  rangeKey?: RangeKeyConfig<NoInfer<Entity>>;
 
   /**
    * DynamoDB naturally stores items in ASC order
@@ -99,7 +111,7 @@ export interface QueryParams<Entity> {
    *
    * 3: key:{<FilterConfig>} will handle more complex cases
    */
-  filters?: Filters<Entity>;
+  filters?: Filters<NoInfer<Entity>>;
 }
 
 export interface QueryResult<Entity = any> {

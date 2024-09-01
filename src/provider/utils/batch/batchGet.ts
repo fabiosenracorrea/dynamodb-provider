@@ -23,7 +23,7 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
   /**
    * An array of all the items primary keys
    */
-  keys: EntityPK<Entity, PKs>[];
+  keys: EntityPK<NoInfer<Entity>, PKs>[];
 
   /**
    *  If set to `true`, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
@@ -37,10 +37,10 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
    *
    * Currently this only supports root-level properties
    *
-   * Known limitation: if you do not pass in the entity you want to batchGet,
-   * its type inference will be locked to 'keys' only
+   * Known limitation: The return-type of this call is currently not
+   * affected by the properties referenced here
    */
-  propertiesToRetrieve?: StringKey<Entity>[];
+  propertiesToRetrieve?: StringKey<NoInfer<Entity>>[];
 
   /**
    * By default, this call will try up to 8 times to resolve any UnprocessedItems result from the
@@ -121,13 +121,13 @@ export class BatchGetter extends DynamodbExecutor {
         const batchItems = await this.safeBatchGetOperation({
           ...options,
           keys: batchKeys,
-        });
+        } as any);
 
         return batchItems;
       }),
     );
 
-    return items.flat();
+    return items.flat() as Entity[];
   }
 
   // TODO: multiTableBatchGet
