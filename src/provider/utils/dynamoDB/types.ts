@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
-import { DynamoDB as DynamoDBv2, GetItemOutput, QueryOutput, ScanOutput } from 'aws-sdk';
+import { DynamoDB as DynamoDBv2 } from 'aws-sdk';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 export {
@@ -30,6 +30,18 @@ export type DynamoDBConfig =
       target: 'v3';
       instance: DynamoDBDocumentClient;
     };
+
+interface ScanOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.ScanOutput, 'Items'> {
+  Items: Entity[];
+}
+
+interface QueryOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.QueryOutput, 'Items'> {
+  Items?: Entity[];
+}
+
+interface GetItemOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.GetItemOutput, 'Item'> {
+  Item?: Entity;
+}
 
 export type DBBatchGetParams = {
   input: DynamoDBv2.DocumentClient.BatchGetItemInput;
