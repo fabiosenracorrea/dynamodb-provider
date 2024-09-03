@@ -14,8 +14,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -52,8 +55,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -92,8 +98,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -136,8 +145,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -184,8 +196,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       const paginationTokenItem = {
@@ -243,8 +258,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -295,8 +313,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query<any>({
@@ -385,8 +406,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       const result = await queryBuilder.query({
@@ -466,8 +490,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       const result = await queryBuilder.query({
@@ -534,8 +561,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       const result = await queryBuilder.query({
@@ -609,8 +639,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -673,8 +706,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -719,8 +755,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -765,8 +804,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -811,8 +853,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -857,8 +902,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -903,8 +951,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -949,8 +1000,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query({
@@ -1000,8 +1054,11 @@ describe('query builder', () => {
 
       const queryBuilder = new QueryBuilder({
         dynamoDB: {
-          query: queryMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
       });
 
       await queryBuilder.query<any>({

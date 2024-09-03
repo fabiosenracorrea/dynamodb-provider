@@ -21,8 +21,11 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
       });
 
       await updater.update<any>({
@@ -66,10 +69,13 @@ describe('Updater tests', () => {
         logCallParams: true,
 
         dynamoDB: {
-          update: () => ({
-            promise: () => ({}),
-          }),
-        } as any,
+          target: 'v2',
+          instance: {
+            update: () => ({
+              promise: () => ({}),
+            }),
+          } as any,
+        },
       });
 
       await updater.update<any>({
@@ -119,10 +125,13 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
+          target: 'v2',
+          instance: {
+            update: updateMock,
 
-          createSet,
-        } as any,
+            createSet,
+          } as any,
+        },
       });
 
       await updater.update<any>({
@@ -176,8 +185,11 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
       });
 
       const conditions = [
@@ -239,10 +251,12 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-
-          createSet: (v: any) => v,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+            createSet: (v: any) => v,
+          } as any,
+        },
       });
 
       await updater.update<any>({
@@ -334,10 +348,12 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-
-          createSet: (v: any) => v,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+            createSet: (v: any) => v,
+          } as any,
+        },
       });
 
       const conditions = [
@@ -455,8 +471,11 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
       });
 
       const result = await updater.update<any>({
@@ -519,8 +538,11 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          update: updateMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
       });
 
       const result = await updater.update<any>({
@@ -918,7 +940,7 @@ describe('Updater tests', () => {
       });
     });
 
-    describe('handle a complex scenario', () => {
+    it('handle a complex scenario', () => {
       const createSet = (v: any) => ({
         value: v,
         isSet: true,
@@ -926,8 +948,11 @@ describe('Updater tests', () => {
 
       const updater = new ItemUpdater({
         dynamoDB: {
-          createSet,
-        } as any,
+          target: 'v2',
+          instance: {
+            createSet,
+          } as any,
+        },
       });
 
       const conditions = [

@@ -30,8 +30,11 @@ describe('batchGetter', () => {
 
     const batchGetter = new BatchGetter({
       dynamoDB: {
-        batchGet: batchGetMock,
-      } as any,
+        target: 'v2',
+        instance: {
+          batchGet: batchGetMock,
+        } as any,
+      },
     });
 
     const result = await batchGetter.batchGet({
@@ -132,8 +135,11 @@ describe('batchGetter', () => {
 
     const batchGetter = new BatchGetter({
       dynamoDB: {
-        batchGet: batchGetMock,
-      } as any,
+        target: 'v2',
+        instance: {
+          batchGet: batchGetMock,
+        } as any,
+      },
     });
 
     const result = await batchGetter.batchGet({
@@ -197,8 +203,11 @@ describe('batchGetter', () => {
 
     const batchGetter = new BatchGetter({
       dynamoDB: {
-        batchGet: batchGetMock,
-      } as any,
+        target: 'v2',
+        instance: {
+          batchGet: batchGetMock,
+        } as any,
+      },
     });
 
     const result = await batchGetter.batchGet({
@@ -331,8 +340,11 @@ describe('batchGetter', () => {
 
     const batchGetter = new BatchGetter({
       dynamoDB: {
-        batchGet: batchGetMock,
-      } as any,
+        target: 'v2',
+        instance: {
+          batchGet: batchGetMock,
+        } as any,
+      },
     });
 
     const result = await batchGetter.batchGet({
@@ -425,8 +437,11 @@ describe('batchGetter', () => {
 
     const batchGetter = new BatchGetter({
       dynamoDB: {
-        batchGet: batchGetMock,
-      } as any,
+        target: 'v2',
+        instance: {
+          batchGet: batchGetMock,
+        } as any,
+      },
     });
 
     const call = async () => {

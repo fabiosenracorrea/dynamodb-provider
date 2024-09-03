@@ -22,8 +22,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const result = await lister.list('table');
@@ -43,8 +46,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       await lister.list('table', {
@@ -65,8 +71,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       await lister.list('table', {
@@ -89,8 +98,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       await lister.list('table', {
@@ -115,8 +127,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       await lister.list('table', {
@@ -147,8 +162,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const properties = ['name', 'age', 'id'];
@@ -187,8 +205,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const properties = ['name', 'age', 'id'];
@@ -241,8 +262,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const properties = ['name', 'age', 'id'];
@@ -313,8 +337,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const result = await lister.list<any>('table');
@@ -340,8 +367,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       await lister.list<any>('table', {
@@ -393,8 +423,11 @@ describe('Lister', () => {
 
       const lister = new ItemLister({
         dynamoDB: {
-          scan: scanMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
       });
 
       const allItems = await lister.listAll<any>('table');

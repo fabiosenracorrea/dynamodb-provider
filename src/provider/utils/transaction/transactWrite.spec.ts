@@ -266,8 +266,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       await writer.executeTransaction([
@@ -339,8 +342,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       const updater = new ItemUpdater({
@@ -424,8 +430,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       await writer.executeTransaction([
@@ -481,8 +490,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       const conditions = [
@@ -538,8 +550,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       await writer.executeTransaction([]);
@@ -558,8 +573,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       await writer.executeTransaction([null, null, null]);
@@ -576,8 +594,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       const execute = async () => {
@@ -609,8 +630,11 @@ describe('transactionWriter', () => {
 
       const writer = new TransactionWriter({
         dynamoDB: {
-          transactWrite: transactMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            transactWrite: transactMock,
+          } as any,
+        },
       });
 
       const creator = new ItemCreator({ dynamoDB: {} as any });

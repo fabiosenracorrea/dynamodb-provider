@@ -19,8 +19,11 @@ describe('CreateItem actions', () => {
 
       const creator = new ItemCreator({
         dynamoDB: {
-          put: putMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            put: putMock,
+          } as any,
+        },
       });
 
       await creator.create({
@@ -48,8 +51,11 @@ describe('CreateItem actions', () => {
 
       const creator = new ItemCreator({
         dynamoDB: {
-          put: putMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            put: putMock,
+          } as any,
+        },
       });
 
       const conditions = [
@@ -102,10 +108,13 @@ describe('CreateItem actions', () => {
         logCallParams: true,
 
         dynamoDB: {
-          put: () => ({
-            promise: () => {},
-          }),
-        } as any,
+          target: 'v2',
+          instance: {
+            put: () => ({
+              promise: () => {},
+            }),
+          } as any,
+        },
       });
 
       await creator.create({
@@ -133,9 +142,7 @@ describe('CreateItem actions', () => {
   describe('creation params generation', () => {
     it('should properly build PutItem params', async () => {
       const creator = new ItemCreator({
-        dynamoDB: {
-          put: async () => {},
-        } as any,
+        dynamoDB: {} as any,
       });
 
       const params = creator.getCreateParams({
@@ -157,9 +164,7 @@ describe('CreateItem actions', () => {
 
     it('should properly build conditions with its helpers', async () => {
       const creator = new ItemCreator({
-        dynamoDB: {
-          put: async () => {},
-        } as any,
+        dynamoDB: {} as any,
       });
 
       const conditions = [

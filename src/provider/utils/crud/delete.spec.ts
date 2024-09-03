@@ -19,8 +19,11 @@ describe('DeleteItem actions', () => {
 
       const remover = new ItemRemover({
         dynamoDB: {
-          delete: deleteMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            delete: deleteMock,
+          } as any,
+        },
       });
 
       await remover.delete({
@@ -48,8 +51,11 @@ describe('DeleteItem actions', () => {
 
       const remover = new ItemRemover({
         dynamoDB: {
-          delete: deleteMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            delete: deleteMock,
+          } as any,
+        },
       });
 
       const conditions = [
@@ -102,10 +108,13 @@ describe('DeleteItem actions', () => {
         logCallParams: true,
 
         dynamoDB: {
-          delete: () => ({
-            promise: () => {},
-          }),
-        } as any,
+          target: 'v2',
+          instance: {
+            delete: () => ({
+              promise: () => {},
+            }),
+          } as any,
+        },
       });
 
       await remover.delete({
@@ -133,9 +142,7 @@ describe('DeleteItem actions', () => {
   describe('deletion params generation', () => {
     it('should properly build PutItem params', async () => {
       const remover = new ItemRemover({
-        dynamoDB: {
-          delete: async () => {},
-        } as any,
+        dynamoDB: {} as any,
       });
 
       const params = remover.getDeleteParams({
@@ -157,9 +164,7 @@ describe('DeleteItem actions', () => {
 
     it('should properly build conditions with its helpers', async () => {
       const remover = new ItemRemover({
-        dynamoDB: {
-          delete: async () => {},
-        } as any,
+        dynamoDB: {} as any,
       });
 
       const conditions = [

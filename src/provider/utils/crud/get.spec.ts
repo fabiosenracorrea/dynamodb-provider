@@ -15,8 +15,11 @@ describe('GetItem actions', () => {
 
       const getter = new ItemGetter({
         dynamoDB: {
-          get: getMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            get: getMock,
+          } as any,
+        },
       });
 
       await getter.get({
@@ -44,8 +47,11 @@ describe('GetItem actions', () => {
 
       const getter = new ItemGetter({
         dynamoDB: {
-          get: getMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            get: getMock,
+          } as any,
+        },
       });
 
       await getter.get({
@@ -75,8 +81,11 @@ describe('GetItem actions', () => {
 
       const getter = new ItemGetter({
         dynamoDB: {
-          get: getMock,
-        } as any,
+          target: 'v2',
+          instance: {
+            get: getMock,
+          } as any,
+        },
       });
 
       await getter.get<any>({
@@ -112,10 +121,13 @@ describe('GetItem actions', () => {
         logCallParams: true,
 
         dynamoDB: {
-          get: () => ({
-            promise: () => ({}),
-          }),
-        } as any,
+          target: 'v2',
+          instance: {
+            get: () => ({
+              promise: () => ({}),
+            }),
+          } as any,
+        },
       });
 
       await getter.get({
