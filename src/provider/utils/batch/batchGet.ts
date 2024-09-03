@@ -8,7 +8,7 @@ import { DynamodbExecutor } from '../dynamoDB';
 import { getProjectExpressionParams } from '../projection';
 import { EntityPK } from '../crud/types';
 
-const MAX_BATCH_GET_RETIRES = 7;
+const MAX_BATCH_GET_RETIRES = 8;
 const DYNAMO_BATCH_GET_LIMIT = 100;
 
 export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
@@ -47,6 +47,14 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
    * to tell the function to throw instead.
    */
   throwOnUnprocessed?: boolean;
+
+  /**
+   * By default we'll try to reprocesses keys 8 times,
+   * waiting exponentially between attempts
+   *
+   * Change this to suit your needs
+   */
+  maxRetries?: number;
 }
 
 // type NormalizedGetRef = Omit<BatchListItemsArgs<any>, 'keys'> & {
@@ -57,9 +65,16 @@ export class BatchGetter extends DynamodbExecutor {
   private async safeBatchGetOperation<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     args: BatchListItemsArgs<Entity, PKs>,
     items: Entity[] = [],
-    retries = 0,
+    retries = 1,
   ): Promise<Entity[]> {
-    const { keys, table, propertiesToRetrieve, consistentRead, throwOnUnprocessed } = args;
+    const {
+      keys,
+      table,
+      propertiesToRetrieve,
+      consistentRead,
+      throwOnUnprocessed,
+      maxRetries = MAX_BATCH_GET_RETIRES,
+    } = args;
 
     const params = {
       RequestItems: {
@@ -79,7 +94,7 @@ export class BatchGetter extends DynamodbExecutor {
 
     const updatedItems = [...items, ...returnItems] as Entity[];
 
-    const maxRetriesReached = retries >= MAX_BATCH_GET_RETIRES;
+    const maxRetriesReached = retries >= maxRetries;
 
     if (maxRetriesReached && throwOnUnprocessed) throw new Error(`Unprocessed items timeout`);
 
