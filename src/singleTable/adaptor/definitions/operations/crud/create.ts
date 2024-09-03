@@ -104,7 +104,9 @@ export class SingleTableCreator extends BaseSingleTableOperator {
   }
 
   // We only need to extend config on our provider, this method here is not exposed to the application
-  async create<Entity>(params: SingleTableCreateItemParams<Entity>): Promise<Entity> {
+  async create<Entity>(
+    params: SingleTableCreateItemParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<Entity> {
     const created = await this.db.create<any>(this.getCreateParams(params as any));
 
     return cleanInternalProps(created, this.config);
