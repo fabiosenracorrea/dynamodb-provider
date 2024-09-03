@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { StringKey, AnyObject } from 'types';
 
-import { DynamodbProvider, IDynamodbProvider } from 'provider';
+import { IDynamodbProvider } from 'provider';
 
 import { QueryResult, DBSet } from 'provider/utils';
 
@@ -53,7 +53,7 @@ export class SingleTable<SingleParams extends SingleTableParams>
   private querBuilder: SingleTableQueryBuilder;
 
   constructor({ dynamodbProvider, ...config }: SingleParams) {
-    this.db = dynamodbProvider || new DynamodbProvider();
+    this.db = dynamodbProvider;
 
     this.config = config;
 
@@ -74,7 +74,8 @@ export class SingleTable<SingleParams extends SingleTableParams>
   }
 
   async create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity> {
-    return this.creator.create(params);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.creator.create(params as any);
   }
 
   async update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(

@@ -20,7 +20,7 @@ export interface SingleTableParams extends SingleTableConfig {
   /**
    * An instance of `DynamodbProvider`, configured to your needs
    */
-  dynamodbProvider?: IDynamodbProvider;
+  dynamodbProvider: IDynamodbProvider;
 }
 
 export interface ISingleTable<SingleParams extends SingleTableParams>
