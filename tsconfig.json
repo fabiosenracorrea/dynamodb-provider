@@ -12,7 +12,7 @@
     "noImplicitAny": true,
     "noImplicitReturns": false,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "outDir": "./dist",
     "rootDir": "./src",
