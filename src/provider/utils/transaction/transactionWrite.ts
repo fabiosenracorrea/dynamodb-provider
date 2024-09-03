@@ -1,9 +1,13 @@
 /* eslint-disable no-console */
-import { DynamoDB } from 'aws-sdk';
-
 import { printLog } from 'utils/log';
 
-import { DynamodbExecutor, ExecutorParams } from '../executor';
+import {
+  DBConditionTransactParams,
+  DBTransactWriteParams,
+  DynamodbExecutor,
+  ExecutorParams,
+} from '../dynamoDB';
+
 import { TransactionConfig, ValidateTransactParams } from './types';
 import { buildExpression } from '../expressions';
 import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
@@ -28,17 +32,11 @@ export class TransactionWriter extends DynamodbExecutor {
     this.updater = new ItemUpdater(params);
   }
 
-  private async _transactionWrite(
-    params: DynamoDB.DocumentClient.TransactWriteItemsInput,
-  ): Promise<DynamoDB.DocumentClient.TransactWriteItemsOutput> {
-    return this.dynamoDB.transactWrite(params).promise();
-  }
-
   private _getConditionCheckParams({
     conditions,
     key,
     table,
-  }: ValidateTransactParams): DynamoDB.DocumentClient.ConditionCheck {
+  }: ValidateTransactParams): DBConditionTransactParams {
     return {
       TableName: table,
 
@@ -52,9 +50,7 @@ export class TransactionWriter extends DynamodbExecutor {
     };
   }
 
-  private _getTransactParams(
-    configs: TransactionConfig[],
-  ): DynamoDB.DocumentClient.TransactWriteItemsInput {
+  private _getTransactParams(configs: TransactionConfig[]): DBTransactWriteParams['input'] {
     const params = configs.map(({ create, erase, update, validate }) => {
       if (update) return { Update: this.updater.getUpdateParams(update) };
 
@@ -69,7 +65,7 @@ export class TransactionWriter extends DynamodbExecutor {
 
     const actualParams = params.filter(Boolean);
 
-    return { TransactItems: actualParams } as DynamoDB.DocumentClient.TransactWriteItemsInput;
+    return { TransactItems: actualParams } as DBTransactWriteParams['input'];
   }
 
   private async executeSingleTransaction(configs: TransactionConfig[]): Promise<void> {

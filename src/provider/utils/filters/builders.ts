@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB } from 'aws-sdk';
-
 import { AnyObject } from 'types';
 
 import { cascadeEval, quickSwitch } from 'utils/conditions';
 import { isNonNullable } from 'utils/checkers';
+
+import { DBFilterParams } from '../dynamoDB';
+
 import {
   buildExpression,
   buildExpressionAttributeValues,
@@ -26,7 +27,7 @@ const FILTER_PREFIX = '__filter_';
 
 export function buildFilterExpressionValuesAndExpression<Entity extends AnyObject>(
   filters: Filters<Entity>,
-): Pick<DynamoDB.DocumentClient.ScanInput, 'FilterExpression' | 'ExpressionAttributeValues'> {
+): Pick<DBFilterParams, 'FilterExpression' | 'ExpressionAttributeValues'> {
   const direct = Object.entries(filters).filter(([, value]) => typeof value !== 'object');
 
   const directEquals = direct.map(([property, value]) =>
@@ -131,10 +132,7 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
 
 export function getFilterParams<Entity extends AnyObject>(
   filters?: Filters<Entity>,
-): Pick<
-  DynamoDB.DocumentClient.ScanInput,
-  'FilterExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
-> {
+): DBFilterParams {
   if (!filters) return {};
 
   const actualValues = purgeUndefinedFilters(filters);

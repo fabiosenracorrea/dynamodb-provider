@@ -1,5 +1,7 @@
 import { AnyObject } from 'types';
-import { DynamoDB } from 'aws-sdk';
+
+import { DBProjectionParams } from '../dynamoDB';
+
 import { getExpressionNames, toExpressionName } from '../expressions';
 
 const PROJECT_EXPRESSION_PREFIX = '__projection_';
@@ -18,9 +20,7 @@ export function getProjectionExpressionNames(properties?: string[] | undefined):
   return getExpressionNames(properties, PROJECT_EXPRESSION_PREFIX);
 }
 
-export function getProjectExpressionParams(
-  properties?: string[] | undefined,
-): Pick<DynamoDB.DocumentClient.GetItemInput, 'ProjectionExpression' | 'ExpressionAttributeNames'> {
+export function getProjectExpressionParams(properties?: string[] | undefined): DBProjectionParams {
   if (!properties?.length) return {};
 
   return {

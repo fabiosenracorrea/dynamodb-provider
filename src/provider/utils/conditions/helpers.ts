@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
-import { DynamoDB } from 'aws-sdk';
+
 import {
   buildExpression,
   getExpressionNames,
   getExpressionValues,
   ItemExpression,
 } from '../expressions';
+import { DBConditionParams } from '../dynamoDB';
 
 const CONDITION_PREFIX = '__condition_';
 
@@ -25,11 +26,7 @@ export function getConditionExpressionValues(conditions: ItemExpression<any>[]):
   return getExpressionValues(conditions, CONDITION_PREFIX);
 }
 
-export function getConditionParams(conditions?: ItemExpression<any>[]): Pick<
-  // It does not matter which input we reference these from
-  DynamoDB.DocumentClient.PutItemInput,
-  'ConditionExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
-> {
+export function getConditionParams(conditions?: ItemExpression<any>[]): DBConditionParams {
   if (!conditions?.length) return {};
 
   return {

@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { DynamoDB, QueryOutput } from 'aws-sdk';
-
 import { AnyObject } from 'types';
 
-import { printLog } from 'utils/log';
 import { cascadeEval } from 'utils/conditions';
 import { omit } from 'utils/object';
 
-import { DynamodbExecutor } from '../executor';
+import { DBQueryParams, DynamodbExecutor } from '../dynamoDB';
+
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 import {
   buildExpression,
@@ -22,14 +20,6 @@ import { getFilterParams } from '../filters';
 import { QueryParams, QueryResult } from './types';
 
 export class QueryBuilder extends DynamodbExecutor {
-  private async _query<Entity = any>(
-    params: DynamoDB.DocumentClient.QueryInput,
-  ): Promise<QueryOutput<Entity>> {
-    if (this.options.logCallParams) printLog(params, 'query - dynamodb params');
-
-    return this.dynamoDB.query(params).promise() as unknown as Promise<QueryOutput<Entity>>;
-  }
-
   private transformKeysToExpressions({
     hashKey,
     rangeKey,
@@ -55,7 +45,7 @@ export class QueryBuilder extends DynamodbExecutor {
   private getKeyParams(
     keys: Pick<QueryParams<any>, 'hashKey' | 'rangeKey'>,
   ): Pick<
-    DynamoDB.DocumentClient.QueryInput,
+    DBQueryParams<any>['input'],
     'KeyConditionExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
   > {
     const keyExpressions = this.transformKeysToExpressions(keys);
@@ -76,7 +66,7 @@ export class QueryBuilder extends DynamodbExecutor {
     filters,
     rangeKey,
   }: Pick<QueryParams<any>, 'filters' | 'hashKey' | 'rangeKey'>): Pick<
-    DynamoDB.DocumentClient.QueryInput,
+    DBQueryParams<any>['input'],
     | 'KeyConditionExpression'
     | 'ExpressionAttributeNames'
     | 'ExpressionAttributeValues'
@@ -118,7 +108,7 @@ export class QueryBuilder extends DynamodbExecutor {
   > {
     const isPaginated = _lastKey || paginationToken;
 
-    const { LastEvaluatedKey, Items } = await this._query({
+    const { LastEvaluatedKey, Items } = await this._query<Entity>({
       TableName: table,
 
       IndexName: index,

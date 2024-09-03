@@ -3,8 +3,10 @@ export * from './expressions';
 export * from './crud';
 export * from './query';
 export * from './transaction';
-export * from './set';
 export * from './filters';
 export * from './projection';
+export * from './set';
 export * from './listing';
 export * from './batch';
+
+export { DynamoDBConfig } from './dynamoDB';

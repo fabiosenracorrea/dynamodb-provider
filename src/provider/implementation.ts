@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB } from 'aws-sdk';
-
 import { AnyObject, StringKey } from 'types';
 
 import { IDynamodbProvider } from './definition';
@@ -27,15 +25,17 @@ import {
   QueryBuilder,
   QueryParams,
   QueryResult,
+  DynamoDBConfig,
+  DynamoDBSet,
 } from './utils';
 
 interface DynamoDbProviderParams {
   /**
-   * DynamoDB Document Client from aws-sdk v2
+   * DynamoDB Document Client
    *
-   * v3 support will be released in an upcoming version
+   * You can pass in either v2 or v3 client
    */
-  dynamoDB?: DynamoDB.DocumentClient;
+  dynamoDB: DynamoDBConfig;
 
   /**
    * Defines if we should log the params constructed
@@ -47,8 +47,6 @@ interface DynamoDbProviderParams {
 }
 
 export class DynamodbProvider implements IDynamodbProvider {
-  private dynamoDB: DynamoDB.DocumentClient;
-
   private creator: ItemCreator;
 
   private remover: ItemRemover;
@@ -65,11 +63,9 @@ export class DynamodbProvider implements IDynamodbProvider {
 
   private queryBuilder: QueryBuilder;
 
-  constructor(startParams: DynamoDbProviderParams = {}) {
-    this.dynamoDB = startParams.dynamoDB ?? new DynamoDB.DocumentClient();
+  private set: DynamoDBSet;
 
-    const params = { dynamoDB: this.dynamoDB, ...startParams };
-
+  constructor(params: DynamoDbProviderParams) {
     this.creator = new ItemCreator(params);
 
     this.remover = new ItemRemover(params);
@@ -85,6 +81,8 @@ export class DynamodbProvider implements IDynamodbProvider {
     this.transactWriter = new TransactionWriter(params);
 
     this.queryBuilder = new QueryBuilder(params);
+
+    this.set = new DynamoDBSet(params);
   }
 
   async get<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -144,7 +142,7 @@ export class DynamodbProvider implements IDynamodbProvider {
     return this.transactWriter.generateTransactionConfigList(items, generator);
   }
 
-  createSet(items: string[]): DBSet {
-    return this.dynamoDB.createSet(items) as DBSet;
+  createSet(items: string[] | number[]): DBSet {
+    return this.set.createSet(items);
   }
 }

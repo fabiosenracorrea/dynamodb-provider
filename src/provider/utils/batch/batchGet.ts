@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB } from 'aws-sdk';
-
-import { printLog } from 'utils/log';
 import { ensureMaxArraySize } from 'utils/array';
 import { waitExponentially } from 'utils/backOff';
 
 import { StringKey } from 'types';
 
-import { DynamodbExecutor } from '../executor';
+import { DynamodbExecutor } from '../dynamoDB';
 import { getProjectExpressionParams } from '../projection';
 import { EntityPK } from '../crud/types';
 
@@ -57,14 +54,6 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
 // };
 
 export class BatchGetter extends DynamodbExecutor {
-  private async _batchGetItems(
-    params: DynamoDB.DocumentClient.BatchGetItemInput,
-  ): Promise<DynamoDB.DocumentClient.BatchGetItemOutput> {
-    if (this.options.logCallParams) printLog(params, 'batchGetItems - dynamodb call params');
-
-    return this.dynamoDB.batchGet(params).promise();
-  }
-
   private async safeBatchGetOperation<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     args: BatchListItemsArgs<Entity, PKs>,
     items: Entity[] = [],

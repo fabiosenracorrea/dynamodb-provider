@@ -47,5 +47,5 @@ export interface IDynamodbProvider {
     generator: (item: Item) => (TransactionConfig | null)[],
   ): TransactionConfig[];
 
-  createSet(items: string[]): DBSet;
+  createSet(items: string[] | number[]): DBSet;
 }

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB } from 'aws-sdk';
 
 import { StringKey } from 'types';
 
-import { printLog } from 'utils/log';
 import { removeUndefinedProps } from 'utils/object';
+
+import { DBUpdateItemParams, DynamodbExecutor } from '../../dynamoDB';
 
 import {
   buildConditionExpression,
@@ -16,7 +16,6 @@ import {
   buildExpressionAttributeValues,
   getExpressionNames,
 } from '../../expressions';
-import { DynamodbExecutor } from '../../executor';
 
 import { buildUpdateExpression } from './updateExpression';
 import { validateUpdateParams } from './validate';
@@ -24,14 +23,6 @@ import { UpdateParams } from './types';
 import { UpdateIfNotExistsOperation } from './atomic';
 
 export class ItemUpdater extends DynamodbExecutor {
-  private async _updateItem(
-    params: DynamoDB.DocumentClient.UpdateItemInput,
-  ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
-    if (this.options.logCallParams) printLog(params, 'updateItem - dynamodb call params');
-
-    return this.dynamoDB.update(params).promise();
-  }
-
   private convertAtomicValue({
     type,
     value,
@@ -39,7 +30,7 @@ export class ItemUpdater extends DynamodbExecutor {
     switch (type) {
       case 'add_to_set':
       case 'remove_from_set':
-        return this.dynamoDB.createSet(Array.isArray(value) ? value : [value]);
+        return this.createSet(Array.isArray(value) ? value : [value]);
       default:
         return value;
     }
@@ -60,7 +51,7 @@ export class ItemUpdater extends DynamodbExecutor {
 
   getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
-  ): DynamoDB.DocumentClient.UpdateItemInput {
+  ): DBUpdateItemParams['input'] {
     validateUpdateParams(params);
 
     const { key, table, remove, returnUpdatedProperties } = params;

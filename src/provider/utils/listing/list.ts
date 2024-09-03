@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB, ScanOutput } from 'aws-sdk';
-
 import { AnyObject } from 'types';
 
-import { printLog } from 'utils/log';
 import { removeUndefinedProps } from 'utils/object';
+
+import { DBScanParams, DynamodbExecutor } from '../dynamoDB';
 
 import { Filters, getFilterParams } from '../filters';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
-import { DynamodbExecutor } from '../executor';
 import { fromPaginationToken, toPaginationToken } from '../pagination';
 
 export interface ListOptions<Entity> {
@@ -99,14 +97,6 @@ export type ListTableResult<Entity> = {
 };
 
 export class ItemLister extends DynamodbExecutor {
-  private async _scanTable<Entity>(
-    params: DynamoDB.DocumentClient.ScanInput,
-  ): Promise<ScanOutput<Entity>> {
-    if (this.options.logCallParams) printLog(params, 'scanTable - dynamodb call params');
-
-    return this.dynamoDB.scan(params).promise() as unknown as Promise<ScanOutput<Entity>>;
-  }
-
   private getListParams<Entity>({
     table,
     consistentRead,
@@ -117,7 +107,7 @@ export class ItemLister extends DynamodbExecutor {
     parallelRetrieval,
     propertiesToGet,
     _internalStartKey,
-  }: GetScanParams<Entity>): DynamoDB.DocumentClient.ScanInput {
+  }: GetScanParams<Entity>): DBScanParams<Entity>['input'] {
     const filterParams = getFilterParams(filters);
 
     const isPaginated = _internalStartKey || paginationToken;

@@ -1,12 +1,9 @@
-import { DynamoDB } from 'aws-sdk';
+import { AnyObject, StringKey } from 'types';
 
-import { printLog } from 'utils/log';
-
-import { StringKey } from 'types';
+import { DBCreateItemParams, DynamodbExecutor } from '../dynamoDB';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
-import { DynamodbExecutor } from '../executor';
 
 export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
@@ -37,22 +34,14 @@ export class ItemCreator extends DynamodbExecutor {
     item,
     table,
     conditions,
-  }: CreateItemParams<Entity>): DynamoDB.DocumentClient.PutItemInput {
+  }: CreateItemParams<Entity>): DBCreateItemParams['input'] {
     return {
       TableName: table,
 
-      Item: item as DynamoDB.DocumentClient.PutItemInputAttributeMap,
+      Item: item as AnyObject,
 
       ...getConditionParams(conditions),
     };
-  }
-
-  private async _insertItem(
-    params: DynamoDB.DocumentClient.PutItemInput,
-  ): Promise<DynamoDB.DocumentClient.PutItemOutput> {
-    if (this.options.logCallParams) printLog(params, 'putItem - dynamodb call params');
-
-    return this.dynamoDB.put(params).promise();
   }
 
   async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {

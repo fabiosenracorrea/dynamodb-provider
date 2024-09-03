@@ -1,14 +1,11 @@
-import { DynamoDB, GetItemOutput } from 'aws-sdk';
-
 import { StringKey } from 'types';
 
-import { printLog } from 'utils/log';
 import { removeUndefinedProps } from 'utils/object';
 
 import { getProjectExpressionParams } from '../projection';
-import { DynamodbExecutor } from '../executor';
 
 import { EntityPK } from './types';
+import { DynamodbExecutor } from '../dynamoDB';
 
 export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
@@ -37,14 +34,6 @@ export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown =
 }
 
 export class ItemGetter extends DynamodbExecutor {
-  private async _getItem<Entity>(
-    params: DynamoDB.DocumentClient.GetItemInput,
-  ): Promise<GetItemOutput<Entity>> {
-    if (this.options.logCallParams) printLog(params, 'getItem - dynamodb call params');
-
-    return this.dynamoDB.get(params).promise() as unknown as Promise<GetItemOutput<Entity>>;
-  }
-
   async get<Entity, PKs extends StringKey<Entity> | unknown = StringKey<Entity>>({
     key,
     table,

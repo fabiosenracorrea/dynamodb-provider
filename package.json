@@ -24,9 +24,12 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.637.0",
+    "@aws-sdk/lib-dynamodb": "^3.637.0",
     "@types/jest": "^29.5.12",
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
+    "aws-sdk": "^2.1048.0",
     "eslint": "^8.5.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.3.0",
@@ -39,7 +42,6 @@
     "typescript": "^5.4.1"
   },
   "dependencies": {
-    "aws-sdk": "^2.1048.0",
     "ksuid": "^3.0.0",
     "uuid": "^8.3.2"
   },

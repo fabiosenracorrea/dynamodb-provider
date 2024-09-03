@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DynamoDB } from 'aws-sdk';
-
-import { printLog } from 'utils/log';
-
 import { StringKey } from 'types';
+
+import { DBDeleteItemParams, DynamodbExecutor } from '../dynamoDB';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
-import { DynamodbExecutor } from '../executor';
 
 import { EntityPK } from './types';
 
@@ -32,19 +29,11 @@ export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknow
 }
 
 export class ItemRemover extends DynamodbExecutor {
-  private async _deleteItem(
-    params: DynamoDB.DocumentClient.DeleteItemInput,
-  ): Promise<DynamoDB.DocumentClient.DeleteItemOutput> {
-    if (this.options.logCallParams) printLog(params, 'deleteItem - dynamodb call params');
-
-    return this.dynamoDB.delete(params).promise();
-  }
-
   getDeleteParams<Entity>({
     key,
     table,
     conditions,
-  }: DeleteItemParams<Entity>): DynamoDB.DocumentClient.DeleteItemInput {
+  }: DeleteItemParams<Entity>): DBDeleteItemParams['input'] {
     return {
       TableName: table,
 

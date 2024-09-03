@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DynamodbProvider } from './provider';
+import { SingleTableProvider } from 'singleTable/adaptor/implementation';
 
 interface Person {
   id: string;
@@ -10,18 +10,10 @@ interface Person {
 }
 
 export async function testProviderTyping() {
-  const db = new DynamodbProvider();
-
-  const items = await db.query<Person>({
-    table: 'hello',
-    hashKey: {
-      name: 'name',
-      value: 'id',
-    },
-    rangeKey: {
-      name: 'zip',
-      operation: 'begins_with',
-      value: '1',
-    },
+  const db = new SingleTableProvider({
+    table: 'table',
+    partitionKey: '_pk',
+    rangeKey: '_sk',
+    expiresAt: '_expires',
   });
 }
