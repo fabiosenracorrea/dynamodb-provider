@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type OrUndefined<T> = T | undefined;
 
+export type IsUndefined<T> = undefined extends T ? true : false;
+
+export type IfUndefined<T, Y, N> = IsUndefined<T> extends true ? Y : N;
+
 export type AnyObject = Record<string, any>;
 
 export type AnyMemberIsObject<T> = T extends any ? (T extends object ? true : never) : never;

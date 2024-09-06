@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getUniqueID } from 'utils/id';
+import { getId } from 'utils/id';
+
 import { KeyGetter } from './key';
 import { TableIndex } from '../config';
 
@@ -37,11 +38,10 @@ export interface Partition<
 export function createPartition<Params extends PartitionCreationParams>(
   params: Params,
 ): Partition<Params> {
-  const id = getUniqueID();
-
   return {
     ...params,
-    id,
+
+    id: getId('UUID'),
 
     build: (() => ({
       partitionKeyGetter:

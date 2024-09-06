@@ -13,7 +13,6 @@ export type SingleCollectionRefConfig = Record<
       eg: pass User to the register Entity, and on the partition, appoint { permissions: { entity: UserPermissions, type: 'SINGLE', extractor: (data: UserPermissions) => type extends 'SINGLE' ? (string | number | any[] | object | boolean) : Obj[] } }
 
       ideia here is to get the { userId: string, permissions: string[] } UserPermissions type and make it to string[] to be added to the 'permissions' property of the merged User
-
     */
   }
 >;
