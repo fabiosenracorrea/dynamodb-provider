@@ -13,8 +13,7 @@ type EntityIndexConfig<
   TableIndex extends keyof TableConfig['indexes'] = keyof TableConfig['indexes'],
 > = {
   indexes: {
-    [IndexName in TableIndex]: Omit<IndexConfig[IndexName], 'rangeQueries'> &
-      RangeQueryResultProps<IndexConfig[IndexName]['rangeQueries']> &
+    [IndexName in TableIndex]: RangeQueryResultProps<IndexConfig[IndexName]> &
       KeyResolvers<IndexConfig[IndexName]>;
   };
 
@@ -27,7 +26,14 @@ type EntityIndexConfig<
   };
 };
 
-export type EntityIndexParams<
+export type EntityIndexInputParams<
+  TableConfig extends SingleTableParams,
+  Entity,
+> = TableConfig extends SingleTableConfigWithIndex
+  ? { indexes?: IndexMapping<TableConfig, Entity> }
+  : unknown;
+
+export type EntityIndexResultProps<
   TableConfig extends SingleTableParams,
   Params extends { indexes?: IndexMapping },
 > = TableConfig extends SingleTableConfigWithIndex

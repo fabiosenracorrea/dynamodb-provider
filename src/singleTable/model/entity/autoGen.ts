@@ -61,7 +61,18 @@ type AutoGenFieldConfig<Entity> = {
 };
 
 export type AutoGenParams<Entity> = {
+  /**
+   * Map your entity keys to the auto generation method or a custom function generator
+   *
+   * Runs on create calls
+   */
   onCreate?: AutoGenFieldConfig<Entity>;
+
+  /**
+   * Map your entity keys to the auto generation method or a custom function generator
+   *
+   * Runs on update calls
+   */
   onUpdate?: AutoGenFieldConfig<Entity>;
 };
 

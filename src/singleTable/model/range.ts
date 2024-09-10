@@ -44,7 +44,9 @@ export type RangeQueryInputProps = {
   rangeQueries?: RangeQuery;
 };
 
-export type RangeQueryResultProps<RangeQueryConfig extends RangeQuery | undefined> =
-  RangeQueryConfig extends RangeQuery
-    ? { rangeQueries: RangeQueryGetters<RangeQueryConfig> }
+export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | undefined> =
+  RangeParams extends RangeQueryInputProps
+    ? RangeParams['rangeQueries'] extends RangeQuery
+      ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
+      : unknown
     : unknown;
