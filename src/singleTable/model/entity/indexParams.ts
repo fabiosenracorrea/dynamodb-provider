@@ -35,9 +35,11 @@ export type EntityIndexInputParams<
 
 export type EntityIndexResultProps<
   TableConfig extends SingleTableParams,
-  Params extends { indexes?: IndexMapping },
+  Params,
 > = TableConfig extends SingleTableConfigWithIndex
-  ? Params['indexes'] extends IndexMapping<TableConfig>
-    ? EntityIndexConfig<TableConfig, Params['indexes']>
+  ? Params extends { indexes?: any }
+    ? Params['indexes'] extends IndexMapping<TableConfig>
+      ? EntityIndexConfig<TableConfig, Params['indexes']>
+      : unknown
     : unknown
   : unknown;
