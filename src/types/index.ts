@@ -45,3 +45,10 @@ export type PrettifyObject<T> = {
   [K in keyof T]: T[K] extends Record<string, any> ? PrettifyObject<T[K]> : T[K];
   // eslint-disable-next-line @typescript-eslint/ban-types
 } & {};
+
+/**
+ * Ensures you have at least one key of an object present
+ *
+ * AtLeastOne<{ create?: string; update?: string; }> => ensures we have 'create' and/or 'update' defined
+ */
+export type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U];
