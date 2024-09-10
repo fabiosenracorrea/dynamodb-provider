@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { KeyValue } from 'singleTable/adaptor/definitions';
+import { KeyValue, SingleTableKeyReference } from 'singleTable/adaptor/definitions';
 
 import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
 
@@ -31,7 +31,7 @@ export type EntityKeyParams<Resolvers extends EntityKeyResolvers<any>> = Prettif
 >;
 
 export type KeyResolvers<PieceResolvers extends EntityKeyResolvers<any>> = PieceResolvers & {
-  getKey: KeyGetter<EntityKeyParams<PieceResolvers>>;
+  getKey: (params: EntityKeyParams<PieceResolvers>) => SingleTableKeyReference;
 };
 
 // Todo>: fix type to accept only Key[] or {key, parser} to properly infer result
