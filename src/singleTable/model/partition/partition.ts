@@ -4,7 +4,7 @@ import { KeyValue } from 'singleTable/adaptor/definitions';
 import { SingleTableParams } from 'singleTable/adaptor';
 
 import { SingleIndex } from '../indexes';
-import { FullPartitionKeys, ParamMatchArgs } from './paramSwap';
+import { FullPartitionKeys, ParamMatchArgs } from '../keySwap';
 
 type CreatePartitionIndexParams<TableConfig extends SingleTableParams> =
   undefined extends TableConfig['indexes']
@@ -113,9 +113,20 @@ type PartitionDumpParams<
 type Partition<Params extends PartitionCreationParams<any>> = Params & {
   id: string;
 
+  /**
+   * @param entry One of this partition's `entries`
+   *
+   * Chose one of the entries to build its reference, Index or Entity,
+   * depending on the type of the partition
+   */
   use<Entry extends EntryOptions<Params>>(
     entry: Entry,
   ): {
+    /**
+     * Initiate an instance the partition for a given Type
+     *
+     * This ensures type-safe references
+     */
     create<T = void>(
       ...params: T extends void ? ['You must provided a type parameter'] : []
     ): PartitionDumpParams<Params, Entry, T>;
@@ -143,20 +154,3 @@ const part = createPartition({
     logins: ({ timestamp }: { timestamp: string }) => ['LOGIN', timestamp],
   },
 });
-
-interface User {
-  id: string;
-  createdAt: string;
-  hello: string;
-  more: string;
-  another: string;
-}
-
-const xxx = part
-  .use('logins')
-  .create<User>()
-  .index({
-    paramMatch: {
-      timestamp: 'createdAt',
-    },
-  });

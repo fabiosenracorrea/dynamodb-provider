@@ -7,11 +7,6 @@ import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } f
 export type KeyGetter<Params extends AnyObject | undefined> = undefined extends Params
   ? () => KeyValue
   : (params: Params) => KeyValue;
-// export type KeyGetter<Params extends AnyObject | undefined> = IfUndefined<
-//   Params,
-//   () => KeyValue,
-//   (params: Params) => KeyValue
-// >;
 
 type KeyReference = Record<string, string>;
 
@@ -49,7 +44,7 @@ export type KeyResolvers<PieceResolvers extends EntityKeyResolvers<any>> = Piece
   getKey: KeyGetter<EntityKeyParams<PieceResolvers>>;
 };
 
-// Todo>: fix type to accept only Key[] or {key, parser} tQual o properly infer result
+// Todo>: fix type to accept only Key[] or {key, parser} to properly infer result
 // type GetterByKeys<Entity extends AnyObject, Keys extends keyof Entity> = KeyGetter<{
 //   [K in Keys]: Entity[K];
 // }>;
