@@ -1,72 +1,100 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { KeyValue } from 'singleTable/adaptor/definitions';
 
 import { SingleTableParams } from 'singleTable/adaptor';
 
-import { FirstParameter } from 'types';
+import { SingleIndex } from '../indexes';
+import { FullPartitionKeys, ParamMatchArgs } from './paramSwap';
 
-import { KeyGetter } from '../key';
+type CreatePartitionIndexParams<TableConfig extends SingleTableParams> =
+  undefined extends TableConfig['indexes']
+    ? unknown
+    : {
+        /**
+         * Refer to which of your table indexes this partition will exist
+         *
+         * An Index partition can't create an entity directly, only dump the index
+         * into an entity configuration
+         */
+        index?: keyof TableConfig['indexes'];
+      };
 
-type IndexParams<TableConfig extends SingleTableParams> = undefined extends TableConfig['indexes']
-  ? unknown
-  : {
-      /**
-       * Refer to which of your table indexes this partition will exist
-       *
-       * An Index partition can't create an entity directly, only dump the index
-       * into an entity configuration
-       */
-      index?: keyof TableConfig['indexes'];
+type PartitionCreationParams<TableConfig extends SingleTableParams> =
+  CreatePartitionIndexParams<TableConfig> & {
+    /**
+     * Unique name of the partition
+     */
+    name: string;
+
+    /**
+     * A function that builds the partition key
+     *
+     * Every single entity of this partition will use this getter to build it's partition value
+     *
+     * Do not worry about if the param name is not present on some of the entities, you can map the correct key
+     * when creating an entity
+     *
+     * @example
+     * ```ts
+     * {
+     *   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId]
+     * }
+     * ```
+     */
+    getPartitionKey: (p: any) => KeyValue;
+
+    /**
+     * Each and every entity inside this partition
+     *
+     * This definition **does not** define relations, nesting, etc
+     *
+     * @example say we are creating the USER partition
+     * ```ts
+     * {
+     *   entries: {
+     *     permissions: ({ permissionId }: { permissionId }) => ['PERMISSION', permissionId],
+     *
+     *     loginAttempts: ({ timestamp }: { timestamp }) => ['LOGIN_ATTEMPT', timestamp],
+     *   }
+     * }
+     * ```
+     */
+    entries: {
+      [entryName: string]: (p: any) => KeyValue;
     };
-
-type PartitionCreationParams<TableConfig extends SingleTableParams> = IndexParams<TableConfig> & {
-  /**
-   * Unique name of the partition
-   */
-  name: string;
-
-  /**
-   * A function that builds the partition key
-   *
-   * Every single entity of this partition will use this getter to build it's partition value
-   *
-   * Do not worry about if the param name is not present on some of the entities, you can map the correct key
-   * when creating an entity
-   *
-   * @example
-   * ```ts
-   * {
-   *   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId]
-   * }
-   * ```
-   */
-  getPartitionKey: KeyGetter<any>;
-
-  /**
-   * Each and every entity inside this partition
-   *
-   * This definition **does not** define relations, nesting, etc
-   *
-   * @example say we are creating the USER partition
-   * ```ts
-   * {
-   *   entries: {
-   *     permissions: ({ permissionId }: { permissionId }) => ['PERMISSION', permissionId],
-   *
-   *     loginAttempts: ({ timestamp }: { timestamp }) => ['LOGIN_ATTEMPT', timestamp],
-   *   }
-   * }
-   * ```
-   */
-  entries: {
-    [entryName: string]: KeyGetter<any>;
   };
-};
 
 type EntryOptions<Params extends PartitionCreationParams<any>> = keyof Params['entries'];
+
+type PartitionKeyGetters<
+  Params extends PartitionCreationParams<any>,
+  Entry extends EntryOptions<Params>,
+> = {
+  getPartitionKey: Params['getPartitionKey'];
+  getRangeKey: Params['entries'][Entry];
+};
+
+type PartitionIndexParams<
+  Params extends PartitionCreationParams<any>,
+  Entry extends EntryOptions<Params>,
+  Entity,
+> = Omit<SingleIndex<any, any>, 'index' | 'getPartitionKey' | 'getRangeKey'> &
+  ParamMatchArgs<PartitionKeyGetters<Params, Entry>, Entity>;
+
+type PartitionIndex<
+  Params extends PartitionCreationParams<any> & { index: any },
+  Entry extends EntryOptions<Params>,
+  Entity,
+  CreationParams extends PartitionIndexParams<Params, Entry, Entity>,
+> = Omit<CreationParams, 'paramMatch'> &
+  FullPartitionKeys<PartitionKeyGetters<Params, Entry>, Entity, CreationParams> & {
+    index: Params['index'];
+  };
 
 type PartitionDumpParams<
   Params extends PartitionCreationParams<any>,
   Entry extends EntryOptions<Params>,
+  Entity,
 > = Params extends {
   index: any;
 }
@@ -76,23 +104,59 @@ type PartitionDumpParams<
        *
        * Declare the type to properly indicate key param matches
        */
-      useIndex<T>(config?: { paramMatch }): IndexConfigProperlyTyped;
+      index<T extends PartitionIndexParams<Params, Entry, Entity>>(
+        config?: T,
+      ): PartitionIndex<Params, Entry, Entity, T>;
     }
-  : {};
+  : unknown;
 
-type Partition<
-  Params extends PartitionCreationParams<any>,
-  KeyParams = FirstParameter<Params['getPartitionKey']>,
-> = Params & {
+type Partition<Params extends PartitionCreationParams<any>> = Params & {
   id: string;
 
-  getPartitionKey: Params['getPartitionKey'];
-
-  // build<Entity>(): {
-  //   partitionKeyGetter<EntityKeys extends keyof Entity>(
-  //     ...params: KeyParams extends undefined ? [] : [{ [Key in keyof KeyParams]: EntityKeys }]
-  //   ): KeyGetter<KeyParams extends undefined ? undefined : Pick<Entity, EntityKeys>>;
-  // };
-
-  define(entry: EntryOptions<Params>): PartitionDumpParams<Params>;
+  use<Entry extends EntryOptions<Params>>(
+    entry: Entry,
+  ): {
+    create<T = void>(
+      ...params: T extends void ? ['You must provided a type parameter'] : []
+    ): PartitionDumpParams<Params, Entry, T>;
+  };
 };
+
+function createPartition<Params extends PartitionCreationParams<any>>(
+  params: Params,
+): Partition<Params> {
+  return params as any;
+}
+
+const part = createPartition({
+  name: 'hello',
+
+  index: 'hello',
+
+  getPartitionKey: ({ userId }: { userId: string }) => ['HELLO', userId],
+
+  entries: {
+    hello: () => ['HAHA'],
+
+    permissions: () => ['PERMISSIONS'],
+
+    logins: ({ timestamp }: { timestamp: string }) => ['LOGIN', timestamp],
+  },
+});
+
+interface User {
+  id: string;
+  createdAt: string;
+  hello: string;
+  more: string;
+  another: string;
+}
+
+const xxx = part
+  .use('logins')
+  .create<User>()
+  .index({
+    paramMatch: {
+      timestamp: 'createdAt',
+    },
+  });

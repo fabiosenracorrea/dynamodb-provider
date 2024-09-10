@@ -1,20 +1,17 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { KeyValue } from 'singleTable/adaptor/definitions';
 
-import {
-  AnyFunction,
-  AnyObject,
-  FirstParameter,
-  IfUndefined,
-  IsUndefined,
-  PrettifyObject,
-} from 'types';
+import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
 
-export type KeyGetter<Params extends AnyObject | undefined> = IfUndefined<
-  Params,
-  () => KeyValue,
-  (params: Params) => KeyValue
->;
+export type KeyGetter<Params extends AnyObject | undefined> = undefined extends Params
+  ? () => KeyValue
+  : (params: Params) => KeyValue;
+// export type KeyGetter<Params extends AnyObject | undefined> = IfUndefined<
+//   Params,
+//   () => KeyValue,
+//   (params: Params) => KeyValue
+// >;
 
 type KeyReference = Record<string, string>;
 
@@ -47,3 +44,45 @@ type SafeFirstParam<
 export type EntityKeyParams<Resolvers extends EntityKeyResolvers<any>> = PrettifyObject<
   SafeFirstParam<Resolvers['getPartitionKey']> & SafeFirstParam<Resolvers['getRangeKey']>
 >;
+
+export type KeyResolvers<PieceResolvers extends EntityKeyResolvers<any>> = PieceResolvers & {
+  getKey: KeyGetter<EntityKeyParams<PieceResolvers>>;
+};
+
+// Todo>: fix type to accept only Key[] or {key, parser} tQual o properly infer result
+// type GetterByKeys<Entity extends AnyObject, Keys extends keyof Entity> = KeyGetter<{
+//   [K in Keys]: Entity[K];
+// }>;
+
+// class BuiltKey<Entity extends AnyObject, Keys extends keyof Entity, KK extends keyof Entity> {
+//   private fn: GetterByKeys<Entity, Keys | KK>;
+
+//   constructor(k: (Keys | { key: KK; parse: (value?: Entity[KK]) => KeyValue })[]) {
+//     this.fn = ((params) =>
+//       k.map((singleKey) =>
+//         typeof singleKey !== 'object' ? params[singleKey] : singleKey.parse(params[singleKey.key]),
+//       )) as GetterByKeys<Entity, Keys | KK>;
+//   }
+
+//   getter(): GetterByKeys<Entity, Keys | KK> {
+//     return this.fn;
+//   }
+// }
+
+// export class Key<Entity extends AnyObject> {
+//   build<K extends keyof Entity, KK extends keyof Entity>(
+//     ...k: (K | { key: KK; parse: (value?: Entity[KK]) => KeyValue })[]
+//   ): BuiltKey<Entity, K, KK> {
+//     return new BuiltKey(k as any);
+//   }
+// }
+
+// const keys = new Key<{
+//   name: string;
+//   age: number;
+//   address: string;
+//   zip: string;
+//   id: string;
+// }>().build('name');
+
+// const x = keys.getter();
