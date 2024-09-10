@@ -21,7 +21,7 @@ export type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = K
   __entity: Entity;
 };
 
-export type RegisteredEntity<
+export type SingleTableEntity<
   TableConfig extends SingleTableParams,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
