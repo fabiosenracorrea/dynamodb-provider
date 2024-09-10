@@ -3,8 +3,7 @@
 
 import { SingleTableParams } from 'singleTable/adaptor';
 import { EntityKeyParams, EntityKeyResolvers } from './key';
-
-type RangeQuery = never;
+import { RangeQueryInputProps } from './range';
 
 type SingleTableConfigWithIndex = SingleTableParams & {
   indexes: NonNullable<SingleTableParams['indexes']>;
@@ -13,11 +12,10 @@ type SingleTableConfigWithIndex = SingleTableParams & {
 export type SingleIndex<
   TableConfig extends SingleTableConfigWithIndex = SingleTableConfigWithIndex,
   Entity = undefined,
-> = EntityKeyResolvers<Entity> & {
-  index: keyof TableConfig['indexes'];
-
-  rangeQueries?: RangeQuery;
-};
+> = EntityKeyResolvers<Entity> &
+  RangeQueryInputProps & {
+    index: keyof TableConfig['indexes'];
+  };
 
 export type IndexMapping<
   TableConfig extends SingleTableConfigWithIndex = SingleTableConfigWithIndex,

@@ -8,16 +8,6 @@ export type KeyGetter<Params extends AnyObject | undefined> = undefined extends 
   ? () => KeyValue
   : (params: Params) => KeyValue;
 
-type KeyReference = Record<string, string>;
-
-export type FullKeyGetter<PartitionParams, RangeParams> = PartitionParams extends undefined
-  ? RangeParams extends undefined
-    ? () => KeyReference
-    : (params: RangeParams) => KeyReference
-  : RangeParams extends undefined
-  ? (params: PartitionParams) => KeyReference
-  : (params: PartitionParams & RangeParams) => KeyReference;
-
 type EntityParamsOnly<Entity = undefined> = IsUndefined<Entity> extends true
   ? any
   : { [Key in keyof Entity]: Entity[Key] };
