@@ -4,11 +4,11 @@ import { SingleTableParams } from 'singleTable/adaptor';
 import { AnyObject } from 'types';
 
 import { RangeQueryResultProps } from '../range';
+import { KeyResolvers } from '../key';
 
 import { RegisterEntityParams } from './params';
 import { EntityCRUDProps } from './crud';
 import { EntityIndexResultProps } from './indexParams';
-import { KeyResolvers } from '../key';
 
 export type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResolvers<
   Pick<Params, 'getPartitionKey' | 'getRangeKey' | 'type'>
