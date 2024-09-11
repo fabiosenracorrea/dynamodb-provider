@@ -21,7 +21,7 @@ interface EntityCache {
 }
 
 export interface DefinedMethods<TableConfig extends SingleTableConfig, Entity extends AnyObject> {
-  createEntity<Params extends RegisterEntityParams<TableConfig, Entity>>(
+  entity<Params extends RegisterEntityParams<TableConfig, Entity>>(
     params: Params,
   ): SingleTableEntity<TableConfig, Entity, Params>;
 }
@@ -177,12 +177,11 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
     return entity as SingleTableEntity<TableConfig, Entity, Params>;
   }
 
-  defined<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
+  create<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
     return {
-      createEntity: this.registerEntity.bind(this) as DefinedMethods<
-        TableConfig,
-        Entity
-      >['createEntity'],
+      entity: this.registerEntity.bind(this) as DefinedMethods<TableConfig, Entity>['entity'],
+
+      // collection, partition?
     };
   }
 }
