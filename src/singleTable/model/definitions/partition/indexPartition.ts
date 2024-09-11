@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SingleIndex } from '../indexes';
-import { FullPartitionKeys, ParamMatchArgs } from '../keySwap';
 
+import { FullPartitionKeys, ParamMatchArgs } from './keySwap';
 import { CreatePartitionParams, PartitionEntry, PartitionKeyGetters } from './params';
 
 type PartitionIndexParams<

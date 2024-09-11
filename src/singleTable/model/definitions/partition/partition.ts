@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AnyObject } from 'types';
+
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { CreatePartitionParams, PartitionEntry } from './params';
 import { PartitionIndexCreator } from './indexPartition';
+import { PartitionEntityCreator } from './entityPartition';
 
 type PartitionDumpParams<
+  TableConfig extends SingleTableConfig,
   Params extends CreatePartitionParams<any>,
   Entry extends PartitionEntry<Params>,
   Entity,
@@ -11,12 +16,12 @@ type PartitionDumpParams<
   index: any;
 }
   ? PartitionIndexCreator<Params, Entry, Entity>
-  : {
-      entity(): unknown;
-      // add entity creation params from entity
-    };
+  : PartitionEntityCreator<TableConfig, Params, Entry, Entity>;
 
-type Partition<Params extends CreatePartitionParams<any>> = Params & {
+type Partition<
+  TableConfig extends SingleTableConfig,
+  Params extends CreatePartitionParams<any>,
+> = Params & {
   id: string;
 
   /**
@@ -35,7 +40,7 @@ type Partition<Params extends CreatePartitionParams<any>> = Params & {
      */
     create<T = void>(
       ...params: T extends void ? ['You must provided a type parameter'] : []
-    ): PartitionDumpParams<Params, Entry, T>;
+    ): PartitionDumpParams<TableConfig, Params, Entry, T>;
   };
 };
 

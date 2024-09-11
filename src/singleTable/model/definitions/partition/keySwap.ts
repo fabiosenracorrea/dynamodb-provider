@@ -2,7 +2,7 @@
 
 import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
 
-import { EntityKeyParams, EntityKeyResolvers, KeyResolvers } from './key';
+import { EntityKeyParams, EntityKeyResolvers, KeyResolvers } from '../key';
 
 export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> = {
   /**

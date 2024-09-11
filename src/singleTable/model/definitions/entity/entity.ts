@@ -10,7 +10,7 @@ import { RegisterEntityParams } from './params';
 import { EntityCRUDProps } from './crud';
 import { EntityIndexResultProps } from './indexParams';
 
-export type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResolvers<
+type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResolvers<
   Pick<Params, 'getPartitionKey' | 'getRangeKey' | 'type'>
 > & {
   /**
