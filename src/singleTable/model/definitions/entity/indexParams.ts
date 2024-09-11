@@ -45,7 +45,7 @@ export type EntityIndexInputParams<
   Entity,
 > = TableConfig extends SingleTableConfigWithIndex
   ? { indexes?: IndexMapping<TableConfig, Entity> }
-  : unknown;
+  : object;
 
 export type EntityIndexResultProps<
   TableConfig extends SingleTableConfig,

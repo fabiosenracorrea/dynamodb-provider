@@ -13,9 +13,9 @@ import { CreatePartitionParams, PartitionEntry, PartitionKeyGetters } from './pa
 
 type PartitionEntityCreateParams<
   TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
   Params extends CreatePartitionParams<any>,
   Entry extends PartitionEntry<Params>,
-  Entity extends AnyObject,
 > = Omit<RegisterEntityParams<TableConfig, Entity>, keyof EntityKeyResolvers> &
   ParamMatchArgs<PartitionKeyGetters<Params, Entry>, Entity>;
 
@@ -32,12 +32,18 @@ export type PartitionEntityCreator<
   Entity,
 > = Entity extends AnyObject
   ? {
-      entity<T extends PartitionEntityCreateParams<TableConfig, Params, Entry, Entity>>(
+      entity<T extends PartitionEntityCreateParams<TableConfig, Entity, Params, Entry>>(
         params: T,
       ): SingleTableEntity<
         TableConfig,
         Entity,
-        T & FullPartitionKeys<PartitionKeyGetters<Params, Entry>, Entity, T>
+        PartitionEntityParams<
+          PartitionKeyGetters<Params, Entry>,
+          Entity,
+          T
+        > extends RegisterEntityParams<TableConfig, any>
+          ? PartitionEntityParams<PartitionKeyGetters<Params, Entry>, Entity, T>
+          : never
       >;
     }
   : unknown;
