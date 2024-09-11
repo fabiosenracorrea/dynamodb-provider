@@ -2,14 +2,8 @@
 import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
-import {
-  getRangeQueriesParams,
-  getEntityIndexParams,
-  resolveKeys,
-  getCRUDParamGetters,
-  RegisterEntityParams,
-  SingleTableEntity,
-} from './definitions';
+
+import { RegisterEntityParams, SingleTableEntity, createEntity } from './definitions';
 
 interface EntityCache {
   params: any;
@@ -58,43 +52,13 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
   //   return createCollection(params);
   // }
 
-  // private getCollectionConfigParams<Config extends BaseCollectionConfig | undefined>(
-  //   config: Config,
-  // ): CollectionConfigProps<Config> {
-  //   if (!config) return {} as CollectionConfigProps<Config>;
-
-  //   return {
-  //     collectionEntities: config,
-  //   } as CollectionConfigProps<Config>;
-  // }
-
   private registerEntity<
     Entity extends AnyObject,
     Params extends RegisterEntityParams<TableConfig, Entity>,
   >(params: Params): SingleTableEntity<TableConfig, Entity, Params> {
     this.registerType(params.type);
 
-    const keyParams = resolveKeys(params);
-
-    const indexParams = getEntityIndexParams(this.config, params);
-
-    const entity = {
-      __entity: {} as Entity,
-
-      type: params.type,
-
-      ...keyParams,
-
-      ...indexParams,
-
-      ...getRangeQueriesParams(params),
-
-      ...getCRUDParamGetters(this.config, {
-        ...params,
-        ...keyParams,
-        ...indexParams,
-      } as any),
-    };
+    const entity = createEntity<SingleTableConfig, Entity, Params>(this.config, params);
 
     // this.cacheEntity({ entity, params });
 
