@@ -16,7 +16,7 @@ type PartitionDumpParams<
   ? PartitionIndexCreator<Params, Entry, Entity>
   : PartitionEntityCreator<TableConfig, Params, Entry, Entity>;
 
-type Partition<
+export type Partition<
   TableConfig extends SingleTableConfig,
   Params extends CreatePartitionParams<any>,
 > = Params & {
@@ -41,23 +41,3 @@ type Partition<
     ): PartitionDumpParams<TableConfig, Params, Entry, T>;
   };
 };
-
-// function createPartition<Params extends CreatePartitionParams<any>>(
-//   params: Params,
-// ): Partition<SingleTableConfig, Params> {
-//   return params as any;
-// }
-
-// const part = createPartition({
-//   name: 'hello',
-
-//   getPartitionKey: ({ userId }: { userId: string }) => ['HELLO', userId],
-
-//   entries: {
-//     hello: () => ['HAHA'],
-
-//     permissions: () => ['PERMISSIONS'],
-
-//     logins: ({ timestamp }: { timestamp: string }) => ['LOGIN', timestamp],
-//   },
-// });

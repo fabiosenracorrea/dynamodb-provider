@@ -11,7 +11,7 @@ import { CreatePartitionParams, PartitionEntry, PartitionKeyGetters } from './pa
 
 // remove getPartitionKey/getRangeKey from params + use param swap
 
-type PartitionEntityCreateParams<
+export type PartitionEntityCreateParams<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends CreatePartitionParams<any>,

@@ -5,7 +5,7 @@ import { SingleIndex } from '../indexes';
 import { FullPartitionKeys, ParamMatchArgs } from './keySwap';
 import { CreatePartitionParams, PartitionEntry, PartitionKeyGetters } from './params';
 
-type PartitionIndexParams<
+export type PartitionIndexParams<
   Params extends CreatePartitionParams<any>,
   Entry extends PartitionEntry<Params>,
   Entity,
