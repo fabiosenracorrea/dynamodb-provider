@@ -1,12 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableConfig } from 'singleTable/adaptor/definitions';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
-import { getRangeQueriesParams, getEntityIndexParams } from './definitions';
+import {
+  getRangeQueriesParams,
+  getEntityIndexParams,
+  resolveKeys,
+  getCRUDParamGetters,
+  RegisterEntityParams,
+  SingleTableEntity,
+} from './definitions';
 
 interface EntityCache {
   params: any;
   entity: any;
+}
+
+export interface DefinedMethods<TableConfig extends SingleTableConfig, Entity extends AnyObject> {
+  createEntity<Params extends RegisterEntityParams<TableConfig, Entity>>(
+    params: Params,
+  ): SingleTableEntity<TableConfig, Entity, Params>;
 }
 
 export class SingleTableSchema<TableConfig extends SingleTableConfig> {
@@ -55,101 +68,13 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
   //   } as CollectionConfigProps<Config>;
   // }
 
-  private resolveKeyGetters<Params extends RegisterEntityParams<any>>({
-    getPartitionKey,
-    partition,
-    getRangeKey,
-  }: Params): EntityKeyGetters<Params> {
-    const partitionKeyGetter = (partition?.getPartitionKey ??
-      getPartitionKey) as EntityKeyGetters<Params>['getPartitionKey'];
-
-    const getKey = ((keyParams: any) => ({
-      partitionKey: partitionKeyGetter?.(keyParams),
-      rangeKey: getRangeKey(keyParams),
-    })) as EntityKeyGetters<Params>['getKey'];
-
-    return {
-      getKey,
-      getPartitionKey: partitionKeyGetter,
-      getRangeKey,
-    };
-  }
-
-  private getCRUDParamGetters<
+  private registerEntity<
     Entity extends AnyObject,
-    Params extends RegisterEntityParams<Entity>,
-  >({
-    type,
-    getKey,
-    getCreationIndexMapping,
-    getUpdatedIndexMapping,
-    autoGen,
-  }: EntityKeyGetters<Params> & Params & Partial<EntityIndexConfig<IndexMapping>>): CRUDProps<
-    Entity,
-    Params
-  > {
-    type WantedParams = CRUDProps<Entity, Params>;
-
-    type CreationParams = Parameters<WantedParams['getCreationParams']>;
-
-    const getCreationParams = (
-      item: CreationParams[0],
-      config: CreationParams[1] = {},
-    ): SingleTableCreateItemParams<AnyObject> => {
-      const actualItem = addAutoGenParams({
-        values: item,
-        when: 'onCreation',
-        genConfig: autoGen,
-      });
-
-      return {
-        ...config,
-
-        key: getKey({ ...item, ...actualItem }),
-
-        type,
-
-        item: actualItem,
-
-        indexes: getCreationIndexMapping?.(actualItem),
-      };
-    };
-
-    type UpdateParams = Parameters<WantedParams['getUpdateParams']>;
-
-    const getUpdateParams = (updateParams: UpdateParams[0]): SingleTableUpdateParams<AnyObject> => {
-      const values = addAutoGenParams({
-        values: updateParams.values ?? {},
-        when: 'onUpdate',
-        genConfig: autoGen,
-      });
-
-      return {
-        ...updateParams,
-
-        ...getKey(updateParams as Partial<Entity>),
-
-        values,
-
-        indexes: getUpdatedIndexMapping?.({
-          ...updateParams,
-          ...values,
-        }),
-      };
-    };
-
-    return {
-      getUpdateParams,
-      getCreationParams,
-    } as WantedParams;
-  }
-
-  private registerEntity<Entity extends AnyObject, Params extends RegisterEntityParams<Entity>>(
-    params: Params,
-  ): RegisteredEntity<Entity, Params> {
+    Params extends RegisterEntityParams<TableConfig, Entity>,
+  >(params: Params): SingleTableEntity<TableConfig, Entity, Params> {
     this.registerType(params.type);
 
-    const keyParams = this.resolveKeyGetters(params);
+    const keyParams = resolveKeys(params);
 
     const indexParams = getEntityIndexParams(this.config, params);
 
@@ -164,7 +89,7 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
       ...getRangeQueriesParams(params),
 
-      ...this.getCRUDParamGetters<Entity, Params>({
+      ...getCRUDParamGetters(this.config, {
         ...params,
         ...keyParams,
         ...indexParams,
@@ -173,26 +98,15 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
     // this.cacheEntity({ entity, params });
 
-    return entity;
+    return entity as SingleTableEntity<TableConfig, Entity, Params>;
   }
 
-  /*
-    Our registerEntity type is rather complex.
-
-    Adding 'Entity' as a first argument to supply it whenever creating the entity directly
-    was breaking type inference on the other 4 arguments, which we don't want to
-
-    TS does not have 'partial inference' as of now, and the behavior that we want when
-    calling registerEntity is to pass directly to it every definition (indexes, collection entities, etc)
-    and have it infer so our entityRegistered has all the autocomplete, type safety features
-
-    To fix this, we need to add an extra layer to separate the layers, which is what this method
-    here is doing. We then provide the Entity to this, we pass down properly, as we only want the
-    Entity inference on the return, not on the registerEntity params itself
-  */
-  defined<Entity extends Record<string, any>>(): DefinedMethods<Entity> {
+  defined<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
     return {
-      registerEntity: this.registerEntity.bind(this) as DefinedMethods<Entity>['registerEntity'],
+      createEntity: this.registerEntity.bind(this) as DefinedMethods<
+        TableConfig,
+        Entity
+      >['createEntity'],
     };
   }
 }

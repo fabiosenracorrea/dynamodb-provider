@@ -8,8 +8,18 @@ import { isNonNullable } from 'utils/checkers';
 
 import { removeUndefinedProps } from 'utils/object';
 import { IndexMapping, IndexParams, SingleTableConfigWithIndex } from '../indexes';
-import { KeyResolvers } from '../key';
+import { KeyResolvers, resolveKeys } from '../key';
 import { getRangeQueriesParams, RangeQueryResultProps } from '../range';
+
+export type GenericIndexMappingFns = {
+  getCreationIndexMapping: (params: any) => {
+    string?: Partial<SingleTableKeyReference>;
+  };
+
+  getUpdatedIndexMapping: (params: any) => {
+    string?: Partial<SingleTableKeyReference>;
+  };
+};
 
 type EntityIndexConfig<
   TableConfig extends SingleTableConfigWithIndex,
@@ -78,10 +88,7 @@ export function getEntityIndexParams<
         {
           ...indexConfig,
 
-          getKey: (keyParams: any) => ({
-            partitionKey: indexConfig.getPartitionKey(keyParams),
-            rangeKey: indexConfig.getRangeKey(keyParams),
-          }),
+          ...resolveKeys(indexConfig),
 
           ...getRangeQueriesParams(indexConfig),
         },

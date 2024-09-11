@@ -7,9 +7,11 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
 
-import { AutoGenParams } from './autoGen';
+import { EntityKeyParams, KeyResolvers } from '../key';
+
+import { addAutoGenParams, AutoGenParams } from './autoGen';
 import { RegisterEntityParams } from './params';
-import { EntityKeyParams } from '../key';
+import { GenericIndexMappingFns } from './indexParams';
 
 type UpdateCallProps<TableConfig extends SingleTableConfig, Entity extends AnyObject> = Pick<
   SingleTableUpdateParams<Entity, TableConfig>,
@@ -53,3 +55,80 @@ export type EntityCRUDProps<
     params: EntityKeyParams<Params> & UpdateCallProps<TableConfig, Entity>,
   ) => SingleTableUpdateParams<Entity>;
 };
+
+type CrudParamsGenerator<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<TableConfig, Entity>,
+> = Pick<Params, 'type' | 'autoGen'> & KeyResolvers<Params> & Partial<GenericIndexMappingFns>;
+
+export function getCRUDParamGetters<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<TableConfig, Entity>,
+>(
+  tableConfig: TableConfig,
+  {
+    type,
+    getKey,
+    getCreationIndexMapping,
+    getUpdatedIndexMapping,
+    autoGen,
+  }: CrudParamsGenerator<TableConfig, Entity, Params>,
+): EntityCRUDProps<TableConfig, Entity, Params> {
+  type WantedParams = EntityCRUDProps<TableConfig, Entity, Params>;
+
+  type CreationParams = Parameters<WantedParams['getCreationParams']>;
+
+  const getCreationParams = (
+    item: CreationParams[0],
+    config = {},
+  ): SingleTableCreateItemParams<Entity, TableConfig> => {
+    const actualItem = addAutoGenParams({
+      values: item,
+      when: 'onCreation',
+      genConfig: autoGen,
+    });
+
+    return {
+      ...config,
+
+      key: getKey({ ...item, ...actualItem } as any),
+
+      type: tableConfig.typeIndex ? type : undefined,
+
+      item: actualItem,
+
+      indexes: getCreationIndexMapping?.(actualItem),
+      // tests covers this is good
+    } as any;
+  };
+
+  type UpdateParams = Parameters<WantedParams['getUpdateParams']>;
+
+  const getUpdateParams = (updateParams: UpdateParams[0]): SingleTableUpdateParams<AnyObject> => {
+    const values = addAutoGenParams({
+      values: updateParams.values ?? {},
+      when: 'onUpdate',
+      genConfig: autoGen,
+    });
+
+    return {
+      ...updateParams,
+
+      ...getKey(updateParams),
+
+      values,
+
+      indexes: getUpdatedIndexMapping?.({
+        ...updateParams,
+        ...values,
+      }),
+    };
+  };
+
+  return {
+    getUpdateParams,
+    getCreationParams,
+  } as WantedParams;
+}
