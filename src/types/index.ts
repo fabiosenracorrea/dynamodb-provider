@@ -31,7 +31,7 @@ export type OmitUndefined<T> = {
 };
 
 export type OnlyOptional<T> = {
-  [K in keyof T as T[K] extends Exclude<T[K], undefined> ? never : K]?: T[K];
+  [K in keyof T as T[K] extends Exclude<T[K], undefined> ? never : K]?: Exclude<T[K], undefined>;
 };
 
 export type MakePartial<T> = OmitUndefined<T> & OnlyOptional<T>;

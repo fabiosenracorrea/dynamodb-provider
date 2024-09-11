@@ -5,7 +5,7 @@ import {
 } from 'singleTable/adaptor/definitions';
 import { SingleTableConfig } from 'singleTable/adaptor';
 
-import { AnyObject } from 'types';
+import { AnyObject, MakePartial } from 'types';
 
 import { EntityKeyParams, KeyResolvers } from '../key';
 
@@ -21,13 +21,16 @@ type UpdateCallProps<TableConfig extends SingleTableConfig, Entity extends AnyOb
 
 type OnCreateConfig = Required<AutoGenParams<any>>['onCreate'];
 
-type MakeKeysOptional<E, Keys extends string | number | symbol> = Omit<E, Keys> &
-  (Keys extends keyof E ? { [K in Keys]?: E[K] } : unknown);
+// Using this type was glitching TS inside a partition entity creation with autoGen
+// for whatever reason this complex type works
+// type MakeKeysOptional<E, Keys extends string | number | symbol> = Omit<E, Keys> &
+//   (Keys extends keyof E ? { [K in Keys]?: E[K] } : unknown);
 
-type WithOptionalCreationProps<
-  CreationProps,
-  CreateConfig extends OnCreateConfig,
-> = MakeKeysOptional<CreationProps, keyof CreateConfig>;
+type WithOptionalCreationProps<CreationProps, CreateConfig extends OnCreateConfig> = MakePartial<{
+  [K in keyof CreationProps]: K extends keyof CreateConfig
+    ? CreationProps[K] | undefined
+    : CreationProps[K];
+}>;
 
 // If autoGen && onCreate => get onCreate props and make optional
 type MakeGenPropsPartial<
