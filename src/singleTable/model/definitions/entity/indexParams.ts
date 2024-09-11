@@ -26,8 +26,11 @@ type EntityIndexConfig<
   IndexConfig extends IndexMapping<TableConfig>,
   TableIndex extends keyof TableConfig['indexes'] = keyof TableConfig['indexes'],
 > = {
+  /**
+   * Create named indexes for your entity
+   */
   indexes: {
-    [IndexName in TableIndex]: RangeQueryResultProps<IndexConfig[IndexName]> &
+    [IndexName in string]: RangeQueryResultProps<IndexConfig[IndexName]> &
       KeyResolvers<IndexConfig[IndexName]>;
   };
 

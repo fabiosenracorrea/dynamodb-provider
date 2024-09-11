@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SingleIndex } from '../indexes';
+import { RangeQueryInputProps, RangeQueryResultProps } from '../range';
 
 import { FullPartitionKeys, ParamMatchArgs } from './keySwap';
 import { CreatePartitionParams, PartitionEntry, PartitionKeyGetters } from './params';
@@ -17,7 +18,8 @@ export type PartitionIndex<
   Entry extends PartitionEntry<Params>,
   Entity,
   CreationParams extends PartitionIndexParams<Params, Entry, Entity>,
-> = Omit<CreationParams, 'paramMatch'> &
+> = Omit<CreationParams, 'paramMatch' | keyof RangeQueryInputProps> &
+  RangeQueryResultProps<CreationParams> &
   FullPartitionKeys<PartitionKeyGetters<Params, Entry>, Entity, CreationParams> & {
     index: Params['index'];
   };

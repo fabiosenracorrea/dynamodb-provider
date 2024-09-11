@@ -20,9 +20,7 @@ export type SingleIndex<
 export type IndexMapping<
   TableConfig extends SingleTableConfigWithIndex = SingleTableConfigWithIndex,
   Entity = undefined,
-> = {
-  [Key in keyof TableConfig['indexes']]: SingleIndex<TableConfig, Entity>;
-};
+> = Record<string, SingleIndex<TableConfig, Entity>>;
 
 export type IndexParams<IndexConfig extends IndexMapping<any, any>> = EntityKeyParams<
   IndexConfig[keyof IndexConfig]
