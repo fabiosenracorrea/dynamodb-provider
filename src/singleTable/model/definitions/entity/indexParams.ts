@@ -67,8 +67,8 @@ function isInvalidKey(key?: KeyValue): boolean {
   return asArray.some((x) => !isNonNullable(x));
 }
 
-function validateIndexKeyReturn(key?: KeyValue): KeyValue | null {
-  return isInvalidKey(key) ? null : key!;
+function validateIndexKeyReturn(key?: KeyValue): KeyValue | undefined {
+  return isInvalidKey(key) ? undefined : key!;
 }
 
 export function getEntityIndexParams<
@@ -107,8 +107,8 @@ export function getEntityIndexParams<
             index,
 
             removeUndefinedProps({
-              partitionKey: getPartitionKey(indexParams),
-              rangeKey: getRangeKey(indexParams),
+              partitionKey,
+              rangeKey,
             }),
           ];
         }),
@@ -124,10 +124,10 @@ export function getEntityIndexParams<
 
           return [
             index,
-            {
+            removeUndefinedProps({
               partitionKey,
               rangeKey,
-            },
+            }),
           ];
         }),
       ),
