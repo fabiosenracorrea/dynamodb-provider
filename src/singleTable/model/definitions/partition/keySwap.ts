@@ -2,7 +2,8 @@
 
 import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
 
-import { EntityKeyParams, EntityKeyResolvers, KeyResolvers } from '../key';
+import { KeyValue } from 'singleTable/adaptor/definitions';
+import { EntityKeyParams, EntityKeyResolvers, KeyResolvers, resolveKeys } from '../key';
 
 export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> = {
   /**
@@ -64,3 +65,43 @@ export type FullPartitionKeys<
   getPartitionKey: SwapParams<InitialGetters['getPartitionKey'], Entity, RefParams['paramMatch']>;
   getRangeKey: SwapParams<InitialGetters['getRangeKey'], Entity, RefParams['paramMatch']>;
 }>;
+
+type RefSwapParams = ParamMatchArgs<any, any> & EntityKeyResolvers<any>;
+
+function swapKeys<
+  Getter extends EntityKeyResolvers<any>['getPartitionKey'],
+  SwapRef extends Record<string, string>,
+>(originalGetter: Getter, swapParams: SwapRef): SwapParams<Getter, any, SwapRef> {
+  // Overwrites any swap key received, keeping original intact
+
+  const getter = (receivedParams: any): KeyValue =>
+    originalGetter({
+      ...receivedParams,
+
+      ...Object.fromEntries(
+        Object.entries(swapParams).map(([partitionKey, entityKey]) => [
+          partitionKey,
+          receivedParams[entityKey as keyof typeof receivedParams],
+        ]),
+      ),
+    });
+
+  return getter as any;
+}
+
+export function resolveKeySwaps<Entity, RefParams extends RefSwapParams>(
+  params: RefParams,
+): FullPartitionKeys<Pick<RefParams, keyof EntityKeyResolvers<any>>, Entity, RefParams> {
+  if (!params.paramMatch) return resolveKeys(params) as any;
+
+  const { getPartitionKey, getRangeKey, paramMatch } = params;
+
+  const [partitionGetter, rangeGetter] = [getPartitionKey, getRangeKey].map((getter) =>
+    swapKeys(getter, paramMatch),
+  );
+
+  return resolveKeys({
+    getPartitionKey: partitionGetter,
+    getRangeKey: rangeGetter,
+  }) as any;
+}

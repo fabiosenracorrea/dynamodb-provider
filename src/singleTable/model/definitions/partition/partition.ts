@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnyObject } from 'types';
-
 import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { CreatePartitionParams, PartitionEntry } from './params';

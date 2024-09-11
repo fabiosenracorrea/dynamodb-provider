@@ -37,6 +37,7 @@ export type PartitionEntityCreator<
       ): SingleTableEntity<
         TableConfig,
         Entity,
+        // TS was freaking out with the T & key params
         PartitionEntityParams<
           PartitionKeyGetters<Params, Entry>,
           Entity,
