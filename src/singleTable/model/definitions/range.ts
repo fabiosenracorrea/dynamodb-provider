@@ -48,5 +48,24 @@ export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | und
   RangeParams extends RangeQueryInputProps
     ? RangeParams['rangeQueries'] extends RangeQuery
       ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
-      : unknown
-    : unknown;
+      : object
+    : object;
+
+export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
+  rangeQueries,
+}: Params): RangeQueryResultProps<Params> {
+  if (!rangeQueries) return {} as RangeQueryResultProps<Params>;
+
+  return {
+    rangeQueries: Object.fromEntries(
+      Object.entries(rangeQueries).map(([queryName, { getValues, operation }]) => [
+        queryName,
+
+        (valueParams: any) => ({
+          operation,
+          ...getValues(valueParams),
+        }),
+      ]),
+    ),
+  } as RangeQueryResultProps<Params>;
+}

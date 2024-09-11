@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { KeyValue } from 'singleTable/adaptor/definitions';
 
-import { SingleTableParams } from 'singleTable/adaptor';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
-type CreatePartitionIndexParams<TableConfig extends SingleTableParams> =
+type CreatePartitionIndexParams<TableConfig extends SingleTableConfig> =
   undefined extends TableConfig['indexes']
     ? unknown
     : {
@@ -16,7 +16,7 @@ type CreatePartitionIndexParams<TableConfig extends SingleTableParams> =
         index?: keyof TableConfig['indexes'];
       };
 
-export type CreatePartitionParams<TableConfig extends SingleTableParams> =
+export type CreatePartitionParams<TableConfig extends SingleTableConfig> =
   CreatePartitionIndexParams<TableConfig> & {
     /**
      * Unique name of the partition

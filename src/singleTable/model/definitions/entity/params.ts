@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableParams } from 'singleTable/adaptor';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
 
@@ -14,7 +14,7 @@ import { EntityKeyResolvers } from '../key';
  * defined within the entity type
  */
 type EntityType<
-  TableConfig extends SingleTableParams,
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject = AnyObject,
 > = TableConfig['typeIndex'] extends { partitionKey: string }
   ? Entity[TableConfig['typeIndex']['partitionKey']] extends string
@@ -23,7 +23,7 @@ type EntityType<
   : string;
 
 type RawEntityRegisterParams<
-  TableConfig extends SingleTableParams,
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject = AnyObject,
 > = {
   /**
@@ -37,7 +37,7 @@ type RawEntityRegisterParams<
    *
    * This definition will occur on both creations and updates
    */
-  type: EntityType<TableConfig, SingleTableParams>;
+  type: EntityType<TableConfig, SingleTableConfig>;
 
   /**
    * Define params that should be auto generated `onCreate` and/or `onUpdate`
@@ -46,7 +46,7 @@ type RawEntityRegisterParams<
 };
 
 export type RegisterEntityParams<
-  TableConfig extends SingleTableParams,
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject = AnyObject,
 > = EntityKeyResolvers<Entity> &
   RangeQueryInputProps &

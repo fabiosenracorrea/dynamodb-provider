@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableParams } from 'singleTable/adaptor';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
 
@@ -22,7 +22,7 @@ export type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = K
 };
 
 export type SingleTableEntity<
-  TableConfig extends SingleTableParams,
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
 > = RawEntity<Entity, Params> &

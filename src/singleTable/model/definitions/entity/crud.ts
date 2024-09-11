@@ -3,7 +3,7 @@ import {
   SingleTableCreateItemParams,
   SingleTableUpdateParams,
 } from 'singleTable/adaptor/definitions';
-import { SingleTableParams } from 'singleTable/adaptor';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
 
@@ -11,7 +11,7 @@ import { AutoGenParams } from './autoGen';
 import { RegisterEntityParams } from './params';
 import { EntityKeyParams } from '../key';
 
-type UpdateCallProps<TableConfig extends SingleTableParams, Entity extends AnyObject> = Pick<
+type UpdateCallProps<TableConfig extends SingleTableConfig, Entity extends AnyObject> = Pick<
   SingleTableUpdateParams<Entity, TableConfig>,
   'atomicOperations' | 'conditions' | 'remove' | 'values' | 'returnUpdatedProperties'
 > &
@@ -39,7 +39,7 @@ type MakeGenPropsPartial<
   : CreationProps;
 
 export type EntityCRUDProps<
-  TableConfig extends SingleTableParams,
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<any, any>,
 > = {

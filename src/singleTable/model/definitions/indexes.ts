@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { SingleTableParams } from 'singleTable/adaptor';
+import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { EntityKeyParams, EntityKeyResolvers } from './key';
 import { RangeQueryInputProps } from './range';
 
-export type SingleTableConfigWithIndex = SingleTableParams & {
-  indexes: NonNullable<SingleTableParams['indexes']>;
+export type SingleTableConfigWithIndex = SingleTableConfig & {
+  indexes: NonNullable<SingleTableConfig['indexes']>;
 };
 
 export type SingleIndex<
