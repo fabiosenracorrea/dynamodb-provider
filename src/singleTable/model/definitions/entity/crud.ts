@@ -84,11 +84,7 @@ export function getCRUDParamGetters<
     item: CreationParams[0],
     config = {},
   ): SingleTableCreateItemParams<Entity, TableConfig> => {
-    const actualItem = addAutoGenParams({
-      values: item,
-      when: 'onCreation',
-      genConfig: autoGen,
-    });
+    const actualItem = addAutoGenParams(item, autoGen?.onCreate);
 
     return {
       ...config,
@@ -107,11 +103,7 @@ export function getCRUDParamGetters<
   type UpdateParams = Parameters<WantedParams['getUpdateParams']>;
 
   const getUpdateParams = (updateParams: UpdateParams[0]): SingleTableUpdateParams<AnyObject> => {
-    const values = addAutoGenParams({
-      values: updateParams.values ?? {},
-      when: 'onUpdate',
-      genConfig: autoGen,
-    });
+    const values = addAutoGenParams(updateParams.values ?? {}, autoGen?.onUpdate);
 
     return {
       ...updateParams,
