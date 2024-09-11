@@ -44,24 +44,55 @@ type Partition<
   };
 };
 
-// function createPartition<Params extends PartitionCreationParams<any>>(
-//   params: Params,
-// ): Partition<Params> {
-//   return params as any;
-// }
+function createPartition<Params extends CreatePartitionParams<any>>(
+  params: Params,
+): Partition<SingleTableConfig, Params> {
+  return params as any;
+}
 
-// const part = createPartition({
-//   name: 'hello',
+const part = createPartition({
+  name: 'hello',
 
-//   index: 'hello',
+  getPartitionKey: ({ userId }: { userId: string }) => ['HELLO', userId],
 
-//   getPartitionKey: ({ userId }: { userId: string }) => ['HELLO', userId],
+  entries: {
+    hello: () => ['HAHA'],
 
-//   entries: {
-//     hello: () => ['HAHA'],
+    permissions: () => ['PERMISSIONS'],
 
-//     permissions: () => ['PERMISSIONS'],
+    logins: ({ timestamp }: { timestamp: string }) => ['LOGIN', timestamp],
+  },
+});
 
-//     logins: ({ timestamp }: { timestamp: string }) => ['LOGIN', timestamp],
-//   },
-// });
+type MockEntity = {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+  gender: 'male' | 'female' | 'other';
+  address: string;
+  phone: string;
+  birthdate: string;
+  occupation: string;
+  nationality: string;
+  maritalStatus: 'single' | 'married' | 'divorced' | 'widowed';
+};
+
+const xxxx = part
+  .use(`logins`)
+  .create<MockEntity>()
+  .entity({
+    type: `SOME_TYPE`,
+
+    paramMatch: {
+      userId: `id`,
+    },
+
+    autoGen: {
+      onCreate: {
+        id: `KSUID`,
+      },
+    },
+  });
+
+xxxx.getCreationParams({});

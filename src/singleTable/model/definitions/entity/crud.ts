@@ -24,11 +24,10 @@ type OnCreateConfig = Required<AutoGenParams<any>>['onCreate'];
 type MakeKeysOptional<E, Keys extends string | number | symbol> = Omit<E, Keys> &
   (Keys extends keyof E ? { [K in Keys]?: E[K] } : unknown);
 
-type WithOptionalCreationProps<CreationProps, CreateConfig extends OnCreateConfig> = Omit<
+type WithOptionalCreationProps<
   CreationProps,
-  keyof CreateConfig
-> &
-  MakeKeysOptional<CreationProps, keyof CreateConfig>;
+  CreateConfig extends OnCreateConfig,
+> = MakeKeysOptional<CreationProps, keyof CreateConfig>;
 
 // If autoGen && onCreate => get onCreate props and make optional
 type MakeGenPropsPartial<
@@ -76,12 +75,8 @@ export function getCRUDParamGetters<
     autoGen,
   }: CrudParamsGenerator<TableConfig, Entity, Params>,
 ): EntityCRUDProps<TableConfig, Entity, Params> {
-  type WantedParams = EntityCRUDProps<TableConfig, Entity, Params>;
-
-  type CreationParams = Parameters<WantedParams['getCreationParams']>;
-
   const getCreationParams = (
-    item: CreationParams[0],
+    item: any,
     config = {},
   ): SingleTableCreateItemParams<Entity, TableConfig> => {
     const actualItem = addAutoGenParams(item, autoGen?.onCreate);
@@ -100,9 +95,7 @@ export function getCRUDParamGetters<
     } as any;
   };
 
-  type UpdateParams = Parameters<WantedParams['getUpdateParams']>;
-
-  const getUpdateParams = (updateParams: UpdateParams[0]): SingleTableUpdateParams<AnyObject> => {
+  const getUpdateParams = (updateParams: any): SingleTableUpdateParams<AnyObject> => {
     const values = addAutoGenParams(updateParams.values ?? {}, autoGen?.onUpdate);
 
     return {
@@ -122,5 +115,5 @@ export function getCRUDParamGetters<
   return {
     getUpdateParams,
     getCreationParams,
-  } as WantedParams;
+  } as EntityCRUDProps<TableConfig, Entity, Params>;
 }
