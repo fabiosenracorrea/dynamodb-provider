@@ -24,7 +24,7 @@ type RangeQuery = Record<string, SingleRangeConfig>;
 type ResolvedRangeConfig<Config extends SingleRangeConfig> = Pick<Config, 'operation'> &
   ReturnType<Config['getValues']>;
 
-type RangeQueryGetters<RangeQueryConfig extends RangeQuery> = {
+export type RangeQueryGetters<RangeQueryConfig extends RangeQuery> = {
   [Key in keyof RangeQueryConfig]: (
     ...params: Parameters<RangeQueryConfig[Key]['getValues']>
   ) => ResolvedRangeConfig<RangeQueryConfig[Key]>;

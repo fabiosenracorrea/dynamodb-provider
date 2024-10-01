@@ -34,6 +34,8 @@ export function createEntity<
       ...keyParams,
       ...indexParams,
     } as any),
+
+    __dbType: 'ENTITY',
   };
 
   return entity as SingleTableEntity<TableConfig, Entity, Params>;

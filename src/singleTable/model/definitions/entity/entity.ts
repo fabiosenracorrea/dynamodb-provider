@@ -19,6 +19,11 @@ type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResol
    * Do not access
    */
   __entity: Entity;
+
+  /**
+   * Specifies which DB instance this is
+   */
+  __dbType: 'ENTITY';
 };
 
 export type SingleTableEntity<
@@ -29,3 +34,9 @@ export type SingleTableEntity<
   EntityCRUDProps<TableConfig, Entity, Params> &
   EntityIndexResultProps<TableConfig, Params> &
   RangeQueryResultProps<Params>;
+
+export type ExtendableRegisteredEntity = SingleTableEntity<
+  SingleTableConfig,
+  AnyObject,
+  RegisterEntityParams<any>
+>;
