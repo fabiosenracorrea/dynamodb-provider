@@ -85,7 +85,7 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
           index: ({
             paramMatch,
             ...indexParams
-          }: PartitionIndexParams<Params, typeof entry, Entity>) => ({
+          }: PartitionIndexParams<Params, typeof entry, Entity> = {}) => ({
             ...indexParams,
 
             index: params.index,

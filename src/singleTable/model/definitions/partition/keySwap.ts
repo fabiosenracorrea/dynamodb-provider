@@ -54,6 +54,13 @@ type SwapParams<
     ) => ReturnType<Fn>
   : Fn;
 
+// Ensures the index() call with no params can properly be inferred
+type SafeParamMatchRef<RefParams extends ParamMatchArgs<any, any>> = RefParams extends {
+  paramMatch: object;
+}
+  ? RefParams['paramMatch']
+  : object;
+
 // get from input params
 // exclude paramMatch keys
 // add paramMatch values
@@ -62,8 +69,12 @@ export type FullPartitionKeys<
   Entity,
   RefParams extends ParamMatchArgs<InitialGetters, Entity>,
 > = KeyResolvers<{
-  getPartitionKey: SwapParams<InitialGetters['getPartitionKey'], Entity, RefParams['paramMatch']>;
-  getRangeKey: SwapParams<InitialGetters['getRangeKey'], Entity, RefParams['paramMatch']>;
+  getPartitionKey: SwapParams<
+    InitialGetters['getPartitionKey'],
+    Entity,
+    SafeParamMatchRef<RefParams>
+  >;
+  getRangeKey: SwapParams<InitialGetters['getRangeKey'], Entity, SafeParamMatchRef<RefParams>>;
 }>;
 
 type RefSwapParams = ParamMatchArgs<any, any> & EntityKeyResolvers<any>;
