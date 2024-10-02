@@ -30,7 +30,7 @@ type EntityIndexConfig<
    * Create named indexes for your entity
    */
   indexes: {
-    [IndexName in string]: RangeQueryResultProps<IndexConfig[IndexName]> &
+    [IndexName in keyof IndexConfig]: RangeQueryResultProps<IndexConfig[IndexName]> &
       KeyResolvers<IndexConfig[IndexName]>;
   };
 

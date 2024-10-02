@@ -51,7 +51,7 @@ export type EntityCRUDProps<
     item: MakeGenPropsPartial<Entity & EntityKeyParams<Params>, Params['autoGen']>,
 
     ...config: TableConfig extends { expiresAt: string } ? [{ expiresAt: string }?] : []
-  ) => SingleTableCreateItemParams<Entity>;
+  ) => SingleTableCreateItemParams<Entity, TableConfig>;
 
   getUpdateParams: (
     params: EntityKeyParams<Params> & UpdateCallProps<TableConfig, Entity>,
