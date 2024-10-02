@@ -74,7 +74,7 @@ function swapKeys<
 >(originalGetter: Getter, swapParams: SwapRef): SwapParams<Getter, any, SwapRef> {
   // Overwrites any swap key received, keeping original intact
 
-  const getter = (receivedParams: any): KeyValue =>
+  const getter = (receivedParams: any = {}): KeyValue =>
     originalGetter({
       ...receivedParams,
 
