@@ -10,11 +10,11 @@ import {
 import { ListEntityParams, ListEntityResult } from './list';
 import { QueryMethods } from './query';
 
-type ListMethods<
+export type ListEntityMethods<
   Registered extends ExtendableRegisteredEntity,
   SingleConfig extends SingleTableConfig,
 > = undefined extends SingleConfig['typeIndex']
-  ? unknown
+  ? object
   : {
       listAll(): Promise<Array<Registered['__entity']>>;
 
@@ -35,7 +35,7 @@ export type FromEntity<
 
   update(params: UpdateEntityParams<Registered>): Promise<void>;
 } & QueryMethods<Registered> &
-  ListMethods<Registered, SingleConfig>;
+  ListEntityMethods<Registered, SingleConfig>;
 
 export interface FromEntityMethods<SingleConfig extends SingleTableConfig> {
   fromEntity<Registered extends ExtendableRegisteredEntity>(

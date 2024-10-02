@@ -1,4 +1,4 @@
-export { SingleTable } from './implementation';
+export { SingleTableMethods } from './implementation';
 
 export * from './definition';
 

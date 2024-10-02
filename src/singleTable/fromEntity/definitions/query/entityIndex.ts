@@ -65,4 +65,4 @@ export type IndexQueryMethods<Registered extends ExtendableRegisteredEntity> = R
         >;
       };
     }
-  : unknown;
+  : object;

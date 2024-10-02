@@ -23,7 +23,7 @@ export interface SingleTableParams extends SingleTableConfig {
   dynamodbProvider: IDynamodbProvider;
 }
 
-export interface ISingleTable<SingleParams extends SingleTableParams>
+export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   extends Pick<IDynamodbProvider, 'createSet'> {
   get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
 
