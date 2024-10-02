@@ -964,5 +964,502 @@ describe('single table schema tests', () => {
         });
       });
     });
+
+    describe('creation params', () => {
+      it('should accept expiresAt if table config allows it', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          expiresAt: '_expires',
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const createParams = user.getCreationParams(
+          {
+            id: 'id',
+            address: 'address',
+            createdAt: 'now',
+            dob: '1970',
+            email: 'test@email.com',
+            name: 'User',
+          },
+          {
+            expiresAt: 2032043,
+          },
+        );
+
+        expect(createParams.expiresAt).toEqual(2032043);
+      });
+
+      it('should properly build index mapping', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          expiresAt: '_expires',
+
+          indexes: {
+            someIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+
+            anotherIndex: {
+              partitionKey: '_indexHash2',
+              rangeKey: '_indexRange2',
+            },
+
+            yetAnotherIndex: {
+              partitionKey: '_indexHash3',
+              rangeKey: '_indexRange3',
+            },
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          indexes: {
+            BY_EMAIL: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email?.toLocaleLowerCase()],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const createParams = user.getCreationParams(
+          {
+            id: 'id',
+            address: 'address',
+            createdAt: 'now',
+            dob: '1970',
+            email: 'test@EMAIL.com',
+            name: 'User',
+          },
+          {
+            expiresAt: 2032043,
+          },
+        );
+
+        expect(createParams.expiresAt).toEqual(2032043);
+        expect(createParams.indexes).toStrictEqual({
+          anotherIndex: {
+            partitionKey: ['USERS_BY_EMAIL'],
+            rangeKey: ['test@email.com'],
+          },
+        });
+      });
+
+      it('should fully build params', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          expiresAt: '_expires',
+
+          indexes: {
+            someIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+
+            anotherIndex: {
+              partitionKey: '_indexHash2',
+              rangeKey: '_indexRange2',
+            },
+
+            yetAnotherIndex: {
+              partitionKey: '_indexHash3',
+              rangeKey: '_indexRange3',
+            },
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          indexes: {
+            BY_EMAIL: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email?.toLocaleLowerCase()],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const createParams = user.getCreationParams(
+          {
+            id: 'id',
+            address: 'address',
+            createdAt: 'now',
+            dob: '1970',
+            email: 'test@EMAIL.com',
+            name: 'User',
+          },
+          {
+            expiresAt: 2032043,
+          },
+        );
+
+        expect(createParams.expiresAt).toEqual(2032043);
+        expect(createParams.indexes).toStrictEqual({
+          anotherIndex: {
+            partitionKey: ['USERS_BY_EMAIL'],
+            rangeKey: ['test@email.com'],
+          },
+        });
+        expect(createParams.item).toStrictEqual({
+          id: 'id',
+          address: 'address',
+          createdAt: 'now',
+          dob: '1970',
+          email: 'test@EMAIL.com',
+          name: 'User',
+        });
+      });
+    });
+
+    describe('update params', () => {
+      it('should properly build key reference', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+
+          expiresAt: '_expires',
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const params = user.getUpdateParams({
+          id: 'user-id',
+
+          values: {
+            email: 'new@email.com',
+          },
+        });
+
+        expect(params).toStrictEqual({
+          partitionKey: ['USER', 'user-id'],
+          rangeKey: ['#DATA'],
+          values: {
+            email: 'new@email.com',
+          },
+        });
+      });
+
+      it('should handle expiresAt', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+
+          expiresAt: '_expires',
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const params = user.getUpdateParams({
+          id: 'user-id',
+
+          values: {
+            email: 'new@email.com',
+          },
+
+          expiresAt: 20323492,
+        });
+
+        expect(params).toStrictEqual({
+          partitionKey: ['USER', 'user-id'],
+          rangeKey: ['#DATA'],
+          values: {
+            email: 'new@email.com',
+          },
+          expiresAt: 20323492,
+        });
+      });
+
+      it('should handle indexes', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+
+          expiresAt: '_expires',
+
+          indexes: {
+            someIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+
+            anotherIndex: {
+              partitionKey: '_indexHash2',
+              rangeKey: '_indexRange2',
+            },
+
+            yetAnotherIndex: {
+              partitionKey: '_indexHash3',
+              rangeKey: '_indexRange3',
+            },
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          indexes: {
+            BY_EMAIL: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email?.toLocaleLowerCase()],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const params = user.getUpdateParams({
+          id: 'user-id',
+
+          values: {
+            email: 'new@email.com',
+          },
+
+          expiresAt: 20323492,
+        });
+
+        expect(params).toStrictEqual({
+          partitionKey: ['USER', 'user-id'],
+          rangeKey: ['#DATA'],
+          values: {
+            email: 'new@email.com',
+          },
+          expiresAt: 20323492,
+
+          indexes: {
+            anotherIndex: {
+              partitionKey: ['USERS_BY_EMAIL'],
+              rangeKey: ['new@email.com'],
+            },
+          },
+        });
+      });
+
+      it('should simply forward atomicOperations, conditions, remove and returnUpdatedProperties values', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+
+          expiresAt: '_expires',
+
+          indexes: {
+            someIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+
+            anotherIndex: {
+              partitionKey: '_indexHash2',
+              rangeKey: '_indexRange2',
+            },
+
+            yetAnotherIndex: {
+              partitionKey: '_indexHash3',
+              rangeKey: '_indexRange3',
+            },
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.create<User>().entity({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          indexes: {
+            BY_EMAIL: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email?.toLocaleLowerCase()],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const forwardValues = {
+          atomicOperations: Symbol('atomicOperations'),
+          conditions: Symbol('conditions'),
+          remove: Symbol('remove'),
+          returnUpdatedProperties: Symbol('returnUpdatedProperties'),
+        } as any;
+
+        const params = user.getUpdateParams({
+          id: 'user-id',
+
+          values: {
+            email: 'new@email.com',
+          },
+
+          expiresAt: 20323492,
+
+          ...forwardValues,
+        });
+
+        expect(params).toStrictEqual({
+          partitionKey: ['USER', 'user-id'],
+          rangeKey: ['#DATA'],
+          values: {
+            email: 'new@email.com',
+          },
+          expiresAt: 20323492,
+
+          indexes: {
+            anotherIndex: {
+              partitionKey: ['USERS_BY_EMAIL'],
+              rangeKey: ['new@email.com'],
+            },
+          },
+
+          ...forwardValues,
+        });
+      });
+    });
   });
 });
