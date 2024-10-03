@@ -13,6 +13,9 @@ import {
   PartitionIndexParams,
   resolveKeySwaps,
   PartitionEntityCreateParams,
+  createCollection,
+  PartitionCollectionParams,
+  PartitionCollection,
 } from './definitions';
 
 interface EntityCache {
@@ -158,11 +161,11 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
     };
   }
 
-  // createCollection<Params extends PartitionCollectionParams>(
-  //   params: Params,
-  // ): PartitionCollection<Params> {
-  //   return createCollection(params);
-  // }
+  createCollection<Params extends PartitionCollectionParams<TableConfig>>(
+    params: Params,
+  ): PartitionCollection<Params> {
+    return createCollection(params);
+  }
 
   private registerEntity<
     Entity extends AnyObject,
