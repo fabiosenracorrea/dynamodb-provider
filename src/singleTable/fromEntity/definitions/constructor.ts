@@ -1,4 +1,4 @@
-import { ExtendableRegisteredEntity } from 'singleTable/model';
+import { ExtendableSingleTableEntity } from 'singleTable/model';
 import { SingleTableConfig } from 'singleTable/adaptor/definitions';
 import {
   CreateEntityParams,
@@ -11,7 +11,7 @@ import { ListEntityParams, ListEntityResult } from './list';
 import { QueryMethods } from './query';
 
 export type ListEntityMethods<
-  Registered extends ExtendableRegisteredEntity,
+  Registered extends ExtendableSingleTableEntity,
   SingleConfig extends SingleTableConfig,
 > = undefined extends SingleConfig['typeIndex']
   ? object
@@ -22,7 +22,7 @@ export type ListEntityMethods<
     };
 
 export type FromEntity<
-  Registered extends ExtendableRegisteredEntity,
+  Registered extends ExtendableSingleTableEntity,
   SingleConfig extends SingleTableConfig,
 > = {
   get(...params: EntityGetParams<Registered>): Promise<Registered['__entity'] | undefined>;
@@ -38,7 +38,7 @@ export type FromEntity<
   ListEntityMethods<Registered, SingleConfig>;
 
 export interface FromEntityMethods<SingleConfig extends SingleTableConfig> {
-  fromEntity<Registered extends ExtendableRegisteredEntity>(
+  fromEntity<Registered extends ExtendableSingleTableEntity>(
     entity: Registered,
   ): FromEntity<Registered, SingleConfig>;
 }

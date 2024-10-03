@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableMethods, SingleTableParams } from 'singleTable/adaptor';
-import { ExtendableRegisteredEntity, IndexMapping } from 'singleTable/model';
-import { SingleTableGetParams } from 'singleTable/adaptor/definitions';
+import { ExtendableSingleTableEntity, IndexMapping } from 'singleTable/model';
+import { SingleTableGetParams, singleTableParams } from 'singleTable/adaptor/definitions';
 import { AnyObject } from 'types';
+import { pick } from 'utils/object';
 import {
   FromEntity,
   IndexQueryMethods,
@@ -29,13 +30,13 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
     ) as E;
   }
 
-  private buildEntityQuery<Registered extends ExtendableRegisteredEntity>(
+  private buildEntityQuery<Registered extends ExtendableSingleTableEntity>(
     entity: Registered,
   ): PartitionQueryMethods<Registered> {
     const callers = {
       custom: (config = {} as any) =>
         this.methods.query({
-          ...(config as any),
+          ...(pick(config || {}, singleTableParams as any) as any),
 
           partition: entity.getPartitionKey(config),
         }),
@@ -45,12 +46,12 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
           rangeQueryName,
           (queryParams = {} as any) =>
             this.methods.query({
-              ...queryParams,
+              ...(pick(queryParams || {}, singleTableParams as any) as any),
 
               partition: entity.getPartitionKey(queryParams),
 
               range: typeof paramGetter === 'function' ? paramGetter(queryParams) : null,
-            }),
+            } as any),
         ]),
       ),
     } as PartitionQueryMethods<Registered>;
@@ -58,9 +59,9 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
     return this.bindObjectMethods(callers);
   }
 
-  private getQueryIndexMethods<Entity extends ExtendableRegisteredEntity>(
+  private getQueryIndexMethods<Entity extends ExtendableSingleTableEntity>(
     entity: Entity,
-  ): IndexQueryMethods<ExtendableRegisteredEntity> {
+  ): IndexQueryMethods<ExtendableSingleTableEntity> {
     const typed = entity as {
       indexes?: IndexMapping<SingleParams & { indexes: any }, Entity['__entity']>;
     };
@@ -75,7 +76,7 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
           this.bindObjectMethods({
             custom: async (params = {}) =>
               this.methods.query({
-                ...params,
+                ...(pick(params || {}, singleTableParams as any) as any),
 
                 index: indexConfig.index,
 
@@ -89,7 +90,7 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
 
                   async (queryParams = {}) =>
                     this.methods.query({
-                      ...queryParams,
+                      ...(pick(queryParams || {}, singleTableParams as any) as any),
 
                       index: indexConfig.index,
 
@@ -110,7 +111,7 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
     };
   }
 
-  private getTypeListingParams<Registered extends ExtendableRegisteredEntity>(
+  private getTypeListingParams<Registered extends ExtendableSingleTableEntity>(
     entity: Registered,
   ): ListEntityMethods<Registered, SingleParams> {
     if (!this.config.typeIndex) return {} as ListEntityMethods<Registered, SingleParams>;
@@ -127,41 +128,42 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
     } as ListEntityMethods<Registered, SingleParams>;
   }
 
-  fromEntity<Registered extends ExtendableRegisteredEntity>(
-    entity: Registered,
-  ): FromEntity<Registered, SingleParams> {
+  fromEntity<Entity extends ExtendableSingleTableEntity>(
+    entity: Entity,
+  ): FromEntity<Entity, SingleParams> {
     const methods = {
       get: ((params = {}) =>
         this.methods.get({ ...params, ...entity.getKey(params) } as SingleTableGetParams<
-          Registered['__entity']
-        >)) as FromEntity<Registered, SingleParams>['get'],
+          Entity['__entity']
+        >)) as FromEntity<Entity, SingleParams>['get'],
 
       batchGet: (({ keys, ...options }) =>
         this.methods.batchGet({
           ...options,
           keys: keys.map(entity.getKey),
-        })) as FromEntity<Registered, SingleParams>['batchGet'],
+        })) as FromEntity<Entity, SingleParams>['batchGet'],
 
-      create: ((item, config) =>
-        this.methods.create((entity as any).getCreationParams(item, config))) as FromEntity<
-        Registered,
+      create: ((...p) =>
+        this.methods.create((entity as any).getCreationParams(...p))) as FromEntity<
+        Entity,
         SingleParams
       >['create'],
 
-      delete: ((params) => this.methods.delete(entity.getKey(params))) as FromEntity<
-        Registered,
+      delete: ((params) =>
+        this.methods.delete({ ...params, ...entity.getKey(params) })) as FromEntity<
+        Entity,
         SingleParams
       >['delete'],
 
       update: (async (params) => {
         await this.methods.update(entity.getUpdateParams(params));
-      }) as FromEntity<Registered, SingleParams>['update'],
+      }) as FromEntity<Entity, SingleParams>['update'],
 
       query: this.buildEntityQuery(entity),
 
       ...this.getTypeListingParams(entity),
 
-      ...(this.getQueryIndexMethods(entity) as IndexQueryMethods<Registered>),
+      ...(this.getQueryIndexMethods(entity) as IndexQueryMethods<Entity>),
     };
 
     return this.bindObjectMethods(methods);

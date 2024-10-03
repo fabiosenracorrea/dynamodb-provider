@@ -29,11 +29,6 @@ type UpdateCallProps<TableConfig extends SingleTableConfig, Entity extends AnyOb
 
 type OnCreateConfig = Required<AutoGenParams<any>>['onCreate'];
 
-// Using this type was glitching TS inside a partition entity creation with autoGen
-// for whatever reason this complex type works
-// type MakeKeysOptional<E, Keys extends string | number | symbol> = Omit<E, Keys> &
-//   (Keys extends keyof E ? { [K in Keys]?: E[K] } : unknown);
-
 type WithOptionalCreationProps<CreationProps, CreateConfig extends OnCreateConfig> = MakePartial<{
   [K in keyof CreationProps]: K extends keyof CreateConfig
     ? CreationProps[K] | undefined
@@ -49,6 +44,11 @@ type MakeGenPropsPartial<
     ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
     : CreationProps
   : CreationProps;
+
+export type ExtendableCRUDProps = {
+  getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
+  getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
+};
 
 export type EntityCRUDProps<
   TableConfig extends SingleTableConfig,
@@ -72,6 +72,8 @@ type CrudParamsGenerator<
   Params extends RegisterEntityParams<TableConfig, Entity>,
 > = Pick<Params, 'type' | 'autoGen'> & KeyResolvers<Params> & Partial<GenericIndexMappingFns>;
 
+type GenericGetKey = KeyResolvers<any>['getKey'];
+
 export function getCRUDParamGetters<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
@@ -80,12 +82,14 @@ export function getCRUDParamGetters<
   tableConfig: TableConfig,
   {
     type,
-    getKey,
+    getKey: entityGetKey,
     getCreationIndexMapping,
     getUpdatedIndexMapping,
     autoGen,
   }: CrudParamsGenerator<TableConfig, Entity, Params>,
 ): EntityCRUDProps<TableConfig, Entity, Params> {
+  const getKey = entityGetKey as GenericGetKey;
+
   const getCreationParams = (
     item: any,
     config = {},

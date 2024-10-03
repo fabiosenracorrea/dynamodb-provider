@@ -45,6 +45,16 @@ export type SingleTableQueryParams<
     range?: DefinedNameRangeKeyConfig;
   };
 
+export const singleTableParams = [
+  'index',
+  'range',
+  'retrieveOrder',
+  'limit',
+  'paginationToken',
+  'fullRetrieval',
+  'filters',
+] as (keyof SingleTableQueryParams<any, any>)[];
+
 export class SingleTableQueryBuilder extends BaseSingleTableOperator {
   private convertKey(prop: any): string {
     return convertKey(prop, this.config);

@@ -1,6 +1,7 @@
 import { DeleteItemParams } from 'provider';
 
 import { AnyObject } from 'types';
+import { removeUndefinedProps } from 'utils/object';
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 
@@ -12,10 +13,11 @@ export class SingleTableRemover extends BaseSingleTableOperator {
   getDeleteParams({
     partitionKey,
     rangeKey,
-    ...config
+
+    conditions,
   }: SingleTableDeleteParams<AnyObject>): DeleteItemParams<SingleTableKeyReference> {
-    return {
-      ...config,
+    return removeUndefinedProps({
+      conditions,
 
       table: this.config.table,
 
@@ -26,7 +28,7 @@ export class SingleTableRemover extends BaseSingleTableOperator {
         },
         this.config,
       ),
-    };
+    });
   }
 
   async delete<Entity = AnyObject>(keyReference: SingleTableDeleteParams<Entity>): Promise<void> {

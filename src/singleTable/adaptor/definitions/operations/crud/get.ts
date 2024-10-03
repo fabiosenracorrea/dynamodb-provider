@@ -1,5 +1,6 @@
 import { GetItemParams } from 'provider/utils';
 
+import { removeUndefinedProps } from 'utils/object';
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { cleanInternalProps } from '../../propRemoval';
@@ -11,21 +12,26 @@ export class SingleTableGetter extends BaseSingleTableOperator {
   async get<Entity>({
     partitionKey,
     rangeKey,
-    ...options
+
+    consistentRead,
+    propertiesToRetrieve,
   }: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
-    const item = await this.db.get<Entity>({
-      ...options,
+    const item = await this.db.get<Entity>(
+      removeUndefinedProps({
+        consistentRead,
+        propertiesToRetrieve,
 
-      table: this.config.table,
+        table: this.config.table,
 
-      key: getPrimaryKey(
-        {
-          partitionKey,
-          rangeKey,
-        },
-        this.config,
-      ),
-    });
+        key: getPrimaryKey(
+          {
+            partitionKey,
+            rangeKey,
+          },
+          this.config,
+        ),
+      }),
+    );
 
     if (item) return cleanInternalProps(item, this.config);
   }

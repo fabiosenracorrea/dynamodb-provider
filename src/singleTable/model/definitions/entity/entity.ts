@@ -3,11 +3,12 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject } from 'types';
 
+import { KeyValue, SingleTableKeyReference } from 'singleTable/adaptor/definitions';
 import { RangeQueryResultProps } from '../range';
 import { KeyResolvers } from '../key';
 
 import { RegisterEntityParams } from './params';
-import { EntityCRUDProps } from './crud';
+import { EntityCRUDProps, ExtendableCRUDProps } from './crud';
 import { EntityIndexResultProps } from './indexParams';
 
 type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResolvers<
@@ -35,8 +36,26 @@ export type SingleTableEntity<
   EntityIndexResultProps<TableConfig, Params> &
   RangeQueryResultProps<Params>;
 
-export type ExtendableRegisteredEntity = SingleTableEntity<
-  SingleTableConfig,
-  AnyObject,
-  RegisterEntityParams<any>
->;
+// export type ExtendableSingleTableEntity = {
+//   __dbType: 'ENTITY';
+//   __entity: any;
+//   type: string;
+
+//   getPartitionKey: (...params: any[]) => KeyValue;
+//   getRangeKey: (...params: any[]) => KeyValue;
+//   getKey: (...params: any[]) => SingleTableKeyReference;
+
+//   indexes?: any;
+
+//   rangeQueries?: any;
+// } & ExtendableCRUDProps &
+//   Partial<GenericIndexMappingFns>;
+
+export type ExtendableSingleTableEntity = Omit<
+  SingleTableEntity<any, any, RegisterEntityParams<any, any>>,
+  'getPartitionKey' | 'getRangeKey' | 'getKey' | 'getUpdateParams' | 'getCreationParams'
+> & {
+  getPartitionKey: (...params: any[]) => KeyValue;
+  getRangeKey: (...params: any[]) => KeyValue;
+  getKey: (...params: any[]) => SingleTableKeyReference;
+} & ExtendableCRUDProps;

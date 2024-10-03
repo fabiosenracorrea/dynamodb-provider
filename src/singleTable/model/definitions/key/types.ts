@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { KeyValue, SingleTableKeyReference } from 'singleTable/adaptor/definitions';
 
-import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
+import {
+  AnyFunction,
+  AnyObject,
+  FirstParameter,
+  IsUndefined,
+  IsUnknown,
+  PrettifyObject,
+} from 'types';
 
 export type KeyGetter<Params extends AnyObject | undefined> = undefined extends Params
   ? () => KeyValue
@@ -23,15 +30,32 @@ type SafeFirstParam<
   Params = FirstParameter<Fn>,
 > = IsUndefined<Params> extends true ? unknown : Params;
 
+type MergedKeyParams<Resolvers extends EntityKeyResolvers<any>> = SafeFirstParam<
+  Resolvers['getPartitionKey']
+> &
+  SafeFirstParam<Resolvers['getRangeKey']>;
+
 /**
  * Get all the parameters used on partition resolvers
+ *
+ * Used to merge with other method params
  */
-export type EntityKeyParams<Resolvers extends EntityKeyResolvers<any>> = PrettifyObject<
-  SafeFirstParam<Resolvers['getPartitionKey']> & SafeFirstParam<Resolvers['getRangeKey']>
->;
+export type EntityKeyParams<Resolvers extends EntityKeyResolvers<any>> = IsUnknown<
+  MergedKeyParams<Resolvers>
+> extends true
+  ? unknown
+  : PrettifyObject<
+      SafeFirstParam<Resolvers['getPartitionKey']> & SafeFirstParam<Resolvers['getRangeKey']>
+    >;
+
+type GetKeyParams<PieceResolvers extends EntityKeyResolvers<any>> = IsUnknown<
+  EntityKeyParams<PieceResolvers>
+> extends true
+  ? []
+  : [EntityKeyParams<PieceResolvers>];
 
 export type KeyResolvers<PieceResolvers extends EntityKeyResolvers<any>> = PieceResolvers & {
-  getKey: (params: EntityKeyParams<PieceResolvers>) => SingleTableKeyReference;
+  getKey: (...params: GetKeyParams<PieceResolvers>) => SingleTableKeyReference;
 };
 
 // Todo>: fix type to accept only Key[] or {key, parser} to properly infer result

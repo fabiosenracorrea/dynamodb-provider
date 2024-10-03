@@ -4,7 +4,7 @@ import { QueryResult } from 'provider';
 
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 
-import { ExtendableRegisteredEntity, RangeQueryGetters, SingleIndex } from 'singleTable/model';
+import { ExtendableSingleTableEntity, RangeQueryGetters, SingleIndex } from 'singleTable/model';
 import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
 
 type IndexPartitionParams<Index extends SingleIndex> = IfAny<
@@ -54,7 +54,7 @@ export type SingleIndexQueryMethods<Entity, Index extends SingleIndex> = {
   ): Promise<QueryResult<Entity>>;
 } & RangeQueries<Entity, Index>;
 
-export type IndexQueryMethods<Registered extends ExtendableRegisteredEntity> = Registered extends {
+export type IndexQueryMethods<Registered extends ExtendableSingleTableEntity> = Registered extends {
   indexes: any;
 }
   ? {

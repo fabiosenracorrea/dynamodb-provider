@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExtendableRegisteredEntity } from 'singleTable/model';
+import { ExtendableSingleTableEntity } from 'singleTable/model';
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 import { QueryResult } from 'provider';
 import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
@@ -8,19 +8,19 @@ type SafeObjectUnion<PossibleUndefinedObject> = PossibleUndefinedObject extends 
   ? unknown
   : PossibleUndefinedObject;
 
-type BaseQueryParams<Registered extends ExtendableRegisteredEntity> = QueryConfigParams<
+type BaseQueryParams<Registered extends ExtendableSingleTableEntity> = QueryConfigParams<
   Registered['__entity']
 > &
   SafeObjectUnion<Parameters<Registered['getPartitionKey']>[0]>;
 
-type CustomQueryParams<Registered extends ExtendableRegisteredEntity> =
+type CustomQueryParams<Registered extends ExtendableSingleTableEntity> =
   BaseQueryParams<Registered> & Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
 
-type EntityQueryResult<Registered extends ExtendableRegisteredEntity> = QueryResult<
+type EntityQueryResult<Registered extends ExtendableSingleTableEntity> = QueryResult<
   Registered['__entity']
 >;
 
-type RangeQueries<Registered extends ExtendableRegisteredEntity> = Registered extends {
+type RangeQueries<Registered extends ExtendableSingleTableEntity> = Registered extends {
   rangeQueries: any;
 }
   ? {
@@ -35,7 +35,7 @@ type RangeQueries<Registered extends ExtendableRegisteredEntity> = Registered ex
     }
   : unknown;
 
-export type PartitionQueryMethods<Registered extends ExtendableRegisteredEntity> = {
+export type PartitionQueryMethods<Registered extends ExtendableSingleTableEntity> = {
   custom(
     ...params: OptionalTupleIfUndefined<
       Parameters<Registered['getPartitionKey']>[0],

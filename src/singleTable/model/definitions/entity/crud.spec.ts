@@ -46,7 +46,7 @@ describe('getCRUDParamGetters', () => {
 
   it('should correctly generate creation params', () => {
     const mockItem = { id: '123', name: 'John Doe' };
-    const mockConfig = { expiresAt: '2024-01-01T00:00:00.000Z' };
+    const mockConfig = { expiresAt: 203294320 };
     const mockGeneratedItem = { ...mockItem, createdAt: '2024-01-01T00:00:00.000Z' };
 
     (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedItem);
