@@ -3,3 +3,5 @@ lib
 **/**.js
 test.ts
 example.ts
+
+dist
