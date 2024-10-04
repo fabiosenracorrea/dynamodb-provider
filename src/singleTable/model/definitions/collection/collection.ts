@@ -140,20 +140,27 @@ type SingleJoinConfig = EntityDepthParams & {
   entity: RefEntity;
 } & JoinResolutionParams;
 
-type JoinConfig = SingleJoinConfig & { join?: Record<string, SingleJoinConfig> };
+type JoinConfig = SingleJoinConfig & { join?: Record<string, JoinConfig> };
 
 type BaseJoinConfig = {
   // Allow it to also be Entity or [Entity]
   [key: string]: JoinConfig;
 };
 
-type ConfiguredJoin<Config extends JoinConfig> = JoinResolutionParams & {
-  type: Config['type'];
+type ConfiguredJoin<Config extends JoinConfig> = JoinResolutionParams &
+  Pick<Config, 'method' | 'resolver' | 'entity'> & {
+    type: Config['type'];
 
-  ref: Config['entity']['type'];
-} & SorterProps<Config> &
+    ref: Config['entity']['type'];
+  } & SorterProps<Config> &
   ExtractorProps<Config> &
-  (Config['join'] extends JoinConfig ? { join: ConfiguredJoin<Config['join']> } : object);
+  (Config['join'] extends BaseJoinConfig
+    ? {
+        join: {
+          [Key in keyof Config['join']]: ConfiguredJoin<Config['join'][Key]>;
+        };
+      }
+    : unknown);
 
 export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = EntityDepthParams & {
   /**
@@ -188,7 +195,7 @@ type BuildJoinType<Config extends BaseJoinConfig> = {
       : Config[Key]['entity']['__entity']) &
       (Config[Key]['join'] extends BaseJoinConfig
         ? BuildJoinType<Config[Key]['join']>
-        : Config[Key]['extractor'] extends Extractor // makes sure we dont end up with like number & object = never
+        : Config[Key]['extractor'] extends Extractor
         ? ReturnType<Config[Key]['extractor']>
         : object),
     Config[Key]['type']
@@ -253,7 +260,13 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
   return Object.fromEntries(
     Object.entries(config).map(([key, { entity, join, method = 'POSITION', ...params }]) => [
       key,
-      { ...params, method, ref: entity.type, join: join ? createCollectionJoin(join) : undefined },
+      {
+        ...params,
+        entity,
+        method,
+        ref: entity.type,
+        join: join ? createCollectionJoin(join) : undefined,
+      },
     ]),
   ) as unknown as {
     [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
