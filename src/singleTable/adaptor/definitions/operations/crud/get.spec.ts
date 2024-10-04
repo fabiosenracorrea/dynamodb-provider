@@ -23,7 +23,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
     });
@@ -61,7 +61,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
     });
@@ -99,7 +99,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
       consistentRead: true,
@@ -140,7 +140,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
       consistentRead: true,
@@ -191,7 +191,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
     });
@@ -232,7 +232,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
     });
@@ -279,7 +279,7 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    const result = await getter.get({
+    const result = await getter.get<any>({
       partitionKey: 'some',
       rangeKey: 'other_pk',
     });

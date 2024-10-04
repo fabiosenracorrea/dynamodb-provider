@@ -1,4 +1,4 @@
-import { resolveKeySwaps } from './keySwap';
+import { resolveKeySwaps, FullPartitionKeys } from './keySwap';
 
 describe('key swaps tests', () => {
   it('should not change key getters if no param match is found', () => {
@@ -6,7 +6,9 @@ describe('key swaps tests', () => {
       getRangeKey: ({ someId }) => ['HI', someId],
 
       getPartitionKey: () => ['PARTITION'],
-    });
+    }) as FullPartitionKeys<any, any, any>;
+
+    result.getKey({});
 
     expect(result.getPartitionKey()).toEqual(['PARTITION']);
     expect(result.getRangeKey({ someId: 'id!' })).toEqual(['HI', 'id!']);

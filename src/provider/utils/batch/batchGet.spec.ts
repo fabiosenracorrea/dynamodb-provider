@@ -37,7 +37,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -128,7 +128,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -237,7 +237,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: items.map(({ id }) => ({
         id,
@@ -291,7 +291,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: items.map(({ id }) => ({
         id,
@@ -359,7 +359,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -482,7 +482,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -629,7 +629,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -727,7 +727,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       keys: [
         {
@@ -829,7 +829,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       maxRetries: 5,
       keys: [
@@ -928,7 +928,7 @@ describe('batchGetter', () => {
       },
     });
 
-    const result = await batchGetter.batchGet({
+    const result = await batchGetter.batchGet<any>({
       table: 'table',
       maxRetries: 4,
       keys: [
@@ -1032,7 +1032,7 @@ describe('batchGetter', () => {
     });
 
     const call = async () => {
-      await batchGetter.batchGet({
+      await batchGetter.batchGet<any>({
         table: 'table',
         throwOnUnprocessed: true,
         keys: [
@@ -1122,7 +1122,7 @@ describe('batchGetter', () => {
     });
 
     const call = async () => {
-      await batchGetter.batchGet({
+      await batchGetter.batchGet<any>({
         table: 'table',
         throwOnUnprocessed: true,
         keys: [

@@ -31,7 +31,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      const result = await getter.get({
+      const result = await getter.get<any>({
         table: 'table',
         key: {
           id: '23023',
@@ -71,7 +71,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      const result = await getter.get({
+      const result = await getter.get<any>({
         table: 'table',
         key: {
           id: '23023',
@@ -108,7 +108,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get({
+      await getter.get<any>({
         table: 'table',
         consistentRead: true,
         key: {
@@ -140,7 +140,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get({
+      await getter.get<any>({
         table: 'table',
         consistentRead: true,
         key: {
@@ -262,7 +262,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get({
+      await getter.get<any>({
         table: 'table',
         key: {
           id: '23023',
@@ -297,7 +297,7 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get({
+      await getter.get<any>({
         table: 'table',
         key: {
           id: '23023',

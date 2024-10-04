@@ -16,7 +16,19 @@ describe('getCRUDParamGetters', () => {
   };
 
   const tableConfig = {
-    typeIndex: true,
+    table: 'some',
+
+    partitionKey: 'some',
+
+    rangeKey: 'some',
+
+    typeIndex: {
+      partitionKey: 'partitionKey-TYPE',
+
+      rangeKey: 'rangeKey-TYPE',
+
+      name: 'INDEX_TYPE',
+    },
 
     expiresAt: 'YES',
   };
@@ -69,7 +81,7 @@ describe('getCRUDParamGetters', () => {
     const mockUpdateParams = {
       values: { name: 'Jane Doe' },
       atomicOperations: [],
-      conditions: {},
+      conditions: [],
       remove: [],
       returnUpdatedProperties: true,
     };

@@ -10,7 +10,7 @@ export function resolveKeys<Params extends EntityKeyResolvers<any>>({
     getPartitionKey,
     getRangeKey,
 
-    getKey: (keyParams: any) => ({
+    getKey: (keyParams) => ({
       partitionKey: getPartitionKey(keyParams),
       rangeKey: getRangeKey(keyParams),
     }),

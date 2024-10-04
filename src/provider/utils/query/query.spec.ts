@@ -21,7 +21,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -62,7 +62,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -105,7 +105,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -152,7 +152,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -208,7 +208,7 @@ describe('query builder', () => {
         timestamp: 'something',
       };
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -265,7 +265,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -413,7 +413,7 @@ describe('query builder', () => {
         },
       });
 
-      const result = await queryBuilder.query({
+      const result = await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -497,7 +497,7 @@ describe('query builder', () => {
         },
       });
 
-      const result = await queryBuilder.query({
+      const result = await queryBuilder.query<any>({
         table: 'some_table',
 
         fullRetrieval: false,
@@ -568,7 +568,7 @@ describe('query builder', () => {
         },
       });
 
-      const result = await queryBuilder.query({
+      const result = await queryBuilder.query<any>({
         table: 'some_table',
 
         fullRetrieval: true,
@@ -646,7 +646,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         fullRetrieval: true,
@@ -713,7 +713,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -762,7 +762,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -811,7 +811,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -860,7 +860,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -909,7 +909,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -958,7 +958,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {
@@ -1007,7 +1007,7 @@ describe('query builder', () => {
         },
       });
 
-      await queryBuilder.query({
+      await queryBuilder.query<any>({
         table: 'some_table',
 
         hashKey: {

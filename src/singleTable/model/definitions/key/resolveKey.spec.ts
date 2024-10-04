@@ -7,6 +7,9 @@ describe('single table model - key resolver', () => {
   const params = {
     getPartitionKey: mockGetPartitionKey,
     getRangeKey: mockGetRangeKey,
+  } as {
+    getPartitionKey: (p: { id: string }) => string;
+    getRangeKey: (p: { id: string }) => string;
   };
 
   it('should return the getPartitionKey function correctly', () => {

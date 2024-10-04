@@ -1998,9 +1998,9 @@ describe('single table schema tests', () => {
 
         expect(index.index).toBe('anotherIndex');
 
-        expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
+        expect(index.getPartitionKey({ id: 'idd' } as any)).toStrictEqual(['USER', 'idd']);
 
-        expect(index.getRangeKey()).toStrictEqual(['#DATA']);
+        expect(index.getRangeKey({})).toStrictEqual(['#DATA']);
 
         expect(index.getKey({ id: 'idd' })).toStrictEqual({
           partitionKey: ['USER', 'idd'],

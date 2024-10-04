@@ -31,7 +31,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should correctly generate values using UUID generator', () => {
     const values = { id: '123', name: 'John Doe' };
-    const genConfig = { id: 'UUID' };
+    const genConfig = { id: 'UUID' } as const;
 
     (getId as jest.Mock).mockReturnValue('mocked-uuid');
 
@@ -43,7 +43,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should correctly generate values using KSUID generator', () => {
     const values = { id: '123', name: 'John Doe' };
-    const genConfig = { id: 'KSUID' };
+    const genConfig = { id: 'KSUID' } as const;
 
     (getId as jest.Mock).mockReturnValue('mocked-ksuid');
 
@@ -55,7 +55,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should correctly generate values using timestamp generator', () => {
     const values = { id: '123', name: 'John Doe', createdAt: '' };
-    const genConfig = { createdAt: 'timestamp' };
+    const genConfig = { createdAt: 'timestamp' } as const;
 
     const mockTimestamp = '2024-01-01T00:00:00.000Z';
 
@@ -70,7 +70,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should correctly generate values using count generator', () => {
     const values = { id: '123', name: 'John Doe', counter: 5 };
-    const genConfig = { counter: 'count' };
+    const genConfig = { counter: 'count' } as const;
 
     const result = addAutoGenParams(values, genConfig);
 
@@ -79,7 +79,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should handle custom function generators', () => {
     const values = { id: '123', name: 'John Doe', custom: 'initial' };
-    const genConfig = { custom: () => 'custom-generated-value' };
+    const genConfig = { custom: () => 'custom-generated-value' } as const;
 
     const result = addAutoGenParams(values, genConfig);
 
@@ -88,7 +88,7 @@ describe('single table model: addAutoGenParams', () => {
 
   it('should remove undefined properties using removeUndefinedProps', () => {
     const values = { name: 'John Doe', some: undefined };
-    const genConfig = { age: 'count' };
+    const genConfig = { age: 'count' } as const;
 
     addAutoGenParams(values, genConfig);
 
