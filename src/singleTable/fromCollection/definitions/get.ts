@@ -3,7 +3,7 @@ import { DefinedNameRangeKeyConfig, SingleTableQueryParams } from 'singleTable/a
 
 import { ExtendableCollection } from 'singleTable/model';
 
-type BaseParams = Pick<SingleTableQueryParams<any>, 'retrieveOrder'>;
+type BaseParams = Partial<Pick<SingleTableQueryParams<any>, 'retrieveOrder'>>;
 
 type NarrowParams<Registered extends ExtendableCollection> =
   Registered['narrowBy'] extends 'RANGE_KEY'
