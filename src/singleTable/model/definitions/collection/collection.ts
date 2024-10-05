@@ -178,7 +178,7 @@ export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = E
   /**
    * If you would like to narrow the collection query. Options available:
    *
-   * - `RANGE_KEY` - RangeKey will required the base entity RangeKey parameters and only retrieve items that have that as starting string
+   * - `RANGE_KEY` - RangeKey will required the base entity RangeKey parameters and only retrieve items that have that as starting string. Only works if ref is present
    * - `Function` - Define a custom range narrower for your collection
    */
   narrowBy?: 'RANGE_KEY' | ((...params: any[]) => DefinedNameRangeKeyConfig);
