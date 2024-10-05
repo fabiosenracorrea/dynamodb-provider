@@ -5,3 +5,28 @@
 - Make paramMatch be required for props that do not exist on entity but do on key getter
 - Create a "item_exists" & "item_not_exists" conditions that merge the use of pk+sk exists/not_exists operations. Make it accept the 2 values on provider and autofill on single table
 - Collection "create" method
+
+- Transact param generation inside entity? To reduce the
+
+```ts
+await table.executeTransaction([
+  {
+    create: entity1.getCreationParams({...})
+  },
+  {
+    create: entity2.getCreationParams({...})
+  },
+  // ...
+])
+
+// to
+
+await table.executeTransaction([
+  entity1.transactCreate({...}),
+
+  entity2.transactUpdate({...}),
+
+  entity3.transactDelete({...}),
+  // ...
+])
+```
