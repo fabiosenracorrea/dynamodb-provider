@@ -123,7 +123,14 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
   }
 
   private ensureExtractor(extractor?: Extractor): Extractor {
-    return (item) => cleanInternalProps(extractor?.(item) ?? item, this.config);
+    return (item) => {
+      const target = extractor ? extractor(item) : item;
+
+      if (typeof target === 'object' && target !== null)
+        return cleanInternalProps(target, this.config);
+
+      return target;
+    };
   }
 
   private buildJoin({
@@ -242,16 +249,15 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
 
     const joined = isList
       ? this.applySort(
-          start.map(
-            (item) =>
-              this.buildJoin({
-                item,
-                mapping: byType,
-                join,
-                options: items,
-              }),
-            (params as { sorter?: Sorter }).sorter,
+          start.map((item) =>
+            this.buildJoin({
+              item,
+              mapping: byType,
+              join,
+              options: items,
+            }),
           ),
+          (params as { sorter?: Sorter }).sorter,
         )
       : this.buildJoin({
           item: start ?? {},
