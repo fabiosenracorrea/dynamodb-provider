@@ -1002,6 +1002,426 @@ describe('single table - from collection tests', () => {
           },
         ]);
       });
+
+      it('should retrieve and join a multi return by TYPE if specified', async () => {
+        const queryMock = jest.fn().mockResolvedValue({
+          items: [
+            {
+              name: 'John Doe',
+              id: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '#DATA',
+              _type: 'USER',
+              email: 'johndoe@example.com',
+              address: '123 Main St, Springfield, IL',
+              dob: '1990-06-15',
+              createdAt: '2024-10-04T13:00:00Z',
+              updatedAt: '2024-10-04T15:00:00Z',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T13:30:00Z',
+              timestamp: '2024-10-04T13:30:00Z',
+              device: 'Chrome on Windows',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:00:00Z',
+              timestamp: '2024-10-04T14:00:00Z',
+              device: 'Safari on iPhone',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:30:00Z',
+              timestamp: '2024-10-04T14:30:00Z',
+              device: 'Firefox on Linux',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:45:00Z',
+              timestamp: '2024-10-04T14:45:00Z',
+              device: 'Edge on Windows',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T15:00:00Z',
+              timestamp: '2024-10-04T15:00:00Z',
+              device: 'Chrome on macOS',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+
+            // other user
+            {
+              name: 'Other user',
+              id: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '#DATA',
+              _type: 'USER',
+              email: 'other@example.com',
+              address: '123 Main St, mno!, IL',
+              dob: '1980-01-15',
+              createdAt: '2023-10-04T13:00:00Z',
+              updatedAt: '2023-10-04T15:00:00Z',
+            },
+            {
+              userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-05T14:45:00Z',
+              timestamp: '2024-10-05T14:45:00Z',
+              device: 'Edge on Windows',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-05T15:00:00Z',
+              timestamp: '2024-10-05T15:00:00Z',
+              device: 'Chrome on macOS',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+          ],
+        });
+
+        const instance = new SingleTableFromCollection({
+          ...params,
+
+          dynamodbProvider: {
+            query: queryMock,
+          } as any,
+        });
+
+        const collection = schema.createCollection({
+          partition,
+
+          type: 'MULTIPLE',
+
+          ref: user,
+
+          join: {
+            loginAttempts: {
+              entity: loginAttempts,
+
+              type: 'MULTIPLE',
+
+              joinBy: 'TYPE',
+            },
+          },
+        });
+
+        const result = await instance.fromCollection(collection).get({
+          userId: 'hello',
+        });
+
+        // This would be a design flaw in the real world, but its
+        // absolutely the correct execution of the method
+        expect(result).toStrictEqual([
+          {
+            name: 'John Doe',
+            id: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+            email: 'johndoe@example.com',
+            address: '123 Main St, Springfield, IL',
+            dob: '1990-06-15',
+            createdAt: '2024-10-04T13:00:00Z',
+            updatedAt: '2024-10-04T15:00:00Z',
+
+            loginAttempts: [
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T13:30:00Z',
+                device: 'Chrome on Windows',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:00:00Z',
+                device: 'Safari on iPhone',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:30:00Z',
+                device: 'Firefox on Linux',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:45:00Z',
+                device: 'Edge on Windows',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-05T14:45:00Z',
+                device: 'Edge on Windows',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-05T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+            ],
+          },
+
+          {
+            name: 'Other user',
+            id: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+            email: 'other@example.com',
+            address: '123 Main St, mno!, IL',
+            dob: '1980-01-15',
+            createdAt: '2023-10-04T13:00:00Z',
+            updatedAt: '2023-10-04T15:00:00Z',
+
+            loginAttempts: [
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T13:30:00Z',
+                device: 'Chrome on Windows',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:00:00Z',
+                device: 'Safari on iPhone',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:30:00Z',
+                device: 'Firefox on Linux',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:45:00Z',
+                device: 'Edge on Windows',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-05T14:45:00Z',
+                device: 'Edge on Windows',
+                success: false,
+              },
+              {
+                userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-05T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+            ],
+          },
+        ]);
+      });
+
+      it('should join with a resolver', async () => {
+        const queryMock = jest.fn().mockResolvedValue({
+          items: [
+            {
+              name: 'John Doe',
+              id: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '#DATA',
+              _type: 'USER',
+              email: 'johndoe@example.com',
+              address: '123 Main St, Springfield, IL',
+              dob: '1990-06-15',
+              createdAt: '2024-10-04T13:00:00Z',
+              updatedAt: '2024-10-04T15:00:00Z',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T13:30:00Z',
+              timestamp: '2024-10-04T13:30:00Z',
+              device: 'Chrome on Windows',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:00:00Z',
+              timestamp: '2024-10-04T14:00:00Z',
+              device: 'Safari on iPhone',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:30:00Z',
+              timestamp: '2024-10-04T14:30:00Z',
+              device: 'Firefox on Linux',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T14:45:00Z',
+              timestamp: '2024-10-04T14:45:00Z',
+              device: 'Edge on Windows',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-04T15:00:00Z',
+              timestamp: '2024-10-04T15:00:00Z',
+              device: 'Chrome on macOS',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+
+            // other user
+            {
+              name: 'Other user',
+              id: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '#DATA',
+              _type: 'USER',
+              email: 'other@example.com',
+              address: '123 Main St, mno!, IL',
+              dob: '1980-01-15',
+              createdAt: '2023-10-04T13:00:00Z',
+              updatedAt: '2023-10-04T15:00:00Z',
+            },
+            {
+              userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-05T14:45:00Z',
+              timestamp: '2024-10-05T14:45:00Z',
+              device: 'Edge on Windows',
+              success: false,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+            {
+              userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.partitionKey]: 'USER#f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+              [params.rangeKey]: '2024-10-05T15:00:00Z',
+              timestamp: '2024-10-05T15:00:00Z',
+              device: 'Chrome on macOS',
+              success: true,
+              _type: 'USER_LOGIN_ATTEMPT',
+            },
+          ],
+        });
+
+        const instance = new SingleTableFromCollection({
+          ...params,
+
+          dynamodbProvider: {
+            query: queryMock,
+          } as any,
+        });
+
+        const collection = schema.createCollection({
+          partition,
+
+          type: 'MULTIPLE',
+
+          ref: user,
+
+          join: {
+            loginAttempts: {
+              entity: loginAttempts,
+
+              type: 'MULTIPLE',
+
+              joinBy: (parent, child) => child.success && parent.id === child.userId,
+            },
+          },
+        });
+
+        const result = await instance.fromCollection(collection).get({
+          userId: 'hello',
+        });
+
+        // This would be a design flaw in the real world, but its
+        // absolutely the correct execution of the joinBy
+        expect(result).toStrictEqual([
+          {
+            name: 'John Doe',
+            id: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+            email: 'johndoe@example.com',
+            address: '123 Main St, Springfield, IL',
+            dob: '1990-06-15',
+            createdAt: '2024-10-04T13:00:00Z',
+            updatedAt: '2024-10-04T15:00:00Z',
+
+            loginAttempts: [
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T13:30:00Z',
+                device: 'Chrome on Windows',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T14:30:00Z',
+                device: 'Firefox on Linux',
+                success: true,
+              },
+              {
+                userId: 'f7b9a8d0-e159-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-04T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+            ],
+          },
+
+          {
+            name: 'Other user',
+            id: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+            email: 'other@example.com',
+            address: '123 Main St, mno!, IL',
+            dob: '1980-01-15',
+            createdAt: '2023-10-04T13:00:00Z',
+            updatedAt: '2023-10-04T15:00:00Z',
+
+            loginAttempts: [
+              {
+                userId: 'f7b9a8d0-239023-4679-a7d7-5f1be26c3a71',
+                timestamp: '2024-10-05T15:00:00Z',
+                device: 'Chrome on macOS',
+                success: true,
+              },
+            ],
+          },
+        ]);
+      });
     });
   });
 });

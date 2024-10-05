@@ -47,24 +47,22 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
 
   private findMatching({
     childType,
-    method,
+    joinBy,
     options,
     parent,
-    resolver,
     mapping,
   }: {
     parent: AnyObject;
     options: AnyObject[];
     childType: string;
     mapping: Record<string, AnyObject[]>;
-  } & Pick<JoinResolutionParams, 'resolver'> &
-    Required<Pick<JoinResolutionParams, 'method'>>): AnyObject[] {
-    if (method === 'BY_TYPE') return mapping[childType] ?? [];
+  } & Required<Pick<JoinResolutionParams, 'joinBy'>>): AnyObject[] {
+    if (joinBy === 'TYPE') return mapping[childType] ?? [];
 
-    if (method === 'RESOLVER')
+    if (typeof joinBy === 'function')
       return mapping[childType].filter(
         // (option) => option[typeProp] === childType && resolver?.(parent, option),
-        (option) => resolver?.(parent, option),
+        (option) => joinBy(parent, option),
       );
 
     const typeProp = this.getTypeProp();
@@ -137,7 +135,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     item: AnyObject;
     options: AnyObject[]; // all the options available to be joined
     join: ExtendableCollection['join'];
-    mapping: Record<string, AnyObject[]>; // byType to easily reduce times if method is BY TYPE
+    mapping: Record<string, AnyObject[]>; // byType to easily reduce times if joinBy is BY TYPE
   }): AnyObject {
     const joinProps = Object.fromEntries(
       Object.entries(join)
@@ -145,8 +143,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
           const {
             ref,
             type,
-            method = 'POSITION',
-            resolver,
+            joinBy = 'POSITION',
             join: childJoin,
             sorter,
             extractor,
@@ -161,8 +158,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
             mapping,
             options,
             parent: item,
-            method,
-            resolver,
+            joinBy,
           });
 
           const childrenBase = type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;

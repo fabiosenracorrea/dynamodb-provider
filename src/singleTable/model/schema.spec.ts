@@ -2296,7 +2296,7 @@ describe('single table schema tests', () => {
           },
         });
 
-        expect(collection.join.loginAttempts.method).toBe('POSITION');
+        expect(collection.join.loginAttempts.joinBy).toBe('POSITION');
       });
 
       it('join: should add the ref property derived from entity type', () => {

@@ -61,40 +61,31 @@ type SorterProps<Params> = Params extends { sorter: Sorter }
 type ExtractorProps<Params extends { extractor?: Extractor }> =
   Params['extractor'] extends Extractor ? { extractor: Params['extractor'] } : object;
 
-// resolver = needs a function to receive a item => true if its part of the join
-// position = we get every TYPE of the item to join the parent until a new parent-type is found
-
-type EntityJoinMethod = 'RESOLVER' | 'POSITION' | 'BY_TYPE'; // DEFAULT IS BY_TYPE
-
 type JoinResolver<Parent = AnyObject, Child = AnyObject> = (
   parent: Parent,
   possibleChild: Child,
 ) => boolean;
 
+type EntityJoinMethod = JoinResolver | 'POSITION' | 'TYPE'; // DEFAULT IS POSITION
+
 export type JoinResolutionParams = {
   /**
    * Join method that should be applied to the entity
    *
+   *  Default is `POSITION`
+   *
    * You have 3 options:
    *
    * - `POSITION` - this method joins every entity type that is sequentially extracted on the query. Requires `typeIndex` to be configured
-   * - `BY_TYPE` - gathers all items from the type. Requires `typeIndex` to be configured
-   * - `RESOLVER` - use a custom resolver, in the `(parent, child) => boolean` format to determine relation
-   *
-   * Default is `POSITION`
-   */
-  method?: EntityJoinMethod;
-
-  /**
-   * A helper function used if the join method is `RESOLVER`
-   *
-   * Format: `(parent, child) => boolean`
+   * - `TYPE` - gathers all items from the type. Requires `typeIndex` to be configured
+   * - `RESOLVER` - use a custom resolver, as `(parent, child) => boolean` format to determine relation
    *
    * @param parent entity to receive the join
    * @param child entity to verify if should be joined
    * @returns true/false if the join should occur
+   *
    */
-  resolver?: JoinResolver;
+  joinBy?: EntityJoinMethod;
 };
 
 type EntityDepthParams =
@@ -148,7 +139,7 @@ type BaseJoinConfig = {
 };
 
 type ConfiguredJoin<Config extends JoinConfig> = JoinResolutionParams &
-  Pick<Config, 'method' | 'resolver' | 'entity'> & {
+  Pick<Config, 'joinBy' | 'entity'> & {
     type: Config['type'];
 
     ref: Config['entity']['type'];
@@ -258,12 +249,12 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
   [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
 } {
   return Object.fromEntries(
-    Object.entries(config).map(([key, { entity, join, method = 'POSITION', ...params }]) => [
+    Object.entries(config).map(([key, { entity, join, joinBy = 'POSITION', ...params }]) => [
       key,
       {
         ...params,
         entity,
-        method,
+        joinBy,
         ref: entity.type,
         join: join ? createCollectionJoin(join) : undefined,
       },
