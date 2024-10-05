@@ -29,11 +29,16 @@ export function getConditionExpressionValues(conditions: ItemExpression<any>[]):
 export function getConditionParams(conditions?: ItemExpression<any>[]): DBConditionParams {
   if (!conditions?.length) return {};
 
+  const ExpressionAttributeValues = getConditionExpressionValues(conditions);
+
+  const hasAnyValue = !!Object.keys(ExpressionAttributeValues).length;
+
   return {
-    ConditionExpression: conditions.length ? buildConditionExpression(conditions) : undefined,
+    ConditionExpression: buildConditionExpression(conditions),
 
     ExpressionAttributeNames: getConditionExpressionNames(conditions),
 
-    ExpressionAttributeValues: getConditionExpressionValues(conditions),
+    // exists/not_exists attribute check does not require values
+    ExpressionAttributeValues: hasAnyValue ? ExpressionAttributeValues : undefined,
   };
 }
