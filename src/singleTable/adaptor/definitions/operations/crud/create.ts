@@ -70,7 +70,8 @@ export class SingleTableCreator extends BaseSingleTableOperator {
 
     const { partitionKey, rangeKey, rangeKeyGenerator } = this.config.typeIndex;
 
-    const rangeValue = rangeKeyGenerator?.(item, type) ?? new Date().toISOString();
+    // This is specifically done to enable users to return `undefined` from generator and opt-out this property
+    const rangeValue = rangeKeyGenerator ? rangeKeyGenerator(item, type) : new Date().toISOString();
 
     return {
       [partitionKey]: type,
