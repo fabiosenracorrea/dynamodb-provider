@@ -59,7 +59,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -127,7 +127,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: () => ['USER'],
@@ -193,7 +193,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -269,7 +269,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -340,7 +340,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -423,7 +423,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -491,7 +491,7 @@ describe('single table - from entity methods', () => {
         } as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -572,7 +572,7 @@ describe('single table - from entity methods', () => {
         create,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -654,7 +654,7 @@ describe('single table - from entity methods', () => {
         create,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -745,7 +745,7 @@ describe('single table - from entity methods', () => {
         update,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -790,7 +790,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -834,7 +834,7 @@ describe('single table - from entity methods', () => {
         listAllFromType,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -882,7 +882,7 @@ describe('single table - from entity methods', () => {
         listType,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -928,7 +928,7 @@ describe('single table - from entity methods', () => {
         listType,
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -980,7 +980,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1024,7 +1024,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1088,7 +1088,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1150,7 +1150,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1216,7 +1216,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1262,7 +1262,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1352,7 +1352,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1428,7 +1428,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1520,7 +1520,7 @@ describe('single table - from entity methods', () => {
         dynamodbProvider: {} as any,
       });
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
