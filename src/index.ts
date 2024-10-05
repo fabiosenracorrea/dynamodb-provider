@@ -1,10 +1,12 @@
 export {
   DynamodbProvider,
-  CreateItemParams,
-  DeleteItemParams,
-  ListOptions,
-  QueryParams,
-  QueryResult,
-  TransactionConfig,
-  UpdateParams,
+  type CreateItemParams,
+  type DeleteItemParams,
+  type ListOptions,
+  type QueryParams,
+  type QueryResult,
+  type TransactionConfig,
+  type UpdateParams,
 } from './provider';
+
+export { SingleTable } from './singleTable';

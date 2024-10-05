@@ -54,7 +54,7 @@ describe('single table schema tests', () => {
         updatedAt?: string;
       };
 
-      const user = schema.create<User>().entity({
+      const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -122,7 +122,7 @@ describe('single table schema tests', () => {
       };
 
       const doubleCreation = () => {
-        schema.create<User>().entity({
+        schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER1', id],
@@ -130,7 +130,7 @@ describe('single table schema tests', () => {
           getRangeKey: () => ['#DATA'],
         });
 
-        schema.create<User>().entity({
+        schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER2', id],
@@ -167,7 +167,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -214,7 +214,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -275,7 +275,7 @@ describe('single table schema tests', () => {
         jest.useFakeTimers().setSystemTime(new Date(mockTimestamp));
         (uuidv4 as jest.Mock).mockReturnValue('mocked-uuid');
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -341,7 +341,7 @@ describe('single table schema tests', () => {
 
         jest.useFakeTimers().setSystemTime(new Date(mockTimestamp));
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -397,7 +397,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -444,7 +444,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -519,7 +519,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -594,7 +594,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -677,7 +677,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -758,7 +758,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -841,7 +841,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -922,7 +922,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -995,7 +995,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1051,7 +1051,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1113,7 +1113,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1189,7 +1189,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1264,7 +1264,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1315,7 +1315,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1386,7 +1386,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1472,7 +1472,7 @@ describe('single table schema tests', () => {
           updatedAt?: string;
         };
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -2390,7 +2390,7 @@ describe('single table schema tests', () => {
           },
         });
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: () => ['USERS'],
@@ -2407,7 +2407,7 @@ describe('single table schema tests', () => {
           },
         });
 
-        const loginAttempts = schema.create<UserLoginAttempt>().entity({
+        const loginAttempts = schema.createEntity<UserLoginAttempt>().withParams({
           type: 'USER_LOGIN_ATTEMPT',
 
           getPartitionKey: ({ userId }: { userId: string }) => ['USER_LOGIN_ATTEMPT', userId],
@@ -2449,7 +2449,7 @@ describe('single table schema tests', () => {
           },
         });
 
-        const user = schema.create<User>().entity({
+        const user = schema.createEntity<User>().withParams({
           type: 'USER',
 
           getPartitionKey: () => ['USERS'],
@@ -2467,7 +2467,7 @@ describe('single table schema tests', () => {
           },
         });
 
-        const loginAttempts = schema.create<UserLoginAttempt>().entity({
+        const loginAttempts = schema.createEntity<UserLoginAttempt>().withParams({
           type: 'USER_LOGIN_ATTEMPT',
 
           getPartitionKey: ({ userId }: { userId: string }) => ['USER_LOGIN_ATTEMPT', userId],
