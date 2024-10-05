@@ -12,8 +12,8 @@
   },
   "scripts": {
     "build-both": "yarn build:esm && yarn build:cjs",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:cjs": "tsc --project tsconfig.cjs.json --outDir lib/cjs",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest --runInBand",

@@ -5,8 +5,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["es6", "dom", "es2016", "es2017"],
+    "lib": ["es2020"],
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -20,7 +19,7 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ES6"
+    "target": "ES2020"
   },
 
   "include": ["src/**/*.ts", "./src/**/*.d.ts"],
