@@ -29,7 +29,7 @@ export interface ListItemTypeResult<Entity = AnyObject> {
 }
 
 export class SingleTableLister extends BaseSingleTableOperator {
-  private getHashKey(type: string): QueryParams<any>['hashKey'] {
+  private getHashKey(type: string): QueryParams<any>['partitionKey'] {
     return {
       value: type,
       name: this.config.typeIndex!.partitionKey,
@@ -42,7 +42,7 @@ export class SingleTableLister extends BaseSingleTableOperator {
     const { items } = await this.db.query<any>({
       table: this.config.table,
 
-      hashKey: this.getHashKey(type),
+      partitionKey: this.getHashKey(type),
 
       fullRetrieval: true,
 
@@ -62,7 +62,7 @@ export class SingleTableLister extends BaseSingleTableOperator {
     const { items, paginationToken } = await this.db.query<any>({
       table: this.config.table,
 
-      hashKey: this.getHashKey(type),
+      partitionKey: this.getHashKey(type),
 
       index: this.config.typeIndex.name,
 

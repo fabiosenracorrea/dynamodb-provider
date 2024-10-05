@@ -42,7 +42,7 @@ describe('single table adaptor - query', () => {
     expect(queryMock).toHaveBeenCalledWith({
       table: 'db-table',
 
-      hashKey: {
+      partitionKey: {
         name: '_pk',
         value: 'hello#friend',
       },
@@ -92,7 +92,7 @@ describe('single table adaptor - query', () => {
     expect(queryMock).toHaveBeenCalledWith({
       table: 'db-table',
 
-      hashKey: {
+      partitionKey: {
         name: '_pk',
         value: 'hello#friend',
       },
@@ -141,7 +141,7 @@ describe('single table adaptor - query', () => {
     expect(queryMock).toHaveBeenCalledWith({
       table: 'db-table',
 
-      hashKey: {
+      partitionKey: {
         name: '_pk',
         value: 'hello#friend',
       },
@@ -209,7 +209,7 @@ describe('single table adaptor - query', () => {
 
       index: 'SomeIndex',
 
-      hashKey: {
+      partitionKey: {
         name: '_indexHash1',
         value: 'hello#friend',
       },
@@ -287,7 +287,7 @@ describe('single table adaptor - query', () => {
 
       index: 'SomeIndex',
 
-      hashKey: {
+      partitionKey: {
         name: '_indexHash1',
         value: 'hello#friend',
       },
@@ -347,7 +347,7 @@ describe('single table adaptor - query', () => {
     expect(queryMock).toHaveBeenCalledWith({
       table: 'db-table',
 
-      hashKey: {
+      partitionKey: {
         name: '_pk',
         value: 'hello#friend',
       },

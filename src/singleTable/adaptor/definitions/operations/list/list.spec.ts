@@ -31,7 +31,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -253,7 +253,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -299,7 +299,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -362,7 +362,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -438,7 +438,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -518,7 +518,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -602,7 +602,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },
@@ -690,7 +690,7 @@ describe('single table - lister', () => {
       expect(queryMock).toHaveBeenCalledWith({
         table: 'db-table',
 
-        hashKey: {
+        partitionKey: {
           value: 'SOME_TYPE',
           name: '_type',
         },

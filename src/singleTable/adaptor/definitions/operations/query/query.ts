@@ -38,7 +38,7 @@ type IndexParams<TableConfig extends SingleTableConfig> = undefined extends Tabl
 export type SingleTableQueryParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = Omit<QueryParams<Entity>, 'index' | 'hashKey' | 'rangeKey' | 'table'> &
+> = Omit<QueryParams<Entity>, 'index' | 'partitionKey' | 'rangeKey' | 'table'> &
   IndexParams<TableConfig> & {
     partition: KeyValue;
 
@@ -73,7 +73,7 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
 
       index,
 
-      hashKey: {
+      partitionKey: {
         name: index ? getIndexHashName(index, this.config) : this.config.partitionKey,
 
         value: this.convertKey(partition),

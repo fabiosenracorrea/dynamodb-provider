@@ -53,7 +53,7 @@ export interface QueryParams<Entity> {
    *
    * Pass in the column name + value
    */
-  hashKey: {
+  partitionKey: {
     name: StringKey<NoInfer<Entity>>;
 
     value: string;

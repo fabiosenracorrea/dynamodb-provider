@@ -24,7 +24,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -65,7 +65,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -108,7 +108,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -155,7 +155,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -211,7 +211,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -268,7 +268,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -323,7 +323,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -416,7 +416,7 @@ describe('query builder', () => {
       const result = await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'xx',
         },
@@ -502,7 +502,7 @@ describe('query builder', () => {
 
         fullRetrieval: false,
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'xx',
         },
@@ -574,7 +574,7 @@ describe('query builder', () => {
         fullRetrieval: true,
         limit: 5,
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'xx',
         },
@@ -652,7 +652,7 @@ describe('query builder', () => {
         fullRetrieval: true,
         limit: 7,
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'xx',
         },
@@ -716,7 +716,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -765,7 +765,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -814,7 +814,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -863,7 +863,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -912,7 +912,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -961,7 +961,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -1010,7 +1010,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },
@@ -1064,7 +1064,7 @@ describe('query builder', () => {
       await queryBuilder.query<any>({
         table: 'some_table',
 
-        hashKey: {
+        partitionKey: {
           name: 'id',
           value: 'someId',
         },

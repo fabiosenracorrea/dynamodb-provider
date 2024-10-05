@@ -21,13 +21,13 @@ import { QueryParams, QueryResult } from './types';
 
 export class QueryBuilder extends DynamodbExecutor {
   private transformKeysToExpressions({
-    hashKey,
+    partitionKey,
     rangeKey,
-  }: Pick<QueryParams<any>, 'hashKey' | 'rangeKey'>): ItemExpression<any>[] {
+  }: Pick<QueryParams<any>, 'partitionKey' | 'rangeKey'>): ItemExpression<any>[] {
     const hashKeyExpression = getExpression({
       operation: 'equal',
-      property: hashKey.name,
-      value: hashKey.value,
+      property: partitionKey.name,
+      value: partitionKey.value,
     });
 
     if (!rangeKey) return [hashKeyExpression];
@@ -43,7 +43,7 @@ export class QueryBuilder extends DynamodbExecutor {
   }
 
   private getKeyParams(
-    keys: Pick<QueryParams<any>, 'hashKey' | 'rangeKey'>,
+    keys: Pick<QueryParams<any>, 'partitionKey' | 'rangeKey'>,
   ): Pick<
     DBQueryParams<any>['input'],
     'KeyConditionExpression' | 'ExpressionAttributeNames' | 'ExpressionAttributeValues'
@@ -54,7 +54,7 @@ export class QueryBuilder extends DynamodbExecutor {
       KeyConditionExpression: buildExpression(keyExpressions),
 
       ExpressionAttributeNames: getExpressionNames(
-        [keys.hashKey.name, keys.rangeKey?.name].filter(Boolean) as string[],
+        [keys.partitionKey.name, keys.rangeKey?.name].filter(Boolean) as string[],
       ),
 
       ExpressionAttributeValues: getExpressionValues(keyExpressions),
@@ -62,10 +62,10 @@ export class QueryBuilder extends DynamodbExecutor {
   }
 
   private getExpressionParams({
-    hashKey,
+    partitionKey,
     filters,
     rangeKey,
-  }: Pick<QueryParams<any>, 'filters' | 'hashKey' | 'rangeKey'>): Pick<
+  }: Pick<QueryParams<any>, 'filters' | 'partitionKey' | 'rangeKey'>): Pick<
     DBQueryParams<any>['input'],
     | 'KeyConditionExpression'
     | 'ExpressionAttributeNames'
@@ -73,7 +73,7 @@ export class QueryBuilder extends DynamodbExecutor {
     | 'FilterExpression'
   > {
     const filterValues = getFilterParams(filters);
-    const expressionValues = this.getKeyParams({ hashKey, rangeKey });
+    const expressionValues = this.getKeyParams({ partitionKey, rangeKey });
 
     return {
       FilterExpression: filterValues?.FilterExpression,

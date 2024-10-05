@@ -23,8 +23,8 @@ describe('single table - from collection tests', () => {
   describe('get methods', () => {
     it('should correctly execute and join the most simple example', async () => {
       const params = {
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        partitionKey: 'hashKey',
+        rangeKey: 'RKey',
 
         table: 'my-table',
 
@@ -152,6 +152,20 @@ describe('single table - from collection tests', () => {
       });
 
       const result = await instance.fromCollection(collection).get({
+        userId: 'hello',
+      });
+
+      expect(queryMock).toHaveBeenCalledWith({
+        partitionKey: {
+          name: params.partitionKey,
+          value: 'USER#hello',
+        },
+
+        fullRetrieval: true,
+
+        table: params.table,
+
+        // TODO: remove later
         userId: 'hello',
       });
 
