@@ -133,7 +133,7 @@ type SingleJoinConfig = EntityDepthParams & {
 
 type JoinConfig = SingleJoinConfig & { join?: Record<string, JoinConfig> };
 
-type BaseJoinConfig = {
+export type BaseJoinConfig = {
   // Allow it to also be Entity or [Entity]
   [key: string]: JoinConfig;
 };

@@ -4,14 +4,17 @@ import { AnyObject } from 'types';
 import { cascadeEval } from 'utils/conditions';
 
 import { SingleTableMethods, SingleTableParams } from 'singleTable/adaptor';
-import { ExtendableCollection, Extractor, JoinResolutionParams, Sorter } from 'singleTable/model';
+import {
+  BaseJoinConfig,
+  ExtendableCollection,
+  Extractor,
+  JoinResolutionParams,
+  Sorter,
+} from 'singleTable/model';
 
 import { getFirstItem, getLastIndex } from 'utils/array';
 import { getId } from 'utils/id';
-import {
-  cleanInternalProps,
-  cleanInternalPropsFromList,
-} from 'singleTable/adaptor/definitions/propRemoval';
+import { cleanInternalProps } from 'singleTable/adaptor/definitions/propRemoval';
 import { FromCollection, GetCollectionResult } from './definitions';
 
 export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
@@ -122,17 +125,6 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     return list.slice().sort(sorter);
   }
 
-  private ensureExtractor(extractor?: Extractor): Extractor {
-    return (item) => {
-      const target = extractor ? extractor(item) : item;
-
-      if (typeof target === 'object' && target !== null)
-        return cleanInternalProps(target, this.config);
-
-      return target;
-    };
-  }
-
   private buildJoin({
     item,
     join,
@@ -170,17 +162,14 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
 
           const childrenBase = type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;
 
-          // Ensures we clean table properties properly after they are retrieved for our logics
-          const actualExtractor = this.ensureExtractor(extractor);
-
           const children = cascadeEval([
             {
               is: Array.isArray(childrenBase),
-              then: () => [childrenBase].flat().map((c) => actualExtractor?.(c) ?? c),
+              then: () => [childrenBase].flat().map((c) => extractor?.(c) ?? c),
             },
             {
               is: childrenBase,
-              then: () => actualExtractor?.(childrenBase) ?? childrenBase,
+              then: () => extractor?.(childrenBase) ?? childrenBase,
             },
             {
               is: true,
@@ -224,10 +213,42 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     };
   }
 
+  private cleanSingleCollectionEntry<Item extends AnyObject | AnyObject[]>(
+    result: Item,
+    joinRef?: BaseJoinConfig,
+  ): Item {
+    if (typeof result !== 'object' || result === null) return result;
+
+    if (Array.isArray(result))
+      return result.map((singleItem) =>
+        this.cleanSingleCollectionEntry(singleItem, joinRef),
+      ) as Item;
+
+    return {
+      ...cleanInternalProps(result, this.config),
+
+      ...Object.fromEntries(
+        Object.entries(joinRef ?? {}).map(([propName, { join }]) => [
+          propName,
+          this.cleanSingleCollectionEntry(result[propName], join),
+        ]),
+      ),
+    };
+  }
+
+  private cleanCollectionProps<Result extends AnyObject | AnyObject[]>(
+    result: Result,
+    collection: ExtendableCollection,
+  ): Result {
+    return this.cleanSingleCollectionEntry(result, collection.join);
+  }
+
   private buildCollection<Collection extends ExtendableCollection>(
-    { join, startRef, type, ...params }: Collection,
+    collection: Collection,
     items: AnyObject[],
   ): GetCollectionResult<Collection> {
+    const { join, startRef, type, ...params } = collection;
+
     const typeProp = this.getTypeProp();
 
     const byType = items.reduce(
@@ -266,9 +287,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
           options: items,
         });
 
-    return isList
-      ? cleanInternalPropsFromList(joined as AnyObject[], this.config)
-      : cleanInternalProps(joined, this.config);
+    return this.cleanCollectionProps(joined, collection);
   }
 
   private async getPartitionCollection<Collection extends ExtendableCollection>(
