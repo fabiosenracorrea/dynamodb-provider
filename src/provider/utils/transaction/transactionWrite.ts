@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { printLog } from 'utils/log';
 
@@ -75,7 +76,16 @@ export class TransactionWriter extends DynamodbExecutor {
 
     if (this.options.logCallParams) printLog(params, 'DYNAMODB LOW LEVEL TRANSACTION PARAMS');
 
-    await this._transactionWrite(params);
+    try {
+      await this._transactionWrite(params);
+    } catch (err) {
+      const error = err as any;
+
+      if (this.options.logCallParams && error.CancellationReasons)
+        printLog(error.CancellationReasons, 'TRANSACT_CANCELATION_REASONS');
+
+      throw err;
+    }
   }
 
   // Should be an argument
