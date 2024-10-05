@@ -564,7 +564,7 @@ describe('single table - from collection tests', () => {
             } as any,
           });
 
-          const userRef = schema.create<User>().entity({
+          const userRef = schema.createEntity<User>().withParams({
             type: 'USER1',
 
             getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
