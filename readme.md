@@ -503,6 +503,8 @@ const { count } = await provider.update({
       value: 1
     },
   ],
+
+  returnUpdatedProperties: true
 })
 
 // operation 2
