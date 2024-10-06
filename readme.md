@@ -1046,7 +1046,126 @@ await dynamoDB.executeTransaction([
 ]);
 ```
 
-- Explain SingleTable
+### Helper methods
+
+Aside from the methods that execute an action on dynamoDB, the provider exposes 2 helper methods to interact with the actions
+
+- [createSet](#create-set)
+- [generateTransactionConfigList](#generate-transaction-config-list)
+
+### create set
+
+Depending on the sdk version, referencing a set to be created on DynamoDB. To get around this and ensure a normalized usage, you can use the `createSet` method:
+
+```ts
+await provider.create({
+  table:  'table-name',
+
+  item: {
+    id: '111',
+    // ...props
+    someSetProp: provider.createSet([1, 2, 10, 40]),
+
+    statuses: provider.createSet(['done', 'archived'])
+  }
+})
+```
+
+### generate transaction config list
+
+A type helper to generate transaction params referenced to an entity
+
+```ts
+interface Method {
+  generateTransactionConfigList<Item>(
+    items: Item[],
+    generator: (item: Item) => (TransactionConfig | null)[],
+  ): TransactionConfig[]
+}
+```
+
+If you do not use Single Table, this is as far as you need to go to
+
+## Sinlge table
+
+If you are familiar with single table design, you know there's quite a bit of boiler plate setup to be done. If you are not organized with it, it can quickly become a hassle, compromising your code redability and increasing maintanance time.
+
+To enforce a patern, you can create a single table instance to configure your table and execute your actions on it. For each table you might have, you can create an instance.
+
+The `SingleTable` instance requires a `DynamoDbProvider` to be created.
+
+#### Parameters
+
+#### `dynamodbProvider`
+
+- **Type**: `IDynamodbProvider`
+- **Description**: An instance of `DynamodbProvider`, configured with the appropriate settings and required to interact with DynamoDB.
+
+#### `keySeparator`
+
+- **Type**: `string`
+- **Default**: `#`
+- **Description**: The logical separator used to join key paths. For example, if the item key is `['USER', id]`, the actual DynamoDB key becomes `USER#id`.
+
+#### `table`
+
+- **Type**: `string`
+- **Description**: The name of the DynamoDB table used for storing items.
+
+#### `partitionKey`
+
+- **Type**: `string`
+- **Description**: The partition (hash) key column used in the single table.
+
+#### `rangeKey`
+
+- **Type**: `string`
+- **Description**: The range (sort) key column used in the single table.
+
+#### `typeIndex`
+
+- **Type**: `object`
+- **Description**: A global index that uniquely identifies each entity in the table. The methods `listType` and `findType` rely on this index to work. Future versions will hide these methods if `typeIndex` is not provided.
+  - `partitionKey`: The partition/hash column for this index.
+  - `rangeKey`: Defaults to the item's creation timestamp (ISO format).
+  - `name`: The index name.
+  - `rangeKeyGenerator(item, type)`: Generates a range key value for the type index.
+
+#### `expiresAt`
+
+- **Type**: `string`
+- **Description**: Specifies the TTL column name if Time to Live (TTL) is configured in the DynamoDB table.
+
+#### `indexes`
+
+- **Type**: `Record<string, { partitionKey: string; rangeKey: string; }>`
+- **Description**: Configures additional indexes in the table. Use this to define local or global secondary indexes.
+  - `partitionKey`: The partition/hash column for the index.
+  - `rangeKey`: The range/sort column for the index.
+
+#### `autoRemoveTableProperties`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Automatically removes internal properties from items before they are returned by the methods. Internal properties include partition keys, range keys, TTL attributes, and index keys. This ensures that items have all relevant properties independently, without relying on key extractions.
+
+#### `keepTypeProperty`
+
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Keeps the `typeIndex` partition key from removal during item cleanup. Useful when the entity type is needed to distinguish between different query results or use-cases.
+
+#### `propertyCleanup`
+
+- **Type**: `(item: AnyObject) => AnyObject`
+- **Description**: A function that processes and returns the item to be exposed by the methods. Overrides the automatic cleanup behavior set by `autoRemoveTableProperties` and `keepTypeProperty`. Useful for customizing how internal properties are removed from items.
+
+#### `badUpdateValidation`
+
+- **Type**: `(propertiesInUpdate: Set<string>) => boolean | string`
+- **Description**: Validates updates by inspecting all properties referenced in an update (in `values`, `remove`, or `atomicOperations`). The default validation ensures that the partition key is not modified, which is a DynamoDB rule. You can use this validation to block internal property updates or throw a custom error message.
+
+
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
 
