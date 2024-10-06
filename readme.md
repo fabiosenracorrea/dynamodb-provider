@@ -427,7 +427,7 @@ interface Method {
   - **`values` (Object, Optional)**:
     A partial object with the values to update. This allows you to update specific fields of the item.
 
-  - **`atomicOperations` (Array<Object>, Optional)**:
+  - **`atomicOperations` (Array<AtomicOperation>, Optional)**:
     Defines atomic operations to be executed on the item.
     _Supported operations include_:
     - Math Operations: `sum`, `subtract`, `add`
