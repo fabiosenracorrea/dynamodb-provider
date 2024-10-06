@@ -570,7 +570,10 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
     The maximum number of retry attempts for unprocessed items.
     _Default is 8 retries, with exponential backoff._
 
-#### Return Value
+
+[//]: # (Hello)
+
+##### Return Value
 
 Returns a `Promise` that resolves to an array of the retrieved entities.
 
