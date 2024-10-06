@@ -1110,7 +1110,7 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 #### `table`
 
 - **Type**: `string`
-- **Description**: The name of the DynamoDB table used for storing items.
+- **Description**: The name of the DynamoDB table.
 
 #### `partitionKey`
 
@@ -1127,9 +1127,11 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 - **Type**: `object`
 - **Description**: A global index that uniquely identifies each entity in the table. The methods `listType` and `findType` rely on this index to work. Future versions will hide these methods if `typeIndex` is not provided.
   - `partitionKey`: The partition/hash column for this index.
-  - `rangeKey`: Defaults to the item's creation timestamp (ISO format).
+  - `rangeKey`: Defaults to the item's creation timestamp (ISO format `new Date().toISOString()`).
   - `name`: The index name.
-  - `rangeKeyGenerator(item, type)`: Generates a range key value for the type index.
+  - `rangeKeyGenerator(item, type)`: Generates a range key value for the type index. If you are not actually using the index, you can pass in `() => undefined`, which will not produce the sort property on the item.
+
+**Important**: You do not need to actually have the index on the table to enforce the type prop on your items. Although recommended, as its the easiest to extract the "tables" inside, you can simply define a type property, and it would only produce it. Not having a `type` like property at all inside your single table entities **is extremely not recommended**
 
 #### `expiresAt`
 
@@ -1140,6 +1142,7 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 
 - **Type**: `Record<string, { partitionKey: string; rangeKey: string; }>`
 - **Description**: Configures additional indexes in the table. Use this to define local or global secondary indexes.
+  - `key`: Index name, as its named on dynamodb
   - `partitionKey`: The partition/hash column for the index.
   - `rangeKey`: The range/sort column for the index.
 
