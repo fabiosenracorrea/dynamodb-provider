@@ -188,7 +188,7 @@ type Method {
 **Entity (Type Parameter):**
 The type of the entity being created. This allows for strong typing and validation of the provided data based on the entity structure.
 
-**Paams (Object):**
+**Parameters (Object):**
 
 An object containing the following properties:
 
@@ -227,7 +227,7 @@ const createdUser = await provider.create({
   conditions: [
     {
       condition: 'not_exists',
-      attribute: 'userId',
+      property: 'userId',
     },
   ],
 });
@@ -240,11 +240,11 @@ Just remember that if your table has a partition key and a range key, you need t
   conditions: [
     {
       condition: 'not_exists',
-      attribute: 'paritionKey',
+      property: 'paritionKey',
     },
     {
       condition: 'not_exists',
-      attribute: 'rangeKey',
+      property: 'rangeKey',
     },
   ],
 }
@@ -358,7 +358,7 @@ interface Method {
     The name of the DynamoDB table from which the item should be deleted.
 
   - **`key` (Object)**:
-    The primary key of the item to delete. It can include both the partition key and sort key, depending on the table's schema.
+    The primary key of the item to delete.
 
   - **`conditions` (Array<ItemExpression>, Optional)**:
     An optional set of conditions that must be met before the deletion occurs. This can be used to ensure that the item matches certain criteria before being deleted. Same strucute as the `create` method
@@ -386,7 +386,7 @@ No value is returned. If the operation fails (dynamoDB error), that is thrown
     conditions: [
       {
         condition: 'exists',
-        attribute: 'id',
+        property: 'id',
       },
     ]
   });
