@@ -946,6 +946,106 @@ Returns a `Promise` that resolves to a `QueryResult<Entity>` object containing t
   });
 ```
 
+### `executeTransaction` Method
+
+#### Description
+
+The `executeTransaction` method allows you to perform multiple DynamoDB operations (such as creating, updating, deleting, or conditionally validating items) as a single transaction. It ensures that all operations either succeed or fail as a group, maintaining DynamoDB's ACID (Atomicity, Consistency, Isolation, Durability) properties. Its a wrap under `TransactWrite`
+
+#### Method Signature
+
+```ts
+interface Method {
+  executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+}
+```
+
+#### Parameters
+
+- **`configs` (Array<TransactionConfig | null>)**:
+  An array of configuration objects, where each object defines a transaction operation. You null to easily create inline conditions while generating the params
+
+  *Important: The limit of valid configs inside a transaction is 100 (or 4MB total), as per (dynamoDB documentation)[https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html]
+
+  Each item in the array can be one of the following transaction types:
+
+  - **`UpdateTransaction`**
+    Represents an update operation.
+    Fields:
+    - **`update` (UpdateParams)**: Parameters for the update operation.
+
+  - **`CreateTransaction`**
+    Represents a create (put item) operation.
+    Fields:
+    - **`create` (CreateItemParams)**: Parameters for the creation operation.
+
+  - **`DeleteTransaction`**
+    Represents a delete operation.
+    Fields:
+    - **`erase` (DeleteItemParams)**: Parameters for the deletion operation.
+
+  - **`ConditionCheckTransaction`**
+    Represents a condition check operation. This operation validates certain conditions before allowing other transactions to proceed.
+    Fields:
+    - **`validate` (ValidateTransactParams)**: Parameters for the condition check operation.
+
+
+#### Example Usage
+
+This example executes a fairly complex operation of updating an order to complete status, while deleting its related Card, creating a finilized ClientOrder while also validating that specific Client exists
+
+The usage of this specific use case can be discussed, but it clearly represents the abilities of the method with ease.
+
+```ts
+await dynamoDB.executeTransaction([
+  {
+    update: {
+      table: 'Orders',
+      key: { orderId: 'A100' },
+      values: { status: 'completed' },
+      conditions: [
+        {
+          property: 'status'
+          operation: 'equal',
+          value: 'pending',
+        }
+      ],
+    },
+  },
+  {
+    erase: {
+      table: 'Carts',
+      key: { cardId: 'C100' },
+    },
+  },
+  {
+    create: {
+      table: 'ClientOrders',
+      item: {
+        orderId: 'A100',
+        customerId: '12345',
+        status: 'completed',
+        totalAmount: 100,
+      },
+    },
+  },
+  {
+    validate: {
+      table: 'Client',
+
+      key: { id: '12345' },
+
+      conditions: [
+        {
+          operation: 'exists',
+          property: 'id'
+        }
+      ],
+    },
+  },
+]);
+```
+
 - Explain SingleTable
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
