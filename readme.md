@@ -171,6 +171,227 @@ const result = await db.get<User>({
 
 If the table name or key is invalid, an error will be thrown by DynamoDB. The method itself does not return any errors directly, but errors can occur due to invalid parameters or issues with the underlying DynamoDB service.
 
+#### create
+
+Create an item to your dynamodb table. Remember: dynamo's create (put) action can overwrite existing items. If that is an issue, usse the `conditions` property to ensure the creation only happens when it should.
+
+##### Method Signature
+
+```ts
+type Method {
+  create<Entity>(params: CreateItemParams<Entity>): Promise<Entity>;
+}
+```
+
+##### Method Signature
+
+**Entity (Type Parameter):**
+The type of the entity being created. This allows for strong typing and validation of the provided data based on the entity structure.
+
+**Paams (Object):**
+
+An object containing the following properties:
+
+**table (string):**
+
+The name of the DynamoDB table into which the item will be inserted.
+
+**item (Object):**
+
+The item to be created in the table. This object should include all necessary attributes, such as the partition key and (if applicable) the sort key, along with any other attributes defined by the entity.
+
+**conditions (Array<ItemExpression>): (optinal)**
+
+An optional set of conditions that must be fulfilled before the item is created. This can be used to ensure that specific attributes or values meet criteria before inserting.
+
+Example: Creating an user only if it does not exists
+
+```ts
+interface User {
+  userId: string;
+  name: string;
+  email: string;
+  age: number;
+}
+
+const createdUser = await provider.create({
+  table: 'Users',
+
+  item: {
+    userId: '12345',
+    name: 'John Doe',
+    email: 'john@example.com',
+    age: 30,
+  },
+
+  conditions: [
+    {
+      condition: 'not_exists',
+      attribute: 'userId',
+    },
+  ],
+});
+```
+
+Just remember that if your table has a partition key and a range key, you need to check for both:
+
+```ts
+{
+  conditions: [
+    {
+      condition: 'not_exists',
+      attribute: 'paritionKey',
+    },
+    {
+      condition: 'not_exists',
+      attribute: 'rangeKey',
+    },
+  ],
+}
+
+// this condition will check if the item being created does not previously exist on your table, failing if true
+```
+
+##### Valid Conditions
+
+Heres a breakdown of all condition types
+
+```ts
+export type ExpressionOperation =
+  | 'equal'
+  | 'not_equal'
+  | 'lower_than'
+  | 'lower_or_equal_than'
+  | 'bigger_than'
+  | 'bigger_or_equal_than'
+  | 'begins_with'
+  | 'contains'
+  | 'not_contains'
+  | 'between'
+  | 'in'
+  | 'not_in'
+  | 'exists'
+  | 'not_exists';
+
+interface BasalExpressionValues<Entity> {
+  /**
+   * The property to perform the expression on
+   */
+  property: StringKey<Entity>;
+
+  /**
+   * How should this expression be joined with other expressions?
+   *
+   * This does not take into account parenthesis
+   */
+  joinAs?: 'and' | 'or';
+}
+
+export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
+  value: string | number;
+
+  operation: Extract<
+    ExpressionOperation,
+    | 'equal'
+    | 'not_equal'
+    | 'lower_than'
+    | 'lower_or_equal_than'
+    | 'bigger_than'
+    | 'bigger_or_equal_than'
+    | 'begins_with'
+    | 'contains'
+    | 'not_contains'
+  >;
+}
+
+export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
+  low: string | number;
+  high: string | number;
+
+  operation: Extract<ExpressionOperation, 'between'>;
+}
+
+export interface ListExpression<Entity> extends BasalExpressionValues<Entity> {
+  values: (string | number)[];
+
+  operation: Extract<ExpressionOperation, 'in' | 'not_in'>;
+}
+
+export interface AttributeExistenceExpression<Entity> extends BasalExpressionValues<Entity> {
+  operation: Extract<ExpressionOperation, 'exists' | 'not_exists'>;
+}
+
+export type ItemExpression<Entity> =
+  | BasicExpression<Entity>
+  | BetweenExpression<Entity>
+  | AttributeExistenceExpression<Entity>
+  | ListExpression<Entity>;
+```
+
+The `joinAs` property ensures the expression you are building will be properly created. Inner expressions are not currently supported.
+
+#### delete
+
+The `delete` method removes an item from a DynamoDB table based on the provided primary key. You can also add conditions to control the deletion process, ensuring that certain conditions must be met before the item is deleted.
+
+#### Method Signature
+
+```ts
+interface Method {
+  delete<Entity extends Record<string, any>>(
+    params: DeleteItemParams<Entity>,
+  ): Promise<void> {
+    await this.remover.delete(params);
+  }
+}
+```
+
+##### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entity being deleted. This ensures the primary key type matches the expected structure.
+
+- **`params` (Object)**:
+  The object containing the following properties:
+
+  - **`table` (string)**:
+    The name of the DynamoDB table from which the item should be deleted.
+
+  - **`key` (Object)**:
+    The primary key of the item to delete. It can include both the partition key and sort key, depending on the table's schema.
+
+  - **`conditions` (Array<ItemExpression>, Optional)**:
+    An optional set of conditions that must be met before the deletion occurs. This can be used to ensure that the item matches certain criteria before being deleted. Same strucute as the `create` method
+
+#### Return Value
+
+No value is returned. If the operation fails (dynamoDB error), that is thrown
+
+#### Example Usage
+
+```ts
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  await dynamoDB.delete<User>({
+    table: 'Users',
+
+    key: {
+      id: '12345',
+    },
+
+    conditions: [
+      {
+        condition: 'exists',
+        attribute: 'id',
+      },
+    ]
+  });
+```
+
 - Explain SingleTable
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
