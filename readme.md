@@ -95,7 +95,17 @@ On the future more tap-in params will be provided, both on instance creation and
 
 Here you'll find each method exposed on the provider.
 
-#### get
+Quick Access
+
+- [get](#get)
+- [create](#create)
+- [delete](#delete)
+- [batchGet](#batchGet)
+- [list](#list)
+- [listAll](#listAll)
+- [query](#query)
+
+### get
 
 The `get` method retrieves a single item from a DynamoDB table based on its primary key. This method allows you to specify whether to use strongly consistent reads, and it also provides the flexibility to retrieve only specific properties from the item.
 
@@ -171,7 +181,7 @@ const result = await db.get<User>({
 
 If the table name or key is invalid, an error will be thrown by DynamoDB. The method itself does not return any errors directly, but errors can occur due to invalid parameters or issues with the underlying DynamoDB service.
 
-#### create
+####create
 
 Create an item to your dynamodb table. Remember: dynamo's create (put) action can overwrite existing items. If that is an issue, usse the `conditions` property to ensure the creation only happens when it should.
 
@@ -330,7 +340,7 @@ export type ItemExpression<Entity> =
 
 The `joinAs` property ensures the expression you are building will be properly created. Inner expressions are not currently supported.
 
-#### delete
+### delete
 
 The `delete` method removes an item from a DynamoDB table based on the provided primary key. You can also add conditions to control the deletion process, ensuring that certain conditions must be met before the item is deleted.
 
@@ -519,7 +529,7 @@ await provider.create({
 })
 ```
 
-#### batchGet
+### batchGet
 
 The `batchGet` method retrieves multiple items from a DynamoDB table in a single operation. You specify an array of primary keys and DynamoDB will return all matching items. This operation supports retries for unprocessed items and offers the ability to specify which properties should be retrieved.
 
@@ -561,6 +571,8 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
     The maximum number of retry attempts for unprocessed items.
     _Default is 8 retries, with exponential backoff._
 
+
+
 ##### Return Value
 
 Returns a `Promise` that resolves to an array of the retrieved entities.
@@ -592,7 +604,7 @@ const products = await dynamoDB.batchGet({
 });
 ```
 
-#### `list`
+### `list`
 
 The `list` method retrieves multiple items from a DynamoDB table based on the specified options. Its a wrapper on `Scan`. It supports filters, limits, pagination, and parallel scans. The method returns a list of items and an optional pagination token that can be used to continue the retrieval in subsequent calls if more items are available than the limit.
 
@@ -743,7 +755,7 @@ const result = await dynamoDB.list<Product>('Products', {
 });
 ```
 
-#### `listAll`
+### `listAll`
 
 The `listAll` method retrieves all items from a DynamoDB table, running sequential scan operations until there are no more items to retrieve. It removes the need to handle pagination manually, unlike the `list` method, which may return a `paginationToken` for further retrieval. This method is useful when you need to scan an entire table without worrying about setting pagination tokens or limits.
 
@@ -824,7 +836,7 @@ const allProducts = await dynamoDB.listAll<Product>('Products', {
 });
 ```
 
-#### query
+### query
 
 The `query` method allows you to retrieve items from a DynamoDB table by querying using the partition key and (optionally) the range key. This method leverages DynamoDB's efficient querying abilities and supports further filtering and pagination. It allows both local and global index querying and supports ordering and filtering of results.
 
