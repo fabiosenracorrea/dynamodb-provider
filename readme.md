@@ -539,26 +539,25 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
 - **`Params` (Object)**:
   The object containing the following properties:
 
-  - **`table` (string)**:
+  - `table` (string):
     The name of the DynamoDB table from which the items should be retrieved.
 
-  - **`keys` (Array<Object>)**:
-
+  - `keys` (Array<Object>):
     An array of primary keys for the items you want to retrieve. Each primary key should contain the partition key and, if applicable, the sort key.
 
-  - **`consistentRead` (boolean, Optional)**:
+  - `consistentRead` (boolean, Optional):
     If set to `true`, the operation uses strongly consistent reads. Otherwise, eventually consistent reads are used.
     _Default is `false`._
 
-  - **`propertiesToRetrieve` (Array<keyof Entity>, Optional)**:
+  - `propertiesToRetrieve` (Array<keyof Entity>, Optional):
     A list of root-level properties to retrieve from the items.
     _Note_: The return type is currently not affected by this field.
 
-  - **`throwOnUnprocessed` (boolean, Optional)**:
+  - `throwOnUnprocessed` (boolean, Optional):
     By default, this method will try up to 8 times to resolve any `UnprocessedItems` returned from the `batchGet` call. If unprocessed items still exist after all retries, the method will return whatever items were processed successfully.
     Set this to `true` if you want the method to throw an error if any unprocessed items remain.
 
-  - **`maxRetries` (number, Optional)**:
+  - `maxRetries` (number, Optional):
     The maximum number of retry attempts for unprocessed items.
     _Default is 8 retries, with exponential backoff._
 
