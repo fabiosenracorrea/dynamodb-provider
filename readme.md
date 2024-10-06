@@ -743,6 +743,87 @@ Listing with complex:
   });
 ```
 
+#### `listAll`
+
+The `listAll` method retrieves all items from a DynamoDB table, running sequential scan operations until there are no more items to retrieve. It removes the need to handle pagination manually, unlike the `list` method, which may return a `paginationToken` for further retrieval. This method is useful when you need to scan an entire table without worrying about setting pagination tokens or limits.
+
+##### Method Signature
+
+```ts
+interface Method {
+  async listAll<Entity = AnyObject>(
+    table: string,
+    options = {} as ListAllOptions<Entity>,
+  ): Promise<Entity[]>;
+}
+```
+
+##### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entities being retrieved. This ensures that the retrieved items match the expected structure.
+
+- **`table` (string)**:
+  The name of the DynamoDB table from which the items should be retrieved.
+
+- **`options` (ListAllOptions, Optional)**:
+  An object containing the following properties for filtering and configuring the retrieval:
+
+  - `propertiesToGet` (Array<keyof Entity>, Optional):
+    A list of root-level properties to retrieve from each entity.
+
+  - `filters` (Object, Optional):
+    Conditions that the entities must meet to be included in the result.
+    You can use three different syntaxes for defining filters:
+    1. `key:value`- Filters for equality (e.g., `status: 'active'`).
+    2. `key:value[]`- Filters for any of the provided values (e.g., `status: ['active', 'inactive']`).
+    3. `key:{<FilterConfig>}`- More complex filters using a filter configuration.
+
+  - `consistentRead` (boolean, Optional):
+    When set to `true`, the operation uses strongly consistent reads.
+    _Default is `false`._
+
+  - `parallelRetrieval` (Object, Optional):
+    Allows parallel scans across different segments of the table.
+    Use this to speed up scanning by dividing the workload across multiple workers.
+    You can specify the following properties:
+    - `segment` (number): The zero-based segment index to scan.
+    - `total` (number): The total number of parallel scans to run.
+
+  - `index` (string, Optional):
+    The Local or Global Secondary Index to be scanned.
+
+##### Return Value
+
+Returns a `Promise` that resolves to an array of `Entity[]`, containing all items retrieved from the table.
+
+##### Key Differences from `list`
+
+The `listAll` method differs from the `list` method in the following ways:
+
+- It automatically handles pagination by performing multiple scan operations until all items are retrieved.
+- The `paginationToken` and `limit` options are not available in `listAll` as it retrieves all items in one go.
+
+##### Example Usage
+
+```ts
+interface Product {
+  productId: string;
+  name: string;
+  price: number;
+  category: string;
+}
+
+// all electronics products
+const allProducts = await dynamoDB.listAll<Product>('Products', {
+  propertiesToGet: ['productId', 'name', 'price'],
+
+  filters: {
+    category: 'electronics',
+  },
+});
+```
+
 - Explain SingleTable
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
