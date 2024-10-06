@@ -1086,11 +1086,11 @@ interface Method {
 
 If you do not use Single Table, this is as far as you need to go to
 
-## Sinlge table
+## Single table
 
-If you are familiar with single table design, you know there's quite a bit of boiler plate setup to be done. If you are not organized with it, it can quickly become a hassle, compromising your code redability and increasing maintanance time.
+If you are familiar with single table design, you know there's quite a bit of boiler plate setup to be done. If you are not organized with it, it can quickly become a hassle, compromising your code readability and increasing maintenance time.
 
-To enforce a patern, you can create a single table instance to configure your table and execute your actions on it. For each table you might have, you can create an instance.
+To enforce a pattern, you can create a single table instance to configure your table and execute your actions on it. For each table you might have, you can create an instance.
 
 The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 
