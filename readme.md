@@ -571,6 +571,7 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
     _Default is 8 retries, with exponential backoff._
 
 <!-- End of list of params -->
+</ul>
 
 ##### Return Value
 
