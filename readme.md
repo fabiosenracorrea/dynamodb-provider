@@ -543,6 +543,7 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
     The name of the DynamoDB table from which the items should be retrieved.
 
   - **`keys` (Array<Object>)**:
+
     An array of primary keys for the items you want to retrieve. Each primary key should contain the partition key and, if applicable, the sort key.
 
   - **`consistentRead` (boolean, Optional)**:
