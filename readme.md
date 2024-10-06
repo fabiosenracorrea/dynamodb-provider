@@ -572,6 +572,9 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
 
 <a/>
 
+[//]: # (Hello)
+    not a list item
+
 ##### Return Value
 
 Returns a `Promise` that resolves to an array of the retrieved entities.
