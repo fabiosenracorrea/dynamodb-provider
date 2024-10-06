@@ -569,8 +569,7 @@ The `batchGet` method retrieves multiple items from a DynamoDB table in a single
   - `maxRetries` (number, Optional):
     The maximum number of retry attempts for unprocessed items.
     _Default is 8 retries, with exponential backoff._
-
-
+-
 
 ##### Return Value
 
@@ -841,9 +840,11 @@ The `query` method allows you to retrieve items from a DynamoDB table by queryin
 
 ##### Method Signature
 
-typescript(
-  async query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
-)
+```ts
+interface Method {
+  query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
+}
+```
 
 ##### Parameters
 
