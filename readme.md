@@ -965,7 +965,7 @@ interface Method {
 - **`configs` (Array<TransactionConfig | null>)**:
   An array of configuration objects, where each object defines a transaction operation. You null to easily create inline conditions while generating the params
 
-  *Important: The limit of valid configs inside a transaction is 100 (or 4MB total), as per [dynamodb doc](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html)
+  *Important: The limit of valid configs inside a transaction is 100 (or 4MB total), as per [dynamodb doc](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html)*
 
   Each item in the array can be one of the following transaction types:
 
