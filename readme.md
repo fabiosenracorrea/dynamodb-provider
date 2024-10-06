@@ -694,53 +694,53 @@ Returns a `Promise` that resolves to a `ListTableResult` object containing:
 Simple listing:
 
 ```ts
-  interface Product {
-    productId: string;
-    name: string;
-    price: number;
-    category: string;
-  }
+interface Product {
+  productId: string;
+  name: string;
+  price: number;
+  category: string;
+}
 
-  const result = await dynamoDB.list<Product>('Products', {
-    propertiesToGet: ['productId', 'name', 'price'],
+const result = await dynamoDB.list<Product>('Products', {
+  propertiesToGet: ['productId', 'name', 'price'],
 
-    filters: {
-      category: 'electronics',
-    },
+  filters: {
+    category: 'electronics',
+  },
 
-    limit: 100,
+  limit: 100,
 
-    consistentRead: true,
-  });
+  consistentRead: true,
+});
 ```
 
-Listing with complex:
+Listing with complex filtering:
 
 ```ts
-  interface Product {
-    productId: string;
-    name: string;
-    price: number;
-    category: string;
-  }
+interface Product {
+  productId: string;
+  name: string;
+  price: number;
+  category: string;
+}
 
-  const result = await dynamoDB.list<Product>('Products', {
-    filters: {
-      price: {
-        operation: 'bigger_than',
-        value: 100,
-      },
-
-      name: {
-        operation: 'begins_with',
-        value: 'k'
-      }
+const result = await dynamoDB.list<Product>('Products', {
+  filters: {
+    price: {
+      operation: 'bigger_than',
+      value: 100,
     },
 
-    limit: 100,
+    name: {
+      operation: 'begins_with',
+      value: 'k'
+    }
+  },
 
-    consistentRead: true,
-  });
+  limit: 100,
+
+  consistentRead: true,
+});
 ```
 
 #### `listAll`
@@ -822,6 +822,117 @@ const allProducts = await dynamoDB.listAll<Product>('Products', {
     category: 'electronics',
   },
 });
+```
+
+#### query
+
+The `query` method allows you to retrieve items from a DynamoDB table by querying using the partition key and (optionally) the range key. This method leverages DynamoDB's efficient querying abilities and supports further filtering and pagination. It allows both local and global index querying and supports ordering and filtering of results.
+
+##### Method Signature
+
+typescript(
+  async query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
+)
+
+##### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entities being retrieved. This ensures that the retrieved items match the expected structure.
+
+- **`params` (Object)**:
+  An object containing the following properties for querying the DynamoDB table:
+
+  - `table` (string):
+    The name of the DynamoDB table to query.
+
+  - `index` (string, Optional):
+    The name of the Local or Global Index to be queried.
+
+  - `partitionKey` (Object):
+    The partition key condition for the query.
+    Contains two properties:
+    - `name` (string): The name of the partition key on your table.
+    - `value` (string): The value of the partition key to query.
+
+  - `rangeKey` (Object, Optional):
+    Further enhance the query with range key conditions.
+    This supports operations as:
+    - `equal`
+    - `lower_than`
+    - `lower_or_equal_than`
+    - `bigger_than`
+    - `bigger_or_equal_than`
+    - `begins_with`
+    - `between`
+
+    RangeKey Configuration comes in two forms:
+    - `BasicRangeKeyConfig`: For single condition operations (`equal`, `lower_than`, etc.).
+    - `BetweenRangeKeyConfig`: For a `between` operation, providing both `low` and `high` values.
+
+  - `retrieveOrder` (string, Optional):
+    Specifies the order of the results.
+    By default, DynamoDB retrieves items in `ASC` order. You can set this to `ASC` or `DESC`.
+
+  - `paginationToken` (string, Optional):
+    A token from a previous query result to continue retrieving items. Useful for paginated queries.
+
+  - `limit` (number, Optional):
+    The maximum number of items to retrieve in this query operation. This has higher precedence than `fullRetrieval`
+    Note: If set, fewer items might be retrieved due to DynamoDB's item size limitations.
+
+  - `fullRetrieval` (boolean, Optional):
+    When set to `true`, the query will continue retrieving all items matching the partition key, even if multiple requests are needed.
+    _Default is `true`._
+
+  - `filters` (Object, Optional):
+    Additional filtering conditions to apply on the items returned.
+    You can use three different syntaxes for defining filters:
+    1. `key:value`- Filters for equality (e.g., `status: 'active'`).
+    2. `key:value[]`- Filters for any of the provided values (e.g., `status: ['active', 'inactive']`).
+    3. `key:{<FilterConfig>}`- More complex filters using a filter configuration.
+
+##### Return Value
+
+Returns a `Promise` that resolves to a `QueryResult<Entity>` object containing the following:
+
+- **`items` (Array<Entity>)**:
+  An array of items matching the query.
+
+- **`paginationToken` (string?)**:
+  A token that can be used for paginated queries to continue retrieving items. This is an abstraction of DynamoDB's `LastEvaluatedKey`.
+
+##### Example Usage
+
+```ts
+  interface Order {
+    orderId: string;
+    customerId: string;
+    status: string;
+    totalAmount: number;
+  }
+
+  const { items, paginationToken } = await provider.query<Order>({
+    table: 'Orders',
+
+    partitionKey: {
+      name: 'customerId',
+      value: '12345',
+    },
+
+    rangeKey: {
+      name: 'orderId',
+      operation: 'bigger_or_equal_than',
+      value: 'A100',
+    },
+
+    retrieveOrder: 'DESC',
+
+    limit: 10,
+
+    filters: {
+      status: 'shipped',
+    },
+  });
 ```
 
 - Explain SingleTable
