@@ -392,7 +392,7 @@ No value is returned. If the operation fails (dynamoDB error), that is thrown
   });
 ```
 
-##### `update`
+##### update
 
 The `update` method modifies an item in a DynamoDB table based on the provided primary key. You can selectively update, remove, or apply atomic operations to the item. Additionally, you can add conditions to ensure specific criteria are met before updating the item.
 
@@ -484,8 +484,40 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
   // updatedUser will be { name, age }
 ```
 
-#### `batchGet`
+One common use case of this operation is to control the number of items you have with another item. Say you want to control User with incremental ids:
 
+```ts
+// whenever creating an user
+
+// operation 1
+
+const { count } = await provider.update({
+  table: 'CONTROL_TABLE',
+
+  key: { pk: 'USER_COUNT', sk: 'USER_COUNT' },
+
+  atomicOperations: [
+    {
+      operation: 'add',
+      property: 'count',
+      value: 1
+    },
+  ],
+})
+
+// operation 2
+
+await provider.create({
+  table: 'Users',
+
+  item: {
+    // ...user data
+    id: count // unique counter, updated from op1
+  }
+})
+```
+
+#### batchGet
 
 The `batchGet` method retrieves multiple items from a DynamoDB table in a single operation. You specify an array of primary keys and DynamoDB will return all matching items. This operation supports retries for unprocessed items and offers the ability to specify which properties should be retrieved.
 
