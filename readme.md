@@ -592,6 +592,156 @@ const products = await dynamoDB.batchGet({
 });
 ```
 
+#### `list`
+
+The `list` method retrieves multiple items from a DynamoDB table based on the specified options. Its a wrapper on `Scan`. It supports filters, limits, pagination, and parallel scans. The method returns a list of items and an optional pagination token that can be used to continue the retrieval in subsequent calls if more items are available than the limit.
+
+##### Method Signature
+
+```ts
+interface Method {
+  async list<Entity = AnyObject>(
+    table: string,
+    options = {} as ListOptions<Entity>,
+  ): Promise<ListTableResult<Entity>>;
+}
+```
+
+##### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entities being retrieved. This ensures that the retrieved items match the expected structure.
+
+- **`table` (string)**:
+  The name of the DynamoDB table from which the items should be listed.
+
+- **`options` (ListOptions, Optional)**:
+  An object containing the following properties for filtering and configuring the list operation:
+
+  - `propertiesToGet` (Array<string>, Optional):
+    A list of root-level properties to retrieve from each entity.
+
+  - `filters` (Object, Optional):
+    Conditions that the entities must meet to be included in the result.
+    You can use three different syntaxes for defining filters:
+    1. `key:value` - Filters for equality (e.g., `status: 'active'`).
+    2. `key:value[]` - Filters for any of the provided values (e.g., `status: ['active', 'inactive']`).
+    3. `key:{<FilterConfig>}` - More complex filters using a filter configuration.
+
+  - `limit` (number, Optional):
+    Defines the maximum number of items to retrieve.
+    _Note_: DynamoDB might return fewer items if the maximum allowed MB per request is reached. In such cases, a `paginationToken` will be returned for further retrieval.
+
+  - `consistentRead` (boolean, Optional):
+    When set to `true`, the operation uses strongly consistent reads.
+    _Default is `false`._
+
+  - `parallelRetrieval` (Object, Optional):
+    Allows parallel scans across different segments of the table.
+    Use this to speed up scanning by dividing the workload across multiple workers.
+    You can specify the following properties:
+    - `segment` (number): The zero-based segment index to scan.
+    - `total` (number): The total number of parallel scans to run.
+
+  - `index` (string, Optional):
+    The Local or Global Secondary Index to be scanned.
+
+  - `paginationToken` (string, Optional):
+    A token that allows you to continue the list operation from where a previous request left off.
+    _Note_: This is an abstraction of DynamoDB's `LastEvaluatedKey`, which is returned as an object. The `paginationToken` simplifies this process by converting the object into a string.
+
+#### Advanced Filter Options
+
+As noted, you can simply match value(s) to the relevant properties. But if you need to perform complex operations (such as `bigger_than`), you need to provide a different structure:
+
+```ts
+export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value' | 'joinAs'>;
+
+export type BetweenFilterConfig = Pick<
+  BetweenExpression<any>,
+  'operation' | 'high' | 'low' | 'joinAs'
+>;
+
+export type AttributeExistenceFilterConfig = Pick<
+  AttributeExistenceExpression<any>,
+  'operation' | 'joinAs'
+>;
+
+export type ListFilterConfig = Pick<ListExpression<any>, 'operation' | 'values' | 'joinAs'>;
+
+export type FilterConfig =
+  | BasicFilterConfig
+  | BetweenFilterConfig
+  | AttributeExistenceFilterConfig
+  | ListFilterConfig;
+```
+
+This type is based on the `Expression` type used on `conditions` on operations such as update, create or delete.
+
+##### Return Value
+
+Returns a `Promise` that resolves to a `ListTableResult` object containing:
+
+- **`items` (Array<Entity>)**:
+  The array of items retrieved from the table.
+
+- **`paginationToken` (string, Optional)**:
+  If there are more items to retrieve, a token is returned to continue the operation in the next call.
+  _Note_: This is an abstraction of DynamoDB's `LastEvaluatedKey`, which is converted into a string for easier use.
+
+##### Example Usage
+
+Simple listing:
+
+```ts
+  interface Product {
+    productId: string;
+    name: string;
+    price: number;
+    category: string;
+  }
+
+  const result = await dynamoDB.list<Product>('Products', {
+    propertiesToGet: ['productId', 'name', 'price'],
+
+    filters: {
+      category: 'electronics',
+    },
+
+    limit: 100,
+
+    consistentRead: true,
+  });
+```
+
+Listing with complex:
+
+```ts
+  interface Product {
+    productId: string;
+    name: string;
+    price: number;
+    category: string;
+  }
+
+  const result = await dynamoDB.list<Product>('Products', {
+    filters: {
+      price: {
+        operation: 'bigger_than',
+        value: 100,
+      },
+
+      name: {
+        operation: 'begins_with',
+        value: 'k'
+      }
+    },
+
+    limit: 100,
+
+    consistentRead: true,
+  });
+```
 
 - Explain SingleTable
 - SingleTable Schema -> Partition+Entity
