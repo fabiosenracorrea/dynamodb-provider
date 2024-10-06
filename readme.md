@@ -100,6 +100,7 @@ Quick Access
 - [get](#get)
 - [create](#create)
 - [delete](#delete)
+- [update](#update)
 - [batchGet](#batchGet)
 - [list](#list)
 - [listAll](#listAll)
@@ -202,17 +203,15 @@ The type of the entity being created. This allows for strong typing and validati
 
 An object containing the following properties:
 
-**table (string):**
+  - `table (string)`:
+  The name of the DynamoDB table into which the item will be inserted.
 
-The name of the DynamoDB table into which the item will be inserted.
+  - `item (Object)`:
 
-**item (Object):**
+  The item to be created in the table. This object should include all necessary attributes, such as the partition key and (if applicable) the sort key, along with any other attributes defined by the entity.
 
-The item to be created in the table. This object should include all necessary attributes, such as the partition key and (if applicable) the sort key, along with any other attributes defined by the entity.
-
-**conditions (Array<ItemExpression>): (optinal)**
-
-An optional set of conditions that must be fulfilled before the item is created. This can be used to ensure that specific attributes or values meet criteria before inserting.
+  - `conditions (Array<ItemExpression>): (optinal)`
+  An optional set of conditions that must be fulfilled before the item is created. This can be used to ensure that specific attributes or values meet criteria before inserting.
 
 Example: Creating an user only if it does not exists
 
@@ -402,7 +401,7 @@ No value is returned. If the operation fails (dynamoDB error), that is thrown
   });
 ```
 
-##### update
+### update
 
 The `update` method modifies an item in a DynamoDB table based on the provided primary key. You can selectively update, remove, or apply atomic operations to the item. Additionally, you can add conditions to ensure specific criteria are met before updating the item.
 
