@@ -392,6 +392,173 @@ No value is returned. If the operation fails (dynamoDB error), that is thrown
   });
 ```
 
+##### `update`
+
+The `update` method modifies an item in a DynamoDB table based on the provided primary key. You can selectively update, remove, or apply atomic operations to the item. Additionally, you can add conditions to ensure specific criteria are met before updating the item.
+
+##### Method Signature
+
+```ts
+interface Method {
+  async update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: UpdateParams<Entity, PKs>,
+  ): Promise<Partial<Entity> | undefined>;
+}
+```
+
+###### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entity being updated. This ensures the primary key and update data match the expected structure.
+
+- **`params` (Object)**:
+  The object containing the following properties:
+
+  - **`table` (string)**:
+    The name of the DynamoDB table where the item should be updated.
+
+  - **`key` (Object)**:
+    The primary key of the item to update. It can include both the partition key and sort key, depending on the table's schema.
+
+  - **`remove` (Array<keyof Entity>, Optional)**:
+    A list of attributes to remove from the item.
+    _Note_: Only root-level properties are supported for removal.
+
+  - **`values` (Object, Optional)**:
+    A partial object with the values to update. This allows you to update specific fields of the item.
+
+  - **`atomicOperations` (Array<Object>, Optional)**:
+    Defines atomic operations to be executed on the item.
+    _Supported operations include_:
+    - Math Operations: `sum`, `subtract`, `add`
+    - Set Operations: `add_to_set`, `remove_from_set`
+    - Conditional Operations: `set_if_not_exists`
+
+  - **`conditions` (Array<ItemExpression>, Optional)**:
+    An optional set of conditions that must be fulfilled before the update occurs. If any condition is not met, the update will fail.
+
+  - **`returnUpdatedProperties` (boolean, Optional)**:
+    If set to `true`, this will return the updated properties after the operation. This can be useful for tracking atomic operations such as counters.
+
+##### Return Value
+
+Returns a `Promise` that resolves to the updated entity (or a partial version of it) if `returnUpdatedProperties` is set to `true`, or `undefined` otherwise.
+
+##### Example Usage
+
+```ts
+  interface User {
+    userId: string;
+    name: string;
+    email: string;
+    age: number;
+  }
+
+  const params = {
+    table: 'Users',
+
+    key: {
+      userId: '12345',
+    },
+
+    values: {
+      name: 'John Doe',
+    },
+
+    atomicOperations: [
+      { operation: 'add', property: 'age', value: 1 },
+    ],
+
+    conditions: [
+      {
+        condition: 'exists',
+        attribute: 'userId',
+      },
+    ],
+
+    returnUpdatedProperties: true,
+  };
+
+  const updatedUser = await provider.update(params);
+
+  // updatedUser will be { name, age }
+```
+
+#### `batchGet`
+
+
+The `batchGet` method retrieves multiple items from a DynamoDB table in a single operation. You specify an array of primary keys and DynamoDB will return all matching items. This operation supports retries for unprocessed items and offers the ability to specify which properties should be retrieved.
+
+##### Method Signature
+
+```ts
+  async batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchListItemsArgs<Entity, PKs>,
+  ): Promise<Entity[]>;
+```
+
+##### Parameters
+
+- **`Entity` (Type Parameter)**:
+  The type of the entities being retrieved. This ensures that the retrieved items match the expected structure.
+
+- **`Params` (Object)**:
+  The object containing the following properties:
+
+  - **`table` (string)**:
+    The name of the DynamoDB table from which the items should be retrieved.
+
+  - **`keys` (Array<Object>)**:
+    An array of primary keys for the items you want to retrieve. Each primary key should contain the partition key and, if applicable, the sort key.
+
+  - **`consistentRead` (boolean, Optional)**:
+    If set to `true`, the operation uses strongly consistent reads. Otherwise, eventually consistent reads are used.
+    _Default is `false`._
+
+  - **`propertiesToRetrieve` (Array<keyof Entity>, Optional)**:
+    A list of root-level properties to retrieve from the items.
+    _Note_: The return type is currently not affected by this field.
+
+  - **`throwOnUnprocessed` (boolean, Optional)**:
+    By default, this method will try up to 8 times to resolve any `UnprocessedItems` returned from the `batchGet` call. If unprocessed items still exist after all retries, the method will return whatever items were processed successfully.
+    Set this to `true` if you want the method to throw an error if any unprocessed items remain.
+
+  - **`maxRetries` (number, Optional)**:
+    The maximum number of retry attempts for unprocessed items.
+    _Default is 8 retries, with exponential backoff._
+
+##### Return Value
+
+Returns a `Promise` that resolves to an array of the retrieved entities.
+
+##### Example Usage
+
+```ts
+interface Product {
+  productId: string;
+  name: string;
+  price: number;
+}
+
+const products = await dynamoDB.batchGet({
+  table: 'Products',
+
+  keys: [
+    { productId: '123' },
+    { productId: '456' },
+  ],
+
+  consistentRead: true,
+
+  propertiesToRetrieve: ['name', 'price'],
+
+  throwOnUnprocessed: true,
+
+  maxRetries: 5,
+});
+```
+
+
 - Explain SingleTable
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
