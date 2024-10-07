@@ -1421,8 +1421,6 @@ const results = await singleTable.query({
 });
 ```
 
----
-
 ### single table execute transaction
 
 Works the logic same as [executeTransaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
@@ -1435,6 +1433,69 @@ Works the logic same as [executeTransaction](#execute-transaction) from the prov
   - `erase`: A delete operation (see the `delete` method for more details).
   - `validate`: A condition check (ensures certain conditions are met before applying other operations).
 
+### single table list all from type
+
+**Important**: This method only works if you have a proper defined `typeIndex` that matches an existing index on the table.
+
+This method retrieves all items of a specified type from the table. It is a wrapper around the query function that simplifies the retrieval of all items associated with a particular type.
+
+#### Parameters:
+
+- `type`: string - The entity type to retrieve from the table, based on the typeIndex partition key.
+
+#### Example Usage:
+
+```ts
+const items = await table.listAllFromType('USER');
+```
+
+### single table list type
+
+**Important**: This method only works if you have a proper defined `typeIndex` that matches an existing index on the table.
+
+This method performs a paginated query to retrieve items of a specific type, supporting range key filtering, pagination, and other query parameters.
+
+#### Parameters:
+- params: ListItemTypeParams - An object with the following properties:
+  - `type`: string - The entity type to retrieve from the table, based on the typeIndex partition key.
+  - `range`?: BasicRangeConfig | BetweenRangeConfig - Optional range key filter. This can either be a single comparison operation (e.g., greater than) or a between operation.
+  - `limit`?: number - Limits the number of items returned in a single call.
+  - `paginationToken`?: string - Token to continue retrieving paginated results.
+  - `retrieveOrder`?: 'ASC' | 'DESC' - The order in which items should be retrieved, either ascending (ASC) or descending (DESC).
+  - `fullRetrieval`?: boolean - If set to true, retrieves all items until no more pagination tokens are returned.
+  - `filters`?: FilterConfig - Additional filters to apply on the query.
+
+#### Returns:
+
+An object containing:
+
+- `items`: Entity[] - The list of items retrieved.
+- `paginationToken`?: string - If applicable, a token for retrieving the next set of paginated results.
+
+#### Example Usage:
+
+```ts
+const result = await myTable.listType({
+  type: 'USER',
+
+  range: {
+    operation: 'begins_with',
+    value: 'john',
+  },
+
+  limit: 10,
+});
+```
+
+Because type match is such a common use case, we also provide 2 helper methods for handling item lists:
+
+```ts
+interface TypeHelperMethods {
+  findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined
+
+  filterTableItens<Entity>(items: AnyObject[], type: string): Entity[]
+}
+```
 
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
