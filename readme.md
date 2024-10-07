@@ -1343,6 +1343,54 @@ await singleTable.delete({
 });
 ```
 
+### single table query
+
+Most of the params are the same from the [query](#query) method from provider
+
+#### Different Parameters:
+
+- `partition`: Simply the Key, as we know the column name
+- `range`: Here you can build your key condition exactly as before, but also wi
+
+#### Example:
+
+Retrieving the last 10 user logs:
+
+```ts
+const results = await singleTable.query({
+  partition: ['USER', 'your-id'],
+
+  range: {
+    value: 'LOG#',
+    operation: 'begins_with',
+  },
+
+  retrieveOrder: 'DESC',
+
+  limit: 10,
+});
+```
+
+---
+
+### `executeTransaction`
+
+Works the logic same as [executeTransaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
+
+#### Parameters reminder:
+
+- `configs`: An array of transaction configurations. Each transaction can be one of the following:
+  - `update`: An update operation (see the `update` method for more details).
+  - `create`: A create operation (see the `create` method for more details).
+  - `erase`: A delete operation (see the `delete` method for more details).
+  - `validate`: A condition check (ensures certain conditions are met before applying other operations).
+
+In this example:
+- A new order is created with status `pending`.
+- The `orders` count on the user is incremented by 1 using an atomic operation.
+- A condition is checked to ensure the order status is still `pending` before committing the transaction.
+
+
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
 
