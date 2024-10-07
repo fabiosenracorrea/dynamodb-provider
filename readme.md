@@ -36,6 +36,7 @@ The DynamodbProvider substitutes you aws clients, but is created with them so yo
 
 ```ts
 import { DynamoDB } from 'aws-sdk';
+import { DynamodbProvider } from 'dynamodb-provider'
 
 const provider = new DynamodbProvider({
   dynamoDB: {
@@ -53,6 +54,7 @@ const provider = new DynamodbProvider({
 ```ts
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamodbProvider } from 'dynamodb-provider'
 
 const ddbClient = new DynamoDBClient({
   // any config you may need. region, credentials...
@@ -1150,7 +1152,7 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 
 - **Type**: `boolean`
 - **Default**: `true`
-- **Description**: Automatically removes internal properties from items before they are returned by the methods. Internal properties include partition keys, range keys, TTL attributes, and index keys. This ensures that items have all relevant properties independently, without relying on key extractions.
+- **Description**: Automatically removes internal properties from items before they are returned by the methods. Internal properties include partition keys, range keys, TTL attributes, and index keys. This ensures that items have all relevant properties independently, without relying on key extractions. Remember, its the best practice to not rely on these internal properties for your actual data. Even if your PK is `USER#id`, you should have a separate property "id" on the entity.
 
 #### `keepTypeProperty`
 
@@ -1166,8 +1168,180 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 #### `badUpdateValidation`
 
 - **Type**: `(propertiesInUpdate: Set<string>) => boolean | string`
-- **Description**: Validates updates by inspecting all properties referenced in an update (in `values`, `remove`, or `atomicOperations`). The default validation ensures that the partition key is not modified, which is a DynamoDB rule. You can use this validation to block internal property updates or throw a custom error message.
+- **Description**: Validates updates by inspecting all properties referenced in an update (in `values`, `remove`, or `atomicOperations`). The default validation ensures that the partition key is not modified, which is a DynamoDB rule. You can use this validation to block internal property updates or throw a custom error message. This has a niche use case and should not see much usage.
 
+
+### Single Table usage
+
+```ts
+import { SingleTable, DynamodbProvider } from 'dynamodb-provider'
+
+const provider = new DynamodbProvider({
+  // provider params
+});
+
+
+const table = new SingleTable({
+  dynamodbProvider: provider,
+
+  table: 'YOUR_TABLE_NAME',
+
+  partitionKey: 'pk',
+  rangeKey: 'sk',
+
+  keySeparator: '#',
+
+  typeIndex: {
+    name: 'TypeIndexName',
+
+    partitionKey: '_type',
+    rangeKey: '_timestamp',
+  },
+
+  expiresAt: 'ttl',
+
+  indexes: {
+    SomeIndex: {
+      partitionKey: 'gsipk1',
+      rangeKey: 'gsisk1',
+    }
+  }
+})
+```
+
+### Single Table Methods
+
+With your single table created, you can now use it to execute all the same actions from the provider, but fully aware of the table config.
+
+Available Methods:
+
+- [get](#single-table-get)
+- [batchGet](#single-table-batch-get)
+- [create](#single-table-create)
+- [delete](#single-table-delete)
+- update
+- query
+- executeTransaction
+- listType
+- listAllFromType
+
+
+### single table get
+
+#### Parameters:
+
+- `partitionKey`: The partition key of the item you want to retrieve.
+- `rangeKey`: The range key of the item you want to retrieve.
+- `consistentRead` (optional): If set to `true`, the operation uses strongly consistent reads; otherwise, it uses eventually consistent reads. Default is `false`.
+- `propertiesToRetrieve` (optional): Specifies which properties to retrieve from the item. This is helpful when you only need specific fields instead of the entire item.
+
+#### Valid Keys
+
+```ts
+type Key = null | string | Array<string | number | null>;
+```
+
+Note: `null` is mainly useful if you want to block an index update to happen due to lack of params. We'll see an example later on.
+
+#### Example
+
+```ts
+import { SingleTable } from 'dynamodb-provider'
+
+const table = new SingleTable({
+  // ...config
+})
+
+const user = await table.get({
+  partitionKey: ['USER', id],
+
+  rangeKey: '#DATA',
+
+  consistentRead: true,
+})
+```
+
+The call above correctly matches your table actual keys under the hood, joins any array key with the configured separator for you.
+
+You can use these methods as they are, create your own entity x repository like extraction methods out of it or use our own entity abstraction to fully utilize the best out of the single table design.
+
+
+### single table batch get
+
+#### Parameters:
+
+- `keys`: An array of objects, where each object contains:
+  - `partitionKey`: The partition key of the item.
+  - `rangeKey`: The range key
+- `consistentRead` (optional): If set to `true`, the operation uses strongly consistent reads; otherwise, it uses eventually consistent reads. Default is `false`.
+- `propertiesToRetrieve` (optional): Specifies which properties to retrieve for each item.
+- `throwOnUnprocessed` (optional): By default, this call will try up to 8 times to resolve any `UnprocessedItems` result from the `batchGet` call. If any items are still left unprocessed, the method will return them. If set to `true`, the method will throw an error if there are unprocessed items.
+
+#### Example:
+
+```ts
+  const items = await singleTable.batchGet({
+    keys: [
+      { partitionKey: 'USER#123', rangeKey: 'INFO#456' },
+      { partitionKey: 'USER#789', rangeKey: 'INFO#012' },
+    ],
+
+    propertiesToRetrieve: ['name', 'email'],
+
+    throwOnUnprocessed: true,
+  });
+```
+
+### single table create
+
+#### Parameters:
+
+- `item`: The object representing the item you want to create. The object should contain all the fields of the entity.
+- `key`: An object containing:
+  - `partitionKey`: The partition key for the new item.
+  - `rangeKey`: The range key (if applicable) for the new item.
+- `indexes` (optional): If applicable, provides the index key information for other indexes the item will be added to.
+  Structure: `Record<IndexName, { partitionKey, rangeKey }>`
+- `expiresAt` (optional): A UNIX timestamp for setting a TTL on the item. Only acceptable if `expiresAt` is configured on table.
+- `type` (optional): Defines the entity type for a single table design setup. Only acceptable if `typeIndex` is configured on table.
+
+#### Example:
+
+```ts
+const user = await singleTable.create({
+  key: {
+    partitionKey: 'USER#123',
+    rangeKey: '#DATA',
+  },
+
+  item: {
+    id: '123',
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+  },
+
+  type: 'USER',
+
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days TTL
+});
+```
+
+### single table delete
+
+#### Parameters:
+
+- `partitionKey`: The partition key of the item you want to delete.
+- `rangeKey`: The range key of your item.
+- `conditions` (optional): A set of conditions that must be met before the deletion is executed.
+
+#### Example:
+
+```ts
+await singleTable.delete({
+  partitionKey: 'USER#123',
+  rangeKey: '#DATA',
+});
+```
 
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
