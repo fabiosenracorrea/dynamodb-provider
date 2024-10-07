@@ -1219,11 +1219,11 @@ Available Methods:
 - [batchGet](#single-table-batch-get)
 - [create](#single-table-create)
 - [delete](#single-table-delete)
-- update
-- query
-- executeTransaction
-- listType
-- listAllFromType
+- [update](#single-table-update)
+- [query](#single-table-query)
+- [executeTransaction](#single-table-execute-transaction)
+- [listType](#single-table-list-type)
+- [listAllFromType](#single-table-list-all-from-type)
 
 
 ### single table get
@@ -1343,6 +1343,56 @@ await singleTable.delete({
 });
 ```
 
+### single table update
+
+We'll show just the params that differ from [update](#update)
+
+#### Parameters:
+
+- `partitionKey`: The primary partition key of the item to update.
+- `rangeKey`: The range key of the item to update
+- `indexes` (optional): Allows updating associated secondary indexes. You can specify which indexes to update by providing partial or full values for the index's partition and/or range keys.
+- `expiresAt` (optional): The UNIX timestamp defining when the item should expire (for tables configured with TTL).
+- `values` (optional): An object containing key-value pairs representing the properties to update. These values will be merged into the existing item.
+- `remove` (optional): An array of properties to be removed from the item.
+- `atomicOperations` (optional): A list of operations to perform on numeric or set properties. Supported operations:
+  - `sum`: Add a value to an existing numeric property.
+  - `subtract`: Subtract a value from an existing numeric property.
+  - `add_to_set`: Add values to a set property.
+  - `remove_from_set`: Remove values from a set property.
+  - `set_if_not_exists`: Set a property value only if it does not already exist.
+- `conditions` (optional): A set of conditions that must be satisfied for the update to succeed. The update will be aborted if the conditions are not met.
+- `returnUpdatedProperties` (optional): If `true`, the updated properties are returned. This is useful if you're performing atomic operations and want to retrieve the result.
+
+#### Example:
+
+```ts
+const result = await singleTable.update({
+  partitionKey: ['USER', 'some-id'],
+
+  rangeKey: '#DATA',
+
+  values: {
+    email: 'newemail@example.com',
+    status: 'active'
+  },
+
+  remove: ['someProperty'],
+
+  atomicOperations: [{ operation: 'sum', prop: 'loginCount', value: 1 }],
+
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // Expires in 30 days
+
+  indexes: {
+    SomeIndex: { partitionKey: 'NEW_PARTITION' },
+  },
+
+  conditions: [{ key: 'status', value: 'pending', operation: 'equal' }],
+
+  returnUpdatedProperties: true,
+});
+```
+
 ### single table query
 
 Most of the params are the same from the [query](#query) method from provider
@@ -1373,7 +1423,7 @@ const results = await singleTable.query({
 
 ---
 
-### `executeTransaction`
+### single table execute transaction
 
 Works the logic same as [executeTransaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
 
@@ -1384,11 +1434,6 @@ Works the logic same as [executeTransaction](#execute-transaction) from the prov
   - `create`: A create operation (see the `create` method for more details).
   - `erase`: A delete operation (see the `delete` method for more details).
   - `validate`: A condition check (ensures certain conditions are met before applying other operations).
-
-In this example:
-- A new order is created with status `pending`.
-- The `orders` count on the user is incremented by 1 using an atomic operation.
-- A condition is checked to ensure the order status is still `pending` before committing the transaction.
 
 
 - SingleTable Schema -> Partition+Entity
