@@ -1,14 +1,14 @@
 {
-  "homepage": "https://github.com/fabiosenracorrea/dynamo-db-provider",
+  "homepage": "https://github.com/fabiosenracorrea/dynamodb-provider",
   "author": "fabiosenracorrea",
-  "name": "dynamo-db-provider",
+  "name": "dynamodb-provider",
   "version": "0.0.1",
   "description": "A dynamodb Provider that simplifies the native api. It packs with a Single Table adaptor/pseudo ORM for single table design",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "types": "./lib/esm/index.d.ts",
   "bugs": {
-    "url": "https://github.com/fabiosenracorrea/dynamo-db-provider/issues"
+    "url": "https://github.com/fabiosenracorrea/dynamodb-provider/issues"
   },
   "scripts": {
     "build-both": "yarn build:esm && yarn build:cjs",
