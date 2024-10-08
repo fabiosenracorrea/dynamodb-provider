@@ -1517,7 +1517,7 @@ type tUser = {
   // ... more props
 }
 
-const User = table.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().withParams({
   // create entity params
 })
 ```
@@ -1551,12 +1551,12 @@ type tUser = {
   // ... more props
 }
 
-const BadUser = table.createEntity<User>().withParams({
+const BadUser = table.schema.createEntity<User>().withParams({
   // create entity params
   getPartitionKey: ({userId}: {userId: string}) => ['USER', userId] // TYPE ERROR!
 })
 
-const User = table.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().withParams({
   // create entity params
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id] // ok!
 })
@@ -1607,7 +1607,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
     // ...props
   }
 
-  const Logs = table.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().withParams({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1664,7 +1664,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
     }
   })
 
-  const Logs = table.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().withParams({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1682,6 +1682,136 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
     }
   })
   ```
+
+### Single table entity usage
+
+The generated entity has properties that you can leverage to interact with the single table methods, such as:
+
+#### Relevant entity properties
+
+- `getKey` - A complete key getter that accepts the exact params required in `getPartitionKey` and `getRangeKey` to generate the entity key reference `{ partitionKey: KevValue, rangeKey: KeyValue }`
+
+- `getCreationParams(item: Entity, { expiresAt?: number }?)` - as the name implies, generates the [single table create](#single-table-create) params. If `expiresAt` is defined in your table, a second optional param with allowed if that configuration
+
+- `getUpdateParams(params: UpdateParams)` - same logic as the getCreationParams, but produces the params for [single table update](#single-table-update) instead. Here all the key params are required, plus the updates such as `values`, `atomicOperations` and etc
+
+#### Using entity directly on schema
+
+You can also leverage the `schema.fromEntity` method to create a "repository-like" instance to perform actions on your entity:
+
+```ts
+type tUser = {
+  id: string;
+  name: string;
+  createdAr: string;
+  // ... more props
+}
+
+const User = table.schema.createEntity<User>().withParams({
+  type: 'USER',
+
+  getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+
+  getRangeKey: () => ['#DATA'],
+})
+
+const userActions = table.schema.fromEntity(User)
+```
+
+This will expose all the methods we are used to, but fully specified to meet the user needs/type. For example:
+
+```ts
+const userActions = table.schema.fromEntity(User)
+
+await userActions.create({
+  // all user props that are required on the User type
+})
+
+await userActions.update({
+  id: 'user-id', // because its a key param
+
+  values: {
+    status: 'new-status'
+  }
+
+  // other update specific params
+})
+```
+
+Here's a list of all available methods:
+
+- get
+- batchGet
+- create
+- update
+- delete
+- listAll - *only if typeIndex is present*
+- list - *only if typeIndex is present*
+- query
+- queryIndex - *only if entity has index defined*
+
+Out of these methods, `query` and `queryIndex` are in a different format. As you can execute custom queries and/or have pre-defined queries on `rangeQueries`:
+
+- `query` exposes a `custom` method to execute any query on the entity partition plus each range query defined
+- `queryIndex` while `queryIndex` exposes a similar structure as `query`, but for each individual index defined
+
+Example:
+
+```ts
+type tLogs = {
+  type: string;
+  timestamp: string;
+  // ...props
+}
+
+const Logs = table.schema.createEntity<tLogs>().withParams({
+  type: 'APP_LOGS',
+
+  getPartitionKey: () => ['APP_LOG'],
+
+  getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
+
+  indexes: {
+    logsByType: {
+      getPartitionKey: ({ type }: Pick<tLogs, 'type'>) => ['APP_LOG_BY_TYPE', type],
+
+      getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
+
+      index: 'DynamoIndex1',
+
+      dateSlice: {
+        operation: 'between',
+        getValues: ({ start, end }: { start: string, end: string }) => ({
+          low: start,
+          high: end,
+        })
+      }
+    }
+  }
+})
+
+// all valid queries:
+
+await table.fromEntity(Logs).query.custom() // valid call, as getPartitionKey does not have params, it will simply execute a query against its partition
+
+await table.fromEntity(Logs).query.custom({
+  limit: 10,
+  retrieveOrder: 'DESC'
+})
+
+await table.fromEntity(Logs).queryIndex.logsByType.custom({
+  type: 'LOG-TYPE-1', // required as logsByType getPartitionKey expects it
+})
+
+await table.fromEntity(Logs).queryIndex.logsByType.dateSlice({
+  type: 'LOG-TYPE-2',
+  start: 'some-ts',
+  end: 'some-ts',
+  limit: 20,
+})
+```
+
+With the `fromEntity` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
 
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
