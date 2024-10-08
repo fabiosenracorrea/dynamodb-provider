@@ -1494,7 +1494,7 @@ interface TypeHelperMethods {
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined
 
   filterTableItens<Entity>(items: AnyObject[], type: string): Entity[]
-}
+}\
 ```
 
 - SingleTable Schema -> Partition+Entity
