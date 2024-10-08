@@ -1626,7 +1626,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
   })
   ```
 
-  When the time comes to use the entity, this will produce a `dateSlice` method, which will require `type`, `start` and `end` params to work, properly typed. the method will build the underlying dynamodb query need to perform the retrieval. You can further configure the `dateSlice` methods with the `query` params we have.
+  When the time comes to use the entity, this will produce a `dateSlice` method, which will require `start` and `end` params to work (as our partition key does not require any addition params), properly typed. the method will build the underlying dynamodb query need to perform the retrieval. You can further configure the `dateSlice` methods with the `query` params we have.
 
 
 - `index` (object, optional): Only available if table configured with indexes. A record mapping of your entity indexes definition:
@@ -1673,7 +1673,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
 
     indexes: {
       MY_CUSTOM_INDEX_NAME: {
-        getPartitionKey: ({ type }: Pick<tLogs, 'timestamp'>) => ['APP_LOG_BY_TYPE', timestamp],
+        getPartitionKey: ({ type }: Pick<tLogs, 'type'>) => ['APP_LOG_BY_TYPE', type],
 
         getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
 
