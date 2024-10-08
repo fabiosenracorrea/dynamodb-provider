@@ -1475,7 +1475,7 @@ An object containing:
 #### Example Usage:
 
 ```ts
-const result = await myTable.listType({
+const result = await table.listType({
   type: 'USER',
 
   range: {
@@ -1494,8 +1494,194 @@ interface TypeHelperMethods {
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined
 
   filterTableItens<Entity>(items: AnyObject[], type: string): Entity[]
-}\
+}
 ```
+
+## Single Table Schema
+
+Now that every direct single table method is covered, it time to talk about the last part of the library: `schema` abilities.
+
+With your single table instance, you can define partitions, entities and even collections to be easily acted upon. Lets explore this with the most basic type of DB piece you may need: `entity`
+
+### Single Table Schema: Entity
+
+Entities are the representation of a data type inside your table. There can be made a parallel between an SQL table and a single table entity
+
+#### Creating entity syntax
+
+```ts
+type tUser = {
+  id: string;
+  name: string;
+  createdAr: string;
+  // ... more props
+}
+
+const User = table.createEntity<User>().withParams({
+  // create entity params
+})
+```
+
+We have a double invocation here to properly forward the entities type in conjunction with the params inferred from the creation. This is done as you'll see the entity type is solely reliant on TS' types as of now, there's not in code schema definition atm.
+
+Lets explore the params allowed:
+
+#### Create entity params
+
+- `getPartitionKey`: A partition resolver for your entity
+- `getRangeKey`: A range resolver for your entity
+
+Both key resolvers have the same key getter structure as before, but **restricted** to the actual entity properties:
+
+```ts
+type EntityKeyResolvers<Entity> = {
+  getPartitionKey: (params: EntityParamsOnly<Entity>) => KeyValue;
+
+  getRangeKey: (params: EntityParamsOnly<Entity>) => KeyValue;
+};
+```
+
+This means you can't pass in a getter that uses params not found in its type:
+
+```ts
+type tUser = {
+  id: string;
+  name: string;
+  createdAr: string;
+  // ... more props
+}
+
+const BadUser = table.createEntity<User>().withParams({
+  // create entity params
+  getPartitionKey: ({userId}: {userId: string}) => ['USER', userId] // TYPE ERROR!
+})
+
+const User = table.createEntity<User>().withParams({
+  // create entity params
+  getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id] // ok!
+})
+```
+
+As a reminder, the allowed values:
+
+```ts
+type KeyValue = null | string | Array<string | number | null>;
+```
+
+Just remember `null` is useful if you want to indicate that you generated a bad key that shouldn't be updated. That means its relevant on index key getters, but no actual partition/range context
+
+- `type` (string): An **unique** describer of an entity inside your single table. Think of it as the "table name". If you try to create 2 entities with the same type, an error is thrown.
+
+- `autoGen` (object, optional): Defined properties that should be auto generated `onCreation` or `onUpdate`:
+  ```ts
+  type AutoGenFieldConfig<Entity> = {
+    [Key in keyof Entity]?: AutoGenOption;
+  };
+
+  export type AutoGenParams<Entity> = {
+    onCreate?: AutoGenFieldConfig<Entity>;
+
+    onUpdate?: AutoGenFieldConfig<Entity>;
+  };
+  ```
+
+  `AutoGenOption` are as follows:
+
+  * `UUID`: generates a `v4` uuid
+  * `KSUID`: generates a *K-Sortable Globally Unique IDs (KSUID)*
+  * `count`: automatically assigns `0`
+  * `timestamp`: generates the current timestamp with `new Date().toISOString()`
+  * `() => any`: Pass in a function if you need a custom auto-generation strategy
+
+
+- `rangeQueries` (object, optional): Configure possible queries to be easily referenced when using the entity. Here you can easily define query configuration to be used to retrieve the entity
+
+  Pass in an object in which:
+  * Key: query name
+  * Value: query config, which operation will be performed, and value getter
+
+  ```ts
+  type tLogs = {
+    type: string;
+    timestamp: string;
+    // ...props
+  }
+
+  const Logs = table.createEntity<tLogs>().withParams({
+    type: 'APP_LOGS',
+
+    getPartitionKey: () => ['APP_LOG'],
+
+    getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
+
+    rangeQueries: {
+      dateSlice: {
+        operation: 'between',
+        getValues: ({ start, end }: { start: string, end: string }) => ({
+          low: start,
+          high: end,
+        })
+      }
+    }
+  })
+  ```
+
+  When the time comes to use the entity, this will produce a `dateSlice` method, which will require `type`, `start` and `end` params to work, properly typed. the method will build the underlying dynamodb query need to perform the retrieval. You can further configure the `dateSlice` methods with the `query` params we have.
+
+
+- `index` (object, optional): Only available if table configured with indexes. A record mapping of your entity indexes definition:
+
+  Format: `Record<string, IndexConfig>`
+  * key: a custom index name to describe it
+  * value: `IndexConfig`
+    - `getPartitionKey` - same logic as the root entity getPartitionKey
+    - `getRangeKey` - same logic as the root entity getRangeKey
+    - `index` - the actual table index name related, as is on the dynamodb table
+    - `rangeQueries?` - same logic as the root entity rangeQueries
+
+  Example:
+
+  ```ts
+  type tLogs = {
+    type: string;
+    timestamp: string;
+    // ...props
+  }
+
+  const table = new SingleTable({
+    // ... other params
+
+    indexes: {
+      DynamoIndex1: {
+        partitionKey: 'gsipk1',
+        rangeKey: 'gsipsk1',
+      },
+
+      OtherTableIndex: {
+        partitionKey: 'gsipk2',
+        rangeKey: 'gsipsk2',
+      },
+    }
+  })
+
+  const Logs = table.createEntity<tLogs>().withParams({
+    type: 'APP_LOGS',
+
+    getPartitionKey: () => ['APP_LOG'],
+
+    getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
+
+    indexes: {
+      MY_CUSTOM_INDEX_NAME: {
+        getPartitionKey: ({ type }: Pick<tLogs, 'timestamp'>) => ['APP_LOG_BY_TYPE', timestamp],
+
+        getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
+
+        index: 'DynamoIndex1' // could be DynamoIndex1 or OtherTableIndex as per config
+      }
+    }
+  })
+  ```
 
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
