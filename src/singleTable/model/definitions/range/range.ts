@@ -34,7 +34,7 @@ export type RangeQueryInputProps = {
   /**
    * Configure possible queries to be easily referenced when using the entity
    *
-   * Pass in an object in each:
+   * Pass in an object in which:
    *
    * - Key: query name
    * - Value: query config, which operation will be performed, and value getter
