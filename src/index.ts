@@ -9,4 +9,12 @@ export {
   type UpdateParams,
 } from './provider';
 
-export { SingleTable } from './singleTable';
+export {
+  SingleTable,
+  type GetCollectionType,
+  type SingleTableConfig,
+  type FromCollection,
+  type FromEntity,
+  type GetCollectionParams,
+  type GetCollectionResult,
+} from './singleTable';
