@@ -22,7 +22,6 @@
     "watch": "tsc-watch --onSuccess \"node dist/index.js\"",
     "run-local-file": "npx ts-node -r tsconfig-paths/register -P ./tsconfig.json src/index.ts"
   },
-  "keywords": [],
   "license": "MIT",
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.637.0",
@@ -50,6 +49,14 @@
     "uuid": "^8.3.2"
   },
   "files": [
-    "/lib"
-  ]
+    "/lib",
+    "README.md",
+    "changelog.md",
+    "LICENSE"
+  ],
+  "keywords": ["dynamodb", "aws"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabiosenracorrea/dynamodb-provider"
+  }
 }
