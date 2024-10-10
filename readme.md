@@ -53,7 +53,18 @@ const provider = new DynamodbProvider({
 
 ```ts
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  BatchGetCommand,
+  GetCommand,
+  DeleteCommand,
+  PutCommand,
+  UpdateCommand,
+  ScanCommand,
+  QueryCommand,
+  TransactWriteCommand,
+ } from "@aws-sdk/lib-dynamodb";
+
 import { DynamodbProvider } from 'dynamodb-provider'
 
 const ddbClient = new DynamoDBClient({
@@ -67,11 +78,22 @@ const provider = new DynamodbProvider({
     target: 'v3',
 
     instance: documentClient,
+
+    commands: {
+      BatchGetCommand,
+      GetCommand,
+      DeleteCommand,
+      PutCommand,
+      UpdateCommand,
+      ScanCommand,
+      QueryCommand,
+      TransactWriteCommand,
+    };
   },
 });
 ```
 
-As you have the choise, this lib does not come with any of the aws libraries and is up to you when implementing
+As you have the choice, this lib does not come with any of the aws libraries and is up to you when implementing. We simply receive v3's commands if you choose to use it.
 
 ### Configuration params
 
@@ -1812,6 +1834,8 @@ await table.fromEntity(Logs).queryIndex.logsByType.dateSlice({
 ```
 
 With the `fromEntity` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
+
+### Single Table Schema: Partition
 
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity

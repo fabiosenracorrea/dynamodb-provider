@@ -5,23 +5,15 @@ import { printLog } from 'utils/log';
 import {
   DynamoDBConfig,
   DynamoDBV2Actions,
-  BatchGetCommand,
   DBBatchGetParams,
   DBGetParams,
-  GetCommand,
   DBDeleteItemParams,
-  DeleteCommand,
   DBCreateItemParams,
-  PutCommand,
   DBUpdateItemParams,
-  UpdateCommand,
   DBSet,
   DBScanParams,
-  ScanCommand,
   DBQueryParams,
-  QueryCommand,
   DBTransactWriteParams,
-  TransactWriteCommand,
 } from './types';
 
 export type ExecutorParams = {
@@ -61,7 +53,7 @@ export class DynamodbExecutor {
   ): Promise<DBBatchGetParams['output']> {
     return this.execute({
       params,
-      Command: BatchGetCommand,
+      Command: this.dynamoDB.commands?.BatchGetCommand,
       v2: 'batchGet',
     });
   }
@@ -71,7 +63,7 @@ export class DynamodbExecutor {
   ): Promise<DBScanParams<Entity>['output']> {
     return this.execute({
       params,
-      Command: ScanCommand,
+      Command: this.dynamoDB.commands?.ScanCommand,
       v2: 'scan',
     });
   }
@@ -81,7 +73,7 @@ export class DynamodbExecutor {
   ): Promise<DBQueryParams<Entity>['output']> {
     return this.execute({
       params,
-      Command: QueryCommand,
+      Command: this.dynamoDB.commands?.QueryCommand,
       v2: 'query',
     });
   }
@@ -91,7 +83,7 @@ export class DynamodbExecutor {
   ): Promise<DBGetParams<Entity>['output']> {
     return this.execute({
       params,
-      Command: GetCommand,
+      Command: this.dynamoDB.commands?.GetCommand,
       v2: 'get',
     });
   }
@@ -101,7 +93,7 @@ export class DynamodbExecutor {
   ): Promise<DBDeleteItemParams['output']> {
     return this.execute({
       params,
-      Command: DeleteCommand,
+      Command: this.dynamoDB.commands?.DeleteCommand,
       v2: 'delete',
     });
   }
@@ -111,7 +103,7 @@ export class DynamodbExecutor {
   ): Promise<DBCreateItemParams['output']> {
     return this.execute({
       params,
-      Command: PutCommand,
+      Command: this.dynamoDB.commands?.PutCommand,
       v2: 'put',
     });
   }
@@ -121,7 +113,7 @@ export class DynamodbExecutor {
   ): Promise<DBUpdateItemParams['output']> {
     return this.execute({
       params,
-      Command: UpdateCommand,
+      Command: this.dynamoDB.commands?.UpdateCommand,
       v2: 'update',
     });
   }
@@ -131,7 +123,7 @@ export class DynamodbExecutor {
   ): Promise<DBTransactWriteParams['output']> {
     return this.execute({
       params,
-      Command: TransactWriteCommand,
+      Command: this.dynamoDB.commands?.TransactWriteCommand,
       v2: 'transactWrite',
     });
   }

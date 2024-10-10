@@ -1,9 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { DynamoDB as DynamoDBv2 } from 'aws-sdk';
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-export {
+import {
+  DynamoDBDocumentClient,
   BatchGetCommand,
   GetCommand,
   DeleteCommand,
@@ -25,10 +25,21 @@ export type DynamoDBConfig =
   | {
       target: 'v2';
       instance: DynamoV2;
+      commands?: never;
     }
   | {
       target: 'v3';
       instance: DynamoDBDocumentClient;
+      commands: {
+        BatchGetCommand: BatchGetCommand;
+        GetCommand: GetCommand;
+        DeleteCommand: DeleteCommand;
+        PutCommand: PutCommand;
+        UpdateCommand: UpdateCommand;
+        ScanCommand: ScanCommand;
+        QueryCommand: QueryCommand;
+        TransactWriteCommand: TransactWriteCommand;
+      };
     };
 
 interface ScanOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.ScanOutput, 'Items'> {
