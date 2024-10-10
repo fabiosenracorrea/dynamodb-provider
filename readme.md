@@ -1837,6 +1837,152 @@ With the `fromEntity` you can strongly enforce the data access patterns you have
 
 ### Single Table Schema: Partition
 
+As you might be familiar while using the single table design, it's all about **partitions**. If you are new to it, partitions are all the data under a certain partitionKey logic. It could have one type of entity or many.
+
+Lets use the user example, in which the partitionKey is in the `USER#userId` format. Under it, we have entities for the main user data, permissions, login logs and purchase history. To closely keep that information together with the partition/range key, it is recommended to create a partition before its relative entities.
+
+```ts
+const userPartition = table.schema.createPartition({
+  name: 'USER_PARTITION',
+
+  getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+
+  entries: {
+    mainData: () => ['#DATA'],
+
+    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
+
+    loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+
+    orders: ({ orderId }: { { orderId: string } }) => ['ORDER', orderId],
+  },
+})
+```
+
+Its recommended to give the partition params the most descriptive names possible, why we chose `userId` and not `id`
+
+With your created partition, you can now use it to create its relative entities. **If you need to adjust the key getter params, you can do it here too:**
+
+```ts
+type tUser = {
+  id: string;
+  name: string;
+  createdAt: string;
+  email: string;
+  updatedAt?: string;
+}
+
+type tUserLoginAttempt = {
+  userId: string;
+  timestamp: string;
+  success: boolean;
+  ip: string;
+}
+
+const User = userPartition.use('mainData').create<tUser>().entity({
+  type: 'USER',
+
+  // This is an optional param
+  // it accepts as keys every param inside the partitionKey + the entry used (mainData here)
+  // it will produce an entity that the key getters reference 'id' to work, instead of userId!
+  paramMatch: {
+    userId: 'id'
+  },
+
+  // every other create entity param...
+})
+
+const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+  type: 'USER_LOGIN_ATTEMPT',
+
+  // since all key params from partition+loginAttempt are already present on tUserLoginAttempt,
+  // we do not need to match params
+})
+```
+
+**Important** You can only *use* each entry once.
+
+#### Index Partition
+
+Its also common to have partitions localized to certain table's index instead of the main pk+sk combo. You can create an `index partition` easily as well. So let's repeat the above example with an Index based logic:
+
+```ts
+type tUser = {
+  id: string;
+  name: string;
+  createdAt: string;
+  email: string;
+  updatedAt?: string;
+}
+
+type tUserLoginAttempt = {
+  userId: string;
+  timestamp: string;
+  success: boolean;
+  ip: string;
+}
+
+const userIndexPartition = table.schema.createPartition({
+  name: 'USER_PARTITION',
+
+  index: 'YourIndexNameFromConfig',
+
+  getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+
+  entries: {
+    mainData: () => ['#DATA'],
+
+    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
+
+    loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+
+    // other entries...
+  },
+})
+
+const User = table.schema.createEntity<tUser>().withParams({
+  type: 'USER',
+
+  getPartitionKey: () => ['APP_USERS'],
+
+  getRangeKey: ({ id }: Pick<tUser, 'id'>) => ['USER', id],
+
+  indexes: {
+    userData: userIndexPartition.use('mainData').create<tUser>().index({
+      paramMatch: {
+        userId: 'id'
+      },
+
+      // rangeQueries? ... other index params
+    }),
+  }
+})
+
+const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().withParams({
+  type: 'USER_LOGIN_ATTEMPT',
+
+  getPartitionKey: () => ['APP_LOGINS'],
+
+  getRangeKey: ({ id, timestamp }: Pick<tUserLoginAttempt, 'id' | 'timestamp'>) => ['USER_LOGIN', timestamp, id],
+
+    indexes: {
+      // no param to match or other index params? no need to provide params
+      userData: userIndexPartition.use('loginAttempt').create<tUser>().index(),
+    }
+})
+```
+
+As you have noticed, the `use('entry').create<EntryType>()` call can either provide you with an `entity` OR an `index`, based on if your partition is default or index based.
+
+#### Partition Creation Params
+
+All params have been covered on the example above, but here's them aggregated:
+
+- **name**: An **UNIQUE** name to your partition
+- **getPartitionKey**: The partition getter
+- **index?**: The table index this partition might be from
+- **entries**: An object mapping a partition entity to its `getRangeKey` resolver
+
 - SingleTable Schema -> Partition+Entity
 - RepoLike -> Collection, fromCollection, fromEntity
 
