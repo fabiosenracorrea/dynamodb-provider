@@ -2134,6 +2134,53 @@ const userWithLoginAttemptsCollection = createCollection({
 type UserWithLoginAttempts = GetCollectionType<typeof userWithLoginAttemptsCollection>
 ```
 
+Or, creating simply the user's attempts and permissions:
+
+```ts
+type tUserPermission = {
+  permissionId: string;
+  timestamp: string;
+  addedBy: string;
+}
+
+const UserPermission = userPartition.use('permissions').create<tUserPermission>().entity({
+  type: 'USER_PERMISSION',
+})
+
+const someCollection = createCollection({
+  ref: null, // this!
+
+  join: {
+    logins: {
+      entity: UserLoginAttempt,
+
+      type: 'MULTIPLE',
+
+      joinBy: 'TYPE',
+    },
+
+    permissions: {
+      entity: UserPermission,
+
+      type: 'MULTIPLE',
+
+      joinBy: 'TYPE',
+
+      extractor: ({ permissionId }: tUserPermission) => permissionId,
+    }
+  },
+
+  type: 'SINGLE',
+
+  partition: userPartition,
+});
+
+/*
+  UserWithLoginAttempts = { logins: tUserLoginAttempt[], permissions: string[] }
+*/
+type YourCollection = GetCollectionType<typeof someCollection>
+```
+
 ### Using your collection
 
 Same as with the entity, you can now leverage the schema to execute actions on your collection.
