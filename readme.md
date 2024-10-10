@@ -2176,7 +2176,7 @@ const someCollection = createCollection({
 });
 
 /*
-  UserWithLoginAttempts = { logins: tUserLoginAttempt[], permissions: string[] }
+  YourCollection = { logins: tUserLoginAttempt[], permissions: string[] }
 */
 type YourCollection = GetCollectionType<typeof someCollection>
 ```
