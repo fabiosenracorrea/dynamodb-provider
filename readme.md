@@ -1983,7 +1983,171 @@ All params have been covered on the example above, but here's them aggregated:
 - **index?**: The table index this partition might be from
 - **entries**: An object mapping a partition entity to its `getRangeKey` resolver
 
-- SingleTable Schema -> Partition+Entity
-- RepoLike -> Collection, fromCollection, fromEntity
+## Single Table Schema: Collection
+
+Now that we know how to create and use entities, be it solo or partition types, we need a way to define precisely which complex structures we can retrieve. In the user example above, we could want to retrieve the entire `User` type, including permissions, login attempts, etc. This is a common pattern on single table design, as ofter our data is spread across multiple entries on the table.
+
+To help you define these complex structures that live inside your table, you can create a `Collection`.
+
+### Collection Parameters
+
+- `ref`: The root entity of the collection. It can be `null` if the base entry will be an empty object with the `join` keys.
+
+- `type`: Specifies the join type, either `'SINGLE'` or `'MULTIPLE'`.
+
+- `getPartitionKey`: Function or reference for retrieving the partition key for the collection.
+  If this is provided, `partition` is not accepted
+
+- `index?`: Which table index this collection is relevant. Only acceptable if you provide `getPartitionKey` instead of a partition.
+
+- `partition`: An existing partition for your collection. **It can be either entity or index partition**. The collection will properly infer the index/non-index state to perform the query
+  If this is provided, `getPartitionKey` and `index` are not accepted
+
+- `narrowBy`: Optional filter to narrow down the range key search for the collection, either by a range key prefix or a custom function.
+  Accepted values:
+  * `RANGE_KEY`: will narrow the query starting with the `getRangeKey` of the ref entity. Only works if `ref` is an entity
+  * `(params?: AnyObject) => RangeQueryConfig`: A custom handler that returns the range query to be passed down to the collection query
+
+
+- `join`: Configuration for how entities should be joined together. Each key will represent an entity relationship in the collection.
+  Structure: `Record<string, JoinConfig>`. Each key referenced here will be the resulting key on the extracted result
+
+  Each entry in the `join` object should follow the structure:
+
+  ```ts
+  type JoinConfig = {
+    entity: RefEntity;
+
+    type: 'SINGLE' | 'MULTIPLE';
+
+    extractor?: (item: AnyObject) => any;
+
+    sorter?: Sorter;
+
+    joinBy?: 'POSITION' | 'TYPE' | JoinResolver;
+
+    join?: Record<string, JoinConfig>;
+  }
+  ```
+
+  Lets explore each param:
+
+  * **`entity`** (Required):
+    The reference to the entity you want to join with.
+
+  * **`type`** (Required):
+    Specifies whether the join will result in a single reference (`'SINGLE'`) or multiple references (`'MULTIPLE'`).
+
+  * **`extractor`** (Optional):
+    A function to extract and return specific data from the joined entity before adding it to the parent entity.
+    **Example**: Extracting only a subset of the fields like `permission` from the `UserPermission` entity.
+
+  * **`sorter`** (Optional):
+    A function to custom sort the list of entities when `type` is `'MULTIPLE'`. This is ignored for `'SINGLE'` joins.
+    **Example**: Sorting the user login attempts by a timestamp or a custom logic
+
+  * **`joinBy`** (Optional):
+    Defines how the join is performed. It defaults to `'POSITION'` but supports the following options:
+    - **`POSITION`**: Joins entities based on their sequential extraction from the query. **Requires a `typeIndex` to exist in the table.**
+    - **`TYPE`**: Joins entities by their type. Required **at least** your entities to have the `typeIndex.partitionKey` defined. The index does not need to actually exist in the table
+    - **Custom Resolver**: A function to define custom join logic, with the signature `(parent, child) => boolean`. It returns `true` if the entities should be joined.
+
+  * **`join`** (Optional):
+    A nested configuration for joining other entities that are related to the current entity. You can create complex join chains by adding more entities within this property. The structure of each nested join follows the same format as the root-level `join`.
+
+
+### Returns
+
+A `Collection` to be used both for **type definition** and table extraction.
+
+### Extracting Collection Type
+
+A `GetCollectionType` is exposed for you to infer correctly its type using `type YourType = GetCollectionType<typeof yourCollection>`
+
+### Example Usage
+
+```ts
+const userPartition = table.schema.createPartition({
+  name: 'USER_PARTITION',
+
+  getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+
+  entries: {
+    mainData: () => ['#DATA'],
+
+    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
+
+    loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+
+    orders: ({ orderId }: { { orderId: string } }) => ['ORDER', orderId],
+  },
+})
+
+type tUser = {
+  id: string;
+  name: string;
+  createdAt: string;
+  email: string;
+  updatedAt?: string;
+}
+
+type tUserLoginAttempt = {
+  userId: string;
+  timestamp: string;
+  success: boolean;
+  ip: string;
+}
+
+const User = userPartition.use('mainData').create<tUser>().entity({
+  type: 'USER',
+
+  paramMatch: {
+    userId: 'id'
+  },
+})
+
+const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+  type: 'USER_LOGIN_ATTEMPT',
+})
+
+const userWithLoginAttemptsCollection = createCollection({
+  ref: User,
+
+  join: {
+    logins: {
+      entity: UserLoginAttempt,
+
+      type: 'MULTIPLE',
+
+      joinBy: 'TYPE',
+    },
+  },
+
+  type: 'SINGLE',
+
+  partition: userPartition,
+});
+
+/*
+  UserWithLoginAttempts = tUser & { logins: tUserLoginAttempt[] }
+*/
+type UserWithLoginAttempts = GetCollectionType<typeof userWithLoginAttemptsCollection>
+```
+
+### Using your collection
+
+Same as with the entity, you can now leverage the schema to execute actions on your collection.
+
+For now, only the `get` method is exposed:
+
+```ts
+const userWithAttempts = await table.schema.fromCollection(userWithLoginAttemptsCollection).get({
+  // its the partition param passed to the collection!
+  userId: 'user-id-12',
+})
+```
+
+And thats it! The result will be of the expected type (or undefined if not found, since its a `SINGLE` collection)
+
 
 

@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v0.0.4
+
+- some Collection, FromEntity and FromCollection types exposed
+
 ## v0.0.1
 
 - Early release
