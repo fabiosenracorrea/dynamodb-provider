@@ -1187,6 +1187,12 @@ The `SingleTable` instance requires a `DynamoDbProvider` to be created.
 - **Type**: `(item: AnyObject) => AnyObject`
 - **Description**: A function that processes and returns the item to be exposed by the methods. Overrides the automatic cleanup behavior set by `autoRemoveTableProperties` and `keepTypeProperty`. Useful for customizing how internal properties are removed from items.
 
+#### `blockInternalPropUpdate`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Enables a safety check on every update operation inside your single table to block (with a thrown error) any operation that tries to update an internal property of an item. This includes any key, index key, type key or TTL attribute. Useful to prevent indirect code to mess with the internal configuration of your items. You can set this to `false` and use the `badUpdateValidation` to further customize which property should be blocked
+
 #### `badUpdateValidation`
 
 - **Type**: `(propertiesInUpdate: Set<string>) => boolean | string`
