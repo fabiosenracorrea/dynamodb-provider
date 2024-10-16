@@ -151,6 +151,18 @@ export interface SingleTableConfig {
   propertyCleanup?: (item: AnyObject) => AnyObject;
 
   /**
+   * Enables a safety check on every update operation inside your single table to block (with a thrown error) any operation
+   * that tries to update an internal property of an item. This includes any key, index key, type key or TTL attribute
+   *
+   * Useful to prevent indirect code to mess with the internal configuration of your items.
+   *
+   * Defaults to `true`
+   *
+   * You can set this to `false` and use the `badUpdateValidation` to further customize which property should be blocked
+   */
+  blockInternalPropUpdate?: boolean;
+
+  /**
    *
    * @param propertiesInUpdate All the properties referenced in an update action (inside `values`, `remove` and `atomicOperations`)
    * @returns If the proposed update is INVALID

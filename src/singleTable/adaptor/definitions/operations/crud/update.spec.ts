@@ -296,5 +296,182 @@ describe('single table adaptor - update', () => {
         ...toForward,
       });
     });
+
+    it('should block all internal properties mentioned on any update by default', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          expiresAt: '_expires',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+          indexes: {
+            someIndex: {
+              partitionKey: '_i1',
+              rangeKey: '_ir1',
+            },
+          },
+        },
+      });
+
+      const props = ['_pk', '_sk', '_expires', '_type', '_ts', '_i1', '_ir1'];
+
+      props.forEach((badProp) => {
+        const onValue = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            values: {
+              [badProp]: 'some-update',
+            },
+          });
+        };
+
+        const onRemove = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            remove: [badProp],
+          });
+        };
+
+        const onAtomic = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            atomicOperations: [
+              {
+                property: badProp,
+                operation: 'add',
+                value: 1,
+              },
+            ],
+          });
+        };
+
+        expect(onValue).toThrow();
+        expect(onRemove).toThrow();
+        expect(onAtomic).toThrow();
+      });
+    });
+
+    it('should only block PK references if blockInternalPropUpdate is false', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          blockInternalPropUpdate: false,
+          expiresAt: '_expires',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+          indexes: {
+            someIndex: {
+              partitionKey: '_i1',
+              rangeKey: '_ir1',
+            },
+          },
+        },
+      });
+
+      const props = ['_expires', '_type', '_ts', '_i1', '_ir1'];
+      const badProps = ['_pk', '_sk'];
+
+      props.forEach((okProp) => {
+        const onValue = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            values: {
+              [okProp]: 'some-update',
+            },
+          });
+        };
+
+        const onRemove = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            remove: [okProp],
+          });
+        };
+
+        const onAtomic = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            atomicOperations: [
+              {
+                property: okProp,
+                operation: 'add',
+                value: 1,
+              },
+            ],
+          });
+        };
+
+        expect(onValue).not.toThrow();
+        expect(onRemove).not.toThrow();
+        expect(onAtomic).not.toThrow();
+      });
+
+      badProps.forEach((badProp) => {
+        const onValue = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            values: {
+              [badProp]: 'some-update',
+            },
+          });
+        };
+
+        const onRemove = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            remove: [badProp],
+          });
+        };
+
+        const onAtomic = (): void => {
+          updater.getUpdateParams({
+            partitionKey: 'some',
+            rangeKey: 'sommeee',
+
+            atomicOperations: [
+              {
+                property: badProp,
+                operation: 'add',
+                value: 1,
+              },
+            ],
+          });
+        };
+
+        expect(onValue).toThrow();
+        expect(onRemove).toThrow();
+        expect(onAtomic).toThrow();
+      });
+    });
   });
 });

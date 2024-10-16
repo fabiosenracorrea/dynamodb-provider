@@ -4,6 +4,7 @@
 import { AnyObject, StringKey } from 'types';
 
 import { removeUndefinedProps } from 'utils/object';
+import { toTruthyList } from 'utils/array';
 
 import { UpdateParams } from 'provider';
 
@@ -46,6 +47,33 @@ export type SingleTableUpdateParams<
 type RefConfig = Required<SingleTableConfig>;
 
 export class SingleTableUpdater extends BaseSingleTableOperator {
+  private getAllTableProperties(): string[] {
+    const props = [
+      this.config.partitionKey,
+      this.config.rangeKey,
+      this.config.expiresAt,
+      this.config.typeIndex?.partitionKey,
+      this.config.typeIndex?.rangeKey,
+      ...Object.values(this.config.indexes ?? {})
+        .map(({ partitionKey, rangeKey }) => [partitionKey, rangeKey])
+        .flat(),
+    ];
+
+    return toTruthyList(props);
+  }
+
+  private validateInternalRef(properties: Set<string>): string | undefined {
+    const check = this.config.blockInternalPropUpdate ?? true;
+
+    if (!check) return;
+
+    const badRefs = this.getAllTableProperties().filter((prop) => properties.has(prop));
+
+    if (!badRefs.length) return;
+
+    throw new Error(`Invalid Update Detected: Internal prop referenced: ${badRefs.join(', ')}.`);
+  }
+
   private validateUpdateProps({
     values,
     atomicOperations,
@@ -53,7 +81,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
   }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SingleTableUpdateParams<any>): void {
     const allPropertiesMentioned = new Set([
-      ...Object.values(values || []),
+      ...Object.keys(values || []),
       ...(remove || []),
       ...(atomicOperations || []).map(({ property }) => property),
     ]);
@@ -63,6 +91,8 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     );
 
     if (includesPK) throw new Error(`Update contained references to ${this.config.table}'s PKs`);
+
+    this.validateInternalRef(allPropertiesMentioned);
 
     const badUpdate = this.config.badUpdateValidation?.(allPropertiesMentioned);
 
