@@ -1079,7 +1079,7 @@ Aside from the methods that execute an action on dynamoDB, the provider exposes 
 
 ### create set
 
-Depending on the sdk version, referencing a set to be created on DynamoDB. To get around this and ensure a normalized usage, you can use the `createSet` method:
+Depending on the sdk version, referencing a set to be created on DynamoDB is different. To get around this and ensure a normalized usage, you can use the `createSet` method:
 
 ```ts
 await provider.create({
