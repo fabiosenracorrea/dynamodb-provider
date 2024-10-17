@@ -1723,6 +1723,12 @@ The generated entity has properties that you can leverage to interact with the s
 
 - `getUpdateParams(params: UpdateParams)` - same logic as the getCreationParams, but produces the params for [single table update](#single-table-update) instead. Here all the key params are required, plus the updates such as `values`, `atomicOperations` and etc
 
+- `transact param builders` - You can easily generate any of the `create`, `update`, `erase` and/or `validate` transact params with:
+  * **transactCreateParams** - results in `{ create: {...} }`
+  * **transactUpdateParams** - results in `{ update: {...} }`
+  * **transactDeleteParams** - results in `{ erase: {...} }`
+  * **transactValidateParams** - results in `{ validate: {...} }`
+
 #### Using entity directly on schema
 
 You can also leverage the `schema.fromEntity` method to create a "repository-like" instance to perform actions on your entity:

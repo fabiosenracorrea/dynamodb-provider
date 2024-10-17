@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  SingleTableConditionCheckTransaction,
   SingleTableCreateItemParams,
+  SingleTableCreateTransaction,
+  SingleTableDeleteTransaction,
   SingleTableUpdateParams,
+  SingleTableUpdateTransaction,
 } from 'singleTable/adaptor/definitions';
 import { SingleTableConfig } from 'singleTable/adaptor';
 
@@ -50,7 +54,7 @@ export type ExtendableCRUDProps = {
   getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
 };
 
-export type EntityCRUDProps<
+type BaseCRUDProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<any, any>,
@@ -65,6 +69,34 @@ export type EntityCRUDProps<
     params: EntityKeyParams<Params> & UpdateCallProps<TableConfig, Entity>,
   ) => SingleTableUpdateParams<Entity>;
 };
+
+type TransactCRUDProps<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<any, any>,
+> = {
+  transactCreateParams: (
+    ...params: Parameters<BaseCRUDProps<TableConfig, Entity, Params>['getCreationParams']>
+  ) => Pick<SingleTableCreateTransaction<TableConfig, Entity>, 'create'>;
+
+  transactUpdateParams: (
+    ...params: Parameters<BaseCRUDProps<TableConfig, Entity, Params>['getUpdateParams']>
+  ) => Pick<SingleTableUpdateTransaction<TableConfig, Entity>, 'update'>;
+
+  transactDeleteParams: (
+    params: EntityKeyParams<Params>,
+  ) => Pick<SingleTableDeleteTransaction<Entity>, 'erase'>;
+
+  transactValidateParams: (
+    params: EntityKeyParams<Params>,
+  ) => Pick<SingleTableConditionCheckTransaction<Entity>, 'validate'>;
+};
+
+export type EntityCRUDProps<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<any, any>,
+> = BaseCRUDProps<TableConfig, Entity, Params> & TransactCRUDProps<TableConfig, Entity, Params>;
 
 type CrudParamsGenerator<
   TableConfig extends SingleTableConfig,
@@ -137,5 +169,23 @@ export function getCRUDParamGetters<
   return {
     getUpdateParams,
     getCreationParams,
+
+    transactCreateParams: (...params) => ({ create: getCreationParams(...params) }),
+
+    transactUpdateParams: (param) => ({ update: getUpdateParams(param) }),
+
+    transactDeleteParams: (params = {} as any) => ({
+      erase: {
+        ...(params as AnyObject),
+        ...getKey(params),
+      },
+    }),
+
+    transactValidateParams: (params = {} as any) => ({
+      validate: {
+        ...(params as AnyObject),
+        ...getKey(params),
+      },
+    }),
   } as EntityCRUDProps<TableConfig, Entity, Params>;
 }

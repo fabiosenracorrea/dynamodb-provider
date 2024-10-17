@@ -12,8 +12,9 @@ import { SingleTableKeyReference } from '../../key';
 
 export interface SingleTableUpdateTransaction<
   TableConfig extends SingleTableConfig = SingleTableConfig,
+  Entity extends AnyObject = AnyObject,
 > {
-  update: SingleTableUpdateParams<AnyObject, TableConfig>;
+  update: SingleTableUpdateParams<Entity, TableConfig>;
   create?: never;
   erase?: never;
   validate?: never;
@@ -21,15 +22,16 @@ export interface SingleTableUpdateTransaction<
 
 export interface SingleTableCreateTransaction<
   TableConfig extends SingleTableConfig = SingleTableConfig,
+  Entity extends AnyObject = AnyObject,
 > {
-  create: SingleTableCreateItemParams<AnyObject, TableConfig>;
+  create: SingleTableCreateItemParams<Entity, TableConfig>;
   update?: never;
   erase?: never;
   validate?: never;
 }
 
-export interface SingleTableDeleteTransaction {
-  erase: SingleTableDeleteParams<AnyObject>;
+export interface SingleTableDeleteTransaction<Entity extends AnyObject = AnyObject> {
+  erase: SingleTableDeleteParams<Entity>;
   update?: never;
   create?: never;
   validate?: never;
@@ -47,18 +49,19 @@ export interface SingleTableConditionCheckTransaction<E extends AnyObject = AnyO
 
 export type SingleTableTransactionConfig<
   TableConfig extends SingleTableConfig = SingleTableConfig,
+  Entity extends AnyObject = AnyObject,
 > =
-  | SingleTableUpdateTransaction<TableConfig>
-  | SingleTableDeleteTransaction
-  | SingleTableCreateTransaction<TableConfig>
-  | SingleTableConditionCheckTransaction;
+  | SingleTableUpdateTransaction<TableConfig, Entity>
+  | SingleTableDeleteTransaction<Entity>
+  | SingleTableCreateTransaction<TableConfig, Entity>
+  | SingleTableConditionCheckTransaction<Entity>;
 
 export type SingleTableTransactConfigGenerator<
-  Item,
+  Item extends AnyObject = AnyObject,
   TableConfig extends SingleTableConfig = SingleTableConfig,
 > = (
   item: Item,
 ) =>
-  | (SingleTableTransactionConfig<TableConfig> | null)[]
-  | SingleTableTransactionConfig<TableConfig>
+  | (SingleTableTransactionConfig<TableConfig, Item> | null)[]
+  | SingleTableTransactionConfig<TableConfig, Item>
   | null;

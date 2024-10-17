@@ -107,14 +107,14 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.transactWriter.executeTransaction(configs);
   }
 
-  generateTransactionConfigList<Item>(
+  generateTransactionConfigList<Item extends AnyObject>(
     items: Item[],
     generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
-  ): SingleTableTransactionConfig<SingleParams>[] {
+  ): SingleTableTransactionConfig<SingleParams, Item>[] {
     return this.transactWriter.generateTransactionConfigList(
       items,
       generator,
-    ) as SingleTableTransactionConfig<SingleParams>[];
+    ) as SingleTableTransactionConfig<SingleParams, Item>[];
   }
 
   createSet(items: string[]): DBSet {

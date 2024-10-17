@@ -47,10 +47,11 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   ): Promise<QueryResult<Entity>>;
 
   executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
-  generateTransactionConfigList<Item>(
+
+  generateTransactionConfigList<Item extends AnyObject>(
     items: Item[],
     generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
-  ): SingleTableTransactionConfig<SingleParams>[];
+  ): SingleTableTransactionConfig<SingleParams, Item>[];
 
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined;
   filterTableItens<Entity>(items: AnyObject[], type: string): Entity[];

@@ -43,7 +43,7 @@ describe('getCRUDParamGetters', () => {
     autoGen: mockAutoGen,
   };
 
-  const { getCreationParams, getUpdateParams } = getCRUDParamGetters(
+  const { getCreationParams, getUpdateParams, ...transactParams } = getCRUDParamGetters(
     tableConfig,
     crudParamsGenerator,
   );
@@ -105,6 +105,98 @@ describe('getCRUDParamGetters', () => {
       sortKey: 'sort#123',
       values: mockGeneratedValues,
       indexes: { updateIndex: true },
+    });
+  });
+
+  describe('transaction param generation', () => {
+    it('create: should generate params with getCreationParams', () => {
+      const mockItem = { id: '123', name: 'John Doe' };
+      const mockConfig = { expiresAt: 203294320 };
+      const mockGeneratedItem = { ...mockItem, createdAt: '2024-01-01T00:00:00.000Z' };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedItem);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      const creationParamResult = getCreationParams(mockItem, mockConfig);
+
+      const transactResult = transactParams.transactCreateParams(mockItem, mockConfig);
+
+      expect(transactResult).toStrictEqual({
+        create: creationParamResult,
+      });
+    });
+
+    it('update: should generate params with getUpdateParams', () => {
+      const mockUpdateParams = {
+        values: { name: 'Jane Doe' },
+        atomicOperations: [
+          {
+            operation: 'add',
+            property: 'count',
+            value: 1,
+          },
+        ],
+        conditions: [],
+        remove: ['prop'],
+        returnUpdatedProperties: true,
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      const updateParamsResult = getUpdateParams(mockUpdateParams);
+
+      const transactResult = transactParams.transactUpdateParams(mockUpdateParams);
+
+      expect(transactResult).toStrictEqual({
+        update: updateParamsResult,
+      });
+    });
+
+    it('delete: should generate params with getKey + forward conditions', () => {
+      mockGetKey.mockReturnValueOnce({
+        partitionKey: 'hi',
+        rangeKey: 'hello',
+      });
+
+      const conditions = Symbol('conditions');
+
+      const params = transactParams.transactDeleteParams({
+        conditions,
+      });
+
+      expect(params).toStrictEqual({
+        erase: {
+          conditions,
+          partitionKey: 'hi',
+          rangeKey: 'hello',
+        },
+      });
+    });
+
+    it('validate: should generate params with getKey + forward conditions', () => {
+      mockGetKey.mockReturnValueOnce({
+        partitionKey: 'hi-validate',
+        rangeKey: 'another',
+      });
+
+      const conditions = Symbol('validate-conditions');
+
+      const params = transactParams.transactValidateParams({
+        conditions,
+      });
+
+      expect(params).toStrictEqual({
+        validate: {
+          conditions,
+          partitionKey: 'hi-validate',
+          rangeKey: 'another',
+        },
+      });
     });
   });
 });
