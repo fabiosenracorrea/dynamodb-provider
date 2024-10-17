@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v0.0.8
+
+- ExtendableSingleTableEntity type fix for the new transact param generators
+
 ## v0.0.7
 
 - type of `ExtendableCRUDProps`responsible for defining `fromEntity` adjusted to new entity transact param getters

@@ -53,7 +53,15 @@ export type SingleTableEntity<
 
 export type ExtendableSingleTableEntity = Omit<
   SingleTableEntity<any, any, RegisterEntityParams<any, any>>,
-  'getPartitionKey' | 'getRangeKey' | 'getKey' | 'getUpdateParams' | 'getCreationParams'
+  | 'getPartitionKey'
+  | 'getRangeKey'
+  | 'getKey'
+  | 'getUpdateParams'
+  | 'getCreationParams'
+  | 'transactCreateParams'
+  | 'transactUpdateParams'
+  | 'transactDeleteParams'
+  | 'transactValidateParams'
 > & {
   getPartitionKey: (...params: any[]) => KeyValue;
   getRangeKey: (...params: any[]) => KeyValue;
