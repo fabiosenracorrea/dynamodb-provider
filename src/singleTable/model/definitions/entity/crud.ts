@@ -49,11 +49,6 @@ type MakeGenPropsPartial<
     : CreationProps
   : CreationProps;
 
-export type ExtendableCRUDProps = {
-  getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
-  getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
-};
-
 type BaseCRUDProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
@@ -90,6 +85,19 @@ type TransactCRUDProps<
   transactValidateParams: (
     params: EntityKeyParams<Params>,
   ) => Pick<SingleTableConditionCheckTransaction<Entity>, 'validate'>;
+};
+
+// fromEntity was acting up
+export type ExtendableCRUDProps = {
+  getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
+  getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
+
+  transactCreateParams: (...param: any[]) => Pick<SingleTableCreateTransaction<any, any>, 'create'>;
+  transactUpdateParams: (...param: any[]) => Pick<SingleTableUpdateTransaction<any, any>, 'update'>;
+  transactDeleteParams: (...param: any[]) => Pick<SingleTableDeleteTransaction<any>, 'erase'>;
+  transactValidateParams: (
+    ...param: any[]
+  ) => Pick<SingleTableConditionCheckTransaction<any>, 'validate'>;
 };
 
 export type EntityCRUDProps<

@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v0.0.7
+
+- type of `ExtendableCRUDProps`responsible for defining `fromEntity` adjusted to new entity transact param getters
+
 ## v0.0.6
 
 - `transact` params generation added to entity. Now you can simplify transact params creations:
