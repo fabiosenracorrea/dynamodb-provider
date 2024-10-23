@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.0.0
+
+- First version release. Stable.
+
 ## v0.0.8
 
 - ExtendableSingleTableEntity type fix for the new transact param generators
