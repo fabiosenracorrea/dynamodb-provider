@@ -17,4 +17,7 @@ export {
   type FromEntity,
   type GetCollectionParams,
   type GetCollectionResult,
+  type ExtractTableConfig,
+  type ExtendableCollection,
+  type ExtendableSingleTableEntity,
 } from './singleTable';

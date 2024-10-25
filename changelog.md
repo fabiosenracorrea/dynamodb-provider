@@ -1,5 +1,49 @@
 # DynamoDB Provider Changelog
 
+## v1.0.1
+
+- New utility types exposed:
+
+1. `ExtractTableConfig`: Get the config object from your SingleTable instance
+
+```ts
+const table = new SingleTable({
+  // .. config
+})
+
+type YourConfig = ExtractTableConfig<typeof table>
+```
+
+2. `ExtendableSingleTableEntity`: Create helper types that expect an entity
+
+```ts
+import { SingleTable, ExtractTableConfig, ExtendableSingleTableEntity, FromEntity } from 'dynamodb-provider'
+
+const table = new SingleTable({
+  // .. config
+})
+
+type YourConfig = ExtractTableConfig<typeof table>
+
+type EntityActions<Entity extends ExtendableSingleTableEntity> = FromEntity<Entity, YourConfig>
+// easily reference the type of a table.schema.fromEntity(XXX) result
+```
+
+3. `ExtendableCollection`: Create helper types that expect a collection
+
+```ts
+import { SingleTable, ExtractTableConfig, ExtendableCollection, FromCollection } from 'dynamodb-provider'
+
+const table = new SingleTable({
+  // .. config
+})
+
+type YourConfig = ExtractTableConfig<typeof table>
+
+type CollectionActions<Collection extends ExtendableCollection> = FromCollection<Entity, YourConfig>
+// easily reference the type of a table.schema.fromCollection(XXX) result
+```
+
 ## v1.0.0
 
 - First version release. Stable.
