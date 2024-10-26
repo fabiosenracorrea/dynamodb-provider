@@ -38,7 +38,9 @@ export interface SingleTableConfig {
    */
   typeIndex?: {
     /**
-     * The partition/hash column of the index
+     * The partition/hash column of the index.
+     *
+     * This is what is populated with your entity.type value
      */
     partitionKey: string;
 
