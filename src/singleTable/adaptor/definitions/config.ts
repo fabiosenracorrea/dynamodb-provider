@@ -57,8 +57,10 @@ export interface SingleTableConfig {
     /**
      * @param item The item being created
      * @returns The rangeKey value of the type index
+     *
+     * If you want to opt out of creating this column, return `undefined`
      */
-    rangeKeyGenerator?: (item: AnyObject, type: string) => string;
+    rangeKeyGenerator?: (item: AnyObject, type: string) => string | undefined;
   };
 
   /**

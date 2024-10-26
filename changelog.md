@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.0.2
+
+- `rangeKeyGenerator` type on `SingleTable` now correctly allows `undefined` as value. Useful for opting out the automatic generation
+
 ## v1.0.1
 
 - New utility types exposed:
