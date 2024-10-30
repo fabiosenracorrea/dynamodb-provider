@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableConfig } from 'singleTable/adaptor';
 
+import { AnyObject } from 'types';
 import { CreatePartitionParams, PartitionEntry } from './params';
 import { PartitionIndexCreator } from './indexPartition';
 import { PartitionEntityCreator } from './entityPartition';
@@ -9,7 +10,7 @@ type PartitionDumpParams<
   TableConfig extends SingleTableConfig,
   Params extends CreatePartitionParams<any>,
   Entry extends PartitionEntry<Params>,
-  Entity,
+  Entity extends AnyObject,
 > = Params extends {
   index: any;
 }
@@ -36,8 +37,9 @@ export type Partition<
      *
      * This ensures type-safe references
      */
-    create<T = void>(
-      ...params: T extends void ? ['You must provided a type parameter'] : []
-    ): PartitionDumpParams<TableConfig, Params, Entry, T>;
+    create<
+      T extends AnyObject,
+    >(): // ...params: T extends void ? ['You must provided a type parameter'] : []
+    PartitionDumpParams<TableConfig, Params, Entry, T>;
   };
 };

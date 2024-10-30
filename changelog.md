@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.0.3
+
+- Removed the "You must provided a type parameter" type hack from `partition.use('XX').create<T>()`. It was causing the `.entity({})` calls from it to be glitchy when the type `T` passed was a `type T = Some & Other` declaration. Future revisions might evaluate how to enforce the type param down
+
 ## v1.0.2
 
 - `rangeKeyGenerator` type on `SingleTable.typeIndex` now correctly allows `undefined` as value. Useful for opting out the automatic generation

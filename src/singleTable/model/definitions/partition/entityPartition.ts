@@ -29,22 +29,20 @@ export type PartitionEntityCreator<
   TableConfig extends SingleTableConfig,
   Params extends CreatePartitionParams<any>,
   Entry extends PartitionEntry<Params>,
-  Entity,
-> = Entity extends AnyObject
-  ? {
-      entity<T extends PartitionEntityCreateParams<TableConfig, Entity, Params, Entry>>(
-        params: T,
-      ): SingleTableEntity<
-        TableConfig,
-        Entity,
-        // TS was freaking out with the T & key params
-        PartitionEntityParams<
-          PartitionKeyGetters<Params, Entry>,
-          Entity,
-          T
-        > extends RegisterEntityParams<TableConfig, any>
-          ? PartitionEntityParams<PartitionKeyGetters<Params, Entry>, Entity, T>
-          : never
-      >;
-    }
-  : unknown;
+  Entity extends AnyObject,
+> = {
+  entity<T extends PartitionEntityCreateParams<TableConfig, Entity, Params, Entry>>(
+    params: T,
+  ): SingleTableEntity<
+    TableConfig,
+    Entity,
+    // TS was freaking out with the T & key params
+    PartitionEntityParams<
+      PartitionKeyGetters<Params, Entry>,
+      Entity,
+      T
+    > extends RegisterEntityParams<TableConfig, any>
+      ? PartitionEntityParams<PartitionKeyGetters<Params, Entry>, Entity, T>
+      : never
+  >;
+};
