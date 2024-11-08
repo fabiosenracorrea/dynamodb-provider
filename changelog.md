@@ -2,8 +2,8 @@
 
 ## v1.0.4
 
-- `Type Enhance`: `createSet` now properly infers DynamoDB version and arguments to give its result value
-- `FIX`: `createSet` was referencing itself on an infinite loop
+- Type Enhance: `createSet` now properly infers DynamoDB version and arguments to give its result value
+- **FIX** : `createSet` was referencing itself on an infinite loop
 
 ## v1.0.3
 
