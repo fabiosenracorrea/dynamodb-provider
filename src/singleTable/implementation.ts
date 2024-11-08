@@ -169,7 +169,9 @@ export class SingleTable<SingleParams extends SingleTableParams> {
     ) as SingleTableTransactionConfig<SingleParams, Item>[];
   }
 
-  createSet(items: string[]): DBSet {
+  createSet<T extends string[] | number[]>(
+    items: T,
+  ): DBSet<T[number], SingleParams['dynamodbProvider']['target']> {
     return this.methods.createSet(items);
   }
 

@@ -14,9 +14,29 @@ import {
   ListAllOptions,
   ListOptions,
   ListTableResult,
+  DynamoDBConfig,
 } from './utils';
 
-export interface IDynamodbProvider {
+export interface DynamoDbProviderParams {
+  /**
+   * DynamoDB Document Client
+   *
+   * You can pass in either v2 or v3 client
+   */
+  dynamoDB: DynamoDBConfig;
+
+  /**
+   * Defines if we should log the params constructed
+   * right before calling a dynamodb action.
+   *
+   * Useful for debugging param generation and such
+   */
+  logCallParams?: boolean;
+}
+
+export interface IDynamodbProvider<Params extends DynamoDbProviderParams = DynamoDbProviderParams> {
+  target: Params['dynamoDB']['target'];
+
   list<Entity>(tableName: string, options?: ListOptions<Entity>): Promise<ListTableResult<Entity>>;
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;
 
@@ -47,5 +67,7 @@ export interface IDynamodbProvider {
     generator: (item: Item) => (TransactionConfig | null)[],
   ): TransactionConfig[];
 
-  createSet(items: string[] | number[]): DBSet;
+  createSet<T extends string[] | number[]>(
+    items: T,
+  ): DBSet<T[number], Params['dynamoDB']['target']>;
 }

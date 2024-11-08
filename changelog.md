@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+## v1.0.4
+
+- `Type Enhance`: `createSet` now properly infers DynamoDB version and arguments to give its result value
+- `FIX`: `createSet` was referencing itself on an infinite loop
+
 ## v1.0.3
 
 - Removed the "You must provided a type parameter" type hack from `partition.use('XX').create<T>()`. It was causing the `.entity({})` calls from it to be glitchy when the type `T` passed was a `type T = Some & Other` declaration. Future revisions might evaluate how to enforce the type param down

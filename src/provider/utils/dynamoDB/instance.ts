@@ -128,9 +128,9 @@ export class DynamodbExecutor {
     });
   }
 
-  protected createSet(items: string[] | number[]): DBSet {
-    if (this.dynamoDB.target === 'v2') return this.dynamoDB.instance.createSet(items) as DBSet;
+  protected _createSet<T extends string[] | number[]>(items: T): DBSet<T[number], 'v2' | 'v3'> {
+    if (this.dynamoDB.target === 'v3') return new Set(items as any[]);
 
-    return new Set(items as any[]);
+    return this.dynamoDB.instance.createSet(items) as any as DBSet<T[number], 'v2' | 'v3'>;
   }
 }

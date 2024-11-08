@@ -3,7 +3,7 @@ import { StringKey, AnyObject } from 'types';
 
 import { IDynamodbProvider } from 'provider';
 
-import { QueryResult, DBSet } from 'provider/utils';
+import { QueryResult } from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -117,7 +117,8 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     ) as SingleTableTransactionConfig<SingleParams, Item>[];
   }
 
-  createSet(items: string[]): DBSet {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createSet<T extends string[] | number[]>(items: T): any {
     return this.db.createSet(items);
   }
 

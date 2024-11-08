@@ -30,7 +30,7 @@ export class ItemUpdater extends DynamodbExecutor {
     switch (type) {
       case 'add_to_set':
       case 'remove_from_set':
-        return this.createSet(Array.isArray(value) ? value : [value]);
+        return this._createSet(Array.isArray(value) ? value : [value]);
       default:
         return value;
     }

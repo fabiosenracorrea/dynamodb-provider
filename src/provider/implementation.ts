@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject, StringKey } from 'types';
 
-import { IDynamodbProvider } from './definition';
+import { DynamoDbProviderParams, IDynamodbProvider } from './definition';
 
 import {
   CreateItemParams,
@@ -25,28 +25,12 @@ import {
   QueryBuilder,
   QueryParams,
   QueryResult,
-  DynamoDBConfig,
   DynamoDBSet,
 } from './utils';
 
-interface DynamoDbProviderParams {
-  /**
-   * DynamoDB Document Client
-   *
-   * You can pass in either v2 or v3 client
-   */
-  dynamoDB: DynamoDBConfig;
-
-  /**
-   * Defines if we should log the params constructed
-   * right before calling a dynamodb action.
-   *
-   * Useful for debugging param generation and such
-   */
-  logCallParams?: boolean;
-}
-
-export class DynamodbProvider implements IDynamodbProvider {
+export class DynamodbProvider<Params extends DynamoDbProviderParams>
+  implements IDynamodbProvider<Params>
+{
   private creator: ItemCreator;
 
   private remover: ItemRemover;
@@ -65,7 +49,9 @@ export class DynamodbProvider implements IDynamodbProvider {
 
   private set: DynamoDBSet;
 
-  constructor(params: DynamoDbProviderParams) {
+  target: Params['dynamoDB']['target'];
+
+  constructor(params: Params) {
     this.creator = new ItemCreator(params);
 
     this.remover = new ItemRemover(params);
@@ -83,6 +69,8 @@ export class DynamodbProvider implements IDynamodbProvider {
     this.queryBuilder = new QueryBuilder(params);
 
     this.set = new DynamoDBSet(params);
+
+    this.target = params.dynamoDB.target;
   }
 
   async get<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -142,7 +130,9 @@ export class DynamodbProvider implements IDynamodbProvider {
     return this.transactWriter.generateTransactionConfigList(items, generator);
   }
 
-  createSet(items: string[] | number[]): DBSet {
-    return this.set.createSet(items);
+  createSet<T extends string[] | number[]>(
+    items: T,
+  ): DBSet<T[number], Params['dynamoDB']['target']> {
+    return this.set.createSet(items) as DBSet<T[number], Params['dynamoDB']['target']>;
   }
 }

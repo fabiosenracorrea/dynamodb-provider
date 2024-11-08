@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { DynamoDB as DynamoDBv2 } from 'aws-sdk';
@@ -114,16 +115,19 @@ export type DBProjectionParams = Pick<
   'ProjectionExpression' | 'ExpressionAttributeNames'
 >;
 
-type DBV2Set =
-  | {
-      type: 'String';
-      values: string[];
-    }
-  | {
+export type DBV2Set<T extends string | number> = T extends number
+  ? {
       type: 'Number';
       values: number[];
+    }
+  : {
+      type: 'String';
+      values: string[];
     };
 
-type DBV3Set = Set<string> | Set<number>;
+export type DBV3Set<T extends string | number> = T extends number ? Set<number> : Set<string>;
 
-export type DBSet = DBV2Set | DBV3Set;
+export type DBSet<
+  T extends string | number,
+  DbSDKVersion extends DynamoDBConfig['target'],
+> = DbSDKVersion extends 'v2' ? DBV2Set<T> : DbSDKVersion extends 'v3' ? DBV3Set<T> : any;
