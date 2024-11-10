@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { IDynamodbProvider, QueryResult } from 'provider';
+import { IDynamodbProvider, QueryResult, TransactionConfig } from 'provider';
 
 import {
   SingleTableCreateItemParams,
@@ -46,6 +46,7 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
     params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>>;
 
+  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[];
   executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
 
   generateTransactionConfigList<Item extends AnyObject>(

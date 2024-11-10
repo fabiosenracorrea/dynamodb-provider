@@ -87,6 +87,91 @@ describe('single table adaptor - transact writer', () => {
     ]);
   });
 
+  it('should eject transaction params', () => {
+    const transactMock = jest.fn().mockResolvedValue({
+      items: [],
+    });
+
+    const creatorMock = {
+      getCreateParams: jest.fn().mockReturnValue({
+        create: true,
+        mock: 'create params',
+      }),
+    };
+
+    const updaterMock = {
+      getUpdateParams: jest.fn().mockReturnValue({
+        update: true,
+        mock: 'update params',
+      }),
+    };
+
+    const removerMock = {
+      getDeleteParams: jest.fn().mockReturnValue({
+        remove: true,
+        mock: 'delete params',
+      }),
+    };
+
+    const transact = new SingleTableTransactionWriter({
+      db: {
+        executeTransaction: transactMock,
+      } as any,
+
+      creator: creatorMock as any,
+      updater: updaterMock as any,
+      remover: removerMock as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+      },
+    });
+
+    const result = transact.ejectTransactParams([
+      {
+        create: {} as any,
+      },
+      {
+        update: {} as any,
+      },
+      {
+        erase: {} as any,
+      },
+      null,
+    ]);
+
+    // As we are just translating the syntax to our db provider,
+    // we simply validate the correct helpers are called
+    expect(transactMock).not.toHaveBeenCalled();
+    expect(result).toStrictEqual([
+      {
+        create: {
+          create: true,
+          mock: 'create params',
+        },
+      },
+      {
+        update: {
+          update: true,
+          mock: 'update params',
+        },
+      },
+      {
+        erase: {
+          remove: true,
+          mock: 'delete params',
+        },
+      },
+    ]);
+  });
+
   it('should build the validation params correctly', async () => {
     const transactMock = jest.fn().mockResolvedValue({
       items: [],

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ValidateTransactParams } from 'provider/utils';
+import { TransactionConfig, ValidateTransactParams } from 'provider/utils';
 
 import { BaseSingleTableOperator, SingleTableOperatorParams } from '../../executor';
 import { SingleTableCreator, SingleTableRemover, SingleTableUpdater } from '../crud';
@@ -53,21 +53,26 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
     };
   }
 
+  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+    return (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
+      ({ create, erase, update, validate }) => {
+        if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
+
+        if (create) return { create: { ...this.creator.getCreateParams(create as any) } };
+
+        if (update) return { update: { ...this.updater.getUpdateParams(update) } };
+
+        if (validate) return { validate: this.getValidateParams(validate) };
+
+        throw new Error('Invalid transaction type');
+      },
+    );
+  }
+
   async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
     await this.db.executeTransaction(
-      (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
-        ({ create, erase, update, validate }) => {
-          if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
-
-          if (create) return { create: { ...this.creator.getCreateParams(create as any) } };
-
-          if (update) return { update: { ...this.updater.getUpdateParams(update) } };
-
-          if (validate) return { validate: this.getValidateParams(validate) };
-
-          throw new Error('Invalid transaction type');
-        },
-      ),
+      this.ejectTransactParams(configs),
+      //
     );
   }
 

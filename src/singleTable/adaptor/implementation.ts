@@ -3,7 +3,7 @@ import { StringKey, AnyObject } from 'types';
 
 import { IDynamodbProvider } from 'provider';
 
-import { QueryResult } from 'provider/utils';
+import { QueryResult, TransactionConfig } from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -99,6 +99,10 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
   ): Promise<QueryResult<Entity>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.querBuilder.query(params as any);
+  }
+
+  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+    return this.transactWriter.ejectTransactParams(configs);
   }
 
   async executeTransaction(

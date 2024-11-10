@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { DBSet, QueryResult } from 'provider';
+import { DBSet, QueryResult, TransactionConfig } from 'provider';
 
 import {
   SingleTableMethods,
@@ -151,6 +151,13 @@ export class SingleTable<SingleParams extends SingleTableParams> {
   ): Promise<QueryResult<Entity>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.methods.query(params as any);
+  }
+
+  /**
+   *  Useful if you need to merge transactions from other tables
+   */
+  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+    return this.methods.ejectTransactParams(configs);
   }
 
   async executeTransaction(

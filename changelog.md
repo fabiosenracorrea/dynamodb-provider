@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.0.5
+
+- `ejectTransactParams` method added to the `SingleTable` instance. Useful if you need to merge actions from other tables and want the proper param conversions done with the table config
+
 ## v1.0.4
 
 - Type Enhance: `createSet` now properly infers DynamoDB version and arguments to give its result value
