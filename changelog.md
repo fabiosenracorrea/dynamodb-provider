@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.0.6
+
+- `Fix` entity index param generation prevented from passing an object with `{ undefined: undefined }` down
+
 ## v1.0.5
 
 - `ejectTransactParams` method added to the `SingleTable` instance. Useful if you need to merge actions from other tables and want the proper param conversions done with the table config

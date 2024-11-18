@@ -100,39 +100,43 @@ export function getEntityIndexParams<
 
     getCreationIndexMapping: (indexParams: any) =>
       Object.fromEntries(
-        Object.values(indexes).map(({ getPartitionKey, getRangeKey, index }) => {
-          const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
-          const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
+        Object.values(indexes)
+          .map(({ getPartitionKey, getRangeKey, index }) => {
+            const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
+            const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
 
-          if (!partitionKey && !rangeKey) return [];
+            if (!partitionKey && !rangeKey) return [];
 
-          return [
-            index,
+            return [
+              index,
 
-            removeUndefinedProps({
-              partitionKey,
-              rangeKey,
-            }),
-          ];
-        }),
+              removeUndefinedProps({
+                partitionKey,
+                rangeKey,
+              }),
+            ];
+          })
+          .filter(([index]) => index),
       ),
 
     getUpdatedIndexMapping: (indexParams: any) =>
       Object.fromEntries(
-        Object.values(indexes).map(({ getPartitionKey, getRangeKey, index }) => {
-          const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
-          const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
+        Object.values(indexes)
+          .map(({ getPartitionKey, getRangeKey, index }) => {
+            const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
+            const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
 
-          if (!partitionKey && !rangeKey) return [];
+            if (!partitionKey && !rangeKey) return [];
 
-          return [
-            index,
-            removeUndefinedProps({
-              partitionKey,
-              rangeKey,
-            }),
-          ];
-        }),
+            return [
+              index,
+              removeUndefinedProps({
+                partitionKey,
+                rangeKey,
+              }),
+            ];
+          })
+          .filter(([index]) => index),
       ),
   } as EntityIndexResultProps<TableConfig, IParams>;
 }
