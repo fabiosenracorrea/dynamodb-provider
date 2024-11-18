@@ -116,6 +116,7 @@ export function getEntityIndexParams<
               }),
             ];
           })
+          // prevents Object.fromEntries([ [] ]) => { undefined: undefined }
           .filter(([index]) => index),
       ),
 
