@@ -22,7 +22,7 @@
       })
     })
   ```
-  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `fromEntity`. Its also applied to the `fromCollection` result.
+  The example above represent a property addition, the user calculated `age`. It will be present automatically after every retrieval call from `fromEntity`. Its also applied to the `fromCollection` result.
 
 
 ## v1.0.6
