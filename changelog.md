@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.1
+
+- **Fix**: Type for `ExtendableSingleTableEntity` adjusted based on new conditional `parser` property
+
 ## v1.1.0
 
 - `Fix`: DynamoDB `v3` tests breaking due to `commands` property missing

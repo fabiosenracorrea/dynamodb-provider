@@ -39,6 +39,10 @@ export type SingleTableEntity<
   EntityIndexResultProps<TableConfig, Params> &
   RangeQueryResultProps<Params>;
 
+/**
+ * Due to the complex nature of our entity obj, we rely on making this
+ * as generic as possible, and ts infer will do the rest
+ */
 export type ExtendableSingleTableEntity = Omit<
   SingleTableEntity<any, any, RegisterEntityParams<any, any>>,
   | 'getPartitionKey'
@@ -50,8 +54,14 @@ export type ExtendableSingleTableEntity = Omit<
   | 'transactUpdateParams'
   | 'transactDeleteParams'
   | 'transactValidateParams'
+  | 'parser'
 > & {
   getPartitionKey: (...params: any[]) => KeyValue;
   getRangeKey: (...params: any[]) => KeyValue;
   getKey: (...params: any[]) => SingleTableKeyReference;
+
+  parser?: (e: any) => any;
 } & ExtendableCRUDProps;
+// * DEV NOTE: After any modification to the entity obj,
+// * make sure to test if TS accepts it. This can be
+// * looked at schema.fromEntity(modifiedEntity)
