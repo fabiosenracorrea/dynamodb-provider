@@ -6,6 +6,7 @@ import {
   getConditionExpressionValues,
 } from '../conditions';
 import { ItemCreator } from './create';
+import { fakeDBCommands } from '../dynamoDB/commands.fake';
 
 // simple helper to not bother mocking print log
 const toJSON = (v: any): string => JSON.stringify(v, null, 2);
@@ -53,6 +54,7 @@ describe('CreateItem actions', () => {
           instance: {
             send: putMock,
           } as any,
+          commands: fakeDBCommands,
         },
       });
 
@@ -144,6 +146,7 @@ describe('CreateItem actions', () => {
           instance: {
             send: putMock,
           } as any,
+          commands: fakeDBCommands,
         },
       });
 
@@ -239,6 +242,7 @@ describe('CreateItem actions', () => {
 
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: () => {},
           } as any,

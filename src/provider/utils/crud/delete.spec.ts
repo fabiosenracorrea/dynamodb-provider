@@ -5,6 +5,7 @@ import {
   getConditionExpressionNames,
   getConditionExpressionValues,
 } from '../conditions';
+import { fakeDBCommands } from '../dynamoDB/commands.fake';
 import { ItemRemover } from './delete';
 
 // simple helper to not bother mocking print log
@@ -50,6 +51,7 @@ describe('DeleteItem actions', () => {
       const remover = new ItemRemover({
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: deleteMock,
           } as any,
@@ -141,6 +143,7 @@ describe('DeleteItem actions', () => {
       const remover = new ItemRemover({
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: deleteMock,
           } as any,
@@ -239,6 +242,7 @@ describe('DeleteItem actions', () => {
 
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: () => {},
           } as any,

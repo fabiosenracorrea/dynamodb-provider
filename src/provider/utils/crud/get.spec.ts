@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { fakeDBCommands } from '../dynamoDB/commands.fake';
 import { getProjectExpressionParams } from '../projection';
 import { ItemGetter } from './get';
 
@@ -65,6 +66,7 @@ describe('GetItem actions', () => {
       const getter = new ItemGetter({
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send,
           } as any,
@@ -134,6 +136,7 @@ describe('GetItem actions', () => {
       const getter = new ItemGetter({
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: sendMock,
           } as any,
@@ -210,6 +213,7 @@ describe('GetItem actions', () => {
       const getter = new ItemGetter({
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: sendMock,
           } as any,
@@ -291,6 +295,7 @@ describe('GetItem actions', () => {
 
         dynamoDB: {
           target: 'v3',
+          commands: fakeDBCommands,
           instance: {
             send: () => ({}),
           } as any,

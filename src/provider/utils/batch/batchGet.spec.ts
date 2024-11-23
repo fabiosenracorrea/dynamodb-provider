@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { fakeDBCommands } from '../dynamoDB/commands.fake';
 import { BatchGetter } from './batchGet';
 
 describe('batchGetter', () => {
@@ -122,6 +123,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
@@ -285,6 +287,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
@@ -476,6 +479,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
@@ -721,6 +725,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
@@ -922,6 +927,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
@@ -1115,6 +1121,7 @@ describe('batchGetter', () => {
     const batchGetter = new BatchGetter({
       dynamoDB: {
         target: 'v3',
+        commands: fakeDBCommands,
         instance: {
           send: sendMock,
         } as any,
