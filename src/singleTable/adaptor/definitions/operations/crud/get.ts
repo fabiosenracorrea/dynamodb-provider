@@ -3,7 +3,7 @@ import { GetItemParams } from 'provider/utils';
 import { removeUndefinedProps } from 'utils/object';
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
-import { cleanInternalProps } from '../../propRemoval';
+import { resolveProps } from '../../parsers';
 
 export type SingleTableGetParams<Entity> = SingleTableKeyReference &
   Omit<GetItemParams<Entity>, 'table' | 'key'>;
@@ -33,6 +33,6 @@ export class SingleTableGetter extends BaseSingleTableOperator {
       }),
     );
 
-    if (item) return cleanInternalProps(item, this.config);
+    if (item) return resolveProps(item, this.config, this.parser);
   }
 }

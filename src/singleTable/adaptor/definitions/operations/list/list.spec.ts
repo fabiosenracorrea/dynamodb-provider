@@ -220,6 +220,70 @@ describe('single table - lister', () => {
         },
       ]);
     });
+
+    it('should apply _parser_ if present', async () => {
+      const queryMock = jest.fn().mockResolvedValue({
+        items: [
+          {
+            _pk: 'some',
+            _sk: 'other',
+            _type: 'SOME_TYPE',
+            _ts: '123',
+            id: '1',
+            name: 'some',
+            other: 'prop',
+          },
+          {
+            _pk: 'some',
+            _sk: 'other2',
+            _type: 'SOME_TYPE',
+            _ts: '1233',
+            id: '2',
+            name: 'some1',
+            other: 'prop--',
+          },
+        ],
+      });
+
+      const lister = new SingleTableLister({
+        db: {
+          query: queryMock,
+        } as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        },
+
+        parser: (data) => ({
+          ...data,
+          extraProp: 'yes!',
+        }),
+      });
+
+      const items = await lister.listAllFromType('SOME_TYPE');
+
+      expect(items).toStrictEqual([
+        {
+          id: '1',
+          name: 'some',
+          other: 'prop',
+          extraProp: 'yes!',
+        },
+        {
+          id: '2',
+          name: 'some1',
+          other: 'prop--',
+          extraProp: 'yes!',
+        },
+      ]);
+    });
   });
 
   describe('list type', () => {
@@ -970,6 +1034,72 @@ describe('single table - lister', () => {
           id: '2',
           name: 'some1',
           other: 'prop--',
+        },
+      ]);
+    });
+
+    it('should apply _parser_ if present', async () => {
+      const queryMock = jest.fn().mockResolvedValue({
+        items: [
+          {
+            _pk: 'some',
+            _sk: 'other',
+            _type: 'SOME_TYPE',
+            _ts: '123',
+            id: '1',
+            name: 'some',
+            other: 'prop',
+          },
+          {
+            _pk: 'some',
+            _sk: 'other2',
+            _type: 'SOME_TYPE',
+            _ts: '1233',
+            id: '2',
+            name: 'some1',
+            other: 'prop--',
+          },
+        ],
+      });
+
+      const lister = new SingleTableLister({
+        db: {
+          query: queryMock,
+        } as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        },
+
+        parser: (data) => ({
+          ...data,
+          extraProp: 'yes!',
+        }),
+      });
+
+      const { items } = await lister.listType({
+        type: 'SOME_TYPE',
+      });
+
+      expect(items).toStrictEqual([
+        {
+          id: '1',
+          name: 'some',
+          other: 'prop',
+          extraProp: 'yes!',
+        },
+        {
+          id: '2',
+          name: 'some1',
+          other: 'prop--',
+          extraProp: 'yes!',
         },
       ]);
     });

@@ -37,10 +37,3 @@ export function cleanInternalProps<E extends AnyObject>(obj: E, config: SingleTa
 
   return (cleanUp?.(obj) || obj) as E;
 }
-
-export function cleanInternalPropsFromList<E extends AnyObject>(
-  list: E[],
-  config: SingleTableConfig,
-): E[] {
-  return list.map((item) => cleanInternalProps(item, config));
-}

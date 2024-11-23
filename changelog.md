@@ -1,5 +1,30 @@
 # DynamoDB Provider Changelog
 
+## v1.1.0
+
+- `Fix`: DynamoDB `v3` tests breaking due to `commands` property missing
+
+- `Feature`: Entity can now receive an `extend` function upon creation:
+
+  ```ts
+    type tUser = {
+      id: string;
+      name: string;
+      dob: string;
+      // ... more props
+    }
+
+    const User = table.schema.createEntity<User>().withParams({
+      // ...other props
+
+      extend: ({ dob }) => ({
+        age: calculateAge(dob)
+      })
+    })
+  ```
+  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `fromEntity`. Its also applied to the `fromCollection` result.
+
+
 ## v1.0.6
 
 - `Fix` entity index param generation prevented from passing an object with `{ undefined: undefined }` down

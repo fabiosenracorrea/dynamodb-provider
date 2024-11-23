@@ -11,11 +11,12 @@ import {
   JoinResolutionParams,
   Sorter,
 } from 'singleTable/model';
+import { resolveProps } from 'singleTable/adaptor/definitions/parsers';
 
 import { getFirstItem, getLastIndex } from 'utils/array';
 import { getId } from 'utils/id';
-import { cleanInternalProps } from 'singleTable/adaptor/definitions/propRemoval';
 import { FromCollection, GetCollectionResult } from './definitions';
+import { buildCollectionEntityMap, EntityMap } from './utils';
 
 export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
   private methods: SingleTableMethods<
@@ -215,22 +216,23 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
 
   private cleanSingleCollectionEntry<Item extends AnyObject | AnyObject[]>(
     result: Item,
-    joinRef?: BaseJoinConfig,
+    joinRef: BaseJoinConfig | undefined,
+    entityMap: EntityMap,
   ): Item {
     if (typeof result !== 'object' || result === null) return result;
 
     if (Array.isArray(result))
       return result.map((singleItem) =>
-        this.cleanSingleCollectionEntry(singleItem, joinRef),
+        this.cleanSingleCollectionEntry(singleItem, joinRef, entityMap),
       ) as Item;
 
     return {
-      ...cleanInternalProps(result, this.config),
+      ...resolveProps(result, this.config),
 
       ...Object.fromEntries(
         Object.entries(joinRef ?? {}).map(([propName, { join }]) => [
           propName,
-          this.cleanSingleCollectionEntry(result[propName], join),
+          this.cleanSingleCollectionEntry(result[propName], join, entityMap),
         ]),
       ),
     };
@@ -240,7 +242,11 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     result: Result,
     collection: ExtendableCollection,
   ): Result {
-    return this.cleanSingleCollectionEntry(result, collection.join);
+    return this.cleanSingleCollectionEntry(
+      result,
+      collection.join,
+      buildCollectionEntityMap(collection),
+    );
   }
 
   private buildCollection<Collection extends ExtendableCollection>(

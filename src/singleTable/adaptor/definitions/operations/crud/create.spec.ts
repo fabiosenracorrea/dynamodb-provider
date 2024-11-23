@@ -507,6 +507,79 @@ describe('single table adaptor - creator', () => {
         _ts: fakeIso,
       });
     });
+
+    it('should apply _parser_ if present', async () => {
+      const createMock = jest.fn().mockResolvedValue({
+        prop: 'value',
+        name: 'hello',
+        age: 27,
+        _type: 'ITEM_TYPE',
+        _ts: fakeIso,
+        _pk: 'some',
+        _sk: 'other_pk',
+      });
+
+      const creator = new SingleTableCreator({
+        db: {
+          create: createMock,
+        } as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+          keepTypeProperty: true,
+        },
+
+        parser: (data) => ({
+          ...data,
+          extraProp: 'yes!',
+        }),
+      });
+
+      const created = await creator.create({
+        key: {
+          partitionKey: 'some',
+          rangeKey: 'other_pk',
+        },
+
+        type: 'ITEM_TYPE',
+
+        item: {
+          prop: 'value',
+          name: 'hello',
+          age: 27,
+        },
+      });
+
+      expect(createMock).toHaveBeenCalled();
+      expect(createMock).toHaveBeenCalledWith({
+        table: 'db-table',
+
+        item: {
+          _pk: 'some',
+          _sk: 'other_pk',
+          prop: 'value',
+          name: 'hello',
+          age: 27,
+          _type: 'ITEM_TYPE',
+          _ts: fakeIso,
+        },
+      });
+
+      expect(created).toStrictEqual({
+        prop: 'value',
+        name: 'hello',
+        age: 27,
+        _type: 'ITEM_TYPE',
+        extraProp: 'yes!',
+      });
+    });
   });
 
   describe('param creator', () => {

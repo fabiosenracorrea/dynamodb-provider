@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableFromEntity } from './implementation';
+import { SingleTableFromEntityMethods } from './methods';
 import { SingleTableSchema } from '../model';
 
 type User = {
@@ -51,14 +51,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -67,7 +59,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).get({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          get,
+        } as any,
+      });
+
+      await instance.buildMethods().get({
         id: 'my-id',
       });
 
@@ -119,14 +119,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -135,7 +127,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).get();
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          get,
+        } as any,
+      });
+
+      await instance.buildMethods().get();
 
       expect(get).toHaveBeenCalled();
       expect(get).toHaveBeenCalledWith({
@@ -185,14 +185,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -201,7 +193,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).get({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          get,
+        } as any,
+      });
+
+      await instance.buildMethods().get({
         id: 'my-id',
 
         consistentRead: true,
@@ -261,14 +261,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          batchGet,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -277,7 +269,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).batchGet({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          batchGet,
+        } as any,
+      });
+
+      await instance.buildMethods().batchGet({
         keys: [{ id: 'id1' }, { id: 'id2' }, { id: 'id3' }, { id: 'id4' }, { id: 'id5' }],
       });
 
@@ -332,14 +332,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          batchGet,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -348,7 +340,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).batchGet({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          batchGet,
+        } as any,
+      });
+
+      await instance.buildMethods().batchGet({
         keys: [{ id: 'id1' }, { id: 'id2' }, { id: 'id3' }, { id: 'id4' }, { id: 'id5' }],
 
         consistentRead: true,
@@ -415,14 +415,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          delete: deleteMock,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -431,7 +423,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).delete({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          delete: deleteMock,
+        } as any,
+      });
+
+      await instance.buildMethods().delete({
         id: 'my-id',
       });
 
@@ -483,14 +483,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {
-          delete: deleteMock,
-        } as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -499,7 +491,15 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      await instance.fromEntity(user).delete({
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {
+          delete: deleteMock,
+        } as any,
+      });
+
+      await instance.buildMethods().delete({
         id: 'my-id',
 
         conditions: ['BAD_COD'] as any,
@@ -560,7 +560,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {
@@ -571,14 +579,6 @@ describe('single table - from entity methods', () => {
       (instance as any).methods = {
         create,
       };
-
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
 
       const getCreationParams = jest.fn().mockReturnValue({
         item: 'here!',
@@ -595,7 +595,7 @@ describe('single table - from entity methods', () => {
         name: 'name',
       };
 
-      await instance.fromEntity(user).create(createUser);
+      await instance.buildMethods().create(createUser);
 
       expect(getCreationParams).toHaveBeenCalled();
       expect(getCreationParams).toHaveBeenCalledWith(createUser);
@@ -644,7 +644,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {} as any,
@@ -653,14 +661,6 @@ describe('single table - from entity methods', () => {
       (instance as any).methods = {
         create,
       };
-
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
 
       const getCreationParams = jest.fn().mockReturnValue({
         item: 'here!',
@@ -677,7 +677,7 @@ describe('single table - from entity methods', () => {
         name: 'name',
       };
 
-      await instance.fromEntity(user).create(createUser, {
+      await instance.buildMethods().create(createUser, {
         expiresAt: 20234394,
       });
 
@@ -733,7 +733,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {} as any,
@@ -745,14 +753,6 @@ describe('single table - from entity methods', () => {
         update,
       };
 
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
-
       const getUpdateParams = jest.fn().mockReturnValue({
         update: 'here!',
       });
@@ -761,7 +761,7 @@ describe('single table - from entity methods', () => {
 
       const forwardParams = Symbol('update-params');
 
-      await instance.fromEntity(user).update(forwardParams as any);
+      await instance.buildMethods().update(forwardParams as any);
 
       expect(getUpdateParams).toHaveBeenCalled();
       expect(getUpdateParams).toHaveBeenCalledWith(forwardParams);
@@ -784,12 +784,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -798,7 +792,13 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const repo = instance.fromEntity(user);
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
+      const repo = instance.buildMethods();
 
       expect((repo as any).list).toBe(undefined);
       expect((repo as any).listAll).toBe(undefined);
@@ -820,7 +820,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {} as any,
@@ -834,15 +842,7 @@ describe('single table - from entity methods', () => {
         listAllFromType,
       };
 
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
-
-      const result = await instance.fromEntity(user).listAll();
+      const result = await instance.buildMethods().listAll();
 
       expect(listAllFromType).toHaveBeenCalled();
       expect(listAllFromType).toHaveBeenCalledWith('USER');
@@ -865,7 +865,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {} as any,
@@ -882,15 +890,7 @@ describe('single table - from entity methods', () => {
         listType,
       };
 
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
-
-      const result = await instance.fromEntity(user).list();
+      const result = await instance.buildMethods().list();
 
       expect(listType).toHaveBeenCalled();
       expect(listType).toHaveBeenCalledWith({
@@ -916,7 +916,15 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
+      const user = schema.createEntity<User>().withParams({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
         ...params,
 
         dynamodbProvider: {} as any,
@@ -928,15 +936,7 @@ describe('single table - from entity methods', () => {
         listType,
       };
 
-      const user = schema.createEntity<User>().withParams({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
-
-      await instance.fromEntity(user).list({
+      await instance.buildMethods().list({
         fullRetrieval: true,
         limit: 20,
         paginationToken: '1023',
@@ -974,18 +974,18 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
         getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
       });
 
       const mockResult = Symbol('query-result');
@@ -996,7 +996,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).query.custom({
+      const result = await instance.buildMethods().query.custom({
         id: 'my-id',
       });
 
@@ -1018,18 +1018,18 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
         getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
       });
 
       const mockResult = Symbol('query-result');
@@ -1040,7 +1040,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).query.custom({
+      const result = await instance.buildMethods().query.custom({
         id: 'my-id',
 
         filters: { some: 'filter' } as any,
@@ -1082,12 +1082,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1105,6 +1099,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1113,7 +1113,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const repo = instance.fromEntity(user);
+      const repo = instance.buildMethods();
 
       expect(repo.query.someQuery).toBeDefined();
 
@@ -1144,12 +1144,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1167,6 +1161,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1175,7 +1175,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const repo = instance.fromEntity(user);
+      const repo = instance.buildMethods();
 
       expect(repo.query.someQuery).toBeDefined();
 
@@ -1210,12 +1210,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1224,7 +1218,13 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const repo = instance.fromEntity(user);
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
+      const repo = instance.buildMethods();
 
       expect((repo as any).queryIndex).toBe(undefined);
     });
@@ -1256,12 +1256,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1288,6 +1282,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1296,7 +1296,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).queryIndex.byEmail.custom();
+      const result = await instance.buildMethods().queryIndex.byEmail.custom();
 
       expect(query).toHaveBeenCalled();
       expect(query).toHaveBeenCalledWith({
@@ -1307,7 +1307,7 @@ describe('single table - from entity methods', () => {
 
       expect(result).toBe(mockResult);
 
-      const result2 = await instance.fromEntity(user).queryIndex.byName.custom();
+      const result2 = await instance.buildMethods().queryIndex.byName.custom();
 
       expect(query).toHaveBeenCalled();
       expect(query).toHaveBeenCalledWith({
@@ -1346,12 +1346,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1373,6 +1367,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1381,7 +1381,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).queryIndex.byEmailProvider.custom({
+      const result = await instance.buildMethods().queryIndex.byEmailProvider.custom({
         email: 'some@gmail.com',
       });
 
@@ -1422,12 +1422,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1459,6 +1453,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1467,7 +1467,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).queryIndex.byEmailProvider.aToF({
+      const result = await instance.buildMethods().queryIndex.byEmailProvider.aToF({
         email: 'some@gmail.com',
       });
 
@@ -1514,12 +1514,6 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const instance = new SingleTableFromEntity({
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
       const user = schema.createEntity<User>().withParams({
         type: 'USER',
 
@@ -1550,6 +1544,12 @@ describe('single table - from entity methods', () => {
         },
       });
 
+      const instance = new SingleTableFromEntityMethods(user, {
+        ...params,
+
+        dynamodbProvider: {} as any,
+      });
+
       const mockResult = Symbol('query-result');
 
       const query = jest.fn().mockResolvedValue(mockResult);
@@ -1558,7 +1558,7 @@ describe('single table - from entity methods', () => {
         query,
       };
 
-      const result = await instance.fromEntity(user).queryIndex.byEmailProvider.startingWith({
+      const result = await instance.buildMethods().queryIndex.byEmailProvider.startingWith({
         email: 'some@gmail.com',
 
         prefix: 'k',

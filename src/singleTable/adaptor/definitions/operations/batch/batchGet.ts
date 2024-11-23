@@ -4,7 +4,7 @@ import { BatchListItemsArgs } from 'provider/utils';
 
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
-import { cleanInternalPropsFromList } from '../../propRemoval';
+import { resolvePropsFromList } from '../../parsers';
 
 export type SingleTableBatchGetParams<
   Entity,
@@ -26,6 +26,6 @@ export class SingleTableBatchGetter extends BaseSingleTableOperator {
       keys: keys.map((ref) => getPrimaryKey(ref, this.config)),
     });
 
-    return cleanInternalPropsFromList(items, this.config);
+    return resolvePropsFromList(items, this.config, this.parser);
   }
 }

@@ -4,7 +4,7 @@ import { AnyObject } from 'types';
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from 'provider/utils';
 
 import { BaseSingleTableOperator } from '../../executor';
-import { cleanInternalPropsFromList } from '../../propRemoval';
+import { resolvePropsFromList } from '../../parsers';
 
 type BasicRangeConfig = Pick<BasicRangeKeyConfig<AnyObject>, 'operation' | 'value'>;
 
@@ -49,7 +49,7 @@ export class SingleTableLister extends BaseSingleTableOperator {
       index: this.config.typeIndex.name,
     });
 
-    return cleanInternalPropsFromList(items, this.config);
+    return resolvePropsFromList(items, this.config, this.parser);
   }
 
   async listType<Entity>({
@@ -80,7 +80,7 @@ export class SingleTableLister extends BaseSingleTableOperator {
     });
 
     return {
-      items: cleanInternalPropsFromList(items, this.config),
+      items: resolvePropsFromList(items, this.config, this.parser),
 
       paginationToken,
     };

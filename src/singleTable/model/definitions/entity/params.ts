@@ -8,6 +8,7 @@ import { RangeQueryInputProps } from '../range';
 import { EntityIndexInputParams } from './indexParams';
 import { AutoGenParams } from './autoGen';
 import { EntityKeyResolvers } from '../key';
+import { EntityParseParams } from './parsers';
 
 /**
  * Ensures we properly match constant strings if they are
@@ -51,4 +52,5 @@ export type RegisterEntityParams<
 > = EntityKeyResolvers<Entity> &
   RangeQueryInputProps &
   EntityIndexInputParams<TableConfig, Entity> &
+  EntityParseParams<Entity> &
   RawEntityRegisterParams<TableConfig, Entity>;

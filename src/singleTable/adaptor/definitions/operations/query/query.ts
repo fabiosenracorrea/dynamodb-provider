@@ -12,7 +12,7 @@ import { removeUndefinedProps } from 'utils/object';
 import { convertKey, KeyValue } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
-import { cleanInternalPropsFromList } from '../../propRemoval';
+import { resolvePropsFromList } from '../../parsers';
 import { getIndexHashName, getIndexRangeName } from '../../tableIndex';
 
 // if we did simply Omit<RangeKeyConfig, 'name'>
@@ -97,7 +97,7 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
     return {
       paginationToken,
 
-      items: cleanInternalPropsFromList(items, this.config),
+      items: resolvePropsFromList(items, this.config, this.parser),
     } as QueryResult<Entity>;
   }
 

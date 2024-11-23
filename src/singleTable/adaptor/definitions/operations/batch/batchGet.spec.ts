@@ -498,4 +498,80 @@ describe('single table adaptor - batch get', () => {
       },
     ]);
   });
+
+  it('should apply _parser_ if present', async () => {
+    const batchMock = jest.fn().mockResolvedValue([
+      {
+        _pk: 'some',
+        _sk: 'other',
+        _type: 'SOME_TYPE',
+        _ts: '123',
+        id: '1',
+        name: 'some',
+        other: 'prop',
+      },
+      {
+        _pk: 'some',
+        _sk: 'other2',
+        _type: 'SOME_TYPE',
+        _ts: '1233',
+        id: '2',
+        name: 'some1',
+        other: 'prop--',
+      },
+    ]);
+
+    const getter = new SingleTableBatchGetter({
+      db: {
+        batchGet: batchMock,
+      } as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+      },
+
+      parser: (data) => ({
+        ...data,
+        extraProp: 'yes!',
+      }),
+    });
+
+    const items = await getter.batchGet({
+      keys: [
+        { partitionKey: 'some', rangeKey: 'other' },
+        { partitionKey: 'some', rangeKey: 'other2' },
+      ],
+    });
+
+    expect(batchMock).toHaveBeenCalled();
+    expect(batchMock).toHaveBeenCalledWith({
+      table: 'db-table',
+
+      keys: [
+        { _pk: 'some', _sk: 'other' },
+        { _pk: 'some', _sk: 'other2' },
+      ],
+    });
+    expect(items).toStrictEqual([
+      {
+        id: '1',
+        name: 'some',
+        other: 'prop',
+        extraProp: 'yes!',
+      },
+      {
+        id: '2',
+        name: 'some1',
+        other: 'prop--',
+        extraProp: 'yes!',
+      },
+    ]);
+  });
 });

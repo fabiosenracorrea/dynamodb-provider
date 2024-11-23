@@ -355,4 +355,92 @@ describe('single table adaptor - query', () => {
 
     expect(result.paginationToken).toEqual(token);
   });
+
+  it('should apply _parser_ if present', async () => {
+    const queryMock = jest.fn().mockResolvedValue({
+      items: [
+        {
+          _pk: 'some',
+          _sk: 'other',
+          _type: 'SOME_TYPE',
+          _ts: '123',
+          id: '1',
+          name: 'some',
+          other: 'prop',
+        },
+        {
+          _pk: 'some',
+          _sk: 'other2',
+          _type: 'SOME_TYPE',
+          _ts: '1233',
+          id: '2',
+          name: 'some1',
+          other: 'prop--',
+        },
+      ],
+    });
+
+    const queryBuilder = new SingleTableQueryBuilder({
+      db: {
+        query: queryMock,
+      } as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+        indexes: {
+          SomeIndex: {
+            partitionKey: '_indexHash1',
+            rangeKey: '_indexRange1',
+          },
+          anotherIndex: {
+            partitionKey: '_indexHash2',
+            rangeKey: '_indexRange2',
+          },
+          yetAnotherIndex: {
+            partitionKey: '_indexHash3',
+            rangeKey: '_indexRange3',
+          },
+        },
+      },
+
+      parser: (data) => ({
+        ...data,
+        extraProp: 'yes!',
+      }),
+    });
+
+    const { items } = await queryBuilder.query({
+      partition: ['hello', 'friend'],
+
+      range: {
+        operation: 'between',
+        low: '2022',
+        high: '2023',
+      },
+
+      index: 'SomeIndex',
+    });
+
+    expect(items).toStrictEqual([
+      {
+        id: '1',
+        name: 'some',
+        other: 'prop',
+        extraProp: 'yes!',
+      },
+      {
+        id: '2',
+        name: 'some1',
+        other: 'prop--',
+        extraProp: 'yes!',
+      },
+    ]);
+  });
 });

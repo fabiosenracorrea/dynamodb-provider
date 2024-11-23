@@ -7,7 +7,7 @@ import { CreateItemParams } from 'provider';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
-import { cleanInternalProps } from '../../propRemoval';
+import { resolveProps } from '../../parsers';
 import { transformIndexReferences } from '../../tableIndex';
 
 type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
@@ -110,6 +110,6 @@ export class SingleTableCreator extends BaseSingleTableOperator {
   ): Promise<Entity> {
     const created = await this.db.create<any>(this.getCreateParams(params as any));
 
-    return cleanInternalProps(created, this.config);
+    return resolveProps(created, this.config, this.parser);
   }
 }

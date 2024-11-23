@@ -10,16 +10,18 @@ import { KeyResolvers } from '../key';
 import { RegisterEntityParams } from './params';
 import { EntityCRUDProps, ExtendableCRUDProps } from './crud';
 import { EntityIndexResultProps } from './indexParams';
+import { EntityParseProps, ResolvedEntity } from './parsers';
 
-type RawEntity<Entity, Params extends RegisterEntityParams<any, any>> = KeyResolvers<
-  Pick<Params, 'getPartitionKey' | 'getRangeKey' | 'type'>
-> & {
+type RawEntity<
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<any, any>,
+> = KeyResolvers<Pick<Params, 'getPartitionKey' | 'getRangeKey' | 'type'>> & {
   /**
    * This is a helper property used solely internally for ease-of-map types
    *
    * Do not access
    */
-  __entity: Entity;
+  __entity: ResolvedEntity<Entity, Params>;
 
   /**
    * Specifies which DB instance this is
@@ -32,24 +34,10 @@ export type SingleTableEntity<
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
 > = RawEntity<Entity, Params> &
+  EntityParseProps<Entity, Params> &
   EntityCRUDProps<TableConfig, Entity, Params> &
   EntityIndexResultProps<TableConfig, Params> &
   RangeQueryResultProps<Params>;
-
-// export type ExtendableSingleTableEntity = {
-//   __dbType: 'ENTITY';
-//   __entity: any;
-//   type: string;
-
-//   getPartitionKey: (...params: any[]) => KeyValue;
-//   getRangeKey: (...params: any[]) => KeyValue;
-//   getKey: (...params: any[]) => SingleTableKeyReference;
-
-//   indexes?: any;
-
-//   rangeQueries?: any;
-// } & ExtendableCRUDProps &
-//   Partial<GenericIndexMappingFns>;
 
 export type ExtendableSingleTableEntity = Omit<
   SingleTableEntity<any, any, RegisterEntityParams<any, any>>,

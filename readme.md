@@ -1711,6 +1711,27 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
   })
   ```
 
+- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `fromEntity` calls
+
+  ```ts
+    type tUser = {
+      id: string;
+      name: string;
+      dob: string;
+      // ... more props
+    }
+
+    const User = table.schema.createEntity<User>().withParams({
+      // ...other props
+
+      extend: ({ dob }) => ({
+        age: calculateAge(dob)
+      })
+    })
+  ```
+
+  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `fromEntity`. Its also applied to the `fromCollection` result.
+
 ### Single table entity usage
 
 The generated entity has properties that you can leverage to interact with the single table methods, such as:
@@ -1844,6 +1865,8 @@ await table.fromEntity(Logs).queryIndex.logsByType.dateSlice({
   limit: 20,
 })
 ```
+
+> Note: Any retrieval method will apply the `extend` action if available
 
 With the `fromEntity` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
 

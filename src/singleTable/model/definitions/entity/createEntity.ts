@@ -10,6 +10,7 @@ import { getCRUDParamGetters } from './crud';
 import { SingleTableEntity } from './entity';
 import { getEntityIndexParams } from './indexParams';
 import { RegisterEntityParams } from './params';
+import { getEntityParserProps } from './parsers';
 
 export function createEntity<
   TableConfig extends SingleTableConfig,
@@ -34,6 +35,8 @@ export function createEntity<
       ...keyParams,
       ...indexParams,
     } as any),
+
+    ...getEntityParserProps(params as any),
 
     __dbType: 'ENTITY',
   };

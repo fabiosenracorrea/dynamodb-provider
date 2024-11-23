@@ -302,4 +302,55 @@ describe('single table adaptor - dynamodb', () => {
       _pk: 'some',
     });
   });
+
+  it('should apply _parser_ if present', async () => {
+    const getMock = jest.fn().mockResolvedValue({
+      prop: 'value',
+      name: 'hello',
+      age: 27,
+      _type: 'SOME_TYPE',
+      _pk: 'some',
+      _sk: 'other',
+      _ts: '123',
+    });
+
+    const getter = new SingleTableGetter({
+      db: {
+        get: getMock,
+      } as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+      },
+
+      parser: (data) => ({
+        ...data,
+        extraProp: 'yes!',
+      }),
+    });
+
+    const result = await getter.get<any>({
+      partitionKey: 'some',
+      rangeKey: 'other_pk',
+    });
+
+    expect(getMock).toHaveBeenCalled();
+    expect(getMock).toHaveBeenCalledWith({
+      table: 'db-table',
+
+      key: {
+        _pk: 'some',
+        _sk: 'other_pk',
+      },
+    });
+
+    expect(result).toStrictEqual({ prop: 'value', name: 'hello', age: 27, extraProp: 'yes!' });
+  });
 });

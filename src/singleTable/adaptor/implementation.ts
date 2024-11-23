@@ -29,7 +29,12 @@ import {
 
 import { ISingleTableMethods, SingleTableParams } from './definition';
 
-export class SingleTableMethods<SingleParams extends SingleTableParams>
+interface SingleTableMethodsParams extends SingleTableParams {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parser?: (item: any) => any;
+}
+
+export class SingleTableMethods<SingleParams extends SingleTableMethodsParams>
   implements ISingleTableMethods<SingleParams>
 {
   private db: IDynamodbProvider;
@@ -52,12 +57,12 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
 
   private querBuilder: SingleTableQueryBuilder;
 
-  constructor({ dynamodbProvider, ...config }: SingleParams) {
+  constructor({ dynamodbProvider, parser, ...config }: SingleParams) {
     this.db = dynamodbProvider;
 
     this.config = config;
 
-    const params = { db: this.db, config: this.config };
+    const params = { db: this.db, config: this.config, parser };
 
     this.lister = new SingleTableLister(params);
     this.batchGetter = new SingleTableBatchGetter(params);
