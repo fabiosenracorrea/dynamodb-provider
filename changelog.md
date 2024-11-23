@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.2
+
+- **Type Enhance**: Resolved entity type when `extend` is present was reworked to present some weird behavior with `Omit`
+
 ## v1.1.1
 
 - **Fix**: Type for `ExtendableSingleTableEntity` adjusted based on new conditional `parser` property

@@ -1,4 +1,4 @@
-import { AnyFunction, AnyObject } from 'types';
+import { AnyFunction, AnyObject, IsNever, PrettifyObject } from 'types';
 
 export type EntityParseParams<Entity extends AnyObject> = {
   /**
@@ -14,12 +14,16 @@ export type EntityParseParams<Entity extends AnyObject> = {
   extend?: (entity: Entity) => AnyObject;
 };
 
+type Extended<Entity extends AnyObject, ExtendResult> = PrettifyObject<
+  IsNever<Extract<keyof Entity, keyof ExtendResult>> extends true
+    ? Entity & ExtendResult
+    : Omit<Entity, Extract<keyof Entity, keyof ExtendResult>> & ExtendResult
+>;
+
 export type ResolvedEntity<
   Entity extends AnyObject,
   Params extends EntityParseParams<Entity>,
-> = Params['extend'] extends AnyFunction
-  ? Omit<Entity, keyof ReturnType<Params['extend']>> & ReturnType<Params['extend']>
-  : Entity;
+> = Params['extend'] extends AnyFunction ? Extended<Entity, ReturnType<Params['extend']>> : Entity;
 
 export type EntityParser<E extends AnyObject, Parsers extends EntityParseParams<E>> = (
   entity: E,
