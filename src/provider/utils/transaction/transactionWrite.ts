@@ -74,8 +74,6 @@ export class TransactionWriter extends DynamodbExecutor {
 
     const params = this._getTransactParams(configs);
 
-    if (this.options.logCallParams) printLog(params, 'DYNAMODB LOW LEVEL TRANSACTION PARAMS');
-
     try {
       await this._transactionWrite(params);
     } catch (err) {

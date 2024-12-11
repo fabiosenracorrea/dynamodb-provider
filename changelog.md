@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+## v1.1.3
+
+- **Fix**: `IndexPartition` type for `rangeQueries` - it was typed as the parsed obj (which happens at the entity level) instead of a pass-through.
+- **Fix**: Double low level transact params log on single table removed
+
 ## v1.1.2
 
 - **Type Enhance**: Resolved entity type when `extend` is present was reworked to present some weird behavior with `Omit`

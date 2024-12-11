@@ -7,7 +7,7 @@
 - Collection "create" method
 - Allow simplified collection creation on joins - ref entity as [Entity] or Entity instead of { type: 'MULTIPLE', entity: Entity } or { type: 'SINGLE', entity: Entity }. If more config is needed (like sorter, etc), allow also { entity: [Entity], sorter: ... }
 - Create a `Table` instance to allow easy extraction on multi-table scenarios
-
+- Have a "set fields config" on entities that have string[], number[] or Set<string>/Set<number> on their typing. This config stands: auto convert to Set (good for v2, safety placeholder definition)
 
 - Optional to force the "type" of a single entity to always be included in the "update" operation
 ```ts
