@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { AnyFunction, AnyObject, FirstParameter, IsUndefined, PrettifyObject } from 'types';
+import {
+  AnyFunction,
+  AnyObject,
+  FirstParameter,
+  IsNever,
+  IsUndefined,
+  PrettifyObject,
+} from 'types';
 
 import { KeyValue } from 'singleTable/adaptor/definitions';
 import { EntityKeyParams, EntityKeyResolvers, KeyResolvers, resolveKeys } from '../key';
@@ -34,10 +41,40 @@ export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> =
   };
 };
 
-type SwappedKeys<OriginalParams, SwapObj extends AnyObject> = Pick<
-  SwapObj,
-  Extract<keyof OriginalParams, string>
->[keyof Pick<SwapObj, Extract<keyof OriginalParams, string>>];
+// type SwappedKeys<OriginalParams, SwapObj extends AnyObject> = Pick<
+//   SwapObj,
+//   Extract<keyof OriginalParams, string>
+// >[keyof Pick<SwapObj, Extract<keyof OriginalParams, string>>];
+
+// If none = never
+type EligibleKeysToSwap<OriginalParams, SwapObj extends AnyObject> = Extract<
+  keyof OriginalParams,
+  keyof SwapObj
+>;
+
+/**
+ * The keys from our entity that should be referenced inside the final keyGetter
+ *
+ * Basically if:
+ *
+ * - originalParams = { projectId: string, timestamp: string; }
+ * - swapParams = { projectId: 'project' }
+ * ==> results = 'project' (the valid key from our entity)
+ */
+type SwappedKeys<OriginalParams, SwapObj extends AnyObject> = IsNever<
+  EligibleKeysToSwap<OriginalParams, SwapObj>
+> extends true
+  ? never
+  : Pick<SwapObj, EligibleKeysToSwap<OriginalParams, SwapObj>>[keyof Pick<
+      SwapObj,
+      EligibleKeysToSwap<OriginalParams, SwapObj>
+    >];
+
+type SwappedValues<Entity, OriginalParams, SwapObj extends AnyObject> = IsNever<
+  SwappedKeys<OriginalParams, SwapObj>
+> extends true
+  ? unknown
+  : Pick<Entity, SwappedKeys<OriginalParams, SwapObj>>;
 
 type SwapParams<
   Fn extends AnyFunction,
@@ -49,7 +86,7 @@ type SwapParams<
   : ParamSwapObj extends Record<string, keyof Entity>
   ? (
       params: PrettifyObject<
-        Omit<FnParams, keyof ParamSwapObj> & Pick<Entity, SwappedKeys<FnParams, ParamSwapObj>>
+        Omit<FnParams, keyof ParamSwapObj> & SwappedValues<Entity, FnParams, ParamSwapObj>
       >,
     ) => ReturnType<Fn>
   : Fn;

@@ -9,6 +9,12 @@
 - Create a `Table` instance to allow easy extraction on multi-table scenarios
 - Have a "set fields config" on entities that have string[], number[] or Set<string>/Set<number> on their typing. This config stands: auto convert to Set (good for v2, safety placeholder definition)
 
+- Range query option to reference 'constant' values from key
+
+eg on a partition if we have services: ({ serviceId }: StringObj<'serviceId'>) => ['SERVICE', serviceId]
+
+use like keyRefs.services => automatically fills with ['SERVICE']
+
 - Optional to force the "type" of a single entity to always be included in the "update" operation
 ```ts
 {

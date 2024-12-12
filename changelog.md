@@ -1,5 +1,67 @@
 # DynamoDB Provider Changelog
 
+## v1.1.4
+
+- **Fix**: `swapParams` typing for partition param matching when creation an entity/index fix. If we had an incomplete paramMatch before, the resulting type for the keyGetter would not be properly merged.
+
+Quick example:
+
+```ts
+export const pProjectPartition = schema.createPartition({
+  name: 'PROJECT_PARTITION',
+
+  getPartitionKey: ({ projectId }: { projectId: string }) => ['PROJECT', projectId],
+
+  entries: {
+    comments: ({ timestamp, taskId }: { projectId: string; taskId: string }) => [
+      'TASK',
+      taskId,
+      'COMMENT',
+      timestamp,
+    ],
+
+    // ...other entries
+  },
+});
+
+interface TaskComment {
+  project: string;
+  task: string;
+  timestamp: string;
+
+  user: string;
+  id: string;
+  text: string;
+}
+
+export const eTaskComment = pProjectPartition
+  .use('comments')
+  .create<TaskComment>()
+  .entity({
+    type: 'TASK_COMMENT',
+
+    paramMatch: {
+      projectId: 'project',
+      taskId: 'task',
+      // we do not need to match timestamp, as the prop exists on TaskComment
+    },
+
+    autoGen: {
+      onCreate: {
+        timestamp: 'timestamp',
+        id: 'KSUID',
+      },
+
+      onUpdate: {
+        updatedAt: 'timestamp',
+      },
+    },
+  });
+
+// before the fix: eTaskComment.getKey() params would be inferred as project/timestamp only
+// now: correctly infers project/task/timestamp as the valid key params
+```
+
 ## v1.1.3
 
 - **Fix**: `IndexPartition` type for `rangeQueries` - it was typed as the parsed obj (which happens at the entity level) instead of a pass-through.
