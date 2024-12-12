@@ -2,7 +2,7 @@
 
 ## v1.1.4
 
-- **Fix**: `swapParams` typing for partition param matching when creation an entity/index fix. If we had an incomplete paramMatch before, the resulting type for the keyGetter would not be properly merged.
+- **Fix**: `swapParams` typing for partition param matching when creating an entity/index fix. If we had an incomplete paramMatch before, the resulting type for the keyGetter would not be properly merged.
 
 Quick example:
 
