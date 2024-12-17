@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+## v1.1.5
+
+- **Feature**: `getEntityByType` helper added to the `singleTable.schema` to facilitate dynamic entity extractions
+- **Fix**: `GenericIndexMappingFns` return types were not properly defined as a `Record<string, ...>`
+
 ## v1.1.4
 
 - **Fix**: `swapParams` typing for partition param matching when creating an entity/index fix. If we had an incomplete paramMatch before, the resulting type for the keyGetter would not be properly merged.

@@ -9,7 +9,7 @@ import { KeyResolvers } from '../key';
 
 import { RegisterEntityParams } from './params';
 import { EntityCRUDProps, ExtendableCRUDProps } from './crud';
-import { EntityIndexResultProps } from './indexParams';
+import { EntityIndexResultProps, ExtendibleIndexProps } from './indexParams';
 import { EntityParseProps, ResolvedEntity } from './parsers';
 
 type RawEntity<
@@ -61,7 +61,8 @@ export type ExtendableSingleTableEntity = Omit<
   getKey: (...params: any[]) => SingleTableKeyReference;
 
   parser?: (e: any) => any;
-} & ExtendableCRUDProps;
+} & ExtendableCRUDProps &
+  Partial<ExtendibleIndexProps>;
 // * DEV NOTE: After any modification to the entity obj,
 // * make sure to test if TS accepts it. This can be
 // * looked at schema.fromEntity(modifiedEntity)

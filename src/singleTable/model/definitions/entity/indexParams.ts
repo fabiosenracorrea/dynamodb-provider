@@ -13,11 +13,11 @@ import { getRangeQueriesParams, RangeQueryResultProps } from '../range';
 
 export type GenericIndexMappingFns = {
   getCreationIndexMapping: (params: any) => {
-    string?: Partial<SingleTableKeyReference>;
+    [K in string]?: Partial<SingleTableKeyReference>;
   };
 
   getUpdatedIndexMapping: (params: any) => {
-    string?: Partial<SingleTableKeyReference>;
+    [K in string]?: Partial<SingleTableKeyReference>;
   };
 };
 
@@ -41,6 +41,18 @@ type EntityIndexConfig<
   getUpdatedIndexMapping: (params: IndexParams<IndexConfig>) => {
     [key in TableIndex]?: Partial<SingleTableKeyReference>;
   };
+};
+
+export type ExtendibleIndexProps = GenericIndexMappingFns & {
+  indexes: Record<
+    string,
+    {
+      getPartitionKey: (...params: any[]) => KeyValue;
+      getRangeKey: (...params: any[]) => KeyValue;
+      getKey: (...params: any[]) => SingleTableKeyReference;
+      rangeQueries?: any;
+    }
+  >;
 };
 
 export type EntityIndexInputParams<

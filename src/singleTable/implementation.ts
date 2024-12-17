@@ -89,6 +89,19 @@ type SingleTableSchema<SingleParams extends SingleTableParams> = {
    * ```
    */
   createEntity: FullSingleTableSchema<SingleParams>['createEntity'];
+
+  /**
+   * A **low level** wrapper to retrieve the entity registered entity for a given type
+   *
+   * Normally this would be necessary if you want to perform generic operations not knowing ahead of time
+   * what type you have
+   *
+   * Example: Say you have a dynamoDB stream handler that fixes any index partition that may be out-of-sync due to a partial update not containing all
+   * the properties for a composite index key (if key if status+date and you provide the status, the index won't be updated correctly)
+   *
+   * You could then use the stream to read the _type of the modified type, get its entity and check for index presence + values
+   */
+  getEntityByType: FullSingleTableSchema<SingleParams>['getEntityByType'];
 };
 
 export class SingleTable<SingleParams extends SingleTableParams> {
@@ -114,6 +127,7 @@ export class SingleTable<SingleParams extends SingleTableParams> {
       createEntity: this.fullSchema.createEntity.bind(this.fullSchema),
       createPartition: this.fullSchema.createPartition.bind(this.fullSchema),
       createCollection: this.fullSchema.createCollection.bind(this.fullSchema),
+      getEntityByType: this.fullSchema.getEntityByType.bind(this.fullSchema),
 
       fromCollection: this.collectionRepo.fromCollection.bind(this.collectionRepo),
 

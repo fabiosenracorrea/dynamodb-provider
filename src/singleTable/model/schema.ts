@@ -16,6 +16,7 @@ import {
   createCollection,
   PartitionCollectionParams,
   PartitionCollection,
+  ExtendableSingleTableEntity,
 } from './definitions';
 
 interface EntityCache {
@@ -175,7 +176,7 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
     const entity = createEntity<SingleTableConfig, Entity, Params>(this.config, params);
 
-    // this.cacheEntity({ entity, params });
+    this.cacheEntity({ entity, params });
 
     return entity as SingleTableEntity<TableConfig, Entity, Params>;
   }
@@ -187,5 +188,9 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
         Entity
       >['withParams'],
     };
+  }
+
+  getEntityByType(type: string): ExtendableSingleTableEntity | undefined {
+    return this.configCache.get(type)?.entity;
   }
 }
