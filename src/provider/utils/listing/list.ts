@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 import { DBScanParams, DynamodbExecutor } from '../dynamoDB';
 
@@ -112,7 +112,7 @@ export class ItemLister extends DynamodbExecutor {
 
     const isPaginated = _internalStartKey || paginationToken;
 
-    return removeUndefinedProps({
+    return omitUndefined({
       TableName: table,
 
       ConsistentRead: consistentRead,
@@ -153,7 +153,7 @@ export class ItemLister extends DynamodbExecutor {
       }),
     );
 
-    return removeUndefinedProps({
+    return omitUndefined({
       items: Items,
       paginationToken: lastKey ? toPaginationToken(lastKey) : undefined,
     });

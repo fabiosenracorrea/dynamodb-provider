@@ -2,7 +2,7 @@
 
 import { StringKey } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 import { DBUpdateItemParams, DynamodbExecutor } from '../../dynamoDB';
 
@@ -57,10 +57,10 @@ export class ItemUpdater extends DynamodbExecutor {
     const { key, table, remove, returnUpdatedProperties } = params;
 
     const atomic = params.atomicOperations || [];
-    const values = removeUndefinedProps(params.values || {});
+    const values = omitUndefined(params.values || {});
     const conditions = params.conditions || [];
 
-    return removeUndefinedProps({
+    return omitUndefined({
       TableName: table,
 
       Key: key,

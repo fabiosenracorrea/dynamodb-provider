@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.6
+
+- **Fix**: `autoGen` was not respecting values already present on create/update values
+
 ## v1.1.5
 
 - **Feature**: `getEntityByType` helper added to the `singleTable.schema` to facilitate dynamic entity extractions

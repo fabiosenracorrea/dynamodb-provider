@@ -22,7 +22,7 @@ export function omit<Obj extends AnyObject, Key extends keyof Obj>(
   return curated as Omit<Obj, Key>;
 }
 
-export function removeUndefinedProps<Obj extends AnyObject>(object: Obj): Obj {
+export function omitUndefined<Obj extends AnyObject>(object: Obj): Obj {
   const curated = Object.fromEntries(
     Object.entries(object).filter(([_, value]) => value !== undefined),
   );

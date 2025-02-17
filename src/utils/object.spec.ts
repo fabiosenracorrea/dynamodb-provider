@@ -1,4 +1,4 @@
-import { omit, pick, removeUndefinedProps } from './object';
+import { omit, pick, omitUndefined } from './object';
 
 describe('object utils', () => {
   describe('pick', () => {
@@ -40,7 +40,7 @@ describe('object utils', () => {
     });
   });
 
-  describe('removeUndefinedProps', () => {
+  describe('omitUndefined', () => {
     it('should remove all undefined properties', () => {
       const obj = {
         some: '22',
@@ -51,7 +51,7 @@ describe('object utils', () => {
         hello: undefined,
       };
 
-      const result = removeUndefinedProps(obj);
+      const result = omitUndefined(obj);
 
       expect(result).toStrictEqual({
         some: '22',

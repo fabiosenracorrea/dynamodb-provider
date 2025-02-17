@@ -1,6 +1,6 @@
 import { GetItemParams } from 'provider/utils';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { resolveProps } from '../../parsers';
@@ -17,7 +17,7 @@ export class SingleTableGetter extends BaseSingleTableOperator {
     propertiesToRetrieve,
   }: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
     const item = await this.db.get<Entity>(
-      removeUndefinedProps({
+      omitUndefined({
         consistentRead,
         propertiesToRetrieve,
 

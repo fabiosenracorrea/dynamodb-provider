@@ -3,7 +3,7 @@
 
 import { AnyObject, StringKey } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 import { toTruthyList } from 'utils/array';
 
 import { UpdateParams } from 'provider';
@@ -122,7 +122,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       (params.expiresAt && this.config.expiresAt)
     );
 
-    return removeUndefinedProps({
+    return omitUndefined({
       table: this.config.table,
 
       key: getPrimaryKey(params, this.config),

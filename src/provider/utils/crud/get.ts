@@ -1,6 +1,6 @@
 import { StringKey } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 import { getProjectExpressionParams } from '../projection';
 
@@ -41,7 +41,7 @@ export class ItemGetter extends DynamodbExecutor {
     propertiesToRetrieve,
   }: GetItemParams<Entity, PKs>): Promise<Entity | undefined> {
     const { Item } = await this._getItem<Entity>(
-      removeUndefinedProps({
+      omitUndefined({
         TableName: table,
 
         Key: key,

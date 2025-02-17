@@ -7,7 +7,7 @@ import {
   QueryResult,
 } from 'provider/utils';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 import { convertKey, KeyValue } from '../../key';
 import { SingleTableConfig } from '../../config';
@@ -80,7 +80,7 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
       },
 
       rangeKey: range
-        ? removeUndefinedProps({
+        ? omitUndefined({
             ...range,
 
             high: range.operation === 'between' ? this.convertKey(range.high) : undefined,

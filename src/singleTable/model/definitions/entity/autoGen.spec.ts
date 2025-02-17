@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getId } from '../../../../utils/id';
-import { removeUndefinedProps } from '../../../../utils/object';
+import { omitUndefined } from '../../../../utils/object';
 
 import { addAutoGenParams } from './autoGen';
 
@@ -9,7 +9,9 @@ jest.mock('../../../../utils/id', () => ({
 }));
 
 jest.mock('../../../../utils/object', () => ({
-  removeUndefinedProps: jest.fn((obj) => obj),
+  omitUndefined: jest.fn((obj) =>
+    Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== undefined)),
+  ),
 }));
 
 describe('single table model: addAutoGenParams', () => {
@@ -30,7 +32,7 @@ describe('single table model: addAutoGenParams', () => {
   });
 
   it('should correctly generate values using UUID generator', () => {
-    const values = { id: '123', name: 'John Doe' };
+    const values = { name: 'John Doe' };
     const genConfig = { id: 'UUID' } as const;
 
     (getId as jest.Mock).mockReturnValue('mocked-uuid');
@@ -42,7 +44,7 @@ describe('single table model: addAutoGenParams', () => {
   });
 
   it('should correctly generate values using KSUID generator', () => {
-    const values = { id: '123', name: 'John Doe' };
+    const values = { name: 'John Doe' };
     const genConfig = { id: 'KSUID' } as const;
 
     (getId as jest.Mock).mockReturnValue('mocked-ksuid');
@@ -54,7 +56,7 @@ describe('single table model: addAutoGenParams', () => {
   });
 
   it('should correctly generate values using timestamp generator', () => {
-    const values = { id: '123', name: 'John Doe', createdAt: '' };
+    const values = { id: '123', name: 'John Doe' };
     const genConfig = { createdAt: 'timestamp' } as const;
 
     const mockTimestamp = '2024-01-01T00:00:00.000Z';
@@ -69,7 +71,7 @@ describe('single table model: addAutoGenParams', () => {
   });
 
   it('should correctly generate values using count generator', () => {
-    const values = { id: '123', name: 'John Doe', counter: 5 };
+    const values = { id: '123', name: 'John Doe' };
     const genConfig = { counter: 'count' } as const;
 
     const result = addAutoGenParams(values, genConfig);
@@ -78,7 +80,7 @@ describe('single table model: addAutoGenParams', () => {
   });
 
   it('should handle custom function generators', () => {
-    const values = { id: '123', name: 'John Doe', custom: 'initial' };
+    const values = { id: '123', name: 'John Doe' };
     const genConfig = { custom: () => 'custom-generated-value' } as const;
 
     const result = addAutoGenParams(values, genConfig);
@@ -86,12 +88,34 @@ describe('single table model: addAutoGenParams', () => {
     expect(result).toEqual({ id: '123', name: 'John Doe', custom: 'custom-generated-value' });
   });
 
-  it('should remove undefined properties using removeUndefinedProps', () => {
+  it('should remove undefined properties using omitUndefined', () => {
     const values = { name: 'John Doe', some: undefined };
     const genConfig = { age: 'count' } as const;
 
     addAutoGenParams(values, genConfig);
 
-    expect(removeUndefinedProps).toHaveBeenCalledWith({ name: 'John Doe', age: 0 });
+    expect(omitUndefined).toHaveBeenCalledWith({ name: 'John Doe', age: 0 });
+  });
+
+  it('should not autogenerate if value is present', () => {
+    const values = { id: '123', name: 'John Doe' };
+    const genConfig = { id: 'UUID' } as const;
+
+    (getId as jest.Mock).mockReturnValueOnce('mocked-uuid');
+
+    const result = addAutoGenParams(values, genConfig);
+
+    expect(result).toEqual({ id: '123', name: 'John Doe' });
+  });
+
+  it('should autogenerate if value is present only as undefined', () => {
+    const values = { id: undefined, name: 'John Doe' };
+    const genConfig = { id: 'UUID' } as const;
+
+    (getId as jest.Mock).mockReturnValueOnce('mocked-uuid');
+
+    const result = addAutoGenParams(values, genConfig);
+
+    expect(result).toEqual({ id: 'mocked-uuid', name: 'John Doe' });
   });
 });

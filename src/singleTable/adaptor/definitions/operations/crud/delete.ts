@@ -1,7 +1,7 @@
 import { DeleteItemParams } from 'provider';
 
 import { AnyObject } from 'types';
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 
@@ -16,7 +16,7 @@ export class SingleTableRemover extends BaseSingleTableOperator {
 
     conditions,
   }: SingleTableDeleteParams<AnyObject>): DeleteItemParams<SingleTableKeyReference> {
-    return removeUndefinedProps({
+    return omitUndefined({
       conditions,
 
       table: this.config.table,

@@ -1,6 +1,6 @@
 import { ensureArray } from 'utils/array';
 import { isNonNullable } from 'utils/checkers';
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 import { SingleTableConfig } from '../config';
 import { convertKey, KeyValue, SingleTableKeyReference } from '../key';
@@ -46,7 +46,7 @@ function getIndexRecord({
     return convertKey(key!, config);
   });
 
-  return removeUndefinedProps({
+  return omitUndefined({
     [hashName]: hashValue,
 
     [rangeName]: rangeValue,

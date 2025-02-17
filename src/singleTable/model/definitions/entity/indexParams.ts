@@ -6,7 +6,7 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 import { ensureArray } from 'utils/array';
 import { isNonNullable } from 'utils/checkers';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 import { IndexMapping, IndexParams, SingleTableConfigWithIndex } from '../indexes';
 import { KeyResolvers, resolveKeys } from '../key';
 import { getRangeQueriesParams, RangeQueryResultProps } from '../range';
@@ -122,7 +122,7 @@ export function getEntityIndexParams<
             return [
               index,
 
-              removeUndefinedProps({
+              omitUndefined({
                 partitionKey,
                 rangeKey,
               }),
@@ -143,7 +143,7 @@ export function getEntityIndexParams<
 
             return [
               index,
-              removeUndefinedProps({
+              omitUndefined({
                 partitionKey,
                 rangeKey,
               }),

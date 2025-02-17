@@ -11,7 +11,7 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject, MakePartial } from 'types';
 
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 import { EntityKeyParams, KeyResolvers } from '../key';
 
 import { addAutoGenParams, AutoGenParams } from './autoGen';
@@ -156,7 +156,7 @@ export function getCRUDParamGetters<
 
     const resolvedValues = addAutoGenParams(values ?? {}, autoGen?.onUpdate);
 
-    return removeUndefinedProps({
+    return omitUndefined({
       atomicOperations,
       conditions,
       remove,

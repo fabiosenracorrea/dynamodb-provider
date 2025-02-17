@@ -3,7 +3,7 @@
 import { AnyObject, AtLeastOne } from 'types';
 
 import { getId } from 'utils/id';
-import { removeUndefinedProps } from 'utils/object';
+import { omitUndefined } from 'utils/object';
 
 type LifeCycleParams = AtLeastOne<{
   onUpdate?: boolean;
@@ -97,9 +97,9 @@ export function addAutoGenParams<Values extends AnyObject>(
     typeof genRef === 'function' ? genRef() : generators[genRef!]?.(),
   ]);
 
-  return removeUndefinedProps({
-    ...values,
-
+  return omitUndefined({
     ...Object.fromEntries(generated),
+
+    ...omitUndefined(values),
   });
 }
