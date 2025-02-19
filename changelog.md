@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.7
+
+- **Fix**: `extend` Entity interaction fixed. `fromEntity` creations were not passing it down properly to get it called
+
 ## v1.1.6
 
 - **Fix**: `autoGen` was not respecting values already present on create/update values

@@ -17,14 +17,14 @@ export class SingleTableFromEntityMethods<
 > {
   private entity: Entity;
 
-  private methods: SingleTableMethods<SingleParams>;
+  private methods: SingleTableMethods<SingleParams & { parser?: (item: any) => any }>;
 
   private config: SingleParams;
 
   constructor(entity: Entity, params: SingleParams) {
     this.config = params;
     this.entity = entity;
-    this.methods = new SingleTableMethods(params);
+    this.methods = new SingleTableMethods(params, { parser: entity.parser });
   }
 
   private bindObjectMethods<E extends AnyObject>(object: E): E {
