@@ -230,7 +230,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
       ...resolveProps(
         result,
         this.config,
-        entityMap[result[this.config.typeIndex?.partitionKey || '']].parser,
+        entityMap[result[this.config.typeIndex?.partitionKey || ''] || '']?.parser,
       ),
 
       ...Object.fromEntries(

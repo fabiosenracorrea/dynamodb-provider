@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.9
+
+- **Fix**: `extend` Entity x Collection parser reference - safety checks added
+
 ## v1.1.8
 
 - **Fix**: `extend` Entity x Collection retrieval. Entity parser was not being applied when retrieving the collection
