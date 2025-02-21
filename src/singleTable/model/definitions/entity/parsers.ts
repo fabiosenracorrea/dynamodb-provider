@@ -37,7 +37,7 @@ export type EntityParseProps<
       /**
        * Add / modify any props from the entity you may want.
        *
-       * The result of this call with merge with the data returned from the table,
+       * The result of this call will merge with the data returned from the table,
        * **it takes procedure here**
        *
        * When applied inside a collection operation, it's resolved after the collection is built,

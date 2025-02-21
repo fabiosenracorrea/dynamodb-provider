@@ -227,7 +227,11 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
       ) as Item;
 
     return {
-      ...resolveProps(result, this.config),
+      ...resolveProps(
+        result,
+        this.config,
+        entityMap[result[this.config.typeIndex?.partitionKey || '']].parser,
+      ),
 
       ...Object.fromEntries(
         Object.entries(joinRef ?? {}).map(([propName, { join }]) => [

@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.8
+
+- **Fix**: `extend` Entity x Collection retrieval. Entity parser was not being applied when retrieving the collection
+
 ## v1.1.7
 
 - **Fix**: `extend` Entity interaction fixed. `fromEntity` creations were not passing it down properly to get it called
