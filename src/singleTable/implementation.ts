@@ -2,6 +2,7 @@ import { AnyObject, StringKey } from 'types';
 
 import { DBSet, QueryResult, TransactionConfig } from 'provider';
 
+import { omit } from 'utils/object';
 import {
   SingleTableMethods,
   SingleTableParams,
@@ -115,7 +116,11 @@ export class SingleTable<SingleParams extends SingleTableParams> {
 
   private collectionRepo: SingleTableFromCollection<SingleParams>;
 
+  config: Omit<SingleParams, 'dynamodbProvider'>;
+
   constructor(params: SingleParams) {
+    this.config = omit(params, ['dynamodbProvider']);
+
     this.methods = new SingleTableMethods(params);
 
     this.fullSchema = new FullSingleTableSchema(params);

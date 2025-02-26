@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.10
+
+- **Feature**: SingleTable config is exposed if you want to reference an index, etc
+
 ## v1.1.9
 
 - **Fix**: `extend` Entity x Collection parser reference - safety checks added
