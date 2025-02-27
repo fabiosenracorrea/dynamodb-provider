@@ -1,5 +1,31 @@
 # DynamoDB Provider Changelog
 
+## v1.1.11
+
+- **Fix**: Entity index config now correctly throws if the same index is reference multiple times.
+
+```ts
+const entity = schema.createEntity<EntityType>().withParams({
+  type: 'ENTITY_TYPE',
+
+  // ...other params
+
+  indexes: {
+    SOME_INDEX: {
+      // ... key params
+
+      index: 'IndexOne', // <---------------------
+    },
+
+    OTHER_INDEX: {
+      // ... key params
+
+      index: 'IndexOne', // <---------------------
+    },
+  },
+});
+```
+
 ## v1.1.10
 
 - **Feature**: SingleTable config is exposed if you want to reference an index, etc

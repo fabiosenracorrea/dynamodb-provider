@@ -220,4 +220,27 @@ describe('single table entity model: getEntityIndexParams', () => {
     params.indexes.index1.getPartitionKey.mockClear();
     params.indexes.index1.getRangeKey.mockClear();
   });
+
+  it('should *throw* if duplicate index reference is present', () => {
+    const params = {
+      indexes: {
+        someName: {
+          getPartitionKey: jest.fn(),
+          getRangeKey: jest.fn(),
+          index: 'index1',
+        },
+        otherName: {
+          getPartitionKey: jest.fn(),
+          getRangeKey: jest.fn(),
+          index: 'index1',
+        },
+      },
+    };
+
+    const executor = (): void => {
+      getEntityIndexParams(mockTableConfig, params);
+    };
+
+    expect(executor).toThrow();
+  });
 });

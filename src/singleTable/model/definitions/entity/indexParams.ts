@@ -59,8 +59,8 @@ export type EntityIndexInputParams<
   TableConfig extends SingleTableConfig,
   Entity,
 > = TableConfig extends SingleTableConfigWithIndex
-  ? { indexes?: IndexMapping<TableConfig, Entity> }
-  : object;
+  ? { indexes?: IndexMapping<TableConfig, Entity>; type: string }
+  : { type: string };
 
 export type EntityIndexResultProps<
   TableConfig extends SingleTableConfig,
@@ -86,6 +86,18 @@ function validateIndexKeyReturn(key?: KeyValue): KeyValue | undefined {
   return isInvalidKey(key) ? undefined : key!;
 }
 
+function validateDoubleReference(
+  indexes: IndexMapping<SingleTableConfigWithIndex, any>,
+  type: string,
+): void {
+  const references = Object.values(indexes).map(({ index }) => index);
+
+  const unique = new Set(references);
+
+  if (unique.size !== references.length)
+    throw new Error(`Duplicate index reference on entity ${type}`);
+}
+
 export function getEntityIndexParams<
   TableConfig extends SingleTableConfig,
   IParams extends EntityIndexInputParams<TableConfig, any>,
@@ -95,6 +107,8 @@ export function getEntityIndexParams<
   if (!okParams) return {} as EntityIndexResultProps<TableConfig, IParams>;
 
   const { indexes } = params as { indexes: IndexMapping<SingleTableConfigWithIndex, any> };
+
+  validateDoubleReference(indexes, params.type);
 
   return {
     indexes: Object.fromEntries(
