@@ -47,6 +47,12 @@ export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
   >;
 }
 
+export interface EqualityExpression<Entity> extends BasalExpressionValues<Entity> {
+  value: string | number | boolean | null;
+
+  operation: Extract<ExpressionOperation, 'equal' | 'not_equal'>;
+}
+
 export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
   low: string | number;
   high: string | number;
@@ -66,6 +72,7 @@ export interface AttributeExistenceExpression<Entity> extends BasalExpressionVal
 
 export type ItemExpression<Entity> =
   | BasicExpression<Entity>
+  | EqualityExpression<Entity>
   | BetweenExpression<Entity>
   | AttributeExistenceExpression<Entity>
   | ListExpression<Entity>;

@@ -461,7 +461,7 @@ interface Method {
     A partial object with the values to update. This allows you to update specific fields of the item.
 
   - **`atomicOperations` (Array<AtomicOperation>, Optional)**:
-    Defines atomic operations to be executed on the item.
+    Defines atomic operations to be executed on the item. Embeded conditional is supported!
     _Supported operations include_:
     - Math Operations: `sum`, `subtract`, `add`
     - Set Operations: `add_to_set`, `remove_from_set`
@@ -484,7 +484,7 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
     userId: string;
     name: string;
     email: string;
-    age: number;
+    loginCount: number;
   }
 
   const params = {
@@ -499,7 +499,7 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
     },
 
     atomicOperations: [
-      { operation: 'add', property: 'age', value: 1 },
+      { operation: 'add', property: 'loginCount', value: 1 },
     ],
 
     conditions: [
@@ -517,7 +517,55 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
   // updatedUser will be { name, age }
 ```
 
-One common use case of this operation is to control the number of items you have with another item. Say you want to control User with incremental ids:
+Its non uncommon to tie `atomicOperations` with `conditions` to ensure the operation can performed. Say you have a counter on your unit, and it goes up and down. Most of the time that can't go below 0, but there could be 2 operations that go through in-between calls. To prevent this from happening, you could do:
+
+```ts
+await db.update({
+  id: '12',
+
+  atomicOperations: [
+    {
+      type: 'subtract',
+      property: 'count',
+      value: 1
+    }
+  ],
+
+  conditions: [
+    {
+      // Ensures no bad -1 or related is formed
+      operation: 'bigger_than',
+      property: 'count',
+      value: 0,
+    }
+  ]
+})
+```
+
+We also support you to include the condition to the operation with it:
+
+```ts
+await db.update({
+  id: '12',
+
+  atomicOperations: [
+    {
+      type: 'subtract',
+      property: 'count',
+      value: 1,
+
+      if: {
+        operation: 'bigger_than',
+        value: 0
+      }
+    }
+  ],
+})
+```
+
+On this seconds case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**!. You can choose what makes more sense to you.
+
+Another common use case of this operation is to control the number of items you have with another item. Say you want to control User with incremental ids:
 
 ```ts
 // whenever creating an user

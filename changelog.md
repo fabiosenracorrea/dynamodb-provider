@@ -1,5 +1,62 @@
 # DynamoDB Provider Changelog
 
+## v1.1.12
+
+- **Feature**: `atomicOperations` on update calls now support an `if` param to easily reference a condition from within it
+
+Tightly reference a condition for your operation!
+
+If you use this, the `property` defaults to the same you are trying to operate on. You can still provide a different one if necessary
+
+With this you can go from:
+
+```ts
+db.update({
+  id: '12',
+
+  atomicOperations: [
+    {
+      type: 'subtract',
+      property: 'count',
+      value: 1
+    }
+  ],
+
+  conditions: [
+    {
+      operation: 'bigger_than',
+      property: 'count',
+      value: 0,
+    }
+  ]
+})
+```
+
+to this:
+
+```ts
+db.update({
+  id: '12',
+
+  atomicOperations: [
+    {
+      type: 'subtract',
+      property: 'count',
+      value: 1,
+
+      if: {
+        operation: 'bigger_than',
+        value: 0
+      }
+    }
+  ],
+})
+```
+
+Both of the above examples are **valid**!. You can choose what makes more sense to you.
+
+- **Fix**: `equal` | `not_equal` operations now correctly accept boolean/null values
+
 ## v1.1.11
 
 - **Fix**: Entity index config now correctly throws if the same index is reference multiple times.
