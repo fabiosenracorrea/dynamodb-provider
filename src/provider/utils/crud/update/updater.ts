@@ -6,11 +6,7 @@ import { omitUndefined } from 'utils/object';
 
 import { DBUpdateItemParams, DynamodbExecutor } from '../../dynamoDB';
 
-import {
-  buildConditionExpression,
-  getConditionExpressionNames,
-  getConditionExpressionValues,
-} from '../../conditions';
+import { getConditionParams } from '../../conditions';
 import {
   buildExpressionAttributeNames,
   buildExpressionAttributeValues,
@@ -49,6 +45,22 @@ export class ItemUpdater extends DynamodbExecutor {
     );
   }
 
+  private getConditionParams({
+    atomicOperations = [],
+    conditions = [],
+  }: Pick<UpdateParams<any>, 'atomicOperations' | 'conditions'>) {
+    const atomicConditions = atomicOperations
+      .filter((o) => o.if)
+      .map((op) => ({
+        ...op.if!,
+        property: op.if!.property ?? op.property,
+      }));
+
+    const allConditions = [...atomicConditions, ...conditions];
+
+    return getConditionParams(allConditions);
+  }
+
   getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): DBUpdateItemParams['input'] {
@@ -58,7 +70,8 @@ export class ItemUpdater extends DynamodbExecutor {
 
     const atomic = params.atomicOperations || [];
     const values = omitUndefined(params.values || {});
-    const conditions = params.conditions || [];
+
+    const conditionParams = this.getConditionParams(params);
 
     return omitUndefined({
       TableName: table,
@@ -71,7 +84,7 @@ export class ItemUpdater extends DynamodbExecutor {
         values,
       }),
 
-      ConditionExpression: conditions.length ? buildConditionExpression(conditions) : undefined,
+      ConditionExpression: conditionParams.ConditionExpression,
 
       ExpressionAttributeNames: {
         ...buildExpressionAttributeNames(values),
@@ -88,7 +101,7 @@ export class ItemUpdater extends DynamodbExecutor {
             .flat(),
         ),
 
-        ...getConditionExpressionNames(conditions),
+        ...conditionParams.ExpressionAttributeNames,
       },
 
       ExpressionAttributeValues: {
@@ -96,7 +109,7 @@ export class ItemUpdater extends DynamodbExecutor {
 
         ...this.buildAtomicAttributeValues(atomic),
 
-        ...getConditionExpressionValues(conditions),
+        ...conditionParams.ExpressionAttributeValues,
       },
 
       ReturnValues: returnUpdatedProperties ? 'UPDATED_NEW' : undefined,

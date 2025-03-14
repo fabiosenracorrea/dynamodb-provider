@@ -63,6 +63,8 @@ export interface UpdateParams<Entity, PKs extends StringKey<Entity> | unknown = 
    *
    * Currently this does not support nested conditions (parenthesis)
    *
+   * If you are doing `atomicOperations` you can also add a condition
+   * to each operation inside each `if` clause
    */
   conditions?: ItemExpression<
     PKs extends StringKey<Entity> ? Omit<NoInfer<Entity>, PKs> : NoInfer<Entity>

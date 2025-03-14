@@ -66,7 +66,7 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
 
         throw new Error('Invalid transaction type');
       },
-    );
+    ) as TransactionConfig[];
   }
 
   async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {

@@ -6,9 +6,12 @@ import {
   BasicExpression,
   BetweenExpression,
   ListExpression,
+  EqualityExpression,
 } from '../expressions';
 
 export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value' | 'joinAs'>;
+
+export type EqualityFilterConfig = Pick<EqualityExpression<any>, 'operation' | 'value' | 'joinAs'>;
 
 export type BetweenFilterConfig = Pick<
   BetweenExpression<any>,
@@ -25,6 +28,7 @@ export type ListFilterConfig = Pick<ListExpression<any>, 'operation' | 'values' 
 export type FilterConfig =
   | BasicFilterConfig
   | BetweenFilterConfig
+  | EqualityFilterConfig
   | AttributeExistenceFilterConfig
   | ListFilterConfig;
 

@@ -178,6 +178,183 @@ describe('Updater tests', () => {
       });
     });
 
+    it('atomic operation conditions should be added to the condition expression using the atomic property by default', async () => {
+      const updateMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const updater = new ItemUpdater({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
+      });
+
+      const expectedConditions = [
+        {
+          operation: 'bigger_than' as const,
+          value: 1,
+          property: 'count',
+        },
+        {
+          operation: 'begins_with' as const,
+          property: 'date',
+          value: '1',
+        },
+      ];
+
+      await updater.update<any>({
+        table: 'table',
+
+        key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        values: {
+          name: 'Fabio',
+        },
+
+        atomicOperations: [
+          {
+            property: 'count',
+            type: 'subtract',
+            value: 1,
+
+            if: {
+              operation: 'bigger_than',
+              value: 1,
+            },
+          },
+        ],
+
+        conditions: [
+          {
+            operation: 'begins_with',
+            property: 'date',
+            value: '1',
+          },
+        ],
+      });
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock).toHaveBeenCalledWith({
+        TableName: 'table',
+
+        Key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        UpdateExpression: 'SET #name = :name, #count = #count - :count',
+
+        ConditionExpression: buildConditionExpression(expectedConditions),
+
+        ExpressionAttributeNames: {
+          '#name': 'name',
+          '#count': 'count',
+          ...getConditionExpressionNames(expectedConditions),
+        },
+
+        ExpressionAttributeValues: {
+          ':name': 'Fabio',
+          ':count': 1,
+          ...getConditionExpressionValues(expectedConditions),
+        },
+      });
+    });
+
+    it('atomic operation conditions should allow another property reference', async () => {
+      const updateMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const updater = new ItemUpdater({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            update: updateMock,
+          } as any,
+        },
+      });
+
+      const expectedConditions = [
+        {
+          operation: 'equal' as const,
+          value: true,
+          property: 'isActive',
+        },
+        {
+          operation: 'begins_with' as const,
+          property: 'date',
+          value: '1',
+        },
+      ];
+
+      await updater.update<any>({
+        table: 'table',
+
+        key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        values: {
+          name: 'Fabio',
+        },
+
+        atomicOperations: [
+          {
+            property: 'count',
+            type: 'subtract',
+            value: 1,
+
+            if: {
+              operation: 'equal',
+              value: true,
+              property: 'isActive',
+            },
+          },
+        ],
+
+        conditions: [
+          {
+            operation: 'begins_with',
+            property: 'date',
+            value: '1',
+          },
+        ],
+      });
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock).toHaveBeenCalledWith({
+        TableName: 'table',
+
+        Key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        UpdateExpression: 'SET #name = :name, #count = #count - :count',
+
+        ConditionExpression: buildConditionExpression(expectedConditions),
+
+        ExpressionAttributeNames: {
+          '#name': 'name',
+          '#count': 'count',
+          ...getConditionExpressionNames(expectedConditions),
+        },
+
+        ExpressionAttributeValues: {
+          ':name': 'Fabio',
+          ':count': 1,
+          ...getConditionExpressionValues(expectedConditions),
+        },
+      });
+    });
+
     it('should properly adjust for conditions', async () => {
       const updateMock = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({}),

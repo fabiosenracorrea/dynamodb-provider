@@ -79,8 +79,10 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     return this.getter.get(params);
   }
 
-  async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
-    return this.creator.create(params);
+  async create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+    params: CreateItemParams<Entity, PKs>,
+  ): Promise<Entity> {
+    return this.creator.create(params as CreateItemParams<Entity>);
   }
 
   async delete<Entity extends Record<string, any>>(
