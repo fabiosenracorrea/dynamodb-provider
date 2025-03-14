@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { StringKey, AnyObject } from 'types';
+import { StringKey, AnyObject, AnyFunction } from 'types';
 
 import { IDynamodbProvider } from 'provider';
 
@@ -125,7 +125,7 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
   ): SingleTableTransactionConfig<SingleParams, Item>[] {
     return this.transactWriter.generateTransactionConfigList(
       items,
-      generator,
+      generator as AnyFunction,
     ) as SingleTableTransactionConfig<SingleParams, Item>[];
   }
 
