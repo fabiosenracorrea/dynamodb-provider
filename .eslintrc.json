@@ -23,21 +23,7 @@
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "consistent-return": "off",
-    "@typescript-eslint/explicit-function-return-type": [
-      "error",
-      {
-        "allowExpressions": true,
-        "allowedNames": [
-          "getValidation",
-          "getBodyValidation",
-          "getPathValidation",
-          "getQueryStringValidation",
-          "getQueryValidation",
-          "handleHTTP",
-          "decorate"
-        ]
-      }
-    ],
+    "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-unused-vars": ["warn", {
       "argsIgnorePattern": "^_",
       "varsIgnorePattern": "^_"
