@@ -514,7 +514,7 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
 
   const updatedUser = await provider.update(params);
 
-  // updatedUser will be { name, age }
+  // updatedUser will be { name, loginCount }
 ```
 
 Its non uncommon to tie `atomicOperations` with `conditions` to ensure the operation can performed. Say you have a counter on your unit, and it goes up and down. Most of the time that can't go below 0, but there could be 2 operations that go through in-between calls. To prevent this from happening, you could do:
