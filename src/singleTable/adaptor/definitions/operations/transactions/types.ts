@@ -44,7 +44,7 @@ export interface SingleTableConditionCheckTransaction<E extends AnyObject = AnyO
   erase?: never;
   update?: never;
   create?: never;
-  validate?: SingleTableValidateTransactParams<E>;
+  validate: SingleTableValidateTransactParams<E>;
 }
 
 export type SingleTableTransactionConfig<

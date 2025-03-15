@@ -130,3 +130,5 @@ export const ENTITY = schema.createEntity<ENTITY_TYPE>().withParams({
 But thats just not as clear, and it adds yet another level of knowledge we must have to use the library. All is a tradeoff at the end of the day.
 
 Will test more before adding this in;
+
+- use-case tests across the lib

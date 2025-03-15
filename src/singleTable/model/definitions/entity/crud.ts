@@ -12,6 +12,7 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 import { AnyObject, MakePartial } from 'types';
 
 import { omitUndefined } from 'utils/object';
+import { DeleteItemParams, ValidateTransactParams } from 'provider/utils';
 import { EntityKeyParams, KeyResolvers } from '../key';
 
 import { addAutoGenParams, AutoGenParams } from './autoGen';
@@ -65,32 +66,46 @@ type BaseCRUDProps<
   ) => SingleTableUpdateParams<Entity>;
 };
 
+type TransactParamResult<TableConfig extends SingleTableConfig, Entity extends AnyObject> = {
+  crete: Pick<SingleTableCreateTransaction<TableConfig, Entity>, 'create'>;
+  update: Pick<SingleTableUpdateTransaction<TableConfig, Entity>, 'update'>;
+  erase: Pick<SingleTableDeleteTransaction<Entity>, 'erase'>;
+  validate: Pick<SingleTableConditionCheckTransaction<Entity>, 'validate'>;
+};
+
 type TransactCRUDProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<any, any>,
 > = {
+  getValidationParams: (
+    params: EntityKeyParams<Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+  ) => TransactParamResult<TableConfig, Entity>['validate']['validate'];
+
   transactCreateParams: (
     ...params: Parameters<BaseCRUDProps<TableConfig, Entity, Params>['getCreationParams']>
-  ) => Pick<SingleTableCreateTransaction<TableConfig, Entity>, 'create'>;
+  ) => TransactParamResult<TableConfig, Entity>['crete'];
 
   transactUpdateParams: (
     ...params: Parameters<BaseCRUDProps<TableConfig, Entity, Params>['getUpdateParams']>
-  ) => Pick<SingleTableUpdateTransaction<TableConfig, Entity>, 'update'>;
+  ) => TransactParamResult<TableConfig, Entity>['update'];
 
   transactDeleteParams: (
-    params: EntityKeyParams<Params>,
-  ) => Pick<SingleTableDeleteTransaction<Entity>, 'erase'>;
+    params: EntityKeyParams<Params> & Omit<DeleteItemParams<Entity>, 'key' | 'table'>,
+  ) => TransactParamResult<TableConfig, Entity>['erase'];
 
   transactValidateParams: (
-    params: EntityKeyParams<Params>,
-  ) => Pick<SingleTableConditionCheckTransaction<Entity>, 'validate'>;
+    params: EntityKeyParams<Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+  ) => TransactParamResult<TableConfig, Entity>['validate'];
 };
 
 // fromEntity was acting up
 export type ExtendableCRUDProps = {
   getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
   getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
+  getValidationParams: (
+    ...param: any[]
+  ) => Pick<SingleTableConditionCheckTransaction<any>, 'validate'>['validate'];
 
   transactCreateParams: (...param: any[]) => Pick<SingleTableCreateTransaction<any, any>, 'create'>;
   transactUpdateParams: (...param: any[]) => Pick<SingleTableUpdateTransaction<any, any>, 'update'>;
@@ -174,6 +189,14 @@ export function getCRUDParamGetters<
     });
   };
 
+  const getValidationParams = ({
+    conditions,
+    ...params
+  }: any): TransactParamResult<TableConfig, Entity>['validate']['validate'] => ({
+    conditions,
+    ...getKey(params),
+  });
+
   return {
     getUpdateParams,
     getCreationParams,
@@ -190,10 +213,9 @@ export function getCRUDParamGetters<
     }),
 
     transactValidateParams: (params = {} as any) => ({
-      validate: {
-        ...(params as AnyObject),
-        ...getKey(params),
-      },
+      validate: getValidationParams(params),
     }),
+
+    getValidationParams,
   } as EntityCRUDProps<TableConfig, Entity, Params>;
 }

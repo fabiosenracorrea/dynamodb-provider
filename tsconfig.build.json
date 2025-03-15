@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+
+    "baseUrl": "./src",
+    "outDir": "./lib",
+    "paths": {
+      "utils": ["/utils"],
+      "types/*": ["/types/*"],
+      "singleTable": ["/singleTable"],
+    },
+
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2020"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": false,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "target": "ES2020"
+  },
+
+  "include": ["src/**/*.ts", "./src/**/*.d.ts"],
+
+  "exclude": ["node_modules", "lib", "src/**/*-test.ts", "**/*.spec.ts"]
+}

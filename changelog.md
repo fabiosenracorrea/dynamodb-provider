@@ -1,5 +1,13 @@
 # DynamoDB Provider Changelog
 
+## v1.1.13
+
+- **Feature**: `getValidationParams` added to single table entity
+- **Fix**: `Validation` params now correctly expected `conditions` to be defined when created from entity
+- **Fix**: `Delete` params now correctly accepts optional `conditions` when generated from entity
+- **Fix**: `v.1.1.12` Equality expression definition broke some type resolutions
+- **Use case tests**: Introduction of use-case tests to simulate real world use cases and catch errors like this before shipping. Will be fully implemented in an upcoming version
+
 ## v1.1.12
 
 - **Feature**: `atomicOperations` on update calls now support an `if` param to easily reference a condition from within it

@@ -48,7 +48,8 @@ export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
 }
 
 export interface EqualityExpression<Entity> extends BasalExpressionValues<Entity> {
-  value: string | number | boolean | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
 
   operation: Extract<ExpressionOperation, 'equal' | 'not_equal'>;
 }

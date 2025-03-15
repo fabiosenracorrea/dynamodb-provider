@@ -20,7 +20,7 @@ describe('getCRUDParamGetters', () => {
 
     partitionKey: 'some',
 
-    rangeKey: 'some',
+    rangeKey: 'other-some',
 
     typeIndex: {
       partitionKey: 'partitionKey-TYPE',
@@ -43,10 +43,8 @@ describe('getCRUDParamGetters', () => {
     autoGen: mockAutoGen,
   };
 
-  const { getCreationParams, getUpdateParams, ...transactParams } = getCRUDParamGetters(
-    tableConfig,
-    crudParamsGenerator,
-  );
+  const { getCreationParams, getUpdateParams, getValidationParams, ...transactParams } =
+    getCRUDParamGetters(tableConfig, crudParamsGenerator);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -178,7 +176,7 @@ describe('getCRUDParamGetters', () => {
       });
     });
 
-    it('validate: should generate params with getKey + forward conditions', () => {
+    it('validate: should generate params with getValidationParams', () => {
       mockGetKey.mockReturnValueOnce({
         partitionKey: 'hi-validate',
         rangeKey: 'another',
@@ -186,16 +184,40 @@ describe('getCRUDParamGetters', () => {
 
       const conditions = Symbol('validate-conditions');
 
-      const params = transactParams.transactValidateParams({
+      const payload = {
+        conditions,
+      };
+
+      const params = getValidationParams(payload);
+
+      mockGetKey.mockReturnValueOnce({
+        partitionKey: 'hi-validate',
+        rangeKey: 'another',
+      });
+
+      const transactResult = transactParams.transactValidateParams(payload);
+
+      expect(transactResult).toStrictEqual({
+        validate: params,
+      });
+    });
+
+    it('getValidationParams: should generate params with getKey + forward conditions', () => {
+      mockGetKey.mockReturnValueOnce({
+        partitionKey: 'hi-validate',
+        rangeKey: 'another',
+      });
+
+      const conditions = Symbol('validate-conditions');
+
+      const params = getValidationParams({
         conditions,
       });
 
       expect(params).toStrictEqual({
-        validate: {
-          conditions,
-          partitionKey: 'hi-validate',
-          rangeKey: 'another',
-        },
+        conditions,
+        partitionKey: 'hi-validate',
+        rangeKey: 'another',
       });
     });
   });

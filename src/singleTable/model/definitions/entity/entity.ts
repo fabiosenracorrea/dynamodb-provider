@@ -50,6 +50,7 @@ export type ExtendableSingleTableEntity = Omit<
   | 'getKey'
   | 'getUpdateParams'
   | 'getCreationParams'
+  | 'getValidationParams'
   | 'transactCreateParams'
   | 'transactUpdateParams'
   | 'transactDeleteParams'

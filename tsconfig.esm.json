@@ -1,5 +1,6 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.build",
+
   "compilerOptions": {
     "module": "ESNext",
     "target": "ES2020",
