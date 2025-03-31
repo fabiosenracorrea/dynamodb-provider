@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+## v1.1.14
+
+- **Fix**: `transaction.validate` condition expression was not properly generated with the corresponding prefix
+
 ## v1.1.13
 
 - **Feature**: `getValidationParams` added to single table entity

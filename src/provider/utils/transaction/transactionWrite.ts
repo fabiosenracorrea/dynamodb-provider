@@ -10,8 +10,7 @@ import {
 } from '../dynamoDB';
 
 import { TransactionConfig, ValidateTransactParams } from './types';
-import { buildExpression } from '../expressions';
-import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
+import { getConditionParams } from '../conditions';
 import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
 
 const MAX_TRANSACT_ACTIONS = 100;
@@ -43,12 +42,8 @@ export class TransactionWriter extends DynamodbExecutor {
 
       Key: key,
 
-      ConditionExpression: buildExpression(conditions),
-
-      ExpressionAttributeNames: getConditionExpressionNames(conditions),
-
-      ExpressionAttributeValues: getConditionExpressionValues(conditions),
-    };
+      ...getConditionParams(conditions),
+    } as DBConditionTransactParams;
   }
 
   private _getTransactParams(configs: TransactionConfig[]): DBTransactWriteParams['input'] {
