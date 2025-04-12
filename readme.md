@@ -338,8 +338,8 @@ export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
 }
 
 export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
-  low: string | number;
-  high: string | number;
+  start: string | number;
+  end: string | number;
 
   operation: Extract<ExpressionOperation, 'between'>;
 }
@@ -740,7 +740,7 @@ export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value'
 
 export type BetweenFilterConfig = Pick<
   BetweenExpression<any>,
-  'operation' | 'high' | 'low' | 'joinAs'
+  'operation' | 'start' | 'end' | 'joinAs'
 >;
 
 export type AttributeExistenceFilterConfig = Pick<
@@ -950,7 +950,7 @@ interface Method {
 
     RangeKey Configuration comes in two forms:
     - `BasicRangeKeyConfig`: For single condition operations (`equal`, `lower_than`, etc.).
-    - `BetweenRangeKeyConfig`: For a `between` operation, providing both `low` and `high` values.
+    - `BetweenRangeKeyConfig`: For a `between` operation, providing both `start` and `end` values.
 
   - `retrieveOrder` (string, Optional):
     Specifies the order of the results.
@@ -1694,8 +1694,8 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
       dateSlice: {
         operation: 'between',
         getValues: ({ start, end }: { start: string, end: string }) => ({
-          low: start,
-          high: end,
+          start,
+          end,
         })
       }
     }
@@ -1885,8 +1885,8 @@ const Logs = table.schema.createEntity<tLogs>().withParams({
       dateSlice: {
         operation: 'between',
         getValues: ({ start, end }: { start: string, end: string }) => ({
-          low: start,
-          high: end,
+          start,
+          end,
         })
       }
     }

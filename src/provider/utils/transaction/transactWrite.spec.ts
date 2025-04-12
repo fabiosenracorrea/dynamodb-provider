@@ -713,8 +713,8 @@ describe('transactionWriter', () => {
             conditions: [
               {
                 operation: 'between',
-                high: 10,
-                low: 1,
+                start: 1,
+                end: 10,
                 property: 'balance',
               },
             ],
@@ -817,8 +817,8 @@ describe('transactionWriter', () => {
               ...getConditionParams([
                 {
                   operation: 'between',
-                  high: 10,
-                  low: 1,
+                  start: 1,
+                  end: 10,
                   property: 'balance',
                 },
               ]),

@@ -1444,8 +1444,8 @@ describe('single table - from entity methods', () => {
               aToF: {
                 operation: `between`,
                 getValues: () => ({
-                  high: 'f',
-                  low: 'a',
+                  end: 'f',
+                  start: 'a',
                 }),
               },
             },
@@ -1479,8 +1479,8 @@ describe('single table - from entity methods', () => {
 
         range: {
           operation: 'between',
-          high: 'f',
-          low: 'a',
+          end: 'f',
+          start: 'a',
         },
       });
 

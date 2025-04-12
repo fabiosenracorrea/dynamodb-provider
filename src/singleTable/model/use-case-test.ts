@@ -128,8 +128,8 @@ export const MEDIA = singleTable.schema.createEntity<Media>().withParams({
         optionalDateSlice: {
           operation: 'between',
           getValues: ({ end, start }: { start: string; end: string }) => ({
-            high: end ?? '2100-01-01T00:00:00.000Z',
-            low: start ?? '2020-01-01T00:00:00.000Z',
+            end: end ?? '2100-01-01T00:00:00.000Z',
+            start: start ?? '2020-01-01T00:00:00.000Z',
           }),
         },
       },
@@ -244,4 +244,30 @@ singleTable.schema.createEntity<{ id: string }>().withParams({
       bad: () => true,
     },
   },
+});
+
+// nested conditions reference
+MEDIA.getUpdateParams({
+  id: '1',
+
+  conditions: [
+    {
+      operation: 'equal',
+      property: 'description',
+      value: 'any',
+      nested: [
+        {
+          property: 's3Key',
+          operation: 'begins_with',
+          value: 'private',
+        },
+      ],
+    },
+    {
+      joinAs: 'or',
+      operation: 'equal',
+      property: 'description',
+      value: 'other-desc',
+    },
+  ],
 });

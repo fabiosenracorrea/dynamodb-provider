@@ -132,8 +132,8 @@ describe('single table adaptor - query', () => {
 
       range: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
       },
     });
 
@@ -148,8 +148,8 @@ describe('single table adaptor - query', () => {
 
       rangeKey: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
         name: '_sk',
       },
     });
@@ -196,8 +196,8 @@ describe('single table adaptor - query', () => {
 
       range: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
       },
 
       index: 'SomeIndex',
@@ -216,8 +216,8 @@ describe('single table adaptor - query', () => {
 
       rangeKey: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
         name: '_indexRange1',
       },
     });
@@ -272,8 +272,8 @@ describe('single table adaptor - query', () => {
 
       range: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
       },
 
       index: 'SomeIndex',
@@ -294,8 +294,8 @@ describe('single table adaptor - query', () => {
 
       rangeKey: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
         name: '_indexRange1',
       },
 
@@ -421,8 +421,8 @@ describe('single table adaptor - query', () => {
 
       range: {
         operation: 'between',
-        low: '2022',
-        high: '2023',
+        start: '2022',
+        end: '2023',
       },
 
       index: 'SomeIndex',

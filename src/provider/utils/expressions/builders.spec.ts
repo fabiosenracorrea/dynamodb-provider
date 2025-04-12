@@ -346,11 +346,11 @@ describe('Provider: expressions - builders tests', () => {
     });
 
     describe('between', () => {
-      it('should properly create the between expression, prefixed correctly on prop/value + suffixed with low/high', () => {
+      it('should properly create the between expression, prefixed correctly on prop/value + suffixed with start/end', () => {
         const prop = 'some_prop';
 
         expect(expressionBuilders.between({ prop })).toBe(
-          `#${prop} between :${prop}_low and :${prop}_high`,
+          `#${prop} between :${prop}_start and :${prop}_end`,
         );
       });
 
@@ -358,7 +358,7 @@ describe('Provider: expressions - builders tests', () => {
         const prop = 'some_prop';
 
         expect(expressionBuilders.between({ prop, prefix: 'MASKED____' })).toBe(
-          `#MASKED____${prop} between :MASKED____${prop}_low and :MASKED____${prop}_high`,
+          `#MASKED____${prop} between :MASKED____${prop}_start and :MASKED____${prop}_end`,
         );
       });
     });
@@ -396,8 +396,8 @@ describe('Provider: expressions - builders tests', () => {
           value: '102901920192',
         },
         {
-          high: 1,
-          low: 0,
+          end: 1,
+          start: 0,
           operation: 'between',
           property: 'between_prop',
         },
@@ -406,8 +406,8 @@ describe('Provider: expressions - builders tests', () => {
       expect(values).toEqual({
         ':some_prop': 'some_value',
         ':no_equal_prop': '102901920192',
-        ':between_prop_low': 0,
-        ':between_prop_high': 1,
+        ':between_prop_start': 0,
+        ':between_prop_end': 1,
         ':other_prop_0': 1,
         ':no_in_prop_0': 3,
         ':no_in_prop_1': 4,

@@ -1018,8 +1018,8 @@ describe('query builder', () => {
         rangeKey: {
           operation: 'between',
           name: 'rangeKey',
-          low: 'rangeStart',
-          high: 'rangeEnd',
+          start: 'rangeStart',
+          end: 'rangeEnd',
         },
       });
 
@@ -1030,7 +1030,7 @@ describe('query builder', () => {
         ScanIndexForward: true,
 
         KeyConditionExpression:
-          '(#id = :id) and (#rangeKey between :rangeKey_low and :rangeKey_high)',
+          '(#id = :id) and (#rangeKey between :rangeKey_start and :rangeKey_end)',
 
         ExpressionAttributeNames: {
           '#id': 'id',
@@ -1039,8 +1039,8 @@ describe('query builder', () => {
 
         ExpressionAttributeValues: {
           ':id': 'someId',
-          ':rangeKey_low': 'rangeStart',
-          ':rangeKey_high': 'rangeEnd',
+          ':rangeKey_start': 'rangeStart',
+          ':rangeKey_end': 'rangeEnd',
         },
       });
     });
