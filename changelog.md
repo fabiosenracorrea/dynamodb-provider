@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+## v1.1.15
+
+- **Fix**: `in` and `not_in` expressions were not properly built
+- **Fix**: `condition` on some transaction tests fixed to account for its prefix
+
 ## v1.1.14
 
 - **Fix**: `transaction.validate` condition expression was not properly generated with the corresponding prefix

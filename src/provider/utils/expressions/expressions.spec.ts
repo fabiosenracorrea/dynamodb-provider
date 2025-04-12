@@ -157,29 +157,39 @@ describe('expression builder', () => {
     it('should properly create the *in* expression, prefixed correctly on prop/value', () => {
       const prop = 'some_prop';
 
+      const values = [1, 2, 3, 4];
+
+      const toName = (p: string, index: number) => `:${p}_${index}`;
+      const valueString = values.map((_, index) => toName(prop, index)).join(',');
+
       const expression = buildExpression([
         {
           operation: 'in',
           property: prop,
-          values: ['NOT_IMPORTANT'],
+          values,
         },
       ]);
 
-      expect(expression).toBe(`(#${prop} in :${prop})`);
+      expect(expression).toBe(`(#${prop} in (${valueString}))`);
     });
 
     it('should properly create the *not_in* expression, prefixed correctly on prop/value', () => {
       const prop = 'some_prop';
 
+      const values = [1, 2, 3, 4];
+
+      const toName = (p: string, index: number) => `:${p}_${index}`;
+      const valueString = values.map((_, index) => toName(prop, index)).join(',');
+
       const expression = buildExpression([
         {
           operation: 'not_in',
           property: prop,
-          values: ['NOT_IMPORTANT'],
+          values,
         },
       ]);
 
-      expect(expression).toBe(`(not #${prop} in :${prop})`);
+      expect(expression).toBe(`(not #${prop} in (${valueString}))`);
     });
 
     it('should properly create the *between* expression, prefixed correctly on prop/value', () => {
@@ -397,36 +407,46 @@ describe('expression builder', () => {
       const prop = 'some_prop';
       const prefix = '___prefix';
 
+      const values = [1, 2, 3, 4];
+
+      const toName = (p: string, index: number) => `:___prefix${p}_${index}`;
+      const valueString = values.map((_, index) => toName(prop, index)).join(',');
+
       const expression = buildExpression(
         [
           {
             operation: 'in',
             property: prop,
-            values: ['NOT_IMPORTANT'],
+            values,
           },
         ],
         prefix,
       );
 
-      expect(expression).toBe(`(#${prefix}${prop} in :${prefix}${prop})`);
+      expect(expression).toBe(`(#${prefix}${prop} in (${valueString}))`);
     });
 
     it('should properly prefix the *not_in* expression, prefixed correctly on prop/value', () => {
       const prop = 'some_prop';
       const prefix = '___prefix';
 
+      const values = [1, 2, 3, 4];
+
+      const toName = (p: string, index: number) => `:___prefix${p}_${index}`;
+      const valueString = values.map((_, index) => toName(prop, index)).join(',');
+
       const expression = buildExpression(
         [
           {
             operation: 'not_in',
             property: prop,
-            values: ['NOT_IMPORTANT'],
+            values,
           },
         ],
         prefix,
       );
 
-      expect(expression).toBe(`(not #${prefix}${prop} in :${prefix}${prop})`);
+      expect(expression).toBe(`(not #${prefix}${prop} in (${valueString}))`);
     });
 
     it('should properly prefix the *between* expression, prefixed correctly on prop/value', () => {
@@ -466,7 +486,7 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in :other_prop)`);
+      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`);
     });
 
     it('should be able to handle 2 expressions with *and*', () => {
@@ -484,7 +504,7 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in :other_prop)`);
+      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`);
     });
 
     it('should be able to handle 2 of the same expression with *and*', () => {
@@ -520,7 +540,7 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) or (#other_prop in :other_prop)`);
+      expect(expression).toBe(`(#some_prop = :some_prop) or (#other_prop in (:other_prop_0))`);
     });
 
     it('should be able to handle 2 of the same expression with *or*', () => {
@@ -576,7 +596,7 @@ describe('expression builder', () => {
       expect(expression).toBe(
         [
           '(#some_prop = :some_prop)',
-          'or (#in_prop in :in_prop)',
+          'or (#in_prop in (:in_prop_0))',
           'and (#between_prop between :between_prop_low and :between_prop_high)',
           'or (attribute_not_exists(#exists_prop))',
           'and (not contains(#contains_prop, :contains_prop))',

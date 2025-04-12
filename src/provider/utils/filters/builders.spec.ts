@@ -34,11 +34,15 @@ describe('filter helpers', () => {
 
       expect(result).toEqual({
         FilterExpression:
-          '(#__filter_age in :__filter_age) and (#__filter_status in :__filter_status)',
+          '(#__filter_age in (:__filter_age_0,:__filter_age_1,:__filter_age_2)) and (#__filter_status in (:__filter_status_0,:__filter_status_1,:__filter_status_2))',
 
         ExpressionAttributeValues: {
-          ':__filter_age': [24, 26, 28],
-          ':__filter_status': ['0', '2', '9'],
+          ':__filter_status_0': '0',
+          ':__filter_status_1': '2',
+          ':__filter_status_2': '9',
+          ':__filter_age_0': 24,
+          ':__filter_age_1': 26,
+          ':__filter_age_2': 28,
         },
       });
     });
@@ -122,13 +126,16 @@ describe('filter helpers', () => {
           '(#__filter_status = :__filter_status)',
           'and (#__filter_age > :__filter_age)',
           'and (#__filter_startedAt between :__filter_startedAt_low and :__filter_startedAt_high)',
-          'and (#__filter_counts in :__filter_counts)',
+          'and (#__filter_counts in (:__filter_counts_0,:__filter_counts_1,:__filter_counts_2,:__filter_counts_3))',
         ].join(' '),
 
         ExpressionAttributeValues: {
           ':__filter_age': 21,
           ':__filter_status': '0',
-          ':__filter_counts': [10, 20, 30, 40],
+          ':__filter_counts_0': 10,
+          ':__filter_counts_1': 20,
+          ':__filter_counts_2': 30,
+          ':__filter_counts_3': 40,
           ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
           ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
         },
@@ -314,15 +321,18 @@ describe('filter helpers', () => {
           '(#__filter_status = :__filter_status)',
           'and (#__filter_age > :__filter_age)',
           'and (#__filter_startedAt between :__filter_startedAt_low and :__filter_startedAt_high)',
-          'and (#__filter_counts in :__filter_counts)',
+          'and (#__filter_counts in (:__filter_counts_0,:__filter_counts_1,:__filter_counts_2,:__filter_counts_3))',
         ].join(' '),
 
         ExpressionAttributeValues: {
           ':__filter_age': 21,
           ':__filter_status': '0',
-          ':__filter_counts': [10, 20, 30, 40],
           ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
           ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
+          ':__filter_counts_0': 10,
+          ':__filter_counts_1': 20,
+          ':__filter_counts_2': 30,
+          ':__filter_counts_3': 40,
         },
 
         ExpressionAttributeNames: {

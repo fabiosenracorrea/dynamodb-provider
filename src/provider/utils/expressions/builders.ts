@@ -44,29 +44,39 @@ const addPrefix = (prop: string, type: 'name' | 'value', prefix = ''): string =>
   return converter(`${prefix}${prop}`);
 };
 
+function toListValueName(prop: string, index: number) {
+  return `${prop}_${index}`;
+}
+
+function toListExp(prop: string, values: any[], prefix?: string) {
+  const spread = values.map((_, index) => addPrefix(toListValueName(prop, index), 'value', prefix));
+
+  return `(${spread.join(',')})`;
+}
+
 export const expressionBuilders: Record<
   ExpressionOperation,
-  (property: string, prefix?: string) => string
+  (params: { prop: string; value?: any; prefix?: string }) => string
 > = {
-  equal: (prop, prefix) =>
+  equal: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} = ${addPrefix(prop, 'value', prefix)}`,
 
-  not_equal: (prop, prefix) =>
+  not_equal: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} <> ${addPrefix(prop, 'value', prefix)}`,
 
-  lower_than: (prop, prefix) =>
+  lower_than: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} < ${addPrefix(prop, 'value', prefix)}`,
 
-  lower_or_equal_than: (prop, prefix) =>
+  lower_or_equal_than: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} <= ${addPrefix(prop, 'value', prefix)}`,
 
-  bigger_than: (prop, prefix) =>
+  bigger_than: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} > ${addPrefix(prop, 'value', prefix)}`,
 
-  bigger_or_equal_than: (prop, prefix) =>
+  bigger_or_equal_than: ({ prop, prefix }) =>
     `${addPrefix(prop, 'name', prefix)} >= ${addPrefix(prop, 'value', prefix)}`,
 
-  between: (prop, prefix) =>
+  between: ({ prop, prefix }) =>
     [
       addPrefix(prop, 'name', prefix),
       'between',
@@ -75,21 +85,23 @@ export const expressionBuilders: Record<
       `${addPrefix(`${prop}`, 'value', prefix)}_high`,
     ].join(' '),
 
-  begins_with: (prop, prefix) =>
+  begins_with: ({ prop, prefix }) =>
     `begins_with(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  contains: (prop, prefix) =>
+  contains: ({ prop, prefix }) =>
     `contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  not_contains: (prop, prefix) =>
+  not_contains: ({ prop, prefix }) =>
     `not contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
-  exists: (prop, prefix) => `attribute_exists(${addPrefix(prop, 'name', prefix)})`,
-  not_exists: (prop, prefix) => `attribute_not_exists(${addPrefix(prop, 'name', prefix)})`,
+  exists: ({ prop, prefix }) => `attribute_exists(${addPrefix(prop, 'name', prefix)})`,
+  not_exists: ({ prop, prefix }) => `attribute_not_exists(${addPrefix(prop, 'name', prefix)})`,
 
-  in: (prop, prefix) => `${addPrefix(prop, 'name', prefix)} in ${addPrefix(prop, 'value', prefix)}`,
-  not_in: (prop, prefix) =>
-    `not ${addPrefix(prop, 'name', prefix)} in ${addPrefix(prop, 'value', prefix)}`,
+  in: ({ prop, prefix, value = [] }) =>
+    `${addPrefix(prop, 'name', prefix)} in ${toListExp(prop, value, prefix)}`,
+
+  not_in: ({ prop, prefix, value = [] }) =>
+    `not ${addPrefix(prop, 'name', prefix)} in ${toListExp(prop, value, prefix)}`,
 };
 
 export function getExpressionValues(expressions: ItemExpression<any>[], prefix = ''): AnyObject {
@@ -107,7 +119,10 @@ export function getExpressionValues(expressions: ItemExpression<any>[], prefix =
         is: ['in', 'not_in'],
         then: () => [
           ...acc,
-          [withPrefix(expression.property), (expression as ListExpression<any>).values],
+          ...(expression as ListExpression<any>).values.map((value, index) => [
+            addPrefix(toListValueName(expression.property, index), 'value', prefix),
+            value,
+          ]),
         ],
       },
       {

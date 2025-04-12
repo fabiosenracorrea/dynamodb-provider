@@ -22,8 +22,8 @@ function mergeSameOperationExpressions(
 }
 
 function getValuesUpdateExpression(values: UpdateParams<any>['values']): string {
-  return Object.keys(values || {}).reduce((acc, property) => {
-    return mergeSameOperationExpressions('SET', acc, expressionBuilders.equal(property));
+  return Object.keys(values || {}).reduce((acc, prop) => {
+    return mergeSameOperationExpressions('SET', acc, expressionBuilders.equal({ prop }));
   }, '');
 }
 

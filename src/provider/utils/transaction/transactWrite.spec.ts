@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getConditionExpressionNames, getConditionExpressionValues } from '../conditions';
+import { getConditionParams } from '../conditions';
 import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
-import { buildExpression } from '../expressions';
 import { TransactionWriter } from './transactionWrite';
 
 describe('transactionWriter', () => {
@@ -530,11 +529,7 @@ describe('transactionWriter', () => {
                 type: 'admin',
               },
 
-              ConditionExpression: buildExpression(conditions),
-
-              ExpressionAttributeNames: getConditionExpressionNames(conditions),
-
-              ExpressionAttributeValues: getConditionExpressionValues(conditions),
+              ...getConditionParams(conditions),
             },
           },
         ],
@@ -819,25 +814,7 @@ describe('transactionWriter', () => {
                 _pk: 'currently_playing',
               },
 
-              ConditionExpression: buildExpression([
-                {
-                  operation: 'between',
-                  high: 10,
-                  low: 1,
-                  property: 'balance',
-                },
-              ]),
-
-              ExpressionAttributeNames: getConditionExpressionNames([
-                {
-                  operation: 'between',
-                  high: 10,
-                  low: 1,
-                  property: 'balance',
-                },
-              ]),
-
-              ExpressionAttributeValues: getConditionExpressionValues([
+              ...getConditionParams([
                 {
                   operation: 'between',
                   high: 10,
