@@ -605,15 +605,165 @@ describe('expression builder', () => {
     });
   });
 
-  describe('get expression type helper', () => {
-    it('should just return its parameter', () => {
-      const config = {
-        operation: 'equal' as const,
-        property: 'some',
-        value: 1,
-      };
+  describe('nested expressions', () => {
+    it('should properly join nested expressions if single (defaulting to AND)', () => {
+      const prop = 'some_prop';
+      const nestedProp = 'nested_prop';
 
-      expect(getExpression(config)).toBe(config);
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: prop,
+          value: 'NOT_IMPORTANT',
+          nested: [
+            {
+              operation: 'bigger_than',
+              value: 10,
+              property: nestedProp,
+            },
+          ],
+        },
+      ]);
+
+      expect(expression).toBe(`((#${prop} = :${prop}) and (#${nestedProp} > :${nestedProp}))`);
+    });
+
+    it('should properly join nested expressions if single with explicit OR', () => {
+      const prop = 'some_prop';
+      const nestedProp = 'nested_prop';
+
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: prop,
+          value: 'NOT_IMPORTANT',
+          nested: [
+            {
+              operation: 'bigger_than',
+              value: 10,
+              property: nestedProp,
+              joinAs: 'or',
+            },
+          ],
+        },
+      ]);
+
+      expect(expression).toBe(`((#${prop} = :${prop}) or (#${nestedProp} > :${nestedProp}))`);
+    });
+
+    it('should handle multiple nested expressions', () => {
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: 'some_prop',
+          value: 'NOT_IMPORTANT',
+          nested: [
+            {
+              property: 'nested1',
+              operation: 'lower_than',
+              value: 10,
+            },
+          ],
+        },
+        {
+          operation: 'equal',
+          property: 'other_prop',
+          value: 'NOT_IMPORTANT',
+          joinAs: 'or',
+          nested: [
+            {
+              property: 'nested2',
+              operation: 'bigger_or_equal_than',
+              value: 10,
+            },
+          ],
+        },
+      ]);
+
+      expect(expression).toBe(
+        `((#some_prop = :some_prop) and (#nested1 < :nested1)) or ((#other_prop = :other_prop) and (#nested2 >= :nested2))`,
+      );
+    });
+
+    it('should correctly handle deeply nested expressions with mixed joins and expression types', () => {
+      const expression = buildExpression([
+        {
+          property: 'status',
+          operation: 'equal',
+          value: 'active',
+
+          nested: [
+            {
+              property: 'priority',
+              operation: 'in',
+              values: [1, 2, 3],
+              nested: [
+                {
+                  property: 'score',
+                  operation: 'between',
+                  start: 50,
+                  end: 100,
+                },
+                {
+                  property: 'flag',
+                  operation: 'not_exists',
+                  joinAs: 'and',
+                },
+              ],
+              joinAs: 'or',
+            },
+            {
+              property: 'created_at',
+              operation: 'lower_or_equal_than',
+              value: 1680000000,
+              joinAs: 'and',
+            },
+          ],
+        },
+        {
+          property: 'type',
+          operation: 'not_equal',
+          value: 'archived',
+          joinAs: 'or',
+          nested: [
+            {
+              property: 'region',
+              operation: 'begins_with',
+              value: 'US-',
+              nested: [
+                {
+                  property: 'state',
+                  operation: 'contains',
+                  value: 'California',
+                },
+              ],
+            },
+            {
+              property: 'tags',
+              operation: 'not_in',
+              values: ['legacy', 'beta'],
+              joinAs: 'or',
+            },
+          ],
+        },
+      ]);
+
+      expect(expression).toBe(
+        [
+          '((#status = :status) or ((#priority in (:priority_0,:priority_1,:priority_2)) and (#score between :score_start and :score_end) and (attribute_not_exists(#flag))) and (#created_at <= :created_at))',
+          ' or ',
+          '((#type <> :type) and ((begins_with(#region, :region)) and (contains(#state, :state))) or (not #tags in (:tags_0,:tags_1)))',
+        ].join(''),
+      );
+    });
+  });
+
+  describe('get expression type helper', () => {
+    it('should just return its parameter, no transformation', () => {
+      const token = Symbol('param');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(getExpression(token as any)).toBe(token);
     });
   });
 });

@@ -245,3 +245,29 @@ singleTable.schema.createEntity<{ id: string }>().withParams({
     },
   },
 });
+
+// nested conditions reference
+MEDIA.getUpdateParams({
+  id: '1',
+
+  conditions: [
+    {
+      operation: 'equal',
+      property: 'description',
+      value: 'any',
+      nested: [
+        {
+          property: 's3Key',
+          operation: 'begins_with',
+          value: 'private',
+        },
+      ],
+    },
+    {
+      joinAs: 'or',
+      operation: 'equal',
+      property: 'description',
+      value: 'other-desc',
+    },
+  ],
+});

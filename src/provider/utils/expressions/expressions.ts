@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
-import { pick } from 'utils/object';
+import { omit, pick } from 'utils/object';
 import { ItemExpression } from './types';
 
 import { expressionBuilders } from './builders';
@@ -22,18 +22,21 @@ function getConditionValue(condition: ItemExpression<any>) {
 
 export function buildExpression(conditions: ItemExpression<any>[], prefix = ''): string {
   const expression = conditions.reduce((acc, condition) => {
-    const { operation, property, joinAs = 'and' } = condition;
+    const { operation, property, joinAs = 'and', nested = [] } = condition;
 
     const isFirst = !acc;
 
-    // containing each expression to its own context
-    const nextExpression = `(${expressionBuilders[operation]({
-      prop: property,
-      value: getConditionValue(condition),
-      prefix,
-    })})`;
+    const nextExpression = nested.length
+      ? buildExpression([omit(condition, ['nested']) as ItemExpression<any>, ...nested], prefix)
+      : expressionBuilders[operation]({
+          prop: property,
+          value: getConditionValue(condition),
+          prefix,
+        });
 
-    return isFirst ? nextExpression : `${acc} ${joinAs} ${nextExpression}`;
+    const contained = `(${nextExpression})`;
+
+    return isFirst ? contained : `${acc} ${joinAs} ${contained}`;
   }, '');
 
   return expression;

@@ -9,21 +9,30 @@ import {
   EqualityExpression,
 } from '../expressions';
 
-export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value' | 'joinAs'>;
+export type BasicFilterConfig = Pick<
+  BasicExpression<any>,
+  'operation' | 'value' | 'joinAs' | 'nested'
+>;
 
-export type EqualityFilterConfig = Pick<EqualityExpression<any>, 'operation' | 'value' | 'joinAs'>;
+export type EqualityFilterConfig = Pick<
+  EqualityExpression<any>,
+  'operation' | 'value' | 'joinAs' | 'nested'
+>;
 
 export type BetweenFilterConfig = Pick<
   BetweenExpression<any>,
-  'operation' | 'start' | 'end' | 'joinAs'
+  'operation' | 'start' | 'end' | 'joinAs' | 'nested'
 >;
 
 export type AttributeExistenceFilterConfig = Pick<
   AttributeExistenceExpression<any>,
-  'operation' | 'joinAs'
+  'operation' | 'joinAs' | 'nested'
 >;
 
-export type ListFilterConfig = Pick<ListExpression<any>, 'operation' | 'values' | 'joinAs'>;
+export type ListFilterConfig = Pick<
+  ListExpression<any>,
+  'operation' | 'values' | 'joinAs' | 'nested'
+>;
 
 export type FilterConfig =
   | BasicFilterConfig

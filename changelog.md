@@ -33,6 +33,10 @@ const expressionV2 = {
 
 This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, it did not follow common naming practices
 
+## Improvements & fixes
+
+- **Feature**: Support for **nested expressions** ! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary
+
 - **Infra**: PR checks for TS/tests
 
 ## v1.1.15
