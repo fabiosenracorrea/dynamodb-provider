@@ -31,7 +31,7 @@ const expressionV2 = {
 }
 ```
 
-This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, its
+This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, it did not follow common naming practices
 
 ## v1.1.15
 
