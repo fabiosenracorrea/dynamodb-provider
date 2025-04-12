@@ -22,9 +22,9 @@ type BasicRangeKeyOp = Omit<BasicRangeKeyConfig<unknown>, 'name' | 'value'> & {
   value: KeyValue | number;
 };
 
-type BetweenRangeKeyOp = Omit<BetweenRangeKeyConfig<unknown>, 'name' | 'high' | 'low'> & {
-  low: KeyValue | number;
-  high: KeyValue | number;
+type BetweenRangeKeyOp = Omit<BetweenRangeKeyConfig<unknown>, 'name' | 'end' | 'start'> & {
+  start: KeyValue | number;
+  end: KeyValue | number;
 };
 
 export type DefinedNameRangeKeyConfig = BasicRangeKeyOp | BetweenRangeKeyOp;
@@ -83,9 +83,9 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
         ? omitUndefined({
             ...range,
 
-            high: range.operation === 'between' ? this.convertKey(range.high) : undefined,
+            end: range.operation === 'between' ? this.convertKey(range.end) : undefined,
 
-            low: range.operation === 'between' ? this.convertKey(range.low) : undefined,
+            start: range.operation === 'between' ? this.convertKey(range.start) : undefined,
 
             value: range.operation !== 'between' ? this.convertKey(range.value) : undefined,
 

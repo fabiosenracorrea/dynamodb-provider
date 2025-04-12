@@ -1,5 +1,38 @@
 # DynamoDB Provider Changelog
 
+# v2.0.0
+
+## Breaking changes
+
+- **Feature**: `between` expression now accepts `start` and `end` params instead of `low` and `high`
+
+```ts
+
+// v1:
+
+const expressionV1 = {
+  operation: 'between',
+  property: prop,
+
+
+  low: 'a', // <---------------
+  high: 'f', // <---------------
+}
+
+// v2:
+
+const expressionV2 = {
+  operation: 'between',
+  property: prop,
+
+
+  start: 'a', // <---------------
+  end: 'f', // <---------------
+}
+```
+
+This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, its
+
 ## v1.1.15
 
 - **Fix**: `in` and `not_in` expressions were not properly built

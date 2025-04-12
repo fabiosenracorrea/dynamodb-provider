@@ -128,8 +128,8 @@ export const MEDIA = singleTable.schema.createEntity<Media>().withParams({
         optionalDateSlice: {
           operation: 'between',
           getValues: ({ end, start }: { start: string; end: string }) => ({
-            high: end ?? '2100-01-01T00:00:00.000Z',
-            low: start ?? '2020-01-01T00:00:00.000Z',
+            end: end ?? '2100-01-01T00:00:00.000Z',
+            start: start ?? '2020-01-01T00:00:00.000Z',
           }),
         },
       },

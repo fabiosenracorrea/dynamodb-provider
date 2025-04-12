@@ -80,9 +80,9 @@ export const expressionBuilders: Record<
     [
       addPrefix(prop, 'name', prefix),
       'between',
-      `${addPrefix(`${prop}`, 'value', prefix)}_low`,
+      `${addPrefix(`${prop}`, 'value', prefix)}_start`,
       'and',
-      `${addPrefix(`${prop}`, 'value', prefix)}_high`,
+      `${addPrefix(`${prop}`, 'value', prefix)}_end`,
     ].join(' '),
 
   begins_with: ({ prop, prefix }) =>
@@ -147,8 +147,11 @@ export function getExpressionValues(expressions: ItemExpression<any>[], prefix =
         is: 'between',
         then: () => [
           ...acc,
-          [withPrefix(`${expression.property}_low`), (expression as BetweenExpression<any>).low],
-          [withPrefix(`${expression.property}_high`), (expression as BetweenExpression<any>).high],
+          [
+            withPrefix(`${expression.property}_start`),
+            (expression as BetweenExpression<any>).start,
+          ],
+          [withPrefix(`${expression.property}_end`), (expression as BetweenExpression<any>).end],
         ],
       },
     ]);

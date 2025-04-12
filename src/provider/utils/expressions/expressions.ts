@@ -11,7 +11,7 @@ function getConditionValue(condition: ItemExpression<any>) {
     case 'not_in':
       return condition.values;
     case 'between':
-      return pick(condition, ['high', 'low']);
+      return pick(condition, ['start', 'end']);
     case 'exists':
     case 'not_exists':
       return null;

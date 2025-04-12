@@ -15,7 +15,7 @@ export type EqualityFilterConfig = Pick<EqualityExpression<any>, 'operation' | '
 
 export type BetweenFilterConfig = Pick<
   BetweenExpression<any>,
-  'operation' | 'high' | 'low' | 'joinAs'
+  'operation' | 'start' | 'end' | 'joinAs'
 >;
 
 export type AttributeExistenceFilterConfig = Pick<

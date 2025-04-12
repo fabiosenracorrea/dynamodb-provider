@@ -455,8 +455,8 @@ describe('single table schema tests', () => {
             someBetweenQuery: {
               operation: 'between',
               getValues: ({ start, end }: { start: string; end: string }) => ({
-                low: start,
-                high: end,
+                start,
+                end,
               }),
             },
           },
@@ -469,8 +469,8 @@ describe('single table schema tests', () => {
           }),
         ).toStrictEqual({
           operation: 'between',
-          low: 'a',
-          high: 'z',
+          start: 'a',
+          end: 'z',
         });
       });
     });
@@ -2143,8 +2143,8 @@ describe('single table schema tests', () => {
           someBetweenQuery: {
             operation: 'between' as const,
             getValues: ({ start, end }: { start: string; end: string }) => ({
-              low: start,
-              high: end,
+              start,
+              end,
             }),
           },
         };

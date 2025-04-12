@@ -55,8 +55,8 @@ export interface EqualityExpression<Entity> extends BasalExpressionValues<Entity
 }
 
 export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
-  low: string | number;
-  high: string | number;
+  start: string | number;
+  end: string | number;
 
   operation: Extract<ExpressionOperation, 'between'>;
 }

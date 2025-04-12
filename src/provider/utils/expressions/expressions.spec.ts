@@ -199,12 +199,12 @@ describe('expression builder', () => {
         {
           operation: 'between',
           property: prop,
-          low: 'NOT_IMPORTANT',
-          high: 'NOT_IMPORTANT',
+          start: 'NOT_IMPORTANT',
+          end: 'NOT_IMPORTANT',
         },
       ]);
 
-      expect(expression).toBe(`(#${prop} between :${prop}_low and :${prop}_high)`);
+      expect(expression).toBe(`(#${prop} between :${prop}_start and :${prop}_end)`);
     });
 
     it('should properly prefix the *equal* expression, prefixed correctly on prop/value', () => {
@@ -458,15 +458,15 @@ describe('expression builder', () => {
           {
             operation: 'between',
             property: prop,
-            low: 'NOT_IMPORTANT',
-            high: 'NOT_IMPORTANT',
+            start: 'NOT_IMPORTANT',
+            end: 'NOT_IMPORTANT',
           },
         ],
         prefix,
       );
 
       expect(expression).toBe(
-        `(#${prefix}${prop} between :${prefix}${prop}_low and :${prefix}${prop}_high)`,
+        `(#${prefix}${prop} between :${prefix}${prop}_start and :${prefix}${prop}_end)`,
       );
     });
   });
@@ -578,8 +578,8 @@ describe('expression builder', () => {
           operation: 'between',
           property: 'between_prop',
           joinAs: 'and',
-          high: '',
-          low: '',
+          start: '',
+          end: '',
         },
         {
           operation: 'not_exists',
@@ -597,7 +597,7 @@ describe('expression builder', () => {
         [
           '(#some_prop = :some_prop)',
           'or (#in_prop in (:in_prop_0))',
-          'and (#between_prop between :between_prop_low and :between_prop_high)',
+          'and (#between_prop between :between_prop_start and :between_prop_end)',
           'or (attribute_not_exists(#exists_prop))',
           'and (not contains(#contains_prop, :contains_prop))',
         ].join(' '),
