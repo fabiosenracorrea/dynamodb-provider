@@ -7,8 +7,9 @@ import { ensureArray } from 'utils/array';
 import { isNonNullable } from 'utils/checkers';
 
 import { omitUndefined } from 'utils/object';
+import { AnyObject } from 'types';
 import { IndexMapping, IndexParams, SingleTableConfigWithIndex } from '../indexes';
-import { KeyResolvers, resolveKeys } from '../key';
+import { EntityKeyGetters, resolveKeys } from '../key';
 import { getRangeQueriesParams, RangeQueryResultProps } from '../range';
 
 export type GenericIndexMappingFns = {
@@ -23,6 +24,7 @@ export type GenericIndexMappingFns = {
 
 type EntityIndexConfig<
   TableConfig extends SingleTableConfigWithIndex,
+  Entity,
   IndexConfig extends IndexMapping<TableConfig>,
   TableIndex extends keyof TableConfig['indexes'] = keyof TableConfig['indexes'],
 > = {
@@ -31,14 +33,14 @@ type EntityIndexConfig<
    */
   indexes: {
     [IndexName in keyof IndexConfig]: RangeQueryResultProps<IndexConfig[IndexName]> &
-      KeyResolvers<IndexConfig[IndexName]>;
+      EntityKeyGetters<Entity, IndexConfig[IndexName]>;
   };
 
-  getCreationIndexMapping: (params: IndexParams<IndexConfig>) => {
+  getCreationIndexMapping: (params: IndexParams<Entity, IndexConfig>) => {
     [key in TableIndex]?: Partial<SingleTableKeyReference>;
   };
 
-  getUpdatedIndexMapping: (params: IndexParams<IndexConfig>) => {
+  getUpdatedIndexMapping: (params: IndexParams<Entity, IndexConfig>) => {
     [key in TableIndex]?: Partial<SingleTableKeyReference>;
   };
 };
@@ -64,11 +66,12 @@ export type EntityIndexInputParams<
 
 export type EntityIndexResultProps<
   TableConfig extends SingleTableConfig,
+  Entity,
   Params,
 > = TableConfig extends SingleTableConfigWithIndex
   ? Params extends { indexes?: any }
-    ? Params['indexes'] extends IndexMapping<TableConfig>
-      ? EntityIndexConfig<TableConfig, Params['indexes']>
+    ? Params['indexes'] extends IndexMapping<TableConfig, Entity>
+      ? EntityIndexConfig<TableConfig, Entity, Params['indexes']>
       : object
     : object
   : object;
@@ -101,32 +104,37 @@ function validateDoubleReference(
 export function getEntityIndexParams<
   TableConfig extends SingleTableConfig,
   IParams extends EntityIndexInputParams<TableConfig, any>,
->(tableConfig: SingleTableConfig, params: IParams): EntityIndexResultProps<TableConfig, IParams> {
+>(
+  tableConfig: SingleTableConfig,
+  params: IParams,
+): EntityIndexResultProps<TableConfig, AnyObject, IParams> {
   const okParams = tableConfig.indexes && typeof params === 'object' && 'indexes' in params!;
 
-  if (!okParams) return {} as EntityIndexResultProps<TableConfig, IParams>;
+  if (!okParams) return {} as EntityIndexResultProps<TableConfig, AnyObject, IParams>;
 
   const { indexes } = params as { indexes: IndexMapping<SingleTableConfigWithIndex, any> };
 
   validateDoubleReference(indexes, params.type);
 
+  const fixedIndexes = Object.fromEntries(
+    Object.entries(indexes).map(([indexName, indexConfig]) => [
+      indexName,
+      {
+        ...indexConfig,
+
+        ...resolveKeys(indexConfig),
+
+        ...getRangeQueriesParams(indexConfig),
+      },
+    ]),
+  );
+
   return {
-    indexes: Object.fromEntries(
-      Object.entries(indexes).map(([indexName, indexConfig]) => [
-        indexName,
-        {
-          ...indexConfig,
-
-          ...resolveKeys(indexConfig),
-
-          ...getRangeQueriesParams(indexConfig),
-        },
-      ]),
-    ),
+    indexes: fixedIndexes,
 
     getCreationIndexMapping: (indexParams: any) =>
       Object.fromEntries(
-        Object.values(indexes)
+        Object.values(fixedIndexes)
           .map(({ getPartitionKey, getRangeKey, index }) => {
             const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
             const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
@@ -148,7 +156,7 @@ export function getEntityIndexParams<
 
     getUpdatedIndexMapping: (indexParams: any) =>
       Object.fromEntries(
-        Object.values(indexes)
+        Object.values(fixedIndexes)
           .map(({ getPartitionKey, getRangeKey, index }) => {
             const partitionKey = validateIndexKeyReturn(getPartitionKey(indexParams));
             const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
@@ -165,5 +173,5 @@ export function getEntityIndexParams<
           })
           .filter(([index]) => index),
       ),
-  } as EntityIndexResultProps<TableConfig, IParams>;
+  } as EntityIndexResultProps<TableConfig, AnyObject, IParams>;
 }

@@ -28,7 +28,7 @@ const dynamodbProvider = new DynamodbProvider({
   logCallParams: true,
 });
 
-export const singleTable = new SingleTable({
+const singleTable = new SingleTable({
   dynamodbProvider,
 
   table: 'MY_SINGLE_TABLE',
@@ -58,7 +58,7 @@ export const singleTable = new SingleTable({
   keepTypeProperty: true,
 });
 
-export type Media = {
+type Media = {
   id: string;
 
   name: string;
@@ -111,38 +111,70 @@ export type Media = {
       };
 };
 
-export const MEDIA = singleTable.schema.createEntity<Media>().withParams({
-  type: 'MEDIA',
+const mediaPartition = singleTable.schema.createPartition({
+  name: 'MEDIA_PARTITION',
 
-  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
+  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
 
-  getRangeKey: () => ['#DATA'],
+  entries: {
+    data: () => ['#DATA'],
+  },
+});
 
-  indexes: {
-    ByUploadTime: {
-      index: 'Index1',
-      getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
-      getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
+const MEDIA = mediaPartition
+  .use('data')
+  .create<Media>()
+  .entity({
+    type: 'MEDIA',
 
-      rangeQueries: {
-        optionalDateSlice: {
-          operation: 'between',
-          getValues: ({ end, start }: { start: string; end: string }) => ({
-            end: end ?? '2100-01-01T00:00:00.000Z',
-            start: start ?? '2020-01-01T00:00:00.000Z',
-          }),
+    paramMatch: { mediaId: 'id' },
+
+    indexes: {
+      ByUploadTime: {
+        index: 'Index1',
+        getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
+        getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
+
+        rangeQueries: {
+          optionalDateSlice: {
+            operation: 'between',
+            getValues: ({ end, start }: { start: string; end: string }) => ({
+              end: end ?? '2100-01-01T00:00:00.000Z',
+              start: start ?? '2020-01-01T00:00:00.000Z',
+            }),
+          },
         },
       },
     },
-  },
 
-  autoGen: {
-    onCreate: {
-      uploadedAt: 'timestamp',
-      references: 'count',
+    autoGen: {
+      onCreate: {
+        uploadedAt: 'timestamp',
+        references: 'count',
+      },
     },
-  },
-});
+  });
+
+// @ts-expect-error partition has param
+MEDIA.getPartitionKey();
+// @ts-expect-error partition has param
+MEDIA2.getPartitionKey();
+// @ts-expect-error partition has param
+MEDIA3.getPartitionKey();
+
+MEDIA.getPartitionKey({ id: '' });
+
+MEDIA.getRangeKey();
+
+// @ts-expect-error no param is on range
+MEDIA.getRangeKey({ no: true });
+// @ts-expect-error no param is on range
+MEDIA2.getRangeKey({ no: true });
+// @ts-expect-error no param is on range
+MEDIA3.getRangeKey({ no: true });
+
+MEDIA.getCreationIndexMapping({ uploadedAt: '' });
+MEDIA.getUpdatedIndexMapping({ uploadedAt: '' });
 
 const _paramAcceptances_ = [
   singleTable.schema.fromEntity(MEDIA),
@@ -182,15 +214,18 @@ const _paramAcceptances_ = [
     {
       create: MEDIA.getCreationParams({} as Media),
     },
+
     {
       erase: MEDIA.getKey({ id: 'ID' }),
     },
+
     {
       update: MEDIA.getUpdateParams({
         id: 'ID',
         values: { description: 'Hello?' },
       }),
     },
+
     {
       validate: MEDIA.getValidationParams({
         id: 'ID',
@@ -211,40 +246,6 @@ const _paramAcceptances_ = [
     }),
   ]),
 ];
-
-// Bad entity params
-singleTable.schema.createEntity<{ id: string }>().withParams({
-  type: 'BAD_ENTITY',
-
-  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
-
-  // @ts-expect-error only entity props are accepted as key args
-  getRangeKey: ({ badProp }: { badProp: string }) => [badProp],
-
-  indexes: {
-    BadIndex: {
-      index: 'Index1',
-      getPartitionKey: () => 'BY_UPLOAD',
-
-      // @ts-expect-error only entity props are accepted as key args
-      getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
-    },
-  },
-
-  autoGen: {
-    onCreate: {
-      // @ts-expect-error only entity props are accepted
-      uploadedAt: 'timestamp',
-
-      id: 'KSUID',
-    },
-
-    onUpdate: {
-      // @ts-expect-error only entity props are accepted
-      bad: () => true,
-    },
-  },
-});
 
 // nested conditions reference
 MEDIA.getUpdateParams({

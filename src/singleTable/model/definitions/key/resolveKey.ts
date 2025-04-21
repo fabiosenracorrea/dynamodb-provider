@@ -1,18 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { EntityKeyResolvers, KeyResolvers } from './types';
+import { EntityKeyGetters, EntityKeyResolvers } from './types';
 
-export function resolveKeys<Params extends EntityKeyResolvers<any>>({
+function resolveKeyPiece<T>(entity: T, piece: string) {
+  if (!piece.startsWith('.')) return piece;
+
+  const entityKey = piece.substring(1) as keyof T;
+
+  return entity[entityKey];
+}
+
+function buildGetter(keyRefs: string[]) {
+  const getter = (params: any = {}) => {
+    return keyRefs.map((keyPiece) => resolveKeyPiece(params, keyPiece) as string);
+  };
+
+  return getter;
+}
+
+export function resolveKeys<Entity, Params extends EntityKeyResolvers<Entity>>({
   getPartitionKey,
   getRangeKey,
-}: Params): Pick<KeyResolvers<Params>, 'getKey' | 'getPartitionKey' | 'getRangeKey'> {
+}: Params): EntityKeyGetters<Entity, Params> {
+  const partitionGetter =
+    typeof getPartitionKey === 'function' ? getPartitionKey : buildGetter(getPartitionKey);
+
+  const rangeGetter = typeof getRangeKey === 'function' ? getRangeKey : buildGetter(getRangeKey);
+
   return {
-    getPartitionKey,
-    getRangeKey,
+    getPartitionKey: partitionGetter,
+    getRangeKey: rangeGetter,
 
     getKey: (keyParams) => ({
-      partitionKey: getPartitionKey(keyParams),
-      rangeKey: getRangeKey(keyParams),
+      partitionKey: partitionGetter(keyParams as any),
+      rangeKey: rangeGetter(keyParams as any),
     }),
-  } as Pick<KeyResolvers<Params>, 'getKey' | 'getPartitionKey' | 'getRangeKey'>;
+  } as EntityKeyGetters<Entity, Params>;
 }

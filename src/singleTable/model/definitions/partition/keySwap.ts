@@ -10,7 +10,7 @@ import {
 } from 'types';
 
 import { KeyValue } from 'singleTable/adaptor/definitions';
-import { EntityKeyParams, EntityKeyResolvers, KeyResolvers, resolveKeys } from '../key';
+import { KeyParams, EntityKeyResolvers, KeyResolvers, resolveKeys } from '../key';
 
 export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> = {
   /**
@@ -37,14 +37,9 @@ export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> =
    * ```
    */
   paramMatch?: {
-    [GetterKey in keyof EntityKeyParams<KeyGetters>]?: keyof Entity;
+    [GetterKey in keyof KeyParams<KeyGetters>]?: keyof Entity;
   };
 };
-
-// type SwappedKeys<OriginalParams, SwapObj extends AnyObject> = Pick<
-//   SwapObj,
-//   Extract<keyof OriginalParams, string>
-// >[keyof Pick<SwapObj, Extract<keyof OriginalParams, string>>];
 
 // If none = never
 type EligibleKeysToSwap<OriginalParams, SwapObj extends AnyObject> = Extract<
@@ -142,7 +137,8 @@ export function resolveKeySwaps<Entity, RefParams extends RefSwapParams>(
 ): FullPartitionKeys<Pick<RefParams, keyof EntityKeyResolvers<any>>, Entity, RefParams> {
   if (!params.paramMatch) return resolveKeys(params) as any;
 
-  const { getPartitionKey, getRangeKey, paramMatch } = params;
+  const { paramMatch } = params;
+  const { getPartitionKey, getRangeKey } = resolveKeys(params) as EntityKeyResolvers<any>;
 
   const [partitionGetter, rangeGetter] = [getPartitionKey, getRangeKey].map((getter) =>
     swapKeys(getter, paramMatch),

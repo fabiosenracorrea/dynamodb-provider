@@ -91,7 +91,7 @@ describe('getCRUDParamGetters', () => {
     (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
     mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
 
-    const result = getUpdateParams(mockUpdateParams);
+    const result = getUpdateParams(mockUpdateParams as never);
 
     mockGetUpdatedIndexMapping.mockReturnValue({ index: true });
 
@@ -146,9 +146,9 @@ describe('getCRUDParamGetters', () => {
       (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
       mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
 
-      const updateParamsResult = getUpdateParams(mockUpdateParams);
+      const updateParamsResult = getUpdateParams(mockUpdateParams as never);
 
-      const transactResult = transactParams.transactUpdateParams(mockUpdateParams);
+      const transactResult = transactParams.transactUpdateParams(mockUpdateParams as never);
 
       expect(transactResult).toStrictEqual({
         update: updateParamsResult,
@@ -165,7 +165,7 @@ describe('getCRUDParamGetters', () => {
 
       const params = transactParams.transactDeleteParams({
         conditions,
-      });
+      } as never);
 
       expect(params).toStrictEqual({
         erase: {
@@ -188,14 +188,14 @@ describe('getCRUDParamGetters', () => {
         conditions,
       };
 
-      const params = getValidationParams(payload);
+      const params = getValidationParams(payload as never);
 
       mockGetKey.mockReturnValueOnce({
         partitionKey: 'hi-validate',
         rangeKey: 'another',
       });
 
-      const transactResult = transactParams.transactValidateParams(payload);
+      const transactResult = transactParams.transactValidateParams(payload as never);
 
       expect(transactResult).toStrictEqual({
         validate: params,
@@ -212,7 +212,7 @@ describe('getCRUDParamGetters', () => {
 
       const params = getValidationParams({
         conditions,
-      });
+      } as never);
 
       expect(params).toStrictEqual({
         conditions,

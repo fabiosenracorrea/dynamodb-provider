@@ -56,13 +56,13 @@ type BaseCRUDProps<
   Params extends RegisterEntityParams<any, any>,
 > = {
   getCreationParams: (
-    item: MakeGenPropsPartial<Entity & EntityKeyParams<Params>, Params['autoGen']>,
+    item: MakeGenPropsPartial<Entity & EntityKeyParams<Entity, Params>, Params['autoGen']>,
 
     ...config: TableConfig extends { expiresAt: string } ? [UnixExpiresAtProps?] : []
   ) => SingleTableCreateItemParams<Entity, TableConfig>;
 
   getUpdateParams: (
-    params: EntityKeyParams<Params> & UpdateCallProps<TableConfig, Entity>,
+    params: EntityKeyParams<Entity, Params> & UpdateCallProps<TableConfig, Entity>,
   ) => SingleTableUpdateParams<Entity>;
 };
 
@@ -79,7 +79,7 @@ type TransactCRUDProps<
   Params extends RegisterEntityParams<any, any>,
 > = {
   getValidationParams: (
-    params: EntityKeyParams<Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['validate']['validate'];
 
   transactCreateParams: (
@@ -91,11 +91,11 @@ type TransactCRUDProps<
   ) => TransactParamResult<TableConfig, Entity>['update'];
 
   transactDeleteParams: (
-    params: EntityKeyParams<Params> & Omit<DeleteItemParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> & Omit<DeleteItemParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['erase'];
 
   transactValidateParams: (
-    params: EntityKeyParams<Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['validate'];
 };
 

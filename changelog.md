@@ -37,6 +37,84 @@ This is an idiomatic change. We've noticed this expression was not as clear as i
 
 - **Feature**: Support for **nested expressions** ! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary
 
+- **Feature**: entity `getPartitionKey` and `getRangeKey` now supports both the function and array notation
+
+When defining an entity we were obligated to create function getters every time:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().withParams({
+  type: 'USER_EVENT',
+
+  getPartitionKey: () => 'USER_EVENT',
+
+  getRangeKey: ({ id }: Pick<Event, 'id'>) => [id],
+
+  indexes: {
+    byUser: {
+      getPartitionKey: ({ userId }: Pick<Event, 'userId'>) => ['SOME_ENTITY_KEY', userId],
+
+      getRangeKey: ({ timestamp }: Pick<Event, 'timestamp'>) => ['SOME_ENTITY_KEY', timestamp],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+While the above declaration **remains 100% valid**, you can also pass a simplified reference for non-logic keys:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().withParams({
+  type: 'USER_EVENT',
+
+  getPartitionKey: ['USER_EVENT'],
+
+  getRangeKey: ['.id']
+
+  indexes: {
+    byUser: {
+      getPartitionKey:  ['SOME_ENTITY_KEY', '.userId'],
+
+      getRangeKey:  ['SOME_ENTITY_KEY', '.timestamp'],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+> **IMPORTANT**: Array referenced keys provide the auto-complete for every available property, but *accepts any string*. When resolving the `getPartitionKey` and `getRangeKey` for the entity, **we consider EVERY .dot string as an param access**. Meaning typos can lead to bad key resolvers. For the getter option, we have the added bonus of validating each parameter is actually a property of our entity. Its more boiler plate, but TS-safer.
+
 - **Infra**: PR checks for TS/tests
 
 ## v1.1.15

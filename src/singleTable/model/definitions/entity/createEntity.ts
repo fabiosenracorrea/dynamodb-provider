@@ -17,7 +17,7 @@ export function createEntity<
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
 >(tableConfig: TableConfig, params: Params): SingleTableEntity<TableConfig, Entity, Params> {
-  const keyParams = resolveKeys(params);
+  const keyParams = resolveKeys(params as any);
 
   const indexParams = getEntityIndexParams(tableConfig, params);
 
