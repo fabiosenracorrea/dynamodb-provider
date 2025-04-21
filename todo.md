@@ -33,3 +33,5 @@ includeTypeOnEveryUpdate?: boolean;
 - add a "safeUpdate" / "safeGetUpdateParams" to entity interactions that blocks any action that results in index keys de-sync (ex: if key if status+date and you provide the status, the index won't be updated correctly)
 
 - use-case tests across the lib
+
+- fix ts usages on .spec files (re-enforce ts checks properly - fix jest.config)

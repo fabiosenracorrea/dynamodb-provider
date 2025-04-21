@@ -77,6 +77,7 @@ Now, if you create this exact declaration, you'll get yelled at, enforcing `para
 
 This means if you have other properties on the key references that actually exits inside `Media` they won't be required (but still accepted and adjusted accordingly)
 
+- **Name change**: Schema `createEntity().withParams({...})` call changed to `createEntity().as({...})`
 
 ## Improvements & fixes
 
@@ -95,7 +96,7 @@ type Event = {
   // ...more props
 }
 
-export const eEvent = schema.createEntity<Event>().withParams({
+export const eEvent = schema.createEntity<Event>().as({
   type: 'USER_EVENT',
 
   getPartitionKey: () => 'USER_EVENT',
@@ -132,7 +133,7 @@ type Event = {
   // ...more props
 }
 
-export const eEvent = schema.createEntity<Event>().withParams({
+export const eEvent = schema.createEntity<Event>().as({
   type: 'USER_EVENT',
 
   getPartitionKey: ['USER_EVENT'],

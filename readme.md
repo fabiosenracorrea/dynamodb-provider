@@ -1593,7 +1593,7 @@ type tUser = {
   // ... more props
 }
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   // create entity params
 })
 ```
@@ -1627,12 +1627,12 @@ type tUser = {
   // ... more props
 }
 
-const BadUser = table.schema.createEntity<User>().withParams({
+const BadUser = table.schema.createEntity<User>().as({
   // create entity params
   getPartitionKey: ({userId}: {userId: string}) => ['USER', userId] // TYPE ERROR!
 })
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   // create entity params
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id] // ok!
 })
@@ -1659,7 +1659,7 @@ type Event = {
   // ...more props
 }
 
-export const eEvent = schema.createEntity<Event>().withParams({
+export const eEvent = schema.createEntity<Event>().as({
   type: 'USER_EVENT',
 
   getPartitionKey: () => 'USER_EVENT',
@@ -1699,7 +1699,7 @@ type Event = {
   // ...more props
 }
 
-export const eEvent = schema.createEntity<Event>().withParams({
+export const eEvent = schema.createEntity<Event>().as({
   type: 'USER_EVENT',
 
   getPartitionKey: ['USER_EVENT'],
@@ -1770,7 +1770,7 @@ If you need complex login on your key generation, you need to pass in as a funct
     // ...props
   }
 
-  const Logs = table.schema.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().as({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1827,7 +1827,7 @@ If you need complex login on your key generation, you need to pass in as a funct
     }
   })
 
-  const Logs = table.schema.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().as({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1856,7 +1856,7 @@ If you need complex login on your key generation, you need to pass in as a funct
       // ... more props
     }
 
-    const User = table.schema.createEntity<User>().withParams({
+    const User = table.schema.createEntity<User>().as({
       // ...other props
 
       extend: ({ dob }) => ({
@@ -1897,7 +1897,7 @@ type tUser = {
   // ... more props
 }
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   type: 'USER',
 
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
@@ -1954,7 +1954,7 @@ type tLogs = {
   // ...props
 }
 
-const Logs = table.schema.createEntity<tLogs>().withParams({
+const Logs = table.schema.createEntity<tLogs>().as({
   type: 'APP_LOGS',
 
   getPartitionKey: () => ['APP_LOG'],
@@ -2111,7 +2111,7 @@ const userIndexPartition = table.schema.createPartition({
   },
 })
 
-const User = table.schema.createEntity<tUser>().withParams({
+const User = table.schema.createEntity<tUser>().as({
   type: 'USER',
 
   getPartitionKey: () => ['APP_USERS'],
@@ -2129,7 +2129,7 @@ const User = table.schema.createEntity<tUser>().withParams({
   }
 })
 
-const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().withParams({
+const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().as({
   type: 'USER_LOGIN_ATTEMPT',
 
   getPartitionKey: () => ['APP_LOGINS'],

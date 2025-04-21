@@ -111,7 +111,7 @@ type Media = {
       };
 };
 
-const MEDIA = singleTable.schema.createEntity<Media>().withParams({
+const MEDIA = singleTable.schema.createEntity<Media>().as({
   type: 'MEDIA',
 
   getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
@@ -147,7 +147,7 @@ const MEDIA = singleTable.schema.createEntity<Media>().withParams({
 /**
  * Array key - should work EXACTLY like MEDIA
  */
-const MEDIA2 = singleTable.schema.createEntity<Media>().withParams({
+const MEDIA2 = singleTable.schema.createEntity<Media>().as({
   type: 'MEDIA',
 
   getPartitionKey: ['MEDIA', '.id'],
@@ -183,7 +183,7 @@ const MEDIA2 = singleTable.schema.createEntity<Media>().withParams({
 /**
  * Array key + getter - should work EXACTLY like MEDIA
  */
-const MEDIA3 = singleTable.schema.createEntity<Media>().withParams({
+const MEDIA3 = singleTable.schema.createEntity<Media>().as({
   type: 'MEDIA',
 
   getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
