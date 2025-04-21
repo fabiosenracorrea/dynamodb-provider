@@ -31,5 +31,5 @@
 
   "include": ["src/**/*.ts", "./src/**/*.d.ts"],
 
-  "exclude": ["node_modules", "lib", "src/**/*-test.ts", "**/*.spec.ts"]
+  "exclude": ["node_modules", "lib", "**/*-test.ts", "**/__use-case-tests__/**", "**/*.spec.ts"]
 }

@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v2.0.1
+
+- **Infra**: Build script adjusted to properly exclude bad files/local artifacts
+
 # v2.0.0
 
 ## Breaking changes
