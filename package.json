@@ -2,7 +2,7 @@
   "homepage": "https://github.com/fabiosenracorrea/dynamodb-provider",
   "author": "fabiosenracorrea",
   "name": "dynamodb-provider",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A dynamodb Provider that simplifies the native api. It packs with a Single Table adaptor/pseudo ORM for single table design",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -11,7 +11,8 @@
     "url": "https://github.com/fabiosenracorrea/dynamodb-provider/issues"
   },
   "scripts": {
-    "build-both": "rm -rf ./lib yarn check-usage && yarn build:esm && yarn build:cjs",
+    "clean:maps": "find lib -name '*.map' -delete",
+    "build-both": "rm -rf ./lib yarn check-usage && yarn build:esm && yarn build:cjs && yarn clean:maps",
     "build:esm": "yarn check-usage && tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
     "build:cjs": "yarn check-usage && tsc --project tsconfig.cjs.json --outDir lib/cjs && tsc-alias -p tsconfig.cjs.json",
     "build": "tsc --noEmit",
