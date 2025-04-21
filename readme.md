@@ -1646,6 +1646,93 @@ type KeyValue = null | string | Array<string | number | null>;
 
 Just remember `null` is useful if you want to indicate that you generated a bad key that shouldn't be updated. That means its relevant on index key getters, but no actual partition/range context
 
+##### Dotted property references
+
+Most of the time, your partition/range keys will be simple combination of constants and property values. Because of how the getter requirement is constructed, a lot of times you are writing a lot of the same boiler plate code:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().withParams({
+  type: 'USER_EVENT',
+
+  getPartitionKey: () => 'USER_EVENT',
+
+  // destructure + pick (or inline type def) + array
+  getRangeKey: ({ id }: Pick<Event, 'id'>) => [id],
+
+  indexes: {
+    byUser: {
+      // destructure + pick (or inline type def) + array
+      getPartitionKey: ({ userId }: Pick<Event, 'userId'>) => ['SOME_ENTITY_KEY', userId],
+
+     // destructure + pick (or inline type def) + array
+      getRangeKey: ({ timestamp }: Pick<Event, 'timestamp'>) => ['SOME_ENTITY_KEY', timestamp],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+This is mostly fine, as its clear and demonstrates the relation clearly. But it does get repetitive. We provide a way to reference this logic with a dot notation:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().withParams({
+  type: 'USER_EVENT',
+
+  getPartitionKey: ['USER_EVENT'],
+
+  getRangeKey: ['.id']
+
+  indexes: {
+    byUser: {
+      getPartitionKey:  ['SOME_ENTITY_KEY', '.userId'],
+
+      getRangeKey:  ['SOME_ENTITY_KEY', '.timestamp'],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+**IMPORTANT!** This brings some opinions on how it works. It provides QOL on most entity creations, but be aware of:
+
+- You have IDE assistance to auto complete any `.[prop]` you may way to reference, **but EVERY string is accepted**. Meaning typos can lead to bad key resolvers.
+- Every entry will have the initial `.` automatically removed `[.CONSTANT, .prop]` becomes `[CONSTANT, ${prop}]`
+- The `getPartitionKey` and `getRangeKey` generated will look and inject every `.prop` from the params received into the key generation, so typos can lead to `undefined` getting into the key and ultimately invalidating it.
+
+If you need complex login on your key generation, you need to pass in as a function. We do not pretend to extend this functionality to handle dynamic references. Thats the clear cut use case of a function.
+
 - `type` (string): An **unique** describer of an entity inside your single table. Think of it as the "table name". If you try to create 2 entities with the same type, an error is thrown.
 
 - `autoGen` (object, optional): Defined properties that should be auto generated `onCreation` or `onUpdate`:
@@ -2062,7 +2149,7 @@ As you have noticed, the `use('entry').create<EntryType>()` call can either prov
 All params have been covered on the example above, but here's them aggregated:
 
 - **name**: An **UNIQUE** name to your partition
-- **getPartitionKey**: The partition getter
+- **getPartitionKey**: The partition getter (only as fn form!)
 - **index?**: The table index this partition might be from
 - **entries**: An object mapping a partition entity to its `getRangeKey` resolver
 
