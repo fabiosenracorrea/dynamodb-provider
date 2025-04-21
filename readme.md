@@ -1,5 +1,9 @@
 # Dynamo DB Provider
 
+[![npm version](https://img.shields.io/npm/v/dynamodb-provider.svg)](https://www.npmjs.com/package/dynamodb-provider)
+[![Bundlephobia](https://img.shields.io/bundlephobia/minzip/dynamodb-provider)](https://bundlephobia.com/result?p=dynamodb-provider)
+[![License](https://img.shields.io/npm/l/dynamodb-provider)](./LICENSE)
+
 Fast Develop for DynamoDB with this type-safe & single-table awareness library!
 
 ## Introduction
