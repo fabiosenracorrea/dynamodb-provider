@@ -563,7 +563,7 @@ await db.update({
 })
 ```
 
-On this seconds case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**!. You can choose what makes more sense to you.
+On this second case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**! You can choose what makes more sense to you.
 
 Another common use case of this operation is to control the number of items you have with another item. Say you want to control User with incremental ids:
 
