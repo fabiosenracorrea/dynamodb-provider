@@ -35,7 +35,7 @@ This is an idiomatic change. We've noticed this expression was not as clear as i
 
 ## Improvements & fixes
 
-- **Feature**: Support for **nested expressions** ! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary
+- **Feature**: Support for **nested expressions**! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary
 
 - **Feature**: entity `getPartitionKey` and `getRangeKey` now supports both the function and array notation
 
