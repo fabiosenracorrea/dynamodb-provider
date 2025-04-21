@@ -1,5 +1,168 @@
 # DynamoDB Provider Changelog
 
+# v2.0.0
+
+## Breaking changes
+
+- **Feature**: `between` expression now accepts `start` and `end` params instead of `low` and `high`
+
+```ts
+
+// v1:
+
+const expressionV1 = {
+  operation: 'between',
+  property: prop,
+
+
+  low: 'a', // <---------------
+  high: 'f', // <---------------
+}
+
+// v2:
+
+const expressionV2 = {
+  operation: 'between',
+  property: prop,
+
+
+  start: 'a', // <---------------
+  end: 'f', // <---------------
+}
+```
+
+This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, it did not follow common naming practices
+
+- **Feature**: Partition `paramMatch` references are now enforced if a non entity key is found inside the partition key references.
+
+Previously this was a valid call:
+
+```ts
+type Media = {
+  id: string;
+
+  name: string;
+  description: string;
+
+  searchTerms: string;
+
+  fileName: string;
+  contentType: string;
+
+  s3Key: string;
+};
+
+const mediaPartition = singleTable.schema.createPartition({
+  name: 'MEDIA_PARTITION',
+
+  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
+
+  entries: {
+    data: () => ['#DATA'],
+    // ...other entries
+  },
+});
+
+const MEDIA = mediaPartition
+  .use('data')
+  .create<Media>()
+  .entity({
+    type: 'MEDIA',
+  });
+```
+
+Even though `mediaId` was not found inside our `Media` type. You kind had to pass it, otherwise every media call would need the extra `mediaId` prop and it would be injected into the actual DB data.
+
+Now, if you create this exact declaration, you'll get yelled at, enforcing `paramMatch` is required. Furthermore, its `mediaId` property is required.
+
+This means if you have other properties on the key references that actually exits inside `Media` they won't be required (but still accepted and adjusted accordingly)
+
+- **Name change**: Schema `createEntity().withParams({...})` call changed to `createEntity().as({...})`
+
+## Improvements & fixes
+
+- **Feature**: Support for **nested expressions**! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary
+
+- **Feature**: entity `getPartitionKey` and `getRangeKey` now supports both the function and array notation
+
+When defining an entity we were obligated to create function getters every time:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().as({
+  type: 'USER_EVENT',
+
+  getPartitionKey: () => 'USER_EVENT',
+
+  getRangeKey: ({ id }: Pick<Event, 'id'>) => [id],
+
+  indexes: {
+    byUser: {
+      getPartitionKey: ({ userId }: Pick<Event, 'userId'>) => ['SOME_ENTITY_KEY', userId],
+
+      getRangeKey: ({ timestamp }: Pick<Event, 'timestamp'>) => ['SOME_ENTITY_KEY', timestamp],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+While the above declaration **remains 100% valid**, you can also pass a simplified reference for non-logic keys:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().as({
+  type: 'USER_EVENT',
+
+  getPartitionKey: ['USER_EVENT'],
+
+  getRangeKey: ['.id']
+
+  indexes: {
+    byUser: {
+      getPartitionKey:  ['SOME_ENTITY_KEY', '.userId'],
+
+      getRangeKey:  ['SOME_ENTITY_KEY', '.timestamp'],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+> **IMPORTANT**: Array referenced keys provide the auto-complete for every available property, but *accepts any string*. When resolving the `getPartitionKey` and `getRangeKey` for the entity, **we consider EVERY .dot string as an param access**. Meaning typos can lead to bad key resolvers. For the getter option, we have the added bonus of validating each parameter is actually a property of our entity. Its more boiler plate, but TS-safer.
+
+- **Infra**: PR checks for TS/tests
+
 ## v1.1.15
 
 - **Fix**: `in` and `not_in` expressions were not properly built

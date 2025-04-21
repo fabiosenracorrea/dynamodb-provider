@@ -51,8 +51,8 @@ describe('filter helpers', () => {
       const result = buildFilterExpressionValuesAndExpression<{ status: string; age: number }>({
         status: {
           operation: 'between',
-          high: '9',
-          low: '1',
+          end: '9',
+          start: '1',
         },
 
         age: {
@@ -63,12 +63,12 @@ describe('filter helpers', () => {
 
       expect(result).toEqual({
         FilterExpression:
-          '(#__filter_status between :__filter_status_low and :__filter_status_high) and (#__filter_age >= :__filter_age)',
+          '(#__filter_status between :__filter_status_start and :__filter_status_end) and (#__filter_age >= :__filter_age)',
 
         ExpressionAttributeValues: {
           ':__filter_age': 18,
-          ':__filter_status_low': '1',
-          ':__filter_status_high': '9',
+          ':__filter_status_start': '1',
+          ':__filter_status_end': '9',
         },
       });
     });
@@ -116,8 +116,8 @@ describe('filter helpers', () => {
 
         startedAt: {
           operation: 'between',
-          high: '2024-08-31T23:59:59.999Z',
-          low: '2024-08-01T00:00:00.000Z',
+          end: '2024-08-31T23:59:59.999Z',
+          start: '2024-08-01T00:00:00.000Z',
         },
       });
 
@@ -125,7 +125,7 @@ describe('filter helpers', () => {
         FilterExpression: [
           '(#__filter_status = :__filter_status)',
           'and (#__filter_age > :__filter_age)',
-          'and (#__filter_startedAt between :__filter_startedAt_low and :__filter_startedAt_high)',
+          'and (#__filter_startedAt between :__filter_startedAt_start and :__filter_startedAt_end)',
           'and (#__filter_counts in (:__filter_counts_0,:__filter_counts_1,:__filter_counts_2,:__filter_counts_3))',
         ].join(' '),
 
@@ -136,8 +136,8 @@ describe('filter helpers', () => {
           ':__filter_counts_1': 20,
           ':__filter_counts_2': 30,
           ':__filter_counts_3': 40,
-          ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
-          ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
+          ':__filter_startedAt_start': '2024-08-01T00:00:00.000Z',
+          ':__filter_startedAt_end': '2024-08-31T23:59:59.999Z',
         },
       });
     });
@@ -203,8 +203,8 @@ describe('filter helpers', () => {
 
           startedAt: {
             operation: 'between',
-            high: '2024-08-31T23:59:59.999Z',
-            low: undefined,
+            end: '2024-08-31T23:59:59.999Z',
+            start: undefined,
           },
 
           age: {
@@ -311,8 +311,8 @@ describe('filter helpers', () => {
 
         startedAt: {
           operation: 'between',
-          high: '2024-08-31T23:59:59.999Z',
-          low: '2024-08-01T00:00:00.000Z',
+          end: '2024-08-31T23:59:59.999Z',
+          start: '2024-08-01T00:00:00.000Z',
         },
       });
 
@@ -320,15 +320,15 @@ describe('filter helpers', () => {
         FilterExpression: [
           '(#__filter_status = :__filter_status)',
           'and (#__filter_age > :__filter_age)',
-          'and (#__filter_startedAt between :__filter_startedAt_low and :__filter_startedAt_high)',
+          'and (#__filter_startedAt between :__filter_startedAt_start and :__filter_startedAt_end)',
           'and (#__filter_counts in (:__filter_counts_0,:__filter_counts_1,:__filter_counts_2,:__filter_counts_3))',
         ].join(' '),
 
         ExpressionAttributeValues: {
           ':__filter_age': 21,
           ':__filter_status': '0',
-          ':__filter_startedAt_low': '2024-08-01T00:00:00.000Z',
-          ':__filter_startedAt_high': '2024-08-31T23:59:59.999Z',
+          ':__filter_startedAt_start': '2024-08-01T00:00:00.000Z',
+          ':__filter_startedAt_end': '2024-08-31T23:59:59.999Z',
           ':__filter_counts_0': 10,
           ':__filter_counts_1': 20,
           ':__filter_counts_2': 30,

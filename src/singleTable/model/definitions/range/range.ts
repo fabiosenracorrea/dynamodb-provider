@@ -14,8 +14,8 @@ type SingleRangeConfig =
   | {
       operation: BetweenRefConfig['operation'];
       getValues: (...params: any) => {
-        low: KeyValue | BetweenRefConfig['low'];
-        high: KeyValue | BetweenRefConfig['high'];
+        start: KeyValue | BetweenRefConfig['start'];
+        end: KeyValue | BetweenRefConfig['end'];
       };
     };
 

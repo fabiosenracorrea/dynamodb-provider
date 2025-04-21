@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DynamodbProvider } from 'provider';
 import { SingleTable } from 'singleTable/implementation';
@@ -28,7 +29,7 @@ const dynamodbProvider = new DynamodbProvider({
   logCallParams: true,
 });
 
-export const singleTable = new SingleTable({
+const singleTable = new SingleTable({
   dynamodbProvider,
 
   table: 'MY_SINGLE_TABLE',
@@ -58,7 +59,7 @@ export const singleTable = new SingleTable({
   keepTypeProperty: true,
 });
 
-export type Media = {
+type Media = {
   id: string;
 
   name: string;
@@ -111,38 +112,63 @@ export type Media = {
       };
 };
 
-export const MEDIA = singleTable.schema.createEntity<Media>().withParams({
-  type: 'MEDIA',
+const mediaPartition = singleTable.schema.createPartition({
+  name: 'MEDIA_PARTITION',
 
-  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
+  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
 
-  getRangeKey: () => ['#DATA'],
+  entries: {
+    data: () => ['#DATA'],
+    data2: () => ['#DATA'],
+  },
+});
 
-  indexes: {
-    ByUploadTime: {
-      index: 'Index1',
-      getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
-      getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
+const MEDIA = mediaPartition
+  .use('data')
+  .create<Media>()
+  .entity({
+    type: 'MEDIA',
 
-      rangeQueries: {
-        optionalDateSlice: {
-          operation: 'between',
-          getValues: ({ end, start }: { start: string; end: string }) => ({
-            high: end ?? '2100-01-01T00:00:00.000Z',
-            low: start ?? '2020-01-01T00:00:00.000Z',
-          }),
+    paramMatch: { mediaId: 'id' },
+
+    indexes: {
+      ByUploadTime: {
+        index: 'Index1',
+        getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
+        getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
+
+        rangeQueries: {
+          optionalDateSlice: {
+            operation: 'between',
+            getValues: ({ end, start }: { start: string; end: string }) => ({
+              end: end ?? '2100-01-01T00:00:00.000Z',
+              start: start ?? '2020-01-01T00:00:00.000Z',
+            }),
+          },
         },
       },
     },
-  },
 
-  autoGen: {
-    onCreate: {
-      uploadedAt: 'timestamp',
-      references: 'count',
+    autoGen: {
+      onCreate: {
+        uploadedAt: 'timestamp',
+        references: 'count',
+      },
     },
-  },
-});
+  });
+
+// @ts-expect-error partition has param
+MEDIA.getPartitionKey();
+
+MEDIA.getPartitionKey({ id: '' });
+
+MEDIA.getRangeKey();
+
+// @ts-expect-error no param is on range
+MEDIA.getRangeKey({ no: true });
+
+MEDIA.getCreationIndexMapping({ uploadedAt: '' });
+MEDIA.getUpdatedIndexMapping({ uploadedAt: '' });
 
 const _paramAcceptances_ = [
   singleTable.schema.fromEntity(MEDIA),
@@ -182,15 +208,18 @@ const _paramAcceptances_ = [
     {
       create: MEDIA.getCreationParams({} as Media),
     },
+
     {
       erase: MEDIA.getKey({ id: 'ID' }),
     },
+
     {
       update: MEDIA.getUpdateParams({
         id: 'ID',
         values: { description: 'Hello?' },
       }),
     },
+
     {
       validate: MEDIA.getValidationParams({
         id: 'ID',
@@ -212,36 +241,60 @@ const _paramAcceptances_ = [
   ]),
 ];
 
-// Bad entity params
-singleTable.schema.createEntity<{ id: string }>().withParams({
-  type: 'BAD_ENTITY',
+// nested conditions reference
+MEDIA.getUpdateParams({
+  id: '1',
 
-  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
-
-  // @ts-expect-error only entity props are accepted as key args
-  getRangeKey: ({ badProp }: { badProp: string }) => [badProp],
-
-  indexes: {
-    BadIndex: {
-      index: 'Index1',
-      getPartitionKey: () => 'BY_UPLOAD',
-
-      // @ts-expect-error only entity props are accepted as key args
-      getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
+  conditions: [
+    {
+      operation: 'equal',
+      property: 'description',
+      value: 'any',
+      nested: [
+        {
+          property: 's3Key',
+          operation: 'begins_with',
+          value: 'private',
+        },
+      ],
     },
-  },
-
-  autoGen: {
-    onCreate: {
-      // @ts-expect-error only entity props are accepted
-      uploadedAt: 'timestamp',
-
-      id: 'KSUID',
+    {
+      joinAs: 'or',
+      operation: 'equal',
+      property: 'description',
+      value: 'other-desc',
     },
-
-    onUpdate: {
-      // @ts-expect-error only entity props are accepted
-      bad: () => true,
-    },
-  },
+  ],
 });
+
+// PARAM MATCH
+mediaPartition
+  .use('data2')
+  .create<Media>()
+  // @ts-expect-error `paramMatch` should be required since mediaId is not a key on entity
+  .entity({
+    type: 'MEDIA_MUST_MATCH',
+
+    // paramMatch: { mediaId: 'id' }, // <--- obligatory
+  });
+
+singleTable.schema
+  .createPartition({
+    name: 'PARTIAL_MATCH_TEST',
+
+    getPartitionKey: ({ mediaId }: { mediaId: string; s3Key: string }) => ['MEDIA', mediaId],
+
+    entries: {
+      data: () => ['#DATA'],
+    },
+  })
+  .use('data')
+  .create<Media>()
+  .entity({
+    type: 'MEDIA_1222',
+
+    // s3Key should not be required
+    paramMatch: { mediaId: 'id' },
+  })
+  // and still shown and used
+  .getPartitionKey({ id: 'aaa', s3Key: '11' });

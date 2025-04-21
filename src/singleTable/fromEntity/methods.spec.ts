@@ -51,7 +51,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -119,7 +119,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: () => ['USER'],
@@ -185,7 +185,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -261,7 +261,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -332,7 +332,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -415,7 +415,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -483,7 +483,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -560,7 +560,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -644,7 +644,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -733,7 +733,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -784,7 +784,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -820,7 +820,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -865,7 +865,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -916,7 +916,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -974,7 +974,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1018,7 +1018,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1082,7 +1082,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1144,7 +1144,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1210,7 +1210,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1256,7 +1256,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1346,7 +1346,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1422,7 +1422,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
@@ -1444,8 +1444,8 @@ describe('single table - from entity methods', () => {
               aToF: {
                 operation: `between`,
                 getValues: () => ({
-                  high: 'f',
-                  low: 'a',
+                  end: 'f',
+                  start: 'a',
                 }),
               },
             },
@@ -1479,8 +1479,8 @@ describe('single table - from entity methods', () => {
 
         range: {
           operation: 'between',
-          high: 'f',
-          low: 'a',
+          end: 'f',
+          start: 'a',
         },
       });
 
@@ -1514,7 +1514,7 @@ describe('single table - from entity methods', () => {
 
       const schema = new SingleTableSchema(params);
 
-      const user = schema.createEntity<User>().withParams({
+      const user = schema.createEntity<User>().as({
         type: 'USER',
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],

@@ -29,8 +29,8 @@ export interface BetweenRangeKeyConfig<Entity> {
    */
   name: StringKey<Entity>;
 
-  low: string | number;
-  high: string | number;
+  start: string | number;
+  end: string | number;
 
   operation: Extract<ExpressionOperation, 'between'>;
 }

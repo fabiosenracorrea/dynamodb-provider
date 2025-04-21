@@ -67,7 +67,7 @@ export class SingleTableFromEntityMethods<
 
   private getQueryIndexMethods(): IndexQueryMethods<ExtendableSingleTableEntity> {
     const typed = this.entity as {
-      indexes?: IndexMapping<SingleParams & { indexes: any }, Entity['__entity']>;
+      indexes?: IndexMapping<SingleParams & { indexes: any }, any>;
     };
 
     if (!typed.indexes) return {};

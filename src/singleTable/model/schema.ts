@@ -25,7 +25,7 @@ interface EntityCache {
 }
 
 export interface DefinedMethods<TableConfig extends SingleTableConfig, Entity extends AnyObject> {
-  withParams<Params extends RegisterEntityParams<TableConfig, Entity>>(
+  as<Params extends RegisterEntityParams<TableConfig, Entity>>(
     params: Params,
   ): SingleTableEntity<TableConfig, Entity, Params>;
 }
@@ -84,12 +84,13 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
       if (!params.entries[entry as keyof typeof params.entries])
         throw new Error(`[PARTITION:${params.name}] - Bad entry referenced on usage`);
 
+      type IndexParams<Entity> = PartitionIndexParams<Params, typeof entry, Entity>;
+
       return {
         create: <Entity>() => ({
-          index: ({
-            paramMatch,
-            ...indexParams
-          }: PartitionIndexParams<Params, typeof entry, Entity> = {}) => ({
+          index: (
+            { paramMatch, ...indexParams }: IndexParams<Entity> = {} as IndexParams<Entity>,
+          ) => ({
             ...indexParams,
 
             index: params.index,
@@ -183,10 +184,7 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
   createEntity<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
     return {
-      withParams: this.registerEntity.bind(this) as DefinedMethods<
-        TableConfig,
-        Entity
-      >['withParams'],
+      as: this.registerEntity.bind(this) as DefinedMethods<TableConfig, Entity>['as'],
     };
   }
 

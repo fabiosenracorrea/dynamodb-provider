@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { StringKey } from 'types';
 
 export type ExpressionOperation =
@@ -23,11 +24,22 @@ interface BasalExpressionValues<Entity> {
   property: StringKey<Entity>;
 
   /**
-   * How should this expression be joined with other expressions?
+   * How should this expression be joined with the expression before it?
    *
-   * This does not take into account parenthesis
+   * This is related to same level expressions, to change `nested`
+   * join behavior do it on their expressions
+   *
+   * *IMPORTANT* - Since its how its joined with the one before it,
+   * this is IGNORED for the first expression of the list
    */
   joinAs?: 'and' | 'or';
+
+  /**
+   * If you need nested parenthesis and complex expressions,
+   * you can create them here. Every nested expression
+   * will be joined with the main and encapsulated
+   */
+  nested?: ItemExpression<Entity>[];
 }
 
 export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
@@ -55,8 +67,8 @@ export interface EqualityExpression<Entity> extends BasalExpressionValues<Entity
 }
 
 export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
-  low: string | number;
-  high: string | number;
+  start: string | number;
+  end: string | number;
 
   operation: Extract<ExpressionOperation, 'between'>;
 }

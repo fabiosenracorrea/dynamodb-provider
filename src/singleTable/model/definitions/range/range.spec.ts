@@ -43,7 +43,7 @@ describe('single table model - getRangeQueriesParams', () => {
   it('should return correct range query functions for between range configuration', () => {
     const betweenRangeConfig = {
       operation: 'between',
-      getValues: jest.fn((id: string) => ({ low: `${id}-low`, high: `${id}-high` })),
+      getValues: jest.fn((id: string) => ({ start: `${id}-start`, end: `${id}-end` })),
     };
 
     const params = {
@@ -57,7 +57,7 @@ describe('single table model - getRangeQueriesParams', () => {
     expect(result.rangeQueries).toHaveProperty('queryBetween');
     const { queryBetween } = result.rangeQueries;
     const valueParams = 'test-id';
-    const expectedResult = { operation: 'between', low: 'test-id-low', high: 'test-id-high' };
+    const expectedResult = { operation: 'between', start: 'test-id-start', end: 'test-id-end' };
 
     expect(queryBetween(valueParams)).toEqual(expectedResult);
     expect(betweenRangeConfig.getValues).toHaveBeenCalledWith(valueParams);
@@ -71,7 +71,7 @@ describe('single table model - getRangeQueriesParams', () => {
 
     const betweenRangeConfig = {
       operation: 'between',
-      getValues: jest.fn((id: string) => ({ low: `${id}-low`, high: `${id}-high` })),
+      getValues: jest.fn((id: string) => ({ start: `${id}-start`, end: `${id}-end` })),
     };
 
     const params = {
@@ -94,8 +94,8 @@ describe('single table model - getRangeQueriesParams', () => {
     const valueParamsBetween = 'test-id';
     const expectedResultBetween = {
       operation: 'between',
-      low: 'test-id-low',
-      high: 'test-id-high',
+      start: 'test-id-start',
+      end: 'test-id-end',
     };
 
     expect(queryBetween(valueParamsBetween)).toEqual(expectedResultBetween);

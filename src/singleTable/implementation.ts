@@ -81,10 +81,10 @@ type SingleTableSchema<SingleParams extends SingleTableParams> = {
    * This can be thought of similar to a TABLE on a regular relational database
    *
    * To ensure type-safety and its checks, this method requires you to pass the Entity Type
-   * to it, and only then subsequently call `withParams` to actually execute the creation.
+   * to it, and only then subsequently call `as` to actually execute the creation.
    *
    * ```ts
-   *   const User = table.schema.createEntity<UserType>().withParams({
+   *   const User = table.schema.createEntity<UserType>().as({
    *     // ... entity creation params
    *   })
    * ```

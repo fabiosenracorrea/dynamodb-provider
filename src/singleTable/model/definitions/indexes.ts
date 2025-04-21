@@ -22,8 +22,7 @@ export type IndexMapping<
   Entity = undefined,
 > = Record<string, SingleIndex<TableConfig, Entity>>;
 
-export type IndexParams<IndexConfig extends IndexMapping<any, any>> = EntityKeyParams<
+export type IndexParams<Entity, IndexConfig extends IndexMapping<any, any>> = EntityKeyParams<
+  Entity,
   IndexConfig[keyof IndexConfig]
 >;
-
-// type IndexKeys<IndexConfig extends IndexMapping<any, any>> = keyof IndexParams<IndexConfig>;

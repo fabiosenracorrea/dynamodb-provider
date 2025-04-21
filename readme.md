@@ -338,8 +338,8 @@ export interface BasicExpression<Entity> extends BasalExpressionValues<Entity> {
 }
 
 export interface BetweenExpression<Entity> extends BasalExpressionValues<Entity> {
-  low: string | number;
-  high: string | number;
+  start: string | number;
+  end: string | number;
 
   operation: Extract<ExpressionOperation, 'between'>;
 }
@@ -517,7 +517,7 @@ Returns a `Promise` that resolves to the updated entity (or a partial version of
   // updatedUser will be { name, loginCount }
 ```
 
-Its non uncommon to tie `atomicOperations` with `conditions` to ensure the operation can performed. Say you have a counter on your unit, and it goes up and down. Most of the time that can't go below 0, but there could be 2 operations that go through in-between calls. To prevent this from happening, you could do:
+Its not uncommon to tie `atomicOperations` with `conditions` to ensure the operation can performed. Say you have a counter on your unit, and it goes up and down. Most of the time that can't go below 0, but there could be 2 operations that go through in-between calls. To prevent this from happening, you could do:
 
 ```ts
 await db.update({
@@ -563,7 +563,7 @@ await db.update({
 })
 ```
 
-On this seconds case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**!. You can choose what makes more sense to you.
+On this second case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**! You can choose what makes more sense to you.
 
 Another common use case of this operation is to control the number of items you have with another item. Say you want to control User with incremental ids:
 
@@ -740,7 +740,7 @@ export type BasicFilterConfig = Pick<BasicExpression<any>, 'operation' | 'value'
 
 export type BetweenFilterConfig = Pick<
   BetweenExpression<any>,
-  'operation' | 'high' | 'low' | 'joinAs'
+  'operation' | 'start' | 'end' | 'joinAs'
 >;
 
 export type AttributeExistenceFilterConfig = Pick<
@@ -950,7 +950,7 @@ interface Method {
 
     RangeKey Configuration comes in two forms:
     - `BasicRangeKeyConfig`: For single condition operations (`equal`, `lower_than`, etc.).
-    - `BetweenRangeKeyConfig`: For a `between` operation, providing both `low` and `high` values.
+    - `BetweenRangeKeyConfig`: For a `between` operation, providing both `start` and `end` values.
 
   - `retrieveOrder` (string, Optional):
     Specifies the order of the results.
@@ -1593,7 +1593,7 @@ type tUser = {
   // ... more props
 }
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   // create entity params
 })
 ```
@@ -1627,12 +1627,12 @@ type tUser = {
   // ... more props
 }
 
-const BadUser = table.schema.createEntity<User>().withParams({
+const BadUser = table.schema.createEntity<User>().as({
   // create entity params
   getPartitionKey: ({userId}: {userId: string}) => ['USER', userId] // TYPE ERROR!
 })
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   // create entity params
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id] // ok!
 })
@@ -1645,6 +1645,93 @@ type KeyValue = null | string | Array<string | number | null>;
 ```
 
 Just remember `null` is useful if you want to indicate that you generated a bad key that shouldn't be updated. That means its relevant on index key getters, but no actual partition/range context
+
+##### Dotted property references
+
+Most of the time, your partition/range keys will be simple combination of constants and property values. Because of how the getter requirement is constructed, a lot of times you are writing a lot of the same boiler plate code:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().as({
+  type: 'USER_EVENT',
+
+  getPartitionKey: () => 'USER_EVENT',
+
+  // destructure + pick (or inline type def) + array
+  getRangeKey: ({ id }: Pick<Event, 'id'>) => [id],
+
+  indexes: {
+    byUser: {
+      // destructure + pick (or inline type def) + array
+      getPartitionKey: ({ userId }: Pick<Event, 'userId'>) => ['SOME_ENTITY_KEY', userId],
+
+     // destructure + pick (or inline type def) + array
+      getRangeKey: ({ timestamp }: Pick<Event, 'timestamp'>) => ['SOME_ENTITY_KEY', timestamp],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+This is mostly fine, as its clear and demonstrates the relation clearly. But it does get repetitive. We provide a way to reference this logic with a dot notation:
+
+```ts
+type Event = {
+  id: string;
+  timestamp: string;
+  type: string;
+  userId: string;
+  // ...more props
+}
+
+export const eEvent = schema.createEntity<Event>().as({
+  type: 'USER_EVENT',
+
+  getPartitionKey: ['USER_EVENT'],
+
+  getRangeKey: ['.id']
+
+  indexes: {
+    byUser: {
+      getPartitionKey:  ['SOME_ENTITY_KEY', '.userId'],
+
+      getRangeKey:  ['SOME_ENTITY_KEY', '.timestamp'],
+
+      index: 'IndexOne',
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      id: 'KSUID',
+      timestamp: 'timestamp',
+    },
+  },
+});
+```
+
+**IMPORTANT!** This brings some opinions on how it works. It provides QOL on most entity creations, but be aware of:
+
+- You have IDE assistance to auto complete any `.[prop]` you may way to reference, **but EVERY string is accepted**. Meaning typos can lead to bad key resolvers.
+- Every entry will have the initial `.` automatically removed `[.CONSTANT, .prop]` becomes `[CONSTANT, ${prop}]`
+- The `getPartitionKey` and `getRangeKey` generated will look and inject every `.prop` from the params received into the key generation, so typos can lead to `undefined` getting into the key and ultimately invalidating it.
+
+If you need complex login on your key generation, you need to pass in as a function. We do not pretend to extend this functionality to handle dynamic references. Thats the clear cut use case of a function.
 
 - `type` (string): An **unique** describer of an entity inside your single table. Think of it as the "table name". If you try to create 2 entities with the same type, an error is thrown.
 
@@ -1683,7 +1770,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
     // ...props
   }
 
-  const Logs = table.schema.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().as({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1694,8 +1781,8 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
       dateSlice: {
         operation: 'between',
         getValues: ({ start, end }: { start: string, end: string }) => ({
-          low: start,
-          high: end,
+          start,
+          end,
         })
       }
     }
@@ -1740,7 +1827,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
     }
   })
 
-  const Logs = table.schema.createEntity<tLogs>().withParams({
+  const Logs = table.schema.createEntity<tLogs>().as({
     type: 'APP_LOGS',
 
     getPartitionKey: () => ['APP_LOG'],
@@ -1769,7 +1856,7 @@ Just remember `null` is useful if you want to indicate that you generated a bad 
       // ... more props
     }
 
-    const User = table.schema.createEntity<User>().withParams({
+    const User = table.schema.createEntity<User>().as({
       // ...other props
 
       extend: ({ dob }) => ({
@@ -1810,7 +1897,7 @@ type tUser = {
   // ... more props
 }
 
-const User = table.schema.createEntity<User>().withParams({
+const User = table.schema.createEntity<User>().as({
   type: 'USER',
 
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
@@ -1867,7 +1954,7 @@ type tLogs = {
   // ...props
 }
 
-const Logs = table.schema.createEntity<tLogs>().withParams({
+const Logs = table.schema.createEntity<tLogs>().as({
   type: 'APP_LOGS',
 
   getPartitionKey: () => ['APP_LOG'],
@@ -1885,8 +1972,8 @@ const Logs = table.schema.createEntity<tLogs>().withParams({
       dateSlice: {
         operation: 'between',
         getValues: ({ start, end }: { start: string, end: string }) => ({
-          low: start,
-          high: end,
+          start,
+          end,
         })
       }
     }
@@ -1965,9 +2052,10 @@ type tUserLoginAttempt = {
 const User = userPartition.use('mainData').create<tUser>().entity({
   type: 'USER',
 
-  // This is an optional param
-  // it accepts as keys every param inside the partitionKey + the entry used (mainData here)
-  // it will produce an entity that the key getters reference 'id' to work, instead of userId!
+  // You **must** match any partition param that is not
+  // found inside the entity (tUser) you are creating
+  // Optionally, you can match same name params if they mean different things
+  // If all params are found inside the entity, it will be an optional param
   paramMatch: {
     userId: 'id'
   },
@@ -2023,7 +2111,7 @@ const userIndexPartition = table.schema.createPartition({
   },
 })
 
-const User = table.schema.createEntity<tUser>().withParams({
+const User = table.schema.createEntity<tUser>().as({
   type: 'USER',
 
   getPartitionKey: () => ['APP_USERS'],
@@ -2041,7 +2129,7 @@ const User = table.schema.createEntity<tUser>().withParams({
   }
 })
 
-const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().withParams({
+const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().as({
   type: 'USER_LOGIN_ATTEMPT',
 
   getPartitionKey: () => ['APP_LOGINS'],
@@ -2062,7 +2150,7 @@ As you have noticed, the `use('entry').create<EntryType>()` call can either prov
 All params have been covered on the example above, but here's them aggregated:
 
 - **name**: An **UNIQUE** name to your partition
-- **getPartitionKey**: The partition getter
+- **getPartitionKey**: The partition getter (only as fn form!)
 - **index?**: The table index this partition might be from
 - **entries**: An object mapping a partition entity to its `getRangeKey` resolver
 

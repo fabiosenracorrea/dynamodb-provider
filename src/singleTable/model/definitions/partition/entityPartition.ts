@@ -23,6 +23,7 @@ type PartitionEntityParams<
   Getters extends EntityKeyResolvers<any>,
   Entity,
   CreateParams extends PartitionEntityCreateParams<any, any, any, any>,
+  // @ts-expect-error condition check of paramMatch is causing acceptance issues, but this is totally fine
 > = CreateParams & FullPartitionKeys<Getters, Entity, CreateParams>;
 
 export type PartitionEntityCreator<

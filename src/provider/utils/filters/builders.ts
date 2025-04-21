@@ -85,7 +85,7 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
                 {
                   is: 'between',
                   then: !!(
-                    (value as BetweenFilterConfig)?.high && (value as BetweenFilterConfig)?.low
+                    (value as BetweenFilterConfig)?.start && (value as BetweenFilterConfig)?.end
                   ),
                 },
                 {

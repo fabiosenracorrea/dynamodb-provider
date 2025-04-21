@@ -283,8 +283,8 @@ describe('Lister', () => {
           state: ['MG', 'SP'],
           birthDay: {
             operation: 'between',
-            high: '1995-12-31',
-            low: '1995-01-31',
+            start: '1995-01-31',
+            end: '1995-12-31',
           },
         },
 
@@ -299,8 +299,8 @@ describe('Lister', () => {
         state: ['MG', 'SP'],
         birthDay: {
           operation: 'between',
-          high: '1995-12-31',
-          low: '1995-01-31',
+          start: '1995-01-31',
+          end: '1995-12-31',
         },
       });
 
