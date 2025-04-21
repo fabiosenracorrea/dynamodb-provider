@@ -12,34 +12,76 @@ import {
 import { KeyValue } from 'singleTable/adaptor/definitions';
 import { KeyParams, EntityKeyResolvers, KeyResolvers, resolveKeys } from '../key';
 
-export type ParamMatchArgs<KeyGetters extends EntityKeyResolvers<any>, Entity> = {
-  /**
-   * Use this to match the key getter param to your entity's property.
-   *
-   * For example, let's say you created a user partition that has the following structure:
-   *
-   * ```ts
-   *  const getter = ({ userId }: { userId: string }) => ['USER', userId]
-   * ```
-   *
-   * As it's recommended to label each param descriptively, this follows the best practices,
-   * but the User entity is probably going to have 'id' on it, not 'userId', as opposed to
-   * its related entities that might have userId directly.
-   *
-   * Use this matcher to bind these these 2 values only on your User entity:
-   *
-   * ```ts
-   *  const config = {
-   *    paramMatch: {
-   *      userId: 'id'
-   *    }
-   *  }
-   * ```
-   */
-  paramMatch?: {
-    [GetterKey in keyof KeyParams<KeyGetters>]?: keyof Entity;
-  };
-};
+type KeysMustMatch<KeyGetters extends EntityKeyResolvers<any>, Entity> = Exclude<
+  keyof KeyParams<KeyGetters>,
+  keyof Entity
+>;
+
+export type ParamMatchArgs<
+  KeyGetters extends EntityKeyResolvers<any>,
+  Entity,
+  //
+  // @internal
+  _KEYS_TO_MATCH = KeysMustMatch<KeyGetters, Entity>,
+> = IsNever<_KEYS_TO_MATCH> extends true
+  ? {
+      /**
+       * Use this to match the key getter param to your entity's property.
+       *
+       * For example, let's say you created a user partition that has the following structure:
+       *
+       * ```ts
+       *  const getter = ({ userId }: { userId: string }) => ['USER', userId]
+       * ```
+       *
+       * As it's recommended to label each param descriptively, this follows the best practices,
+       * but the User entity is probably going to have 'id' on it, not 'userId', as opposed to
+       * its related entities that might have userId directly.
+       *
+       * Use this matcher to bind these these 2 values only on your User entity:
+       *
+       * ```ts
+       *  const config = {
+       *    paramMatch: {
+       *      userId: 'id'
+       *    }
+       *  }
+       * ```
+       */
+      paramMatch?: {
+        [GetterKey in keyof KeyParams<KeyGetters>]?: keyof Entity;
+      };
+    }
+  : {
+      /**
+       * Use this to match the key getter param to your entity's property.
+       *
+       * For example, let's say you created a user partition that has the following structure:
+       *
+       * ```ts
+       *  const getter = ({ userId }: { userId: string }) => ['USER', userId]
+       * ```
+       *
+       * As it's recommended to label each param descriptively, this follows the best practices,
+       * but the User entity is probably going to have 'id' on it, not 'userId', as opposed to
+       * its related entities that might have userId directly.
+       *
+       * Use this matcher to bind these these 2 values only on your User entity:
+       *
+       * ```ts
+       *  const config = {
+       *    paramMatch: {
+       *      userId: 'id'
+       *    }
+       *  }
+       * ```
+       */
+      paramMatch: {
+        [GetterKey in Extract<_KEYS_TO_MATCH, string>]: keyof Entity;
+      } & {
+        [GetterKey in Exclude<keyof KeyParams<KeyGetters>, _KEYS_TO_MATCH>]?: keyof Entity;
+      };
+    };
 
 // If none = never
 type EligibleKeysToSwap<OriginalParams, SwapObj extends AnyObject> = Extract<
@@ -106,6 +148,7 @@ export type FullPartitionKeys<
     Entity,
     SafeParamMatchRef<RefParams>
   >;
+
   getRangeKey: SwapParams<InitialGetters['getRangeKey'], Entity, SafeParamMatchRef<RefParams>>;
 }>;
 
@@ -134,6 +177,7 @@ function swapKeys<
 
 export function resolveKeySwaps<Entity, RefParams extends RefSwapParams>(
   params: RefParams,
+  // @ts-expect-error RefParams is totally fine to be passed here
 ): FullPartitionKeys<Pick<RefParams, keyof EntityKeyResolvers<any>>, Entity, RefParams> {
   if (!params.paramMatch) return resolveKeys(params) as any;
 

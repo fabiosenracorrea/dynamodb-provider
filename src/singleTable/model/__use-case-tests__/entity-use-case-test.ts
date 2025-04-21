@@ -111,49 +111,110 @@ type Media = {
       };
 };
 
-const mediaPartition = singleTable.schema.createPartition({
-  name: 'MEDIA_PARTITION',
+const MEDIA = singleTable.schema.createEntity<Media>().withParams({
+  type: 'MEDIA',
 
-  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
+  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
 
-  entries: {
-    data: () => ['#DATA'],
-  },
-});
+  getRangeKey: ['#DATA'],
 
-const MEDIA = mediaPartition
-  .use('data')
-  .create<Media>()
-  .entity({
-    type: 'MEDIA',
+  indexes: {
+    ByUploadTime: {
+      index: 'Index1',
+      getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
+      getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
 
-    paramMatch: { mediaId: 'id' },
-
-    indexes: {
-      ByUploadTime: {
-        index: 'Index1',
-        getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
-        getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
-
-        rangeQueries: {
-          optionalDateSlice: {
-            operation: 'between',
-            getValues: ({ end, start }: { start: string; end: string }) => ({
-              end: end ?? '2100-01-01T00:00:00.000Z',
-              start: start ?? '2020-01-01T00:00:00.000Z',
-            }),
-          },
+      rangeQueries: {
+        optionalDateSlice: {
+          operation: 'between',
+          getValues: ({ end, start }: { start: string; end: string }) => ({
+            end: end ?? '2100-01-01T00:00:00.000Z',
+            start: start ?? '2020-01-01T00:00:00.000Z',
+          }),
         },
       },
     },
+  },
 
-    autoGen: {
-      onCreate: {
-        uploadedAt: 'timestamp',
-        references: 'count',
+  autoGen: {
+    onCreate: {
+      uploadedAt: 'timestamp',
+      references: 'count',
+    },
+  },
+});
+
+/**
+ * Array key - should work EXACTLY like MEDIA
+ */
+const MEDIA2 = singleTable.schema.createEntity<Media>().withParams({
+  type: 'MEDIA',
+
+  getPartitionKey: ['MEDIA', '.id'],
+
+  getRangeKey: ['#DATA'],
+
+  indexes: {
+    ByUploadTime: {
+      index: 'Index1',
+      getPartitionKey: ['MEDIA_BY_UPLOAD_TIME'],
+      getRangeKey: ['.uploadedAt'],
+
+      rangeQueries: {
+        optionalDateSlice: {
+          operation: 'between',
+          getValues: ({ end, start }: { start: string; end: string }) => ({
+            end: end ?? '2100-01-01T00:00:00.000Z',
+            start: start ?? '2020-01-01T00:00:00.000Z',
+          }),
+        },
       },
     },
-  });
+  },
+
+  autoGen: {
+    onCreate: {
+      uploadedAt: 'timestamp',
+      references: 'count',
+    },
+  },
+});
+
+/**
+ * Array key + getter - should work EXACTLY like MEDIA
+ */
+const MEDIA3 = singleTable.schema.createEntity<Media>().withParams({
+  type: 'MEDIA',
+
+  getPartitionKey: ({ id }: { id: string }) => ['MEDIA', id],
+
+  getRangeKey: ['#DATA'],
+
+  indexes: {
+    ByUploadTime: {
+      index: 'Index1',
+      getPartitionKey: ['MEDIA_BY_UPLOAD_TIME'],
+      getRangeKey: ['.uploadedAt'],
+
+      rangeQueries: {
+        optionalDateSlice: {
+          operation: 'between',
+          getValues: ({ end, start }: { start: string; end: string }) => ({
+            end: end ?? '2100-01-01T00:00:00.000Z',
+            start: start ?? '2020-01-01T00:00:00.000Z',
+          }),
+        },
+      },
+    },
+  },
+
+  autoGen: {
+    onCreate: {
+      uploadedAt: 'timestamp',
+      references: 'count',
+    },
+  },
+});
 
 // @ts-expect-error partition has param
 MEDIA.getPartitionKey();
@@ -163,8 +224,12 @@ MEDIA2.getPartitionKey();
 MEDIA3.getPartitionKey();
 
 MEDIA.getPartitionKey({ id: '' });
+MEDIA2.getPartitionKey({ id: '' });
+MEDIA3.getPartitionKey({ id: '' });
 
 MEDIA.getRangeKey();
+MEDIA2.getRangeKey();
+MEDIA3.getRangeKey();
 
 // @ts-expect-error no param is on range
 MEDIA.getRangeKey({ no: true });
@@ -174,14 +239,29 @@ MEDIA2.getRangeKey({ no: true });
 MEDIA3.getRangeKey({ no: true });
 
 MEDIA.getCreationIndexMapping({ uploadedAt: '' });
+MEDIA2.getCreationIndexMapping({ uploadedAt: '' });
+MEDIA3.getCreationIndexMapping({ uploadedAt: '' });
 MEDIA.getUpdatedIndexMapping({ uploadedAt: '' });
+MEDIA2.getUpdatedIndexMapping({ uploadedAt: '' });
+MEDIA3.getUpdatedIndexMapping({ uploadedAt: '' });
+
+// @ts-expect-error Media should be inside
+MEDIA.getCreationParams({});
 
 const _paramAcceptances_ = [
   singleTable.schema.fromEntity(MEDIA),
+  singleTable.schema.fromEntity(MEDIA2),
+  singleTable.schema.fromEntity(MEDIA3),
 
   singleTable.executeTransaction([
     {
       create: MEDIA.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA2.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA3.getCreationParams({} as Media),
     },
   ]),
 
@@ -189,11 +269,29 @@ const _paramAcceptances_ = [
     {
       erase: MEDIA.getKey({ id: 'ID' }),
     },
+    {
+      erase: MEDIA2.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA3.getKey({ id: 'ID' }),
+    },
   ]),
 
   singleTable.executeTransaction([
     {
       update: MEDIA.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA2.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA3.getUpdateParams({
         id: 'ID',
         values: { description: 'Hello?' },
       }),
@@ -207,6 +305,16 @@ const _paramAcceptances_ = [
 
       conditions: [],
     }),
+    MEDIA2.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+    MEDIA3.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
   ]),
 
   // MIXED
@@ -214,18 +322,39 @@ const _paramAcceptances_ = [
     {
       create: MEDIA.getCreationParams({} as Media),
     },
-
+    {
+      create: MEDIA2.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA3.getCreationParams({} as Media),
+    },
     {
       erase: MEDIA.getKey({ id: 'ID' }),
     },
-
+    {
+      erase: MEDIA2.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA3.getKey({ id: 'ID' }),
+    },
     {
       update: MEDIA.getUpdateParams({
         id: 'ID',
         values: { description: 'Hello?' },
       }),
     },
-
+    {
+      update: MEDIA2.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA3.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
     {
       validate: MEDIA.getValidationParams({
         id: 'ID',
@@ -233,8 +362,34 @@ const _paramAcceptances_ = [
         conditions: [],
       }),
     },
+    {
+      validate: MEDIA2.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
+    {
+      validate: MEDIA3.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
 
     MEDIA.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    MEDIA2.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    MEDIA3.transactDeleteParams({
       id: 'ID',
 
       conditions: [],

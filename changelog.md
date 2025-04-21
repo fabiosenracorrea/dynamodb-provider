@@ -33,6 +33,51 @@ const expressionV2 = {
 
 This is an idiomatic change. We've noticed this expression was not as clear as it should have been. While you can still figure out the meaning with low/high, it did not follow common naming practices
 
+- **Feature**: Partition `paramMatch` references are now enforced if a non entity key is found inside the partition key references.
+
+Previously this was a valid call:
+
+```ts
+type Media = {
+  id: string;
+
+  name: string;
+  description: string;
+
+  searchTerms: string;
+
+  fileName: string;
+  contentType: string;
+
+  s3Key: string;
+};
+
+const mediaPartition = singleTable.schema.createPartition({
+  name: 'MEDIA_PARTITION',
+
+  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
+
+  entries: {
+    data: () => ['#DATA'],
+    // ...other entries
+  },
+});
+
+const MEDIA = mediaPartition
+  .use('data')
+  .create<Media>()
+  .entity({
+    type: 'MEDIA',
+  });
+```
+
+Even though `mediaId` was not found inside our `Media` type. You kind had to pass it, otherwise every media call would need the extra `mediaId` prop and it would be injected into the actual DB data.
+
+Now, if you create this exact declaration, you'll get yelled at, enforcing `paramMatch` is required. Furthermore, its `mediaId` property is required.
+
+This means if you have other properties on the key references that actually exits inside `Media` they won't be required (but still accepted and adjusted accordingly)
+
+
 ## Improvements & fixes
 
 - **Feature**: Support for **nested expressions**! You can now build a much more complex expression that is fully type safe and properly built with the parenthesis necessary

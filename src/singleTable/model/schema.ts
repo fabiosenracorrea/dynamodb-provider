@@ -84,12 +84,13 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
       if (!params.entries[entry as keyof typeof params.entries])
         throw new Error(`[PARTITION:${params.name}] - Bad entry referenced on usage`);
 
+      type IndexParams<Entity> = PartitionIndexParams<Params, typeof entry, Entity>;
+
       return {
         create: <Entity>() => ({
-          index: ({
-            paramMatch,
-            ...indexParams
-          }: PartitionIndexParams<Params, typeof entry, Entity> = {}) => ({
+          index: (
+            { paramMatch, ...indexParams }: IndexParams<Entity> = {} as IndexParams<Entity>,
+          ) => ({
             ...indexParams,
 
             index: params.index,

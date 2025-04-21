@@ -2052,9 +2052,10 @@ type tUserLoginAttempt = {
 const User = userPartition.use('mainData').create<tUser>().entity({
   type: 'USER',
 
-  // This is an optional param
-  // it accepts as keys every param inside the partitionKey + the entry used (mainData here)
-  // it will produce an entity that the key getters reference 'id' to work, instead of userId!
+  // You **must** match any partition param that is not
+  // found inside the entity (tUser) you are creating
+  // Optionally, you can match same name params if they mean different things
+  // If all params are found inside the entity, it will be an optional param
   paramMatch: {
     userId: 'id'
   },
