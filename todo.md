@@ -38,6 +38,4 @@ includeTypeOnEveryUpdate?: boolean;
 
 - `fullQuery` | `fullQueryIndex` methods to fromEntity() that returns the list directly, no pagination
 
-- check queryIndex.custom and .index typing on entity
-
 - add a way to validate if we should carry an index update on create/update ops

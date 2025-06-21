@@ -162,7 +162,11 @@ const {
   update,
 } = methods;
 
+const queryCustom = query.custom;
+
 // @ts-expect-error param is required (media id)
 query.custom();
 
 queryIndex.ByUploadTime.optionalDateSlice();
+
+queryIndex.ByUploadTime.custom();
