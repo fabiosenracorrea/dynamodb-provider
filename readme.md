@@ -1022,17 +1022,17 @@ Returns a `Promise` that resolves to a `QueryResult<Entity>` object containing t
   });
 ```
 
-### `executeTransaction` Method
+### `transaction` Method
 
 #### Description
 
-The `executeTransaction` method allows you to perform multiple DynamoDB operations (such as creating, updating, deleting, or conditionally validating items) as a single transaction. It ensures that all operations either succeed or fail as a group, maintaining DynamoDB's ACID (Atomicity, Consistency, Isolation, Durability) properties. Its a wrap under `TransactWrite`
+The `transaction` method allows you to perform multiple DynamoDB operations (such as creating, updating, deleting, or conditionally validating items) as a single transaction. It ensures that all operations either succeed or fail as a group, maintaining DynamoDB's ACID (Atomicity, Consistency, Isolation, Durability) properties. Its a wrap under `TransactWrite`
 
 #### Method Signature
 
 ```ts
 interface Method {
-  executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  transaction(configs: (TransactionConfig | null)[]): Promise<void>;
 }
 ```
 
@@ -1073,7 +1073,7 @@ This example executes a fairly complex operation of updating an order to complet
 The usage of this specific use case can be discussed, but it clearly represents the abilities of the method with ease.
 
 ```ts
-await dynamoDB.executeTransaction([
+await dynamoDB.transaction([
   {
     update: {
       table: 'Orders',
@@ -1301,7 +1301,7 @@ Available Methods:
 - [delete](#single-table-delete)
 - [update](#single-table-update)
 - [query](#single-table-query)
-- [executeTransaction](#single-table-execute-transaction)
+- [transaction](#single-table-execute-transaction)
 - [listType](#single-table-list-type)
 - [listAllFromType](#single-table-list-all-from-type)
 
@@ -1503,7 +1503,7 @@ const results = await singleTable.query({
 
 ### single table execute transaction
 
-Works the logic same as [executeTransaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
+Works the logic same as [transaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
 
 #### Parameters reminder:
 
