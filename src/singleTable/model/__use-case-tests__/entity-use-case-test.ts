@@ -400,6 +400,154 @@ const _paramAcceptances_ = [
       id: 'ID',
     }),
   ]),
+
+  singleTable.transaction([
+    {
+      create: MEDIA.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA2.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA3.getCreationParams({} as Media),
+    },
+  ]),
+
+  singleTable.transaction([
+    {
+      erase: MEDIA.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA2.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA3.getKey({ id: 'ID' }),
+    },
+  ]),
+
+  singleTable.transaction([
+    {
+      update: MEDIA.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA2.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA3.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+  ]),
+
+  // conditions
+  singleTable.transaction([
+    MEDIA.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+    MEDIA2.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+    MEDIA3.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+  ]),
+
+  // MIXED
+  singleTable.transaction([
+    {
+      create: MEDIA.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA2.getCreationParams({} as Media),
+    },
+    {
+      create: MEDIA3.getCreationParams({} as Media),
+    },
+    {
+      erase: MEDIA.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA2.getKey({ id: 'ID' }),
+    },
+    {
+      erase: MEDIA3.getKey({ id: 'ID' }),
+    },
+    {
+      update: MEDIA.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA2.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      update: MEDIA3.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+    {
+      validate: MEDIA.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
+    {
+      validate: MEDIA2.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
+    {
+      validate: MEDIA3.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
+
+    MEDIA.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    MEDIA2.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    MEDIA3.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    // @ts-expect-error conditions are required on validations...
+    MEDIA.transactValidateParams({
+      id: 'ID',
+    }),
+  ]),
 ];
 
 // nested conditions reference

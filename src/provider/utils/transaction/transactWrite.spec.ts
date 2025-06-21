@@ -272,7 +272,7 @@ describe('transactionWriter', () => {
         },
       });
 
-      await writer.executeTransaction([
+      await writer.transaction([
         {
           create: {
             table: 'some_table',
@@ -352,7 +352,7 @@ describe('transactionWriter', () => {
         dynamoDB: {} as any,
       });
 
-      await writer.executeTransaction([
+      await writer.transaction([
         {
           update: {
             table: 'some_table',
@@ -436,7 +436,7 @@ describe('transactionWriter', () => {
         },
       });
 
-      await writer.executeTransaction([
+      await writer.transaction([
         {
           erase: {
             table: 'some_table',
@@ -504,7 +504,7 @@ describe('transactionWriter', () => {
         },
       ];
 
-      await writer.executeTransaction([
+      await writer.transaction([
         {
           validate: {
             table: 'some_table',
@@ -552,7 +552,7 @@ describe('transactionWriter', () => {
         },
       });
 
-      await writer.executeTransaction([]);
+      await writer.transaction([]);
 
       expect(transactMock).not.toHaveBeenCalled();
 
@@ -575,7 +575,7 @@ describe('transactionWriter', () => {
         },
       });
 
-      await writer.executeTransaction([null, null, null]);
+      await writer.transaction([null, null, null]);
 
       expect(transactMock).not.toHaveBeenCalled();
 
@@ -597,7 +597,7 @@ describe('transactionWriter', () => {
       });
 
       const execute = async () => {
-        await writer.executeTransaction(
+        await writer.transaction(
           Array.from({ length: 101 }, (_, i) => ({
             create: {
               table: 'some_table',
@@ -636,7 +636,7 @@ describe('transactionWriter', () => {
       const remover = new ItemRemover({ dynamoDB: {} as any });
       const updater = new ItemUpdater({ dynamoDB: {} as any });
 
-      await writer.executeTransaction([
+      await writer.transaction([
         {
           create: {
             table: 'some_table',

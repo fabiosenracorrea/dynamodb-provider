@@ -60,7 +60,12 @@ export interface IDynamodbProvider<Params extends DynamoDbProviderParams = Dynam
 
   query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
 
+  /**
+   * [Deprecated soon] Prefer the more clean `transaction`
+   */
   executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+
+  transaction(configs: (TransactionConfig | null)[]): Promise<void>;
 
   generateTransactionConfigList<Item>(
     items: Item[],

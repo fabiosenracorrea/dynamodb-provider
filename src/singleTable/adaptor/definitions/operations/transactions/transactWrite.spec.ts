@@ -30,7 +30,7 @@ describe('single table adaptor - transact writer', () => {
 
     const transact = new SingleTableTransactionWriter({
       db: {
-        executeTransaction: transactMock,
+        transaction: transactMock,
       } as any,
 
       creator: creatorMock as any,
@@ -49,7 +49,7 @@ describe('single table adaptor - transact writer', () => {
       },
     });
 
-    await transact.executeTransaction([
+    await transact.transaction([
       {
         create: {} as any,
       },
@@ -115,7 +115,7 @@ describe('single table adaptor - transact writer', () => {
 
     const transact = new SingleTableTransactionWriter({
       db: {
-        executeTransaction: transactMock,
+        transaction: transactMock,
       } as any,
 
       creator: creatorMock as any,
@@ -179,7 +179,7 @@ describe('single table adaptor - transact writer', () => {
 
     const transact = new SingleTableTransactionWriter({
       db: {
-        executeTransaction: transactMock,
+        transaction: transactMock,
       } as any,
 
       config: {
@@ -206,7 +206,7 @@ describe('single table adaptor - transact writer', () => {
         property: 'list',
       },
     ];
-    await transact.executeTransaction([
+    await transact.transaction([
       {
         validate: {
           partitionKey: 'some',

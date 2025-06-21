@@ -121,8 +121,15 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     return this.queryBuilder.query(params);
   }
 
+  /**
+   * [Deprecated soon] Prefer the more clean `transaction`
+   */
   async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
-    await this.transactWriter.executeTransaction(configs);
+    await this.transactWriter.transaction(configs);
+  }
+
+  async transaction(configs: (TransactionConfig | null)[]): Promise<void> {
+    await this.transactWriter.transaction(configs);
   }
 
   generateTransactionConfigList<Item>(

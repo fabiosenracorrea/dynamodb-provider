@@ -47,7 +47,13 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   ): Promise<QueryResult<Entity>>;
 
   ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[];
+
+  /**
+   * [Deprecated soon] Prefer the more clean `transaction`
+   */
   executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
+
+  transaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
 
   generateTransactionConfigList<Item extends AnyObject>(
     items: Item[],
