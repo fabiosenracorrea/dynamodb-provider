@@ -2,7 +2,7 @@
   "homepage": "https://github.com/fabiosenracorrea/dynamodb-provider",
   "author": "fabiosenracorrea",
   "name": "dynamodb-provider",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "A dynamodb Provider that simplifies the native api. It packs with a Single Table adaptor/pseudo ORM for single table design",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
