@@ -1850,7 +1850,7 @@ If you need complex login on your key generation, you need to pass in as a funct
   })
   ```
 
-- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `from(ENTITY)` calls
+- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `from(xxx)` calls
 
   ```ts
     type tUser = {
@@ -1869,7 +1869,7 @@ If you need complex login on your key generation, you need to pass in as a funct
     })
   ```
 
-  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `from(ENTITY)`. Its also applied to the ``from(COLLECTION)`` result.
+  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `from(xxx)`. Be it for entities or collections
 
 ### Single table entity usage
 
