@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExtendableSingleTableEntity } from 'singleTable/model';
-import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
-import { QueryResult } from 'provider';
-import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
+import type { ExtendableSingleTableEntity } from 'singleTable/model';
+import type { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
+import type { QueryResult } from 'provider';
+import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
 
 type SafeObjectUnion<PossibleUndefinedObject> = PossibleUndefinedObject extends undefined
   ? unknown

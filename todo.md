@@ -4,7 +4,7 @@
 - Collection "create" method
 - Allow simplified collection creation on joins - ref entity as [Entity] or Entity instead of { type: 'MULTIPLE', entity: Entity } or { type: 'SINGLE', entity: Entity }. If more config is needed (like sorter, etc), allow also { entity: [Entity], sorter: ... }
 - Create a `Table` instance to allow easy extraction on multi-table scenarios
-- Have a "set fields config" on entities that have string[], number[] or Set<string>/Set<number> on their typing. This config stands: auto convert to Set (good for v2, safety placeholder definition)
+- Have a "set fields config" on entities that have string[], number[] or `Set<string>` or `Set<number>` on their typing. This config stands: auto convert to Set (good for v2, safety placeholder definition) **and ensures we don't create an empty set, if opt-in**
 
 - Range query option to reference 'constant' values from key
 
@@ -35,3 +35,7 @@ includeTypeOnEveryUpdate?: boolean;
 - use-case tests across the lib
 
 - fix ts usages on .spec files (re-enforce ts checks properly - fix jest.config)
+
+- `fullQuery` | `fullQueryIndex` methods to fromEntity() that returns the list directly, no pagination
+
+- add a way to validate if we should carry an index update on create/update ops

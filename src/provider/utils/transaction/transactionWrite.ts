@@ -103,7 +103,7 @@ export class TransactionWriter extends DynamodbExecutor {
   //     throw new Error('MULTIPLE OPERATIONS ON THE SAME ITEM FOUND...');
   // }
 
-  async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
+  async transaction(configs: (TransactionConfig | null)[]): Promise<void> {
     const validConfigs = configs.filter(Boolean) as TransactionConfig[];
 
     if (!validConfigs.length) return console.log('EMPTY TRANSACTION RESOLVED');

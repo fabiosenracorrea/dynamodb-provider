@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnyObject } from 'types';
+import type { AnyObject } from 'types';
 
 import { cascadeEval } from 'utils/conditions';
 
 import { SingleTableMethods, SingleTableParams } from 'singleTable/adaptor';
-import {
+import type {
   BaseJoinConfig,
   ExtendableCollection,
   Extractor,

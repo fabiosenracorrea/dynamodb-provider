@@ -1,14 +1,14 @@
-import { ExtendableSingleTableEntity } from 'singleTable/model';
-import { SingleTableConfig } from 'singleTable/adaptor/definitions';
-import {
+import type { ExtendableSingleTableEntity } from 'singleTable/model';
+import type { SingleTableConfig } from 'singleTable/adaptor/definitions';
+import type {
   CreateEntityParams,
   DeleteEntityParams,
   EntityBatchGetParams,
   EntityGetParams,
   UpdateEntityParams,
 } from './crud';
-import { ListEntityParams, ListEntityResult } from './list';
-import { QueryMethods } from './query';
+import type { ListEntityParams, ListEntityResult } from './list';
+import type { QueryMethods } from './query';
 
 export type ListEntityMethods<
   Registered extends ExtendableSingleTableEntity,

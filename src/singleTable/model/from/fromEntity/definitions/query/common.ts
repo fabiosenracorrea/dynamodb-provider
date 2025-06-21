@@ -1,5 +1,5 @@
-import { QueryParams } from 'provider';
-import { AnyObject } from 'types';
+import type { QueryParams } from 'provider';
+import type { AnyObject } from 'types';
 
 export type QueryConfigParams<Entity = AnyObject> = Omit<
   QueryParams<Entity>,

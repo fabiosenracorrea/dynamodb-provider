@@ -194,6 +194,27 @@ const _paramAcceptances_ = [
     },
   ]),
 
+  singleTable.transaction([
+    {
+      create: MEDIA.getCreationParams({} as Media),
+    },
+  ]),
+
+  singleTable.transaction([
+    {
+      erase: MEDIA.getKey({ id: 'ID' }),
+    },
+  ]),
+
+  singleTable.transaction([
+    {
+      update: MEDIA.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+  ]),
+
   // conditions
   singleTable.executeTransaction([
     MEDIA.transactValidateParams({
@@ -203,8 +224,52 @@ const _paramAcceptances_ = [
     }),
   ]),
 
+  singleTable.transaction([
+    MEDIA.transactValidateParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+  ]),
+
   // MIXED
   singleTable.executeTransaction([
+    {
+      create: MEDIA.getCreationParams({} as Media),
+    },
+
+    {
+      erase: MEDIA.getKey({ id: 'ID' }),
+    },
+
+    {
+      update: MEDIA.getUpdateParams({
+        id: 'ID',
+        values: { description: 'Hello?' },
+      }),
+    },
+
+    {
+      validate: MEDIA.getValidationParams({
+        id: 'ID',
+
+        conditions: [],
+      }),
+    },
+
+    MEDIA.transactDeleteParams({
+      id: 'ID',
+
+      conditions: [],
+    }),
+
+    // @ts-expect-error conditions are required on validations...
+    MEDIA.transactValidateParams({
+      id: 'ID',
+    }),
+  ]),
+
+  singleTable.transaction([
     {
       create: MEDIA.getCreationParams({} as Media),
     },

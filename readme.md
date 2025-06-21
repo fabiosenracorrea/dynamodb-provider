@@ -1022,17 +1022,17 @@ Returns a `Promise` that resolves to a `QueryResult<Entity>` object containing t
   });
 ```
 
-### `executeTransaction` Method
+### `transaction` Method
 
 #### Description
 
-The `executeTransaction` method allows you to perform multiple DynamoDB operations (such as creating, updating, deleting, or conditionally validating items) as a single transaction. It ensures that all operations either succeed or fail as a group, maintaining DynamoDB's ACID (Atomicity, Consistency, Isolation, Durability) properties. Its a wrap under `TransactWrite`
+The `transaction` method allows you to perform multiple DynamoDB operations (such as creating, updating, deleting, or conditionally validating items) as a single transaction. It ensures that all operations either succeed or fail as a group, maintaining DynamoDB's ACID (Atomicity, Consistency, Isolation, Durability) properties. Its a wrap under `TransactWrite`
 
 #### Method Signature
 
 ```ts
 interface Method {
-  executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  transaction(configs: (TransactionConfig | null)[]): Promise<void>;
 }
 ```
 
@@ -1073,7 +1073,7 @@ This example executes a fairly complex operation of updating an order to complet
 The usage of this specific use case can be discussed, but it clearly represents the abilities of the method with ease.
 
 ```ts
-await dynamoDB.executeTransaction([
+await dynamoDB.transaction([
   {
     update: {
       table: 'Orders',
@@ -1301,7 +1301,7 @@ Available Methods:
 - [delete](#single-table-delete)
 - [update](#single-table-update)
 - [query](#single-table-query)
-- [executeTransaction](#single-table-execute-transaction)
+- [transaction](#single-table-execute-transaction)
 - [listType](#single-table-list-type)
 - [listAllFromType](#single-table-list-all-from-type)
 
@@ -1503,7 +1503,7 @@ const results = await singleTable.query({
 
 ### single table execute transaction
 
-Works the logic same as [executeTransaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
+Works the logic same as [transaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
 
 #### Parameters reminder:
 
@@ -1850,7 +1850,7 @@ If you need complex login on your key generation, you need to pass in as a funct
   })
   ```
 
-- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `fromEntity` calls
+- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `from(xxx)` calls
 
   ```ts
     type tUser = {
@@ -1869,7 +1869,7 @@ If you need complex login on your key generation, you need to pass in as a funct
     })
   ```
 
-  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `fromEntity`. Its also applied to the `fromCollection` result.
+  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `from(xxx)`. Be it for entities or collections
 
 ### Single table entity usage
 
@@ -1891,7 +1891,7 @@ The generated entity has properties that you can leverage to interact with the s
 
 #### Using entity directly on schema
 
-You can also leverage the `schema.fromEntity` method to create a "repository-like" instance to perform actions on your entity:
+You can also leverage the `schema.from` method to create a "repository-like" instance to perform actions on your entity:
 
 ```ts
 type tUser = {
@@ -1909,13 +1909,13 @@ const User = table.schema.createEntity<User>().as({
   getRangeKey: () => ['#DATA'],
 })
 
-const userActions = table.schema.fromEntity(User)
+const userActions = table.schema.from(User)
 ```
 
 This will expose all the methods we are used to, but fully specified to meet the user needs/type. For example:
 
 ```ts
-const userActions = table.schema.fromEntity(User)
+const userActions = table.schema.from(User)
 
 await userActions.create({
   // all user props that are required on the User type
@@ -1986,18 +1986,18 @@ const Logs = table.schema.createEntity<tLogs>().as({
 
 // all valid queries:
 
-await table.fromEntity(Logs).query.custom() // valid call, as getPartitionKey does not have params, it will simply execute a query against its partition
+await table.from(Logs).query.custom() // valid call, as getPartitionKey does not have params, it will simply execute a query against its partition
 
-await table.fromEntity(Logs).query.custom({
+await table.from(Logs).query.custom({
   limit: 10,
   retrieveOrder: 'DESC'
 })
 
-await table.fromEntity(Logs).queryIndex.logsByType.custom({
+await table.from(Logs).queryIndex.logsByType.custom({
   type: 'LOG-TYPE-1', // required as logsByType getPartitionKey expects it
 })
 
-await table.fromEntity(Logs).queryIndex.logsByType.dateSlice({
+await table.from(Logs).queryIndex.logsByType.dateSlice({
   type: 'LOG-TYPE-2',
   start: 'some-ts',
   end: 'some-ts',
@@ -2007,7 +2007,7 @@ await table.fromEntity(Logs).queryIndex.logsByType.dateSlice({
 
 > Note: Any retrieval method will apply the `extend` action if available
 
-With the `fromEntity` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
+With the `from` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
 
 ### Single Table Schema: Partition
 
@@ -2363,7 +2363,7 @@ Same as with the entity, you can now leverage the schema to execute actions on y
 For now, only the `get` method is exposed:
 
 ```ts
-const userWithAttempts = await table.schema.fromCollection(userWithLoginAttemptsCollection).get({
+const userWithAttempts = await table.schema.from(userWithLoginAttemptsCollection).get({
   // its the partition param passed to the collection!
   userId: 'user-id-12',
 })

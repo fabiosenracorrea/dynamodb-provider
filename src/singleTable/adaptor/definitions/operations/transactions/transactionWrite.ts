@@ -69,8 +69,8 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
     ) as TransactionConfig[];
   }
 
-  async executeTransaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
-    await this.db.executeTransaction(
+  async transaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
+    await this.db.transaction(
       this.ejectTransactParams(configs),
       //
     );

@@ -113,10 +113,17 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.transactWriter.ejectTransactParams(configs);
   }
 
+  /**
+   * [Deprecated soon] Prefer the more clean `transaction`
+   */
   async executeTransaction(
     configs: (SingleTableTransactionConfig<SingleParams> | null)[],
   ): Promise<void> {
-    return this.transactWriter.executeTransaction(configs);
+    return this.transactWriter.transaction(configs);
+  }
+
+  async transaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void> {
+    return this.transactWriter.transaction(configs);
   }
 
   generateTransactionConfigList<Item extends AnyObject>(

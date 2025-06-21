@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableMethods, SingleTableParams } from 'singleTable/adaptor';
-import { ExtendableSingleTableEntity, IndexMapping } from 'singleTable/model';
-import { SingleTableGetParams, singleTableParams } from 'singleTable/adaptor/definitions';
-import { AnyObject } from 'types';
+import { SingleTableMethods, type SingleTableParams } from 'singleTable/adaptor';
+import type { ExtendableSingleTableEntity, IndexMapping } from 'singleTable/model';
+import { type SingleTableGetParams, singleTableParams } from 'singleTable/adaptor/definitions';
+import type { AnyObject } from 'types';
+
 import { pick } from 'utils/object';
-import {
+
+import type {
   FromEntity,
   IndexQueryMethods,
   ListEntityMethods,

@@ -1,40 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableConfig } from 'singleTable/adaptor';
+import { SingleTableParams } from 'singleTable/adaptor';
 
 import { AnyFunction, AnyObject } from 'types';
 
 import { getId } from 'utils/id';
 import {
-  RegisterEntityParams,
-  SingleTableEntity,
+  createCollection,
   createEntity,
   CreatePartitionParams,
-  Partition,
-  PartitionIndexParams,
-  resolveKeySwaps,
-  PartitionEntityCreateParams,
-  createCollection,
-  PartitionCollectionParams,
-  PartitionCollection,
+  ExtendableCollection,
   ExtendableSingleTableEntity,
+  Partition,
+  PartitionCollection,
+  PartitionCollectionParams,
+  PartitionEntityCreateParams,
+  PartitionIndexParams,
+  RegisterEntityParams,
+  resolveKeySwaps,
+  SingleTableEntity,
 } from './definitions';
+import { type From, SchemaFrom, type FromEntity, type FromCollection } from './from';
 
 interface EntityCache {
   params: any;
   entity: any;
 }
 
-export interface DefinedMethods<TableConfig extends SingleTableConfig, Entity extends AnyObject> {
+export interface DefinedMethods<TableConfig extends SingleTableParams, Entity extends AnyObject> {
   as<Params extends RegisterEntityParams<TableConfig, Entity>>(
     params: Params,
   ): SingleTableEntity<TableConfig, Entity, Params>;
 }
 
-type EnsureIndexed<TableConfig extends SingleTableConfig> = TableConfig & {
+type EnsureIndexed<TableConfig extends SingleTableParams> = TableConfig & {
   indexes: NonNullable<TableConfig['indexes']>;
 };
 
-export class SingleTableSchema<TableConfig extends SingleTableConfig> {
+export class SingleTableSchema<TableConfig extends SingleTableParams> {
   private entityTypes: Set<string>;
 
   private configCache: Map<string, EntityCache>;
@@ -43,10 +45,14 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
   private config: TableConfig;
 
+  private repoCreator: SchemaFrom<TableConfig>;
+
   constructor(config: TableConfig) {
     this.entityTypes = new Set();
     this.partitionUsages = new Set();
     this.configCache = new Map();
+
+    this.repoCreator = new SchemaFrom(config);
 
     this.config = config;
   }
@@ -175,7 +181,7 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
   >(params: Params): SingleTableEntity<TableConfig, Entity, Params> {
     this.registerType(params.type);
 
-    const entity = createEntity<SingleTableConfig, Entity, Params>(this.config, params);
+    const entity = createEntity<SingleTableParams, Entity, Params>(this.config, params);
 
     this.cacheEntity({ entity, params });
 
@@ -190,5 +196,23 @@ export class SingleTableSchema<TableConfig extends SingleTableConfig> {
 
   getEntityByType(type: string): ExtendableSingleTableEntity | undefined {
     return this.configCache.get(type)?.entity;
+  }
+
+  fromEntity<Registered extends ExtendableSingleTableEntity>(
+    entity: Registered,
+  ): FromEntity<Registered, TableConfig> {
+    return this.repoCreator.fromEntity(entity);
+  }
+
+  fromCollection<Collection extends ExtendableCollection>(
+    collection: Collection,
+  ): FromCollection<Collection> {
+    return this.repoCreator.fromCollection(collection);
+  }
+
+  from<Target extends ExtendableSingleTableEntity | ExtendableCollection>(
+    target: Target,
+  ): From<Target, TableConfig> {
+    return this.repoCreator.from(target);
   }
 }
