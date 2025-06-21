@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DefinedNameRangeKeyConfig, SingleTableQueryParams } from 'singleTable/adaptor/definitions';
+import type {
+  DefinedNameRangeKeyConfig,
+  SingleTableQueryParams,
+} from 'singleTable/adaptor/definitions';
 
-import { ExtendableCollection } from 'singleTable/model';
+import type { ExtendableCollection } from 'singleTable/model';
 
 type BaseParams = Partial<Pick<SingleTableQueryParams<any>, 'retrieveOrder'>>;
 

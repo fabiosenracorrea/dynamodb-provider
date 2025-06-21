@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableParams } from 'singleTable/adaptor';
-import { ExtendableSingleTableEntity } from 'singleTable/model';
-import { FromEntity } from './definitions';
+import type { SingleTableParams } from 'singleTable/adaptor';
+import type { ExtendableSingleTableEntity } from 'singleTable/model';
+import type { FromEntity } from './definitions';
+
 import { SingleTableFromEntityMethods } from './methods';
 
 export class SingleTableFromEntity<SingleParams extends SingleTableParams> {

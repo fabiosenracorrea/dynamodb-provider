@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableFromEntityMethods } from './methods';
-import { SingleTableSchema } from '../model';
+import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
+import { SingleTableSchema } from './schema';
 
 type User = {
   name: string;

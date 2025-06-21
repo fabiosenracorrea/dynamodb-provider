@@ -1,5 +1,13 @@
 # DynamoDB Provider Changelog
 
+# v2.1.0
+
+- **Feature**: `schema.from`: Merge your `schema.fromEntity(xxx)` and `schema.fromCollection(yyy)` declarations! Simplified API to reduce overhead of building from your entities.
+
+### Deprecation plan:
+
+`schema.fromEntity(xxx)` and `schema.fromCollection(yyy)`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `from` moving forward
+
 # v2.0.2
 
 - **Infra**: `.js.map` files removed from published version

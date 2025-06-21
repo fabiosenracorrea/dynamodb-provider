@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableSchema } from '../model';
-import { SingleTableFromCollection } from './implementation';
+import { SingleTableSchema } from './schema';
+import { SingleTableFromCollection } from './from/fromCollection';
 
 type User = {
   name: string;
@@ -23,6 +23,8 @@ describe('single table - from collection tests', () => {
   describe('get method', () => {
     describe('simple tests', () => {
       const params = {
+        dynamodbProvider: {} as any,
+
         partitionKey: 'hashKey',
         rangeKey: 'RKey',
 
@@ -567,7 +569,7 @@ describe('single table - from collection tests', () => {
           const userRef = schema.createEntity<User>().as({
             type: 'USER1',
 
-            getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+            getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
             getRangeKey: ({ name }: { name: string }) => ['SOME_RANGE_KEY', name],
           });

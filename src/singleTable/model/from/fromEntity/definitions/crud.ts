@@ -1,5 +1,10 @@
-import { KeyParams, ExtendableSingleTableEntity } from 'singleTable/model';
-import { BatchListItemsArgs, GetItemParams, UpdateParams, DeleteItemParams } from 'provider/utils';
+import type { KeyParams, ExtendableSingleTableEntity } from 'singleTable/model';
+import type {
+  BatchListItemsArgs,
+  GetItemParams,
+  UpdateParams,
+  DeleteItemParams,
+} from 'provider/utils';
 
 export type EntityGetParams<Registered extends ExtendableSingleTableEntity> = Parameters<
   Registered['getKey']

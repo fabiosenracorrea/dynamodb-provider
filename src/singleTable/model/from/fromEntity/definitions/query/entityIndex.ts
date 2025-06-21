@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnyObject, IfAny } from 'types';
-import { QueryResult } from 'provider';
+import type { AnyObject, IfAny } from 'types';
+import type { QueryResult } from 'provider';
 
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 
-import { ExtendableSingleTableEntity, RangeQueryGetters, SingleIndex } from 'singleTable/model';
-import { OptionalTupleIfUndefined, QueryConfigParams } from './common';
+import type {
+  ExtendableSingleTableEntity,
+  RangeQueryGetters,
+  SingleIndex,
+} from 'singleTable/model';
+import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
 
 type IndexPartitionParams<Index extends SingleIndex> = IfAny<
   Parameters<Index['getPartitionKey']>[0] extends undefined

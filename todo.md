@@ -35,3 +35,9 @@ includeTypeOnEveryUpdate?: boolean;
 - use-case tests across the lib
 
 - fix ts usages on .spec files (re-enforce ts checks properly - fix jest.config)
+
+- `fullQuery` | `fullQueryIndex` methods to fromEntity() that returns the list directly, no pagination
+
+- check queryIndex.custom and .index typing on entity
+
+- add a way to validate if we should carry an index update on create/update ops

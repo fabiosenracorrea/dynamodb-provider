@@ -1,6 +1,6 @@
-import { ExtendableCollection } from 'singleTable/model';
+import type { ExtendableCollection } from 'singleTable/model';
 
-import { GetCollectionParams, GetCollectionResult } from './get';
+import type { GetCollectionParams, GetCollectionResult } from './get';
 
 export type FromCollection<Registered extends ExtendableCollection> = {
   /**

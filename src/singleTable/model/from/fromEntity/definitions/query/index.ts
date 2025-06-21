@@ -1,7 +1,7 @@
-import { ExtendableSingleTableEntity } from 'singleTable/model';
+import type { ExtendableSingleTableEntity } from 'singleTable/model';
 
-import { IndexQueryMethods } from './entityIndex';
-import { PartitionQueryMethods } from './partition';
+import type { IndexQueryMethods } from './entityIndex';
+import type { PartitionQueryMethods } from './partition';
 
 export type QueryMethods<Registered extends ExtendableSingleTableEntity> = {
   query: PartitionQueryMethods<Registered>;
