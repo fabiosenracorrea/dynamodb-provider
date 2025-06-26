@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v2.1.1
+
+- *Fix*: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
+
 # v2.1.0
 
 - **Feature**: `schema.from`: Merge your `schema.fromEntity(xxx)` and `schema.fromCollection(yyy)` declarations! Simplified API to reduce overhead of building from your entities.

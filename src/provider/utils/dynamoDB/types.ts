@@ -13,9 +13,17 @@ import {
   ScanCommand,
   QueryCommand,
   TransactWriteCommand,
+  BatchGetCommandInput,
+  DeleteCommandInput,
+  UpdateCommandInput,
+  QueryCommandInput,
+  TransactWriteCommandInput,
+  GetCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 
 type DynamoV2 = DynamoDBv2.DocumentClient;
+
+type CommandConstructor<TCommand, TInput = any> = new (input: TInput) => TCommand;
 
 export type DynamoDBV2Actions = Extract<
   keyof DynamoV2,
@@ -32,14 +40,14 @@ export type DynamoDBConfig =
       target: 'v3';
       instance: DynamoDBDocumentClient;
       commands: {
-        BatchGetCommand: BatchGetCommand;
-        GetCommand: GetCommand;
-        DeleteCommand: DeleteCommand;
-        PutCommand: PutCommand;
-        UpdateCommand: UpdateCommand;
-        ScanCommand: ScanCommand;
-        QueryCommand: QueryCommand;
-        TransactWriteCommand: TransactWriteCommand;
+        BatchGetCommand: CommandConstructor<BatchGetCommand, BatchGetCommandInput>;
+        GetCommand: CommandConstructor<GetCommand, GetCommandInput>;
+        DeleteCommand: CommandConstructor<DeleteCommand, DeleteCommandInput>;
+        PutCommand: CommandConstructor<PutCommand>;
+        UpdateCommand: CommandConstructor<UpdateCommand, UpdateCommandInput>;
+        ScanCommand: CommandConstructor<ScanCommand>;
+        QueryCommand: CommandConstructor<QueryCommand, QueryCommandInput>;
+        TransactWriteCommand: CommandConstructor<TransactWriteCommand, TransactWriteCommandInput>;
       };
     };
 
