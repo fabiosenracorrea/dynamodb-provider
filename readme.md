@@ -1490,338 +1490,238 @@ Use descriptive parameter names (`userId` instead of `id`) for clarity.
 Use `partition.use(entry).create<Type>().entity()` for main table or `.index()` for index partitions:
 
 ```ts
-type tUser = {
+type User = {
   id: string;
   name: string;
   createdAt: string;
   email: string;
-  updatedAt?: string;
 }
 
-type tUserLoginAttempt = {
+type UserLoginAttempt = {
   userId: string;
   timestamp: string;
   success: boolean;
   ip: string;
 }
 
-const User = userPartition.use('mainData').create<tUser>().entity({
+const User = userPartition.use('mainData').create<User>().entity({
   type: 'USER',
-
-  // You **must** match any partition param that is not
-  // found inside the entity (tUser) you are creating
-  // Optionally, you can match same name params if they mean different things
-  // If all params are found inside the entity, it will be an optional param
   paramMatch: {
-    userId: 'id'
+    userId: 'id'  // Maps partition param 'userId' to entity property 'id'
   },
-
-  // every other create entity param...
+  // Other entity parameters...
 })
 
-const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttempt>().entity({
   type: 'USER_LOGIN_ATTEMPT',
-
-  // since all key params from partition+loginAttempt are already present on tUserLoginAttempt,
-  // we do not need to match params
+  // No paramMatch needed - all partition params exist in entity type
 })
 ```
 
-**Important** You can only *use* each entry once.
+**Parameter Matching:**
 
-#### Index Partition
+- **`paramMatch`** - Maps partition parameters to entity properties when names differ. **Required when partition parameters are not present in entity type**. Optional when all parameters exist in entity.
 
-Its also common to have partitions localized to certain table's index instead of the main pk+sk combo. You can create an `index partition` easily as well. So let's repeat the above example with an Index based logic:
+Each partition entry can be used only once.
+
+**Index Partitions:**
+
+Partitions can target secondary indexes by specifying the `index` parameter:
 
 ```ts
-type tUser = {
+type User = {
   id: string;
   name: string;
-  createdAt: string;
-  email: string;
-  updatedAt?: string;
-}
-
-type tUserLoginAttempt = {
-  userId: string;
-  timestamp: string;
-  success: boolean;
-  ip: string;
 }
 
 const userIndexPartition = table.schema.createPartition({
-  name: 'USER_PARTITION',
-
-  index: 'YourIndexNameFromConfig',
-
+  name: 'USER_INDEX_PARTITION',
+  index: 'DynamoIndex1',  // Must match table indexes configuration
   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
   entries: {
     mainData: () => ['#DATA'],
-
-    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
-
     loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
-
-    // other entries...
   },
 })
 
-const User = table.schema.createEntity<tUser>().as({
+// Use index partition in entity definition
+const User = table.schema.createEntity<User>().as({
   type: 'USER',
-
   getPartitionKey: () => ['APP_USERS'],
-
-  getRangeKey: ({ id }: Pick<tUser, 'id'>) => ['USER', id],
-
+  getRangeKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
   indexes: {
-    userData: userIndexPartition.use('mainData').create<tUser>().index({
-      paramMatch: {
-        userId: 'id'
-      },
-
-      // rangeQueries? ... other index params
+    userData: userIndexPartition.use('mainData').create<User>().index({
+      paramMatch: { userId: 'id' },
+      // rangeQueries and other index parameters
     }),
   }
 })
-
-const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().as({
-  type: 'USER_LOGIN_ATTEMPT',
-
-  getPartitionKey: () => ['APP_LOGINS'],
-
-  getRangeKey: ({ id, timestamp }: Pick<tUserLoginAttempt, 'id' | 'timestamp'>) => ['USER_LOGIN', timestamp, id],
-
-    indexes: {
-      // no param to match or other index params? no need to provide params
-      userData: userIndexPartition.use('loginAttempt').create<tUser>().index(),
-    }
-})
 ```
 
-As you have noticed, the `use('entry').create<EntryType>()` call can either provide you with an `entity` OR an `index`, based on if your partition is default or index based.
-
-#### Partition Creation Params
-
-All params have been covered on the example above, but here's them aggregated:
-
-- **name**: An **UNIQUE** name to your partition
-- **getPartitionKey**: The partition getter (only as fn form!)
-- **index?**: The table index this partition might be from
-- **entries**: An object mapping a partition entity to its `getRangeKey` resolver
+Index partitions return `.index()` method instead of `.entity()` when used.
 
 ## Single Table Schema: Collection
 
-Now that we know how to create and use entities, be it solo or partition types, we need a way to define precisely which complex structures we can retrieve. In the user example above, we could want to retrieve the entire `User` type, including permissions, login attempts, etc. This is a common pattern on single table design, as ofter our data is spread across multiple entries on the table.
-
-To help you define these complex structures that live inside your table, you can create a `Collection`.
+Collections define joined entity structures for retrieval. Data in single-table designs often spans multiple entries that need to be retrieved and joined together.
 
 ### Collection Parameters
 
-- `ref`: The root entity of the collection. It can be `null` if the base entry will be an empty object with the `join` keys.
+- **`ref`** (entity or null, required) - Root entity of the collection. Use `null` for collections with only joined entities.
 
-- `type`: Specifies the join type, either `'SINGLE'` or `'MULTIPLE'`.
+- **`type`** (`'SINGLE'` or `'MULTIPLE'`, required) - Collection cardinality. `'SINGLE'` returns one result, `'MULTIPLE'` returns an array.
 
-- `getPartitionKey`: Function or reference for retrieving the partition key for the collection.
-  If this is provided, `partition` is not accepted
+- **`getPartitionKey`** (function, optional) - Partition key generator for the collection. Mutually exclusive with `partition`.
 
-- `index?`: Which table index this collection is relevant. Only acceptable if you provide `getPartitionKey` instead of a partition.
+- **`index`** (string, optional) - Table index name. Only valid with `getPartitionKey`.
 
-- `partition`: An existing partition for your collection. **It can be either entity or index partition**. The collection will properly infer the index/non-index state to perform the query
-  If this is provided, `getPartitionKey` and `index` are not accepted
+- **`partition`** (Partition, optional) - Existing partition (entity or index partition). Mutually exclusive with `getPartitionKey` and `index`. The collection infers index usage automatically.
 
-- `narrowBy`: Optional filter to narrow down the range key search for the collection, either by a range key prefix or a custom function.
-  Accepted values:
-  * `RANGE_KEY`: will narrow the query starting with the `getRangeKey` of the ref entity. Only works if `ref` is an entity
-  * `(params?: AnyObject) => RangeQueryConfig`: A custom handler that returns the range query to be passed down to the collection query
+- **`narrowBy`** (optional) - Range key filter for collection query:
+  - `'RANGE_KEY'` - Uses ref entity's range key as query prefix. Requires `ref` to be an entity.
+  - `(params?: AnyObject) => RangeQueryConfig` - Custom range query function.
 
+- **`join`** (object, required) - Entity join configuration. Structure: `Record<string, JoinConfig>`. Each key becomes a property in the result type.
 
-- `join`: Configuration for how entities should be joined together. Each key will represent an entity relationship in the collection.
-  Structure: `Record<string, JoinConfig>`. Each key referenced here will be the resulting key on the extracted result
+**Join Configuration:**
 
-  Each entry in the `join` object should follow the structure:
+```ts
+type JoinConfig = {
+  entity: RefEntity;
+  type: 'SINGLE' | 'MULTIPLE';
+  extractor?: (item: AnyObject) => any;
+  sorter?: (a: any, b: any) => number;
+  joinBy?: 'POSITION' | 'TYPE' | ((parent: any, child: any) => boolean);
+  join?: Record<string, JoinConfig>;
+}
+```
 
-  ```ts
-  type JoinConfig = {
-    entity: RefEntity;
+**Join Parameters:**
 
-    type: 'SINGLE' | 'MULTIPLE';
+- **`entity`** (required) - Entity to join.
 
-    extractor?: (item: AnyObject) => any;
+- **`type`** (required) - `'SINGLE'` for single item, `'MULTIPLE'` for array.
 
-    sorter?: Sorter;
+- **`extractor`** (optional) - Transforms joined entity before inclusion. Signature: `(item) => any`.
 
-    joinBy?: 'POSITION' | 'TYPE' | JoinResolver;
+- **`sorter`** (optional) - Sorts `'MULTIPLE'` type joins. Ignored for `'SINGLE'`. Signature: `(a, b) => number`.
 
-    join?: Record<string, JoinConfig>;
-  }
-  ```
+- **`joinBy`** (optional) - Join strategy. Default: `'POSITION'`.
+  - `'POSITION'` - Sequential join based on query order. Requires table `typeIndex` with existing DynamoDB index.
+  - `'TYPE'` - Join by entity type property. Requires `typeIndex.partitionKey` defined (index need not exist in DynamoDB).
+  - `(parent, child) => boolean` - Custom join function. Returns `true` to join.
 
-  Lets explore each param:
+- **`join`** (optional) - Nested join configuration. Same structure as root `join`. Enables multi-level joins.
 
-  * **`entity`** (Required):
-    The reference to the entity you want to join with.
+Returns a collection object for type extraction and query execution.
 
-  * **`type`** (Required):
-    Specifies whether the join will result in a single reference (`'SINGLE'`) or multiple references (`'MULTIPLE'`).
+### Collection Type Extraction
 
-  * **`extractor`** (Optional):
-    A function to extract and return specific data from the joined entity before adding it to the parent entity.
-    **Example**: Extracting only a subset of the fields like `permission` from the `UserPermission` entity.
+Use `GetCollectionType` to infer the collection's TypeScript type:
 
-  * **`sorter`** (Optional):
-    A function to custom sort the list of entities when `type` is `'MULTIPLE'`. This is ignored for `'SINGLE'` joins.
-    **Example**: Sorting the user login attempts by a timestamp or a custom logic
+```ts
+type YourType = GetCollectionType<typeof yourCollection>
+```
 
-  * **`joinBy`** (Optional):
-    Defines how the join is performed. It defaults to `'POSITION'` but supports the following options:
-    - **`POSITION`**: Joins entities based on their sequential extraction from the query. **Requires a `typeIndex` to exist in the table.**
-    - **`TYPE`**: Joins entities by their type. Required **at least** your entities to have the `typeIndex.partitionKey` defined. The index does not need to actually exist in the table
-    - **Custom Resolver**: A function to define custom join logic, with the signature `(parent, child) => boolean`. It returns `true` if the entities should be joined.
+### Collection Examples
 
-  * **`join`** (Optional):
-    A nested configuration for joining other entities that are related to the current entity. You can create complex join chains by adding more entities within this property. The structure of each nested join follows the same format as the root-level `join`.
-
-
-### Returns
-
-A `Collection` to be used both for **type definition** and table extraction.
-
-### Extracting Collection Type
-
-A `GetCollectionType` is exposed for you to infer correctly its type using `type YourType = GetCollectionType<typeof yourCollection>`
-
-### Example Usage
+**Collection with Root Entity:**
 
 ```ts
 const userPartition = table.schema.createPartition({
   name: 'USER_PARTITION',
-
   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
   entries: {
     mainData: () => ['#DATA'],
-
-    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
-
     loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
-
-    orders: ({ orderId }: { { orderId: string } }) => ['ORDER', orderId],
   },
 })
 
-type tUser = {
+type User = {
   id: string;
   name: string;
-  createdAt: string;
   email: string;
-  updatedAt?: string;
 }
 
-type tUserLoginAttempt = {
+type UserLoginAttempt = {
   userId: string;
   timestamp: string;
   success: boolean;
   ip: string;
 }
 
-const User = userPartition.use('mainData').create<tUser>().entity({
+const User = userPartition.use('mainData').create<User>().entity({
   type: 'USER',
-
-  paramMatch: {
-    userId: 'id'
-  },
+  paramMatch: { userId: 'id' },
 })
 
-const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttempt>().entity({
   type: 'USER_LOGIN_ATTEMPT',
 })
 
-const userWithLoginAttemptsCollection = createCollection({
+const userWithLogins = table.schema.createCollection({
   ref: User,
-
+  type: 'SINGLE',
+  partition: userPartition,
   join: {
     logins: {
       entity: UserLoginAttempt,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
     },
   },
-
-  type: 'SINGLE',
-
-  partition: userPartition,
 });
 
-/*
-  UserWithLoginAttempts = tUser & { logins: tUserLoginAttempt[] }
-*/
-type UserWithLoginAttempts = GetCollectionType<typeof userWithLoginAttemptsCollection>
+// Type: User & { logins: UserLoginAttempt[] }
+type UserWithLogins = GetCollectionType<typeof userWithLogins>
 ```
 
-Or, creating simply the user's attempts and permissions:
+**Collection without Root Entity:**
 
 ```ts
-type tUserPermission = {
+type UserPermission = {
   permissionId: string;
   timestamp: string;
   addedBy: string;
 }
 
-const UserPermission = userPartition.use('permissions').create<tUserPermission>().entity({
+const UserPermission = userPartition.use('permissions').create<UserPermission>().entity({
   type: 'USER_PERMISSION',
 })
 
-const someCollection = createCollection({
-  ref: null, // this!
-
+const userDataCollection = table.schema.createCollection({
+  ref: null,
+  type: 'SINGLE',
+  partition: userPartition,
   join: {
     logins: {
       entity: UserLoginAttempt,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
     },
-
     permissions: {
       entity: UserPermission,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
-
-      extractor: ({ permissionId }: tUserPermission) => permissionId,
+      extractor: ({ permissionId }: UserPermission) => permissionId,
     }
   },
-
-  type: 'SINGLE',
-
-  partition: userPartition,
 });
 
-/*
-  YourCollection = { logins: tUserLoginAttempt[], permissions: string[] }
-*/
-type YourCollection = GetCollectionType<typeof someCollection>
+// Type: { logins: UserLoginAttempt[], permissions: string[] }
+type UserData = GetCollectionType<typeof userDataCollection>
 ```
 
-### Using your collection
+### Using Collections
 
-Same as with the entity, you can now leverage the schema to execute actions on your collection.
-
-For now, only the `get` method is exposed:
+Collections expose a `get` method via `schema.from()`:
 
 ```ts
-const userWithAttempts = await table.schema.from(userWithLoginAttemptsCollection).get({
-  // its the partition param passed to the collection!
+const result = await table.schema.from(userWithLogins).get({
   userId: 'user-id-12',
 })
 ```
 
-And thats it! The result will be of the expected type (or undefined if not found, since its a `SINGLE` collection)
+Returns the collection type for `'SINGLE'` collections or `undefined` if not found. Returns array for `'MULTIPLE'` collections.
 
 
 
