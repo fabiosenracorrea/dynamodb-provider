@@ -408,7 +408,7 @@ list<Entity>(table: string, options?: ListOptions<Entity>): Promise<ListTableRes
 **Parameters:**
 
 - `table` - Table name
-- `propertiesToGet` - Attributes to return
+- `propertiesToRetrieve` - Attributes to return
 - `filters` - Filter conditions (value, array, or filter config)
 - `limit` - Max items to return
 - `consistentRead` - Use strongly consistent reads (default: false)
@@ -448,7 +448,7 @@ listAll<Entity>(table: string, options?: ListAllOptions<Entity>): Promise<Entity
 ```ts
 const products = await provider.listAll('Products', {
   filters: { category: 'electronics' },
-  propertiesToGet: ['productId', 'name', 'price']
+  propertiesToRetrieve: ['productId', 'name', 'price']
 });
 ```
 
