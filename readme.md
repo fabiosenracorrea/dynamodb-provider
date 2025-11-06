@@ -220,7 +220,27 @@ conditions: [
   start?: string | number;           // for 'between'
   end?: string | number;             // for 'between'
   joinAs?: 'and' | 'or';            // default: 'and'
+  nested?: ItemExpression[];         // for parenthesized expressions
 }
+```
+
+**Nested Conditions:**
+
+Use `nested` for complex parenthesized conditions:
+
+```ts
+conditions: [
+  {
+    property: 'status',
+    operation: 'equal',
+    value: 'active',
+    nested: [
+      { property: 'price', operation: 'lower_than', value: 100, joinAs: 'or' },
+      { property: 'featured', operation: 'equal', value: true }
+    ]
+  }
+]
+// Generates: (status = 'active' AND (price < 100 OR featured = true))
 ```
 
 ### delete
@@ -263,7 +283,7 @@ update<Entity>(params: UpdateParams<Entity>): Promise<Partial<Entity> | undefine
 - `key` - Primary key
 - `values` - Properties to update
 - `remove` - Properties to remove (root-level only)
-- `atomicOperations` - Atomic operations: `sum`, `subtract`, `add`, `add_to_set`, `remove_from_set`, `set_if_not_exists`
+- `atomicOperations` - Atomic operations (see details below)
 - `conditions` - Conditions that must be met
 - `returnUpdatedProperties` - Return updated values (useful for counters)
 
@@ -302,7 +322,33 @@ await provider.update({
 })
 ```
 
-On this second case, you may omit the property if its the same being operated on, or reference a different one. Both of the above examples are **valid**! You can choose what makes more sense to you.
+**Atomic Operations:**
+
+- **Math Operations:**
+  - `sum` - Add to existing value (fails if property doesn't exist)
+  - `subtract` - Subtract from existing value (fails if property doesn't exist)
+  - `add` - Add to value, auto-initializes to 0 if missing
+
+- **Set Operations:**
+  - `add_to_set` - Add values to a DynamoDB Set
+  - `remove_from_set` - Remove values from a Set
+
+- **Conditional:**
+  - `set_if_not_exists` - Set value only if property doesn't exist
+    - Optional `refProperty` - Check different property for existence
+
+```ts
+atomicOperations: [
+  { type: 'add', property: 'count', value: 1 },  // safe, auto-init to 0
+  { type: 'sum', property: 'total', value: 50 }, // requires existing value
+  {
+    type: 'set_if_not_exists',
+    property: 'status',
+    value: 'pending',
+    refProperty: 'createdAt'  // set status if createdAt missing
+  }
+]
+```
 
 Counter pattern for sequential IDs:
 
@@ -452,6 +498,8 @@ Executes multiple operations atomically. All operations succeed or all fail. Wra
 ```ts
 transaction(configs: (TransactionConfig | null)[]): Promise<void>
 ```
+
+**Note:** `executeTransaction` is deprecated. Use `transaction` instead.
 
 **Transaction types:**
 - `{ create: CreateItemParams }` - Put item
