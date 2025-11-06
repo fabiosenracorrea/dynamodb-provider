@@ -117,5 +117,5 @@ export interface QueryParams<Entity> {
 export interface QueryResult<Entity = any> {
   items: Entity[];
 
-  paginationToken: string;
+  paginationToken?: string;
 }

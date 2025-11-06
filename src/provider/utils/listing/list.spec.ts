@@ -155,7 +155,7 @@ describe('Lister', () => {
       });
     });
 
-    it('should apply Projection params if applicable', async () => {
+    it('should apply Projection params if applicable - propertiesToGet (@deprecated)', async () => {
       const scanMock = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({}),
       });
@@ -177,6 +177,49 @@ describe('Lister', () => {
         limit: 40,
 
         propertiesToGet: properties,
+
+        parallelRetrieval: {
+          segment: 0,
+          total: 3,
+        },
+      });
+
+      expect(scanMock).toHaveBeenCalledTimes(1);
+      expect(scanMock).toHaveBeenCalledWith({
+        TableName: 'table',
+        ConsistentRead: true,
+        IndexName: 'SomeIndex',
+        Limit: 40,
+        Segment: 0,
+        TotalSegments: 3,
+
+        ProjectionExpression: getProjectionExpression(properties),
+        ExpressionAttributeNames: getProjectionExpressionNames(properties),
+      });
+    });
+
+    it('should apply Projection params if applicable - propertiesToRetrieve', async () => {
+      const scanMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            scan: scanMock,
+          } as any,
+        },
+      });
+
+      const properties = ['name', 'age', 'id'];
+
+      await lister.list<any>('table', {
+        consistentRead: true,
+        index: 'SomeIndex',
+        limit: 40,
+
+        propertiesToRetrieve: properties,
 
         parallelRetrieval: {
           segment: 0,

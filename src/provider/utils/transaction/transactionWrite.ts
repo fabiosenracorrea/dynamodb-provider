@@ -108,7 +108,7 @@ export class TransactionWriter extends DynamodbExecutor {
 
     if (!validConfigs.length) return console.log('EMPTY TRANSACTION RESOLVED');
 
-    if (configs.length > MAX_TRANSACT_ACTIONS)
+    if (validConfigs.length > MAX_TRANSACT_ACTIONS)
       throw new Error(`Max supported transaction size is ${MAX_TRANSACT_ACTIONS}`);
 
     await this.executeSingleTransaction(validConfigs);
