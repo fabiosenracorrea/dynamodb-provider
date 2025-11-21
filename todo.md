@@ -45,3 +45,35 @@ includeTypeOnEveryUpdate?: boolean;
 - Export helper types for create params, key params etc
 
 - fix .dot keys on indexes
+
+- fix multiple conditions on the same property resolving for the same value. Ex:
+
+```ts
+{
+  atomicOperations: [
+    {
+      property: 'completesUsed',
+      type: 'add',
+      value: amount,
+      if: {
+        property: 'completesAcquired',
+        operation: 'bigger_than',
+        value: team.completesUsed + amount,
+      },
+    },
+  ],
+
+  conditions: [
+    {
+      property: 'completesUsed',
+      operation: 'equal',
+      value: team.completesUsed,
+    },
+    {
+      property: 'completesAcquired',
+      operation: 'equal',
+      value: team.completesAcquired,
+    },
+  ],
+}
+```
