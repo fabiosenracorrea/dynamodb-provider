@@ -39,3 +39,9 @@ includeTypeOnEveryUpdate?: boolean;
 - `fullQuery` | `fullQueryIndex` methods to fromEntity() that returns the list directly, no pagination
 
 - add a way to validate if we should carry an index update on create/update ops
+
+- `queryOne` | `queryIndexOne`
+
+- Export helper types for create params, key params etc
+
+- fix .dot keys on indexes

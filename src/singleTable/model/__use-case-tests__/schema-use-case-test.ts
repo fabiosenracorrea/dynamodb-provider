@@ -123,7 +123,7 @@ const MEDIA = singleTable.schema.createEntity<Media>().as({
   indexes: {
     ByUploadTime: {
       index: 'Index1',
-      getPartitionKey: () => 'MEDIA_BY_UPLOAD_TIME',
+      getPartitionKey: ['MEDIA_BY_UPLOAD_TIME'],
       getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
 
       rangeQueries: {
@@ -157,15 +157,13 @@ const {
   get,
   list,
   listAll,
-  query,
+  query: { custom: queryCustom },
   queryIndex,
   update,
 } = methods;
 
-const queryCustom = query.custom;
-
 // @ts-expect-error param is required (media id)
-query.custom();
+queryCustom();
 
 queryIndex.ByUploadTime.optionalDateSlice();
 

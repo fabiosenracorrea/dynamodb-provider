@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v2.1.2
+
+- *Fix*: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
+
 # v2.1.1
 
 - *Fix*: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
