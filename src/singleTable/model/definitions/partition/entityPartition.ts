@@ -42,7 +42,7 @@ export type PartitionEntityCreator<
       PartitionKeyGetters<Params, Entry>,
       Entity,
       T
-    > extends RegisterEntityParams<TableConfig, any>
+    > extends RegisterEntityParams<TableConfig, Entity>
       ? PartitionEntityParams<PartitionKeyGetters<Params, Entry>, Entity, T>
       : never
   >;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-empty-function */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DynamodbProvider } from 'provider';
@@ -363,3 +364,67 @@ singleTable.schema
   })
   // and still shown and used
   .getPartitionKey({ id: 'aaa', s3Key: '11' });
+
+// -------------------------------------------------------
+// DOT PROP INDEX
+
+const MEDIA_DOT_INDEX = mediaPartition
+  .use('data')
+  .create<Media>()
+  .entity({
+    paramMatch: { mediaId: 'id' },
+
+    type: 'MEDIA_DOT_INDEX',
+
+    indexes: {
+      MyDotIndex: {
+        index: 'Index1',
+
+        getPartitionKey: ['MEDIA_BY_FILE'],
+        getRangeKey: ['.fileName'],
+
+        rangeQueries: {
+          fileStartsWith: {
+            operation: 'begins_with',
+            getValues: ({ letter }: { letter: string }) => ({
+              value: letter,
+            }),
+          },
+        },
+      },
+
+      MySecondsDotIndex: {
+        index: 'Index2',
+
+        getPartitionKey: ['MEDIA_BY_TYPE', '.contentType'],
+        getRangeKey: ['.uploadedAt'],
+      },
+    },
+  });
+
+MEDIA_DOT_INDEX.getPartitionKey({ id: '!' });
+MEDIA_DOT_INDEX.getRangeKey();
+MEDIA_DOT_INDEX.getKey({ id: '12' });
+
+const {
+  batchGet,
+  create,
+  delete: remove,
+  get,
+  list,
+  query: { custom: customQuery },
+  listAll,
+  queryIndex: {
+    MyDotIndex: { custom: customIndexOneQuery, fileStartsWith },
+
+    MySecondsDotIndex: { custom: customIndexTwoQuery },
+  },
+  update,
+} = singleTable.schema.from(MEDIA_DOT_INDEX);
+
+fileStartsWith({ letter: '1', fullRetrieval: false });
+
+// @ts-expect-error contentType needs to be required
+customIndexTwoQuery();
+
+customIndexTwoQuery({ contentType: 'Yes!' });
