@@ -6,11 +6,13 @@
 
 Fast Develop for DynamoDB with this type-safe & single-table awareness library!
 
+> Min Node version: 16
+
 ## Introduction
 
 The DynamoDB SDK (both v2 and v3) lacks type safety and requires significant boilerplate. Building expressions, avoiding attribute name collisions, and managing code repetition typically results in verbose, hard-to-maintain abstractions.
 
-This library wraps DynamoDB operations with type-safe methods that work for both table-per-entity and single-table designs. Apart from `uuid` and `ksuid` for ID generation, it has zero dependencies.
+This library wraps DynamoDB operations with type-safe methods that work for both table-per-entity and single-table designs. Apart from the `ksuid` for ID generation, it has zero dependencies.
 
 ## Architecture
 

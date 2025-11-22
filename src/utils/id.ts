@@ -1,8 +1,8 @@
-import { v4 } from 'uuid';
 import KSUID from 'ksuid';
+import { randomUUID } from 'crypto';
 
 function getUUID(): string {
-  return v4();
+  return randomUUID();
 }
 
 function getKSUID(): string {

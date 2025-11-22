@@ -1,7 +1,8 @@
 # DynamoDB Provider Changelog
 
-# v2.2.0
+# v3.0.0
 
+- [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
 - *Fix*: Transaction size validation reference after null checks
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.

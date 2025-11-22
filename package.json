@@ -2,7 +2,7 @@
   "homepage": "https://github.com/fabiosenracorrea/dynamodb-provider",
   "author": "fabiosenracorrea",
   "name": "dynamodb-provider",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "A dynamodb Provider that simplifies the native api. It packs with a Single Table adaptor/pseudo ORM for single table design",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -48,8 +48,7 @@
     "typescript": "^5.4.1"
   },
   "dependencies": {
-    "ksuid": "^3.0.0",
-    "uuid": "^8.3.2"
+    "ksuid": "^3.0.0"
   },
   "files": [
     "/lib",
@@ -57,9 +56,15 @@
     "changelog.md",
     "LICENSE"
   ],
-  "keywords": ["dynamodb", "aws"],
+  "keywords": [
+    "dynamodb",
+    "aws"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/fabiosenracorrea/dynamodb-provider"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

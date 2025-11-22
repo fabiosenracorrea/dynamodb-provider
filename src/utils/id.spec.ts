@@ -1,9 +1,10 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
+
 import KSUID from 'ksuid';
 
 import { getId } from './id';
 
-jest.mock('uuid');
+jest.mock('crypto');
 jest.mock('ksuid');
 
 describe('getId', () => {
@@ -12,12 +13,12 @@ describe('getId', () => {
   });
 
   it('should return a UUID when type is "UUID"', () => {
-    (uuidv4 as jest.Mock).mockReturnValue('mocked-uuid');
+    (randomUUID as jest.Mock).mockReturnValue('mocked-uuid');
 
     const result = getId('UUID');
 
     expect(result).toBe('mocked-uuid');
-    expect(uuidv4).toHaveBeenCalled();
+    expect(randomUUID).toHaveBeenCalled();
   });
 
   it('should return a KSUID when type is "KSUID"', () => {

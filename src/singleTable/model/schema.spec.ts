@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
+
 import { SingleTableSchema } from './schema';
 
-jest.mock('uuid');
+jest.mock('crypto');
 
 describe('single table schema tests', () => {
   afterAll(() => {
@@ -273,7 +274,7 @@ describe('single table schema tests', () => {
         const mockTimestamp = '2024-01-01T00:00:00.000Z';
 
         jest.useFakeTimers().setSystemTime(new Date(mockTimestamp));
-        (uuidv4 as jest.Mock).mockReturnValue('mocked-uuid');
+        (randomUUID as jest.Mock).mockReturnValue('mocked-uuid');
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
