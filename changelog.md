@@ -6,6 +6,10 @@
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.
 
+# v2.1.2
+
+- *Fix*: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
+
 # v2.1.1
 
 - *Fix*: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
