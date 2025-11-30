@@ -153,7 +153,7 @@ type ConfiguredJoin<Config extends JoinConfig> = JoinResolutionParams &
       }
     : unknown);
 
-export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = EntityDepthParams & {
+export type CollectionParamsWithoutKey = EntityDepthParams & {
   /**
    * Root entity.
    *
@@ -173,7 +173,10 @@ export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = E
    * - `Function` - Define a custom range narrower for your collection
    */
   narrowBy?: 'RANGE_KEY' | ((...params: any[]) => DefinedNameRangeKeyConfig);
-} & PartitionRefParams<TableConfig>;
+};
+
+export type PartitionCollectionParams<TableConfig extends SingleTableConfig> =
+  CollectionParamsWithoutKey & PartitionRefParams<TableConfig>;
 
 type SingleOrArray<Entity, Type extends EntityJoinType> = Type extends 'SINGLE'
   ? PrettifyObject<Entity>
@@ -264,6 +267,10 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
   };
 }
 
+/**
+ * Due to the complex nature of our entity obj, we rely on making this
+ * as generic as possible, and ts infer will do the rest
+ */
 export type ExtendableCollection = PartitionCollection<any>;
 
 export type GetCollectionType<Collection extends ExtendableCollection> = Collection['__type'];

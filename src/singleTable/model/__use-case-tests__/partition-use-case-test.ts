@@ -3,6 +3,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DynamodbProvider } from 'provider';
 import { SingleTable } from 'singleTable/implementation';
+import { GetCollectionType } from '../definitions';
 
 /**
  * ----------------- USE CASE TEST FILE -----------------
@@ -120,7 +121,7 @@ const mediaPartition = singleTable.schema.createPartition({
 
   entries: {
     data: () => ['#DATA'],
-    data2: () => ['#DATA'],
+    version: ({ versionId }: { versionId: string }) => ['VERSION', versionId],
   },
 });
 
@@ -156,6 +157,14 @@ const MEDIA = mediaPartition
         references: 'count',
       },
     },
+  });
+
+const MEDIA_VERSION = mediaPartition
+  .use('version')
+  .create<Media & { versionId: string }>()
+  .entity({
+    type: 'MEDIA_VERSION',
+    paramMatch: { mediaId: 'id' },
   });
 
 // @ts-expect-error partition has param
@@ -335,7 +344,7 @@ MEDIA.getUpdateParams({
 
 // PARAM MATCH
 mediaPartition
-  .use('data2')
+  .use('version')
   .create<Media>()
   // @ts-expect-error `paramMatch` should be required since mediaId is not a key on entity
   .entity({
@@ -428,3 +437,37 @@ fileStartsWith({ letter: '1', fullRetrieval: false });
 customIndexTwoQuery();
 
 customIndexTwoQuery({ contentType: 'Yes!' });
+
+// @ts-expect-error must require params
+mediaPartition.collection({});
+
+// @ts-expect-error incomplete params
+mediaPartition.collection({
+  join: {},
+});
+
+// @ts-expect-error incomplete params
+mediaPartition.collection({
+  join: {},
+  ref: null,
+});
+
+const collection = mediaPartition.collection({
+  ref: MEDIA,
+  type: 'SINGLE',
+  join: {
+    versions: {
+      entity: MEDIA_VERSION,
+      type: 'MULTIPLE',
+    },
+  },
+});
+
+type MediaCollection = GetCollectionType<typeof collection>;
+
+type CheckCollection<T extends Media & { versions: (typeof MEDIA_VERSION)['__entity'][] }> = T;
+
+type CollectionOk = CheckCollection<MediaCollection>;
+
+// @ts-expect-error versions needed
+type CollectionBad = CheckCollection<Media>;

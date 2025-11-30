@@ -102,3 +102,14 @@ export type SafeToIntersectString = string & {};
  * `OrString<'red' | 'blue'>` => autocompletes works + string is also acceptable
  */
 export type OrString<T extends string> = T | SafeToIntersectString;
+
+/**
+ * Use this if you are getting unpredictable behavior with the
+ * built in Omit<> from TS
+ *
+ * If you have a more complex that with Unions/Intersections Omit
+ * can often lead TS to calculate the wrong type
+ */
+export type StableOmit<T, Keys extends OrString<Extract<keyof T, string>>> = {
+  [K in keyof T as K extends Keys ? never : K]: T[K];
+};

@@ -160,12 +160,24 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
   createPartition<Params extends CreatePartitionParams<TableConfig>>(
     params: Params,
   ): Partition<TableConfig, Params> {
-    return {
+    const partition = {
       ...params,
 
       id: getId('UUID'),
 
       use: this.buildPartitionUsage(params),
+
+      collection: () => ({} as any),
+    } as Partition<TableConfig, Params>;
+
+    return {
+      ...partition,
+
+      collection: ((collectionParams: any) =>
+        this.createCollection({
+          ...collectionParams,
+          partition,
+        })) as any as Partition<TableConfig, Params>['collection'],
     };
   }
 

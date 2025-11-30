@@ -1562,6 +1562,8 @@ const User = table.schema.createEntity<User>().as({
 
 Index partitions return `.index()` method instead of `.entity()` when used.
 
+Another great usage of partition is to facilitate your **collections** creation. Let's explore what a collection is:
+
 ## Single Table Schema: Collection
 
 Collections define joined entity structures for retrieval. Data in single-table designs often spans multiple entries that need to be retrieved and joined together.
@@ -1660,10 +1662,10 @@ const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttem
   type: 'USER_LOGIN_ATTEMPT',
 })
 
-const userWithLogins = table.schema.createCollection({
+// This will correctly need the userId param to retrieve when doing schema.from(userWithLogins).get
+const userWithLogins = userPartition.collection({
   ref: User,
   type: 'SINGLE',
-  partition: userPartition,
   join: {
     logins: {
       entity: UserLoginAttempt,
@@ -1690,10 +1692,9 @@ const UserPermission = userPartition.use('permissions').create<UserPermission>()
   type: 'USER_PERMISSION',
 })
 
-const userDataCollection = table.schema.createCollection({
+const userDataCollection = userPartition.collection({
   ref: null,
   type: 'SINGLE',
-  partition: userPartition,
   join: {
     logins: {
       entity: UserLoginAttempt,
@@ -1712,6 +1713,8 @@ const userDataCollection = table.schema.createCollection({
 // Type: { logins: UserLoginAttempt[], permissions: string[] }
 type UserData = GetCollectionType<typeof userDataCollection>
 ```
+
+You can also call `table.schema.createCollection` if you need to pass in partitions/partition-getters inline
 
 ### Using Collections
 

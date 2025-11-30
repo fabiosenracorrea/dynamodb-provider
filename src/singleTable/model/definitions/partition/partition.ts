@@ -5,6 +5,7 @@ import { AnyObject } from 'types';
 import { CreatePartitionParams, PartitionEntry } from './params';
 import { PartitionIndexCreator } from './indexPartition';
 import { PartitionEntityCreator } from './entityPartition';
+import { CollectionParamsWithoutKey, PartitionCollection } from '../collection';
 
 type PartitionDumpParams<
   TableConfig extends SingleTableConfig,
@@ -42,4 +43,14 @@ export type Partition<
     >(): // ...params: T extends void ? ['You must provided a type parameter'] : []
     PartitionDumpParams<TableConfig, Params, Entry, T>;
   };
+
+  collection<T extends CollectionParamsWithoutKey>(
+    params: T,
+  ): PartitionCollection<
+    T extends CollectionParamsWithoutKey
+      ? T & {
+          partition: Partition<TableConfig, Params>;
+        }
+      : never
+  >;
 };
