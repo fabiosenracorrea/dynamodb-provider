@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AnyObject, IfAny } from 'types';
+import type { AnyObject, FirstParameter, HasDefined, OptionalTupleIf, SafeObjMerge } from 'types';
 import type { QueryResult } from 'provider';
 
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
@@ -11,14 +11,11 @@ import type {
 } from 'singleTable/model';
 import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
 
-type IndexPartitionParams<Index extends SingleIndex> = IfAny<
-  Parameters<Index['getPartitionKey']>[0] extends undefined
-    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      any
-    : Parameters<Index['getPartitionKey']>[0],
-  unknown,
-  Parameters<Index['getPartitionKey']>[0]
->;
+type IndexPartitionParams<Index extends SingleIndex> = FirstParameter<
+  Index['getPartitionKey']
+> extends undefined
+  ? unknown
+  : FirstParameter<Index['getPartitionKey']>;
 
 type BaseQueryParams<Index extends SingleIndex, Entity = AnyObject> = QueryConfigParams<Entity> &
   IndexPartitionParams<Index>;
@@ -26,23 +23,22 @@ type BaseQueryParams<Index extends SingleIndex, Entity = AnyObject> = QueryConfi
 type CustomQueryParams<Entity, Index extends SingleIndex> = BaseQueryParams<Index, Entity> &
   Pick<SingleTableQueryParams<Entity>, 'range'>;
 
-type SafeObjectUnion<PossibleUndefinedObject> = PossibleUndefinedObject extends undefined
-  ? unknown
-  : PossibleUndefinedObject;
-
-type RangeQueryParams<BaseParams, RangeParams> = BaseParams & SafeObjectUnion<RangeParams>;
-
 type RangeQueries<
   Entity,
   Index extends SingleIndex,
 > = Index['rangeQueries'] extends RangeQueryGetters<any>
   ? {
       [Key in keyof Index['rangeQueries']]: (
-        ...params: OptionalTupleIfUndefined<
-          Parameters<Index['getPartitionKey']>[0] | Parameters<Index['rangeQueries'][Key]>[0],
-          RangeQueryParams<
+        // basically optional if both params are not required
+        ...params: OptionalTupleIf<
+          HasDefined<
+            [FirstParameter<Index['getPartitionKey']>, FirstParameter<Index['rangeQueries'][Key]>]
+          >,
+          false,
+          SafeObjMerge<
+            //
             BaseQueryParams<Index, Entity>,
-            SafeObjectUnion<Parameters<Index['rangeQueries'][Key]>[0]>
+            FirstParameter<Index['rangeQueries'][Key]>
           >
         >
       ) => Promise<QueryResult<Entity>>;
@@ -52,7 +48,7 @@ type RangeQueries<
 export type SingleIndexQueryMethods<Entity, Index extends SingleIndex> = {
   custom(
     ...params: OptionalTupleIfUndefined<
-      Parameters<Index['getPartitionKey']>[0],
+      FirstParameter<Index['getPartitionKey']>,
       CustomQueryParams<Entity, Index>
     >
   ): Promise<QueryResult<Entity>>;

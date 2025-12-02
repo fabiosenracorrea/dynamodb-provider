@@ -2,16 +2,13 @@
 import type { ExtendableSingleTableEntity } from 'singleTable/model';
 import type { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 import type { QueryResult } from 'provider';
+import type { FirstParameter, HasDefined, OptionalTupleIf, SafeObjMerge } from 'types';
 import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
 
-type SafeObjectUnion<PossibleUndefinedObject> = PossibleUndefinedObject extends undefined
-  ? unknown
-  : PossibleUndefinedObject;
-
-type BaseQueryParams<Registered extends ExtendableSingleTableEntity> = QueryConfigParams<
-  Registered['__entity']
-> &
-  SafeObjectUnion<Parameters<Registered['getPartitionKey']>[0]>;
+type BaseQueryParams<Registered extends ExtendableSingleTableEntity> = SafeObjMerge<
+  QueryConfigParams<Registered['__entity']>,
+  FirstParameter<Registered['getPartitionKey']>
+>;
 
 type CustomQueryParams<Registered extends ExtendableSingleTableEntity> =
   BaseQueryParams<Registered> & Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
@@ -25,11 +22,20 @@ type RangeQueries<Registered extends ExtendableSingleTableEntity> = Registered e
 }
   ? {
       [Key in keyof Registered['rangeQueries']]: (
-        ...params: OptionalTupleIfUndefined<
-          | Parameters<Registered['getPartitionKey']>[0]
-          | Parameters<Registered['rangeQueries'][Key]>[0],
-          BaseQueryParams<Registered> &
-            SafeObjectUnion<Parameters<Registered['rangeQueries'][Key]>[0]>
+        // basically optional if both params are not required
+        ...params: OptionalTupleIf<
+          HasDefined<
+            [
+              FirstParameter<Registered['getPartitionKey']>,
+              FirstParameter<Registered['rangeQueries'][Key]>,
+            ]
+          >,
+          false,
+          SafeObjMerge<
+            //
+            BaseQueryParams<Registered>,
+            FirstParameter<Registered['rangeQueries'][Key]>
+          >
         >
       ) => Promise<EntityQueryResult<Registered>>;
     }
@@ -38,7 +44,7 @@ type RangeQueries<Registered extends ExtendableSingleTableEntity> = Registered e
 export type PartitionQueryMethods<Registered extends ExtendableSingleTableEntity> = {
   custom(
     ...params: OptionalTupleIfUndefined<
-      Parameters<Registered['getPartitionKey']>[0],
+      FirstParameter<Registered['getPartitionKey']>,
       CustomQueryParams<Registered>
     >
   ): Promise<EntityQueryResult<Registered>>;

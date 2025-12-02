@@ -125,14 +125,33 @@ const MEDIA = singleTable.schema.createEntity<Media>().as({
       getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
 
       rangeQueries: {
-        optionalDateSlice: {
+        dateSliceParams: {
           operation: 'between',
-          getValues: ({ end, start }: { start: string; end: string }) => ({
-            end: end ?? '2100-01-01T00:00:00.000Z',
-            start: start ?? '2020-01-01T00:00:00.000Z',
+          getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+            end: endDate ?? '2100-01-01T00:00:00.000Z',
+            start: startDate ?? '2020-01-01T00:00:00.000Z',
           }),
         },
+
+        dateSliceDefaultParams: {
+          operation: 'between',
+        },
       },
+    },
+  },
+
+  // simply to test it
+  rangeQueries: {
+    dateSliceParams: {
+      operation: 'between',
+      getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+        end: endDate ?? '2100-01-01T00:00:00.000Z',
+        start: startDate ?? '2020-01-01T00:00:00.000Z',
+      }),
+    },
+
+    dateSliceDefaultParams: {
+      operation: 'between',
     },
   },
 
@@ -248,10 +267,29 @@ MEDIA3.getUpdatedIndexMapping({ uploadedAt: '' });
 // @ts-expect-error Media should be inside
 MEDIA.getCreationParams({});
 
+// @ts-expect-error startDate/endDate required
+MEDIA.rangeQueries.dateSliceParams();
+MEDIA.rangeQueries.dateSliceParams({ endDate: '', startDate: '' });
+
+// @ts-expect-error start/end required
+MEDIA.rangeQueries.dateSliceDefaultParams();
+MEDIA.rangeQueries.dateSliceDefaultParams({ end: '', start: '' });
+
+// @ts-expect-error startDate/endDate required
+MEDIA.indexes.ByUploadTime.rangeQueries.dateSliceParams();
+MEDIA.indexes.ByUploadTime.rangeQueries.dateSliceParams({ endDate: '', startDate: '' });
+
+// @ts-expect-error start/end required
+MEDIA.indexes.ByUploadTime.rangeQueries.dateSliceDefaultParams();
+MEDIA.indexes.ByUploadTime.rangeQueries.dateSliceDefaultParams({ end: '', start: '' });
+
 const _paramAcceptances_ = [
   singleTable.schema.fromEntity(MEDIA),
   singleTable.schema.fromEntity(MEDIA2),
   singleTable.schema.fromEntity(MEDIA3),
+  singleTable.schema.from(MEDIA),
+  singleTable.schema.from(MEDIA2),
+  singleTable.schema.from(MEDIA3),
 
   singleTable.executeTransaction([
     {

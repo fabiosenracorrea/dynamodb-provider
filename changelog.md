@@ -4,6 +4,31 @@
 
 - [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
 - *Feature*: Direct `collection` creation from `partition.collection()`
+
+- *Feature*: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
+
+```ts
+const entity = table.schema.createEntity<{ name: string, id: string }>().as({
+  getPartitionKey: ['FIXED_KEY'],
+  getRangeKey: ['.name', '.id'],
+  type: 'ENTITY',
+  rangeQueries: {
+    param: {
+      operation: 'begins_with',
+      getValues: (p: { name: string }) => ({ value: p.name }),
+    },
+    noParam: {
+      operation: 'begins_with',
+    }
+  },
+});
+
+table.schema.from(entity).query.param({ name: 'Something' })
+
+table.schema.from(entity).query.noParam({ value: 'Something' })
+```
+
+- *Fix*: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - *Fix*: Transaction size validation reference after null checks
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.

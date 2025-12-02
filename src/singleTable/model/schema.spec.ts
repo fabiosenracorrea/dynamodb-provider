@@ -455,10 +455,60 @@ describe('single table schema tests', () => {
           rangeQueries: {
             someBetweenQuery: {
               operation: 'between',
-              getValues: ({ start, end }: { start: string; end: string }) => ({
-                start,
-                end,
+              getValues: ({ startDate, endDate }: { startDate: string; endDate: string }) => ({
+                start: startDate,
+                end: endDate,
               }),
+            },
+          },
+        });
+
+        expect(
+          user.rangeQueries.someBetweenQuery({
+            startDate: 'a',
+            endDate: 'z',
+          }),
+        ).toStrictEqual({
+          operation: 'between',
+          start: 'a',
+          end: 'z',
+        });
+      });
+
+      it('should handle a *default* between param query', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            someBetweenQuery: {
+              operation: 'between',
             },
           },
         });
@@ -472,6 +522,54 @@ describe('single table schema tests', () => {
           operation: 'between',
           start: 'a',
           end: 'z',
+        });
+      });
+
+      it('should handle a *default* value param query', () => {
+        const schema = new SingleTableSchema({
+          partitionKey: 'hello',
+          rangeKey: 'key',
+
+          table: 'my-table',
+
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        });
+
+        type User = {
+          name: string;
+          id: string;
+          email: string;
+          address: string;
+          dob: string;
+          createdAt: string;
+          updatedAt?: string;
+        };
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            someBetweenQuery: {
+              operation: 'begins_with',
+            },
+          },
+        });
+
+        expect(
+          user.rangeQueries.someBetweenQuery({
+            value: 'a',
+          }),
+        ).toStrictEqual({
+          operation: 'begins_with',
+          value: 'a',
         });
       });
     });

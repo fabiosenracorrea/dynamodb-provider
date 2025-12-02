@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type OrUndefined<T> = T | undefined;
 
-export type IsUndefined<T> = undefined extends T ? true : false;
+export type IsNull<T> = [T] extends [null] ? true : false;
+
+export type IsUnknown<T> = unknown extends T // `T` can be `unknown` or `any`
+  ? IsNull<T> extends false // `any` can be `null`, but `unknown` can't be
+    ? true
+    : false
+  : false;
+
+export type IsUndefined<T> = IsUnknown<T> extends true ? false : undefined extends T ? true : false;
 
 export type IfUndefined<T, Y, N> = IsUndefined<T> extends true ? Y : N;
 
@@ -15,14 +23,6 @@ export type StringKey<Entity> = Extract<keyof Entity, string>;
 export type IfAny<T, Y, N> = 0 extends 1 & T ? Y : N;
 
 export type IsAny<T> = 0 extends 1 & T ? true : false;
-
-export type IsNull<T> = [T] extends [null] ? true : false;
-
-export type IsUnknown<T> = unknown extends T // `T` can be `unknown` or `any`
-  ? IsNull<T> extends false // `any` can be `null`, but `unknown` can't be
-    ? true
-    : false
-  : false;
 
 export type IsNever<T> = [T] extends [never] ? true : false;
 
@@ -113,3 +113,27 @@ export type OrString<T extends string> = T | SafeToIntersectString;
 export type StableOmit<T, Keys extends OrString<Extract<keyof T, string>>> = {
   [K in keyof T as K extends Keys ? never : K]: T[K];
 };
+
+/**
+ * Ensures we can do obj1 & SafeObjectUnion<obj2 | undefined>
+ */
+export type EnsureUnionObj<T> = T extends undefined ? unknown : T;
+
+/**
+ * Safely do obj1 & obj2 without worrying about obj & undefined = never
+ */
+export type SafeObjMerge<Obj1, Obj2> = EnsureUnionObj<Obj1> & EnsureUnionObj<Obj2>;
+
+export type OptionalTupleIf<Ref, Condition, Params> = Ref extends Condition ? [Params?] : [Params];
+
+export type HasUndefined<T extends readonly unknown[]> = IsUnknown<T[number]> extends true
+  ? false
+  : undefined extends T[number]
+  ? true
+  : false;
+
+export type HasDefined<T extends readonly unknown[]> = T extends [infer Next, ...infer Rest]
+  ? IsUndefined<Next> extends false
+    ? true
+    : HasDefined<Rest>
+  : false;

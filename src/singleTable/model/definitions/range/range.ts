@@ -2,6 +2,7 @@
 import { KeyValue } from 'singleTable/adaptor/definitions';
 
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig } from 'provider/utils';
+import { AnyFunction } from 'types';
 
 type RefBasicConfig = BasicRangeKeyConfig<any>;
 type BetweenRefConfig = BetweenRangeKeyConfig<any>;
@@ -9,11 +10,11 @@ type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 type SingleRangeConfig =
   | {
       operation: RefBasicConfig['operation'];
-      getValues: (...params: any) => { value: KeyValue | BasicRangeKeyConfig<unknown>['value'] };
+      getValues?: (...params: any) => { value: KeyValue | BasicRangeKeyConfig<unknown>['value'] };
     }
   | {
       operation: BetweenRefConfig['operation'];
-      getValues: (...params: any) => {
+      getValues?: (...params: any) => {
         start: KeyValue | BetweenRefConfig['start'];
         end: KeyValue | BetweenRefConfig['end'];
       };
@@ -21,13 +22,31 @@ type SingleRangeConfig =
 
 type RangeQuery = Record<string, SingleRangeConfig>;
 
-type ResolvedRangeConfig<Config extends SingleRangeConfig> = Pick<Config, 'operation'> &
-  ReturnType<Config['getValues']>;
+type RangeOperation = RefBasicConfig['operation'] | BetweenRefConfig['operation'];
 
-export type RangeQueryGetters<RangeQueryConfig extends RangeQuery> = {
-  [Key in keyof RangeQueryConfig]: (
-    ...params: Parameters<RangeQueryConfig[Key]['getValues']>
-  ) => ResolvedRangeConfig<RangeQueryConfig[Key]>;
+/**
+ * If `getValues` is not provided,
+ * the default function is simply one that
+ * take exactly the Range expected params (value or start/end)
+ */
+type EnsureValueGetter<
+  Fn extends AnyFunction | undefined,
+  Operation extends RangeOperation,
+  //
+  // -- system param --
+  //
+  __RANGE_PARAMS__ = ReturnType<
+    Extract<Required<SingleRangeConfig>, { operation: Operation }>['getValues']
+  >,
+> = Fn extends AnyFunction ? Fn : (p: __RANGE_PARAMS__) => __RANGE_PARAMS__;
+
+type ResolvedRangeConfig<Config extends SingleRangeConfig> = Pick<Config, 'operation'> &
+  ReturnType<EnsureValueGetter<Config['getValues'], Config['operation']>>;
+
+export type RangeQueryGetters<Config extends RangeQuery> = {
+  [Key in keyof Config]: (
+    ...params: Parameters<EnsureValueGetter<Config[Key]['getValues'], Config[Key]['operation']>>
+  ) => ResolvedRangeConfig<Config[Key]>;
 };
 
 export type RangeQueryInputProps = {
@@ -45,10 +64,8 @@ export type RangeQueryInputProps = {
 };
 
 export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | undefined> =
-  RangeParams extends RangeQueryInputProps
-    ? RangeParams['rangeQueries'] extends RangeQuery
-      ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
-      : object
+  RangeParams extends Required<RangeQueryInputProps>
+    ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
     : object;
 
 export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
@@ -63,7 +80,7 @@ export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
 
         (valueParams: any) => ({
           operation,
-          ...getValues(valueParams),
+          ...(getValues?.(valueParams) ?? valueParams),
         }),
       ]),
     ),

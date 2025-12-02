@@ -127,14 +127,37 @@ const MEDIA = singleTable.schema.createEntity<Media>().as({
       getRangeKey: ({ uploadedAt }: { uploadedAt: string }) => [uploadedAt],
 
       rangeQueries: {
-        optionalDateSlice: {
+        dateSliceParams: {
           operation: 'between',
-          getValues: ({ end, start }: { start: string; end: string }) => ({
-            end: end ?? '2100-01-01T00:00:00.000Z',
-            start: start ?? '2020-01-01T00:00:00.000Z',
+          getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+            end: endDate ?? '2100-01-01T00:00:00.000Z',
+            start: startDate ?? '2020-01-01T00:00:00.000Z',
           }),
         },
+
+        dateSliceDefaultParams: {
+          operation: 'between',
+        },
+
+        fixedUploads: {
+          operation: 'between',
+          getValues: () => ({ start: '2025-01-01', end: '2025-02-01' }),
+        },
       },
+    },
+  },
+
+  rangeQueries: {
+    dateSliceParams: {
+      operation: 'between',
+      getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+        end: endDate ?? '2100-01-01T00:00:00.000Z',
+        start: startDate ?? '2020-01-01T00:00:00.000Z',
+      }),
+    },
+
+    dateSliceDefaultParams: {
+      operation: 'between',
     },
   },
 
@@ -157,7 +180,7 @@ const {
   get,
   list,
   listAll,
-  query: { custom: queryCustom },
+  query: { custom: queryCustom, dateSliceDefaultParams, dateSliceParams },
   queryIndex,
   update,
 } = methods;
@@ -165,6 +188,40 @@ const {
 // @ts-expect-error param is required (media id)
 queryCustom();
 
-queryIndex.ByUploadTime.optionalDateSlice();
+// @ts-expect-error startDate/endDate/id are required
+dateSliceParams();
+dateSliceParams({ endDate: '', startDate: '', id: '' });
+
+// @ts-expect-error start/end/id is required
+dateSliceDefaultParams();
+dateSliceDefaultParams({ start: '', end: '', id: '' });
 
 queryIndex.ByUploadTime.custom();
+
+// @ts-expect-error startDate/endDate/id required
+queryIndex.ByUploadTime.dateSliceParams();
+queryIndex.ByUploadTime.dateSliceParams({ endDate: '', startDate: '' });
+
+// @ts-expect-error start/end/id required
+queryIndex.ByUploadTime.dateSliceDefaultParams();
+queryIndex.ByUploadTime.dateSliceDefaultParams({ end: '', start: '' });
+
+// optional
+queryIndex.ByUploadTime.fixedUploads();
+
+const fixedHash = singleTable.schema.createEntity<Media>().as({
+  getPartitionKey: ['FIXED'],
+  getRangeKey: ['.uploadedAt'],
+  type: 'MEDIA_',
+  rangeQueries: {
+    param: {
+      operation: 'begins_with',
+      getValues: (p: { name: string }) => ({ value: p.name }),
+    },
+  },
+});
+
+singleTable.schema.from(fixedHash).query.custom();
+
+// @ts-expect-error range needs params
+singleTable.schema.from(fixedHash).query.param();
