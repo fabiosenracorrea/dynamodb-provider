@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Expect, Equal } from 'types';
+
 import type { ExtendableSingleTableEntity } from './definitions';
 import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
 import { SingleTableSchema } from './schema';
 
-type User = {
+interface User {
   name: string;
   id: string;
   email: string;
@@ -11,7 +13,7 @@ type User = {
   dob: string;
   createdAt: string;
   updatedAt?: string;
-};
+}
 
 const dynamodbProvider = {} as any;
 
@@ -480,6 +482,85 @@ describe('single table - from entity methods', () => {
 
         consistentRead: true,
         propertiesToRetrieve: ['name'],
+      });
+    });
+
+    it('[TYPES] Return type should be Entity | undefined', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const result = await instance.buildMethods().get({ id: 'my-id' });
+
+      type _R = Expect<Equal<typeof result, User | undefined>>;
+    });
+
+    it('[TYPES] Extend: Return type should be (Entity & extend) if _extend_ is provided', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: ['#DATA'],
+
+        extend: () => ({
+          newProperty: 10,
+        }),
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const result = await instance.buildMethods().get({ id: 'my-id' });
+
+      // User & { newProperty: number } requires PrettifyObj<>
+      interface NewUser345 extends User {
+        newProperty: number;
+      }
+
+      // @ts-expect-error User is not enough
+      type _R = Expect<Equal<typeof result, User | undefined>>;
+
+      type _R2 = Expect<Equal<typeof result, NewUser345 | undefined>>;
+    });
+
+    it('[TYPES] _propertiesToRetrieve_ only accepts existing props', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      instance.buildMethods().get({
+        id: 'my-id',
+
+        propertiesToRetrieve: ['address', 'createdAt'],
+      });
+
+      instance.buildMethods().get({
+        id: 'my-id',
+
+        // @ts-expect-error no invalid props
+        propertiesToRetrieve: ['invalid'],
       });
     });
   });
