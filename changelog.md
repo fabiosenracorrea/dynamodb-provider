@@ -32,6 +32,8 @@ table.schema.from(entity).query.noParam({ value: 'Something' })
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.
 
+- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib were basically vulnerable to badly tested modifications
+
 # v2.1.2
 
 - *Fix*: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
