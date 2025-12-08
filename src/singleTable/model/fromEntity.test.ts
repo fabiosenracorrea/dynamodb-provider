@@ -85,12 +85,6 @@ describe('single table - from entity methods', () => {
 
       const instance = new SingleTableFromEntityMethods(user, params);
 
-      // @ts-expect-error we have key params
-      instance.buildMethods().get();
-
-      // @ts-expect-error id is required
-      instance.buildMethods().get({});
-
       await instance.buildMethods().get({ id: 'my-id' });
 
       expect(params.dynamodbProvider.get).toHaveBeenCalled();
@@ -102,6 +96,14 @@ describe('single table - from entity methods', () => {
           [baseParams.rangeKey]: '#DATA',
         },
       });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
     });
 
     it('should work with entity partition key params [key array]', async () => {
@@ -119,12 +121,6 @@ describe('single table - from entity methods', () => {
 
       const instance = new SingleTableFromEntityMethods(user, params);
 
-      // @ts-expect-error we have key params
-      instance.buildMethods().get();
-
-      // @ts-expect-error id is required
-      instance.buildMethods().get({});
-
       await instance.buildMethods().get({ id: 'my-id' });
 
       expect(params.dynamodbProvider.get).toHaveBeenCalled();
@@ -136,6 +132,14 @@ describe('single table - from entity methods', () => {
           [baseParams.rangeKey]: '#DATA',
         },
       });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
     });
 
     it('should work with entity range key params [getter]', async () => {
@@ -153,12 +157,6 @@ describe('single table - from entity methods', () => {
 
       const instance = new SingleTableFromEntityMethods(user, params);
 
-      // @ts-expect-error we have key params
-      instance.buildMethods().get();
-
-      // @ts-expect-error id is required
-      instance.buildMethods().get({});
-
       await instance.buildMethods().get({ id: 'my-id' });
 
       expect(params.dynamodbProvider.get).toHaveBeenCalled();
@@ -170,6 +168,14 @@ describe('single table - from entity methods', () => {
           [baseParams.rangeKey]: 'my-id',
         },
       });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
     });
 
     it('should work with entity range key params [key array]', async () => {
@@ -187,12 +193,6 @@ describe('single table - from entity methods', () => {
 
       const instance = new SingleTableFromEntityMethods(user, params);
 
-      // @ts-expect-error we have key params
-      instance.buildMethods().get();
-
-      // @ts-expect-error id is required
-      instance.buildMethods().get({});
-
       await instance.buildMethods().get({ id: 'my-id' });
 
       expect(params.dynamodbProvider.get).toHaveBeenCalled();
@@ -204,6 +204,14 @@ describe('single table - from entity methods', () => {
           [baseParams.rangeKey]: 'my-id',
         },
       });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
     });
 
     it('should work with entity with no key params [getter]', async () => {
