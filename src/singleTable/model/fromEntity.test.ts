@@ -2128,10 +2128,8 @@ describe('single table - from entity methods', () => {
     it('should not exist if no type-index is defined', () => {
       const params = {
         dynamodbProvider,
-
         partitionKey: 'hello',
         rangeKey: 'key',
-
         table: 'my-table',
       };
 
@@ -2139,17 +2137,11 @@ describe('single table - from entity methods', () => {
 
       const user = schema.createEntity<User>().as({
         type: 'USER',
-
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
+      const instance = new SingleTableFromEntityMethods(user, params);
 
       const repo = instance.buildMethods();
 
@@ -2157,167 +2149,370 @@ describe('single table - from entity methods', () => {
       expect((repo as any).listAll).toBe(undefined);
     });
 
-    it('listAll - should simply call listAllFromType from adaptor', async () => {
-      const params = {
-        dynamodbProvider,
+    describe('listAll', () => {
+      it('should call listAllFromType from adaptor', async () => {
+        const mockReturn = [
+          { id: '1', name: 'User 1' },
+          { id: '2', name: 'User 2' },
+        ];
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        table: 'my-table',
+        const schema = new SingleTableSchema(params);
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-      const schema = new SingleTableSchema(params);
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
+        const listAllFromType = jest.fn().mockResolvedValue(mockReturn);
+        (instance as any).methods = { listAllFromType };
 
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        const result = await instance.buildMethods().listAll();
 
-        getRangeKey: () => ['#DATA'],
+        expect(listAllFromType).toHaveBeenCalledTimes(1);
+        expect(listAllFromType).toHaveBeenCalledWith('USER');
+        expect(result).toBe(mockReturn);
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('[TYPES] Return type should be Entity[]', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        dynamodbProvider: {} as any,
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const listAllFromType = jest.fn().mockResolvedValue([]);
+        (instance as any).methods = { listAllFromType };
+
+        const result = await instance.buildMethods().listAll();
+
+        type _R = Expect<Equal<typeof result, User[]>>;
       });
 
-      const mockReturn = ['MOCK_DATA'];
+      it('[TYPES] Extend: Return type should be (Entity & extend)[] if _extend_ is provided', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const listAllFromType = jest.fn().mockResolvedValue(mockReturn);
+        const schema = new SingleTableSchema(params);
 
-      (instance as any).methods = {
-        listAllFromType,
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          extend: () => ({ newProperty: 10 }),
+        });
 
-      const result = await instance.buildMethods().listAll();
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      expect(listAllFromType).toHaveBeenCalled();
-      expect(listAllFromType).toHaveBeenCalledWith('USER');
-      expect(result).toBe(mockReturn);
+        const listAllFromType = jest.fn().mockResolvedValue([]);
+        (instance as any).methods = { listAllFromType };
+
+        const result = await instance.buildMethods().listAll();
+
+        interface NewUser678 extends User {
+          newProperty: number;
+        }
+
+        // @ts-expect-error User is not enough
+        type _R = Expect<Equal<typeof result, User[]>>;
+
+        type _R2 = Expect<Equal<typeof result, NewUser678[]>>;
+      });
     });
 
-    it('list - should simply call listType from adaptor', async () => {
-      const params = {
-        dynamodbProvider,
+    describe('list', () => {
+      it('should work with no params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const schema = new SingleTableSchema(params);
 
-        table: 'my-table',
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-      };
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      const schema = new SingleTableSchema(params);
+        const mockResult = {
+          items: [],
+          paginationToken: '',
+        };
 
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
+        const listType = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { listType };
 
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        const result = await instance.buildMethods().list();
 
-        getRangeKey: () => ['#DATA'],
+        expect(listType).toHaveBeenCalledTimes(1);
+        expect(listType).toHaveBeenCalledWith({
+          type: 'USER',
+        });
+        expect(result).toBe(mockResult);
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should call listType from adaptor with basic params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        dynamodbProvider: {} as any,
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const mockResult = {
+          items: [{ id: '1', name: 'User 1' }],
+          paginationToken: '23',
+        };
+
+        const listType = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { listType };
+
+        const result = await instance.buildMethods().list();
+
+        expect(listType).toHaveBeenCalledTimes(1);
+        expect(listType).toHaveBeenCalledWith({
+          type: 'USER',
+        });
+        expect(result).toBe(mockResult);
       });
 
-      const mockResult = {
-        items: ['FAKE'],
-        paginationToken: '23',
-      };
+      it('should forward range query params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const listType = jest.fn().mockResolvedValue(mockResult);
+        const schema = new SingleTableSchema(params);
 
-      (instance as any).methods = {
-        listType,
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-      const result = await instance.buildMethods().list();
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      expect(listType).toHaveBeenCalled();
-      expect(listType).toHaveBeenCalledWith({
-        type: 'USER',
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
+
+        const rangeSymbol = Symbol('range-no-modify') as any;
+
+        await instance.buildMethods().list({
+          range: rangeSymbol,
+        });
+
+        expect(listType).toHaveBeenCalledWith({
+          type: 'USER',
+          range: rangeSymbol,
+        });
       });
 
-      expect(result).toBe(mockResult);
-    });
+      it('should properly forward all config params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-    it('list - should properly forward configs', async () => {
-      const params = {
-        dynamodbProvider,
+        const schema = new SingleTableSchema(params);
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-        table: 'my-table',
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-      };
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
 
-      const schema = new SingleTableSchema(params);
+        await instance.buildMethods().list({
+          fullRetrieval: true,
+          limit: 20,
+          paginationToken: '1023',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'bigger_than',
+            value: '2',
+          },
+        });
 
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
+        expect(listType).toHaveBeenCalledTimes(1);
+        expect(listType).toHaveBeenCalledWith({
+          type: 'USER',
+          fullRetrieval: true,
+          limit: 20,
+          paginationToken: '1023',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'bigger_than',
+            value: '2',
+          },
+        });
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('[TYPES] Return type should be ListEntityResult<Entity>', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        dynamodbProvider: {} as any,
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
+
+        const result = await instance.buildMethods().list();
+
+        type _E = { items: User[]; paginationToken: string };
+
+        type _R = Expect<Equal<typeof result, _E>>;
       });
 
-      const listType = jest.fn();
+      it('[TYPES] Extend: Return type items should be (Entity & extend)[]', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      (instance as any).methods = {
-        listType,
-      };
+        const schema = new SingleTableSchema(params);
 
-      await instance.buildMethods().list({
-        fullRetrieval: true,
-        limit: 20,
-        paginationToken: '1023',
-        retrieveOrder: 'DESC',
-        range: {
-          operation: 'bigger_than',
-          value: '2',
-        },
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          extend: () => ({ newProperty: 10 }),
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
+
+        const result = await instance.buildMethods().list();
+
+        interface NewUser789 extends User {
+          newProperty: number;
+        }
+
+        // @ts-expect-error User is not enough
+        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken: string }>>;
+
+        type _R2 = Expect<Equal<typeof result, { items: NewUser789[]; paginationToken: string }>>;
       });
 
-      expect(listType).toHaveBeenCalled();
-      expect(listType).toHaveBeenCalledWith({
-        type: 'USER',
+      it('[TYPES] params should be optional', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        fullRetrieval: true,
-        limit: 20,
-        paginationToken: '1023',
-        retrieveOrder: 'DESC',
-        range: {
-          operation: 'bigger_than',
-          value: '2',
-        },
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
+
+        // Should work without params
+        instance.buildMethods().list();
+
+        // Should work with params
+        instance.buildMethods().list({ limit: 10 });
+      });
+
+      it('[TYPES] range operations should be typed correctly', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
+
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const listType = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { listType };
+
+        // Valid operations
+        instance.buildMethods().list({
+          range: { operation: 'bigger_than', value: '1' },
+        });
+
+        instance.buildMethods().list({
+          range: { operation: 'lower_than', value: '1' },
+        });
+
+        instance.buildMethods().list({
+          range: { operation: 'bigger_or_equal_than', value: '1' },
+        });
+
+        instance.buildMethods().list({
+          range: { operation: 'lower_or_equal_than', value: '1' },
+        });
+
+        instance.buildMethods().list({
+          range: { operation: 'between', start: 'a', end: 'z' },
+        });
+
+        instance.buildMethods().list({
+          // @ts-expect-error invalid operation
+          range: { operation: 'invalid_operation', value: '1' },
+        });
+
+        instance.buildMethods().list({
+          // @ts-expect-error begins_with is not allowed in list range
+          range: { operation: 'begins_with', value: '1' },
+        });
       });
     });
   });
