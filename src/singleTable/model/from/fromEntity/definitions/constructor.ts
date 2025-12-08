@@ -31,7 +31,7 @@ export type FromEntity<
 
   create(...params: CreateEntityParams<Registered>): Promise<Registered['__entity']>;
 
-  delete(params: DeleteEntityParams<Registered>): Promise<void>;
+  delete(...params: DeleteEntityParams<Registered>): Promise<void>;
 
   update(params: UpdateEntityParams<Registered>): Promise<void>;
 } & QueryMethods<Registered> &

@@ -29,6 +29,7 @@ table.schema.from(entity).query.noParam({ value: 'Something' })
 
 - *Fix*: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - *Fix*: Transaction size validation reference after null checks
+- *Fix*: `schema.fromEntity(xxx).delete()` params no longer required if entity has no key params
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.
 

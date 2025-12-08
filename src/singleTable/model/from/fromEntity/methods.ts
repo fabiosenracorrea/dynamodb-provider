@@ -153,7 +153,7 @@ export class SingleTableFromEntityMethods<
         SingleParams
       >['create'],
 
-      delete: ((params) =>
+      delete: ((params = {}) =>
         this.methods.delete({ ...params, ...entity.getKey(params) })) as FromEntity<
         Entity,
         SingleParams
