@@ -1510,7 +1510,20 @@ describe('single table - from entity methods', () => {
         id: 'my-id',
 
         conditions: [
-          { property: 'address', operation: 'begins_with', value: 1 },
+          {
+            property: 'address',
+            operation: 'begins_with',
+            value: 1,
+            nested: [
+              {
+                property: 'createdAt',
+                operation: 'between',
+                start: '1',
+                end: '2',
+                joinAs: 'or',
+              },
+            ],
+          },
 
           // @ts-expect-error no non-existing property reference
           { property: 'INVALID', operation: 'begins_with', value: 1 },
