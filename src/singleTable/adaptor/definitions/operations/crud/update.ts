@@ -12,6 +12,7 @@ import { SingleTableConfig } from '../../config';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { BaseSingleTableOperator } from '../../executor';
 import { transformIndexReferences } from '../../tableIndex';
+import { resolveProps } from '../../parsers';
 
 type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
   ? {}
@@ -147,6 +148,9 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
   async update<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: SingleTableUpdateParams<Entity, RefConfig, PKs>,
   ): Promise<Partial<Entity> | undefined> {
-    return this.db.update(this.getUpdateParams(params as any));
+    const result = await this.db.update(this.getUpdateParams(params as any));
+
+    if (params.returnUpdatedProperties && result)
+      return resolveProps(result, this.config, this.parser) as Partial<Entity>;
   }
 }

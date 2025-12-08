@@ -5,7 +5,7 @@ import type {
   UpdateParams,
   DeleteItemParams,
 } from 'provider/utils';
-import { FirstParameter } from 'types';
+import { FirstParameter, PrettifyObject, SafeObjMerge } from 'types';
 
 type NoKeyParam<Registered extends ExtendableSingleTableEntity> = FirstParameter<
   Registered['getKey']
@@ -30,12 +30,30 @@ export type DeleteEntityParams<Registered extends ExtendableSingleTableEntity> =
     ? [Omit<DeleteItemParams<Registered['__entity']>, 'table' | 'key'>?]
     : [KeyParams<Registered> & Omit<DeleteItemParams<Registered['__entity']>, 'table' | 'key'>];
 
+export type CreateEntityParams<Registered extends ExtendableSingleTableEntity> = Parameters<
+  Registered['getCreationParams']
+>;
+
 export type UpdateEntityParams<Registered extends ExtendableSingleTableEntity> = Omit<
   UpdateParams<Registered['__entity']>,
   'table' | 'key'
 > &
   KeyParams<Registered>;
 
-export type CreateEntityParams<Registered extends ExtendableSingleTableEntity> = Parameters<
-  Registered['getCreationParams']
->;
+export type UpdateReturn<
+  Entity extends ExtendableSingleTableEntity,
+  Params extends UpdateEntityParams<Entity>,
+> = Params['returnUpdatedProperties'] extends true
+  ? PrettifyObject<
+      SafeObjMerge<
+        Params['values'],
+        Pick<
+          Entity['__entity'],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          Params['atomicOperations'] extends any[]
+            ? Params['atomicOperations'][number]['property']
+            : never
+        >
+      >
+    >
+  : void;

@@ -159,9 +159,10 @@ export class SingleTableFromEntityMethods<
         SingleParams
       >['delete'],
 
-      update: (async (params) => {
-        await this.methods.update(entity.getUpdateParams(params));
-      }) as FromEntity<Entity, SingleParams>['update'],
+      update: ((params) => this.methods.update(entity.getUpdateParams(params))) as FromEntity<
+        Entity,
+        SingleParams
+      >['update'],
 
       query: this.buildEntityQuery(),
 

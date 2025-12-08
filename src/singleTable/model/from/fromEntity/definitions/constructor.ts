@@ -6,6 +6,7 @@ import type {
   EntityBatchGetParams,
   EntityGetParams,
   UpdateEntityParams,
+  UpdateReturn,
 } from './crud';
 import type { ListEntityParams, ListEntityResult } from './list';
 import type { QueryMethods } from './query';
@@ -33,7 +34,9 @@ export type FromEntity<
 
   delete(...params: DeleteEntityParams<Registered>): Promise<void>;
 
-  update(params: UpdateEntityParams<Registered>): Promise<void>;
+  update<Params extends UpdateEntityParams<Registered>>(
+    params: Params,
+  ): Promise<UpdateReturn<Registered, Params>>;
 } & QueryMethods<Registered> &
   ListEntityMethods<Registered, SingleConfig>;
 
