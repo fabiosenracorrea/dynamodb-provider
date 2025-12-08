@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Expect, Equal, PrettifyObject } from 'types';
 
+import { SingleTableParams } from 'singleTable/adaptor';
 import type { ExtendableSingleTableEntity } from './definitions';
 import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
 import { SingleTableSchema } from './schema';
@@ -2518,637 +2519,915 @@ describe('single table - from entity methods', () => {
   });
 
   describe('query methods', () => {
-    it('should have a custom query', async () => {
-      const params = {
-        dynamodbProvider,
+    function queryInstance<
+      T extends ExtendableSingleTableEntity,
+      Params extends SingleTableParams | undefined,
+    >(entity: T, params?: Params) {
+      const instance = new SingleTableFromEntityMethods(entity, params ?? baseParams);
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+      const result = { items: [], paginationToken: '' };
 
-        table: 'my-table',
-      };
+      const query = jest.fn().mockResolvedValue(result);
+      (instance as any).methods = { query };
 
-      const schema = new SingleTableSchema(params);
+      return { instance, query, expectedResult: result };
+    }
 
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
+    describe('custom', () => {
+      it('should query with partition key params [getter]', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-        getRangeKey: () => ['#DATA'],
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const result = await instance.buildMethods().query.custom({
+          id: 'my-id',
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+        });
+        expect(result).toEqual(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error id is required
+        await instance.buildMethods().query.custom();
+
+        // @ts-expect-error id is required
+        await instance.buildMethods().query.custom({});
+
+        // Should work with id
+        await instance.buildMethods().query.custom({ id: 'my-id' });
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should work with no partition key params [getter]', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        dynamodbProvider: {} as any,
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: () => ['USERS'],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, baseParams);
+
+        const mockResult = { items: [], paginationToken: '' };
+        const query = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { query };
+
+        await instance.buildMethods().query.custom();
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS'],
+        });
+
+        // Should work with params
+        await instance.buildMethods().query.custom({ limit: 10 });
       });
 
-      const mockResult = Symbol('query-result');
+      it('should work with partition key params [key array]', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-      const query = jest.fn().mockResolvedValue(mockResult);
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USER', '.id'],
+          getRangeKey: () => ['#DATA'],
+        });
 
-      (instance as any).methods = {
-        query,
-      };
+        const { instance, query, expectedResult } = queryInstance(user);
 
-      const result = await instance.buildMethods().query.custom({
-        id: 'my-id',
+        const result = await instance.buildMethods().query.custom({
+          id: 'my-id',
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+        });
+        expect(result).toEqual(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error id is required
+        await instance.buildMethods().query.custom();
+
+        // @ts-expect-error id is required
+        await instance.buildMethods().query.custom({});
+
+        // Should work with id
+        await instance.buildMethods().query.custom({ id: 'my-id' });
       });
 
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USER', 'my-id'],
+      it('should work with no partition key params [key array]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USERS'],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const result = await instance.buildMethods().query.custom();
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS'],
+        });
+        expect(result).toEqual(expectedResult);
       });
 
-      expect(result).toBe(mockResult);
-    });
+      it('should forward range param', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-    it('should forward custom query params', async () => {
-      const params = {
-        dynamodbProvider,
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const { instance, query } = queryInstance(user);
 
-        table: 'my-table',
-      };
-
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-      });
-
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
-      const mockResult = Symbol('query-result');
-
-      const query = jest.fn().mockResolvedValue(mockResult);
-
-      (instance as any).methods = {
-        query,
-      };
-
-      const result = await instance.buildMethods().query.custom({
-        id: 'my-id',
-
-        filters: { some: 'filter' } as any,
-        fullRetrieval: false,
-        limit: 20,
-        paginationToken: '2903',
-        retrieveOrder: 'DESC',
-        range: {
-          operation: 'bigger_or_equal_than',
-          value: 20,
-        },
-      });
-
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USER', 'my-id'],
-
-        filters: { some: 'filter' },
-        fullRetrieval: false,
-        limit: 20,
-        paginationToken: '2903',
-        retrieveOrder: 'DESC',
-        range: {
-          operation: 'bigger_or_equal_than',
-          value: 20,
-        },
-      });
-
-      expect(result).toBe(mockResult);
-    });
-
-    it('should have a query constructed from rangeQueries', async () => {
-      const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-      };
-
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-
-        rangeQueries: {
-          someQuery: {
+        await instance.buildMethods().query.custom({
+          id: 'my-id',
+          range: {
             operation: 'begins_with',
-            getValues: () => ({
-              value: '#DATA',
-            }),
+            value: 'PREFIX',
           },
-        },
+        });
+
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: 'PREFIX',
+          },
+        });
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should forward all query config params', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        dynamodbProvider: {} as any,
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
+
+        const { instance, query } = queryInstance(user);
+
+        await instance.buildMethods().query.custom({
+          id: 'my-id',
+          filters: { name: 'John' },
+          fullRetrieval: false,
+          limit: 20,
+          paginationToken: '2903',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'bigger_or_equal_than',
+            value: '100',
+          },
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          filters: { name: 'John' },
+          fullRetrieval: false,
+          limit: 20,
+          paginationToken: '2903',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'bigger_or_equal_than',
+            value: '100',
+          },
+        });
       });
 
-      const mockResult = Symbol('query-result');
+      it('[TYPES] Return type should be QueryResult<Entity>', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-      const query = jest.fn().mockResolvedValue(mockResult);
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+        });
 
-      (instance as any).methods = {
-        query,
-      };
+        const { instance } = queryInstance(user);
 
-      const repo = instance.buildMethods();
+        const result = await instance.buildMethods().query.custom({ id: 'my-id' });
 
-      expect(repo.query.someQuery).toBeDefined();
-
-      const result = await repo.query.someQuery({
-        id: 'my-id',
+        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
       });
 
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USER', 'my-id'],
+      it('[TYPES] Extend: Return type should include extended properties', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        range: {
-          operation: 'begins_with',
-          value: '#DATA',
-        },
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          extend: () => ({ newProperty: 10 }),
+        });
+
+        const { instance } = queryInstance(user);
+
+        const result = await instance.buildMethods().query.custom({ id: 'my-id' });
+
+        interface NewUser890 extends User {
+          newProperty: number;
+        }
+
+        // @ts-expect-error User is not enough
+        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+
+        type _R2 = Expect<Equal<typeof result, { items: NewUser890[]; paginationToken?: string }>>;
       });
-
-      expect(result).toBe(mockResult);
     });
 
-    it('should properly build range with params', async () => {
-      const params = {
-        dynamodbProvider,
+    describe('rangeQueries', () => {
+      it('should have queries from rangeQueries definition [no params]', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-      };
-
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-
-        rangeQueries: {
-          someQuery: {
-            operation: 'begins_with',
-            getValues: ({ someValue }: { someValue: string }) => ({
-              value: ['#DATA', someValue],
-            }),
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+              getValues: () => ({ value: '#DATA' }),
+            },
           },
-        },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ id: 'my-id' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should have queries from rangeQueries definition [with params]', async () => {
+        const schema = new SingleTableSchema(baseParams);
 
-        dynamodbProvider: {} as any,
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+              getValues: ({ someValue }: { someValue: string }) => ({
+                value: ['#DATA', someValue],
+              }),
+            },
+          },
+        });
+
+        const { instance, query } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        await repo.query.someQuery({
+          id: 'my-id',
+          someValue: 'CUSTOM!',
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: ['#DATA', 'CUSTOM!'],
+          },
+        });
       });
 
-      const mockResult = Symbol('query-result');
+      it('should forward query config params in rangeQueries', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const query = jest.fn().mockResolvedValue(mockResult);
+        const schema = new SingleTableSchema(params);
 
-      (instance as any).methods = {
-        query,
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+              getValues: () => ({ value: '#DATA' }),
+            },
+          },
+        });
 
-      const repo = instance.buildMethods();
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      expect(repo.query.someQuery).toBeDefined();
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
 
-      const result = await repo.query.someQuery({
-        id: 'my-id',
+        await instance.buildMethods().query.someQuery({
+          id: 'my-id',
+          limit: 10,
+          retrieveOrder: 'DESC',
+        });
 
-        someValue: 'CUSTOM!',
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+          limit: 10,
+          retrieveOrder: 'DESC',
+        });
       });
 
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USER', 'my-id'],
+      it('[TYPES] Range query should require range params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        range: {
-          operation: 'begins_with',
-          value: ['#DATA', 'CUSTOM!'],
-        },
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            withParam: {
+              operation: 'begins_with',
+              getValues: ({ prefix }: { prefix: string }) => ({ value: prefix }),
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        // @ts-expect-error prefix is required
+        await instance.buildMethods().query.withParam({ id: 'my-id' });
+
+        // Should work with prefix
+        await instance.buildMethods().query.withParam({ id: 'my-id', prefix: 'test' });
       });
-
-      expect(result).toBe(mockResult);
     });
   });
 
   describe('query index methods', () => {
     it('should not exist if no index config is present', () => {
       const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
+        ...baseParams,
+        dynamodbProvider: {} as any,
       };
 
       const schema = new SingleTableSchema(params);
 
       const user = schema.createEntity<User>().as({
         type: 'USER',
-
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
+      const instance = new SingleTableFromEntityMethods(user, params);
 
       const repo = instance.buildMethods();
 
       expect((repo as any).queryIndex).toBe(undefined);
     });
 
-    it('should have a custom query on each index', async () => {
-      const params = {
-        dynamodbProvider,
+    describe('custom', () => {
+      it('should have custom query on each index', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const schema = new SingleTableSchema(params);
 
-        table: 'my-table',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmail: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+            byName: {
+              getPartitionKey: () => ['USERS_BY_NAME'],
+              getRangeKey: ({ name }: { name: string }) => [name],
+              index: 'someIndex',
+            },
           },
+        });
 
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
+        const mockResult = { items: [], paginationToken: '' };
+        const query = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { query };
 
-      const schema = new SingleTableSchema(params);
+        const result = await instance.buildMethods().queryIndex.byEmail.custom();
 
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL'],
+          index: 'anotherIndex',
+        });
+        expect(result).toBe(mockResult);
 
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        const result2 = await instance.buildMethods().queryIndex.byName.custom();
 
-        getRangeKey: () => ['#DATA'],
-
-        indexes: {
-          byEmail: {
-            getPartitionKey: () => ['USERS_BY_EMAIL'],
-
-            getRangeKey: ({ email }: { email: string }) => [email],
-
-            index: 'anotherIndex',
-          },
-
-          byName: {
-            getPartitionKey: () => ['USERS_BY_NAME'],
-
-            getRangeKey: ({ name }: { name: string }) => [name],
-
-            index: 'someIndex',
-          },
-        },
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_NAME'],
+          index: 'someIndex',
+        });
+        expect(result2).toBe(mockResult);
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should handle custom query with index partition params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        dynamodbProvider: {} as any,
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const mockResult = { items: [], paginationToken: '' };
+        const query = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { query };
+
+        const result = await instance.buildMethods().queryIndex.byEmailProvider.custom({
+          email: 'some@gmail.com',
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
+          index: 'anotherIndex',
+        });
+        expect(result).toBe(mockResult);
       });
 
-      const mockResult = Symbol('query-result');
+      it('should forward all query config params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const query = jest.fn().mockResolvedValue(mockResult);
+        const schema = new SingleTableSchema(params);
 
-      (instance as any).methods = {
-        query,
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmail: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
 
-      const result = await instance.buildMethods().queryIndex.byEmail.custom();
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USERS_BY_EMAIL'],
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
 
-        index: 'anotherIndex',
+        await instance.buildMethods().queryIndex.byEmail.custom({
+          filters: { name: 'John' },
+          fullRetrieval: false,
+          limit: 20,
+          paginationToken: '2903',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'begins_with',
+            value: 'test@',
+          },
+        });
+
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL'],
+          index: 'anotherIndex',
+          filters: { name: 'John' },
+          fullRetrieval: false,
+          limit: 20,
+          paginationToken: '2903',
+          retrieveOrder: 'DESC',
+          range: {
+            operation: 'begins_with',
+            value: 'test@',
+          },
+        });
       });
 
-      expect(result).toBe(mockResult);
+      it('[TYPES] Return type should be QueryResult<Entity>', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const result2 = await instance.buildMethods().queryIndex.byName.custom();
+        const schema = new SingleTableSchema(params);
 
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USERS_BY_NAME'],
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmail: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
 
-        index: 'someIndex',
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        const result = await instance.buildMethods().queryIndex.byEmail.custom();
+
+        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
       });
 
-      expect(result2).toBe(mockResult);
+      it('[TYPES] Extend: Return type should include extended properties', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
+
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          extend: () => ({ newProperty: 10 }),
+          indexes: {
+            byEmail: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        const result = await instance.buildMethods().queryIndex.byEmail.custom();
+
+        interface NewUser901 extends User {
+          newProperty: number;
+        }
+
+        // @ts-expect-error User is not enough
+        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+
+        type _R2 = Expect<Equal<typeof result, { items: NewUser901[]; paginationToken?: string }>>;
+      });
+
+      it('[TYPES] Params should be optional when no index partition params required', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
+
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmail: {
+              getPartitionKey: () => ['USERS_BY_EMAIL'],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        // Should work without params
+        await instance.buildMethods().queryIndex.byEmail.custom();
+
+        // Should work with params
+        await instance.buildMethods().queryIndex.byEmail.custom({ limit: 10 });
+      });
+
+      it('[TYPES] Params should be required when index partition params required', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
+
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        // @ts-expect-error email is required
+        await instance.buildMethods().queryIndex.byEmailProvider.custom();
+
+        // @ts-expect-error email is required
+        await instance.buildMethods().queryIndex.byEmailProvider.custom({});
+
+        // Should work with email
+        await instance
+          .buildMethods()
+          .queryIndex.byEmailProvider.custom({ email: 'test@example.com' });
+      });
     });
 
-    it('should handle a custom query for an index partition with params', async () => {
-      const params = {
-        dynamodbProvider,
+    describe('rangeQueries', () => {
+      it('should handle range query with no params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+        const schema = new SingleTableSchema(params);
 
-        table: 'my-table',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-
-        indexes: {
-          byEmailProvider: {
-            getPartitionKey: ({ email }: { email: string }) => [
-              'USERS_BY_EMAIL_PROVIDER',
-              email.split('@')[1],
-            ],
-
-            getRangeKey: ({ email }: { email: string }) => [email],
-
-            index: 'anotherIndex',
-          },
-        },
-      });
-
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {} as any,
-      });
-
-      const mockResult = Symbol('query-result');
-
-      const query = jest.fn().mockResolvedValue(mockResult);
-
-      (instance as any).methods = {
-        query,
-      };
-
-      const result = await instance.buildMethods().queryIndex.byEmailProvider.custom({
-        email: 'some@gmail.com',
-      });
-
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
-
-        index: 'anotherIndex',
-      });
-
-      expect(result).toBe(mockResult);
-    });
-
-    it('should handle a range query with no params', async () => {
-      const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-
-        indexes: {
-          byEmailProvider: {
-            getPartitionKey: ({ email }: { email: string }) => [
-              'USERS_BY_EMAIL_PROVIDER',
-              email.split('@')[1],
-            ],
-
-            getRangeKey: ({ email }: { email: string }) => [email],
-
-            index: 'anotherIndex',
-
-            rangeQueries: {
-              aToF: {
-                operation: `between`,
-                getValues: () => ({
-                  end: 'f',
-                  start: 'a',
-                }),
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+              rangeQueries: {
+                aToF: {
+                  operation: 'between',
+                  getValues: () => ({
+                    end: 'f',
+                    start: 'a',
+                  }),
+                },
               },
             },
           },
-        },
-      });
+        });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {} as any,
-      });
+        const mockResult = { items: [], paginationToken: '' };
+        const query = jest.fn().mockResolvedValue(mockResult);
+        (instance as any).methods = { query };
 
-      const mockResult = Symbol('query-result');
+        const result = await instance.buildMethods().queryIndex.byEmailProvider.aToF({
+          email: 'some@gmail.com',
+        });
 
-      const query = jest.fn().mockResolvedValue(mockResult);
-
-      (instance as any).methods = {
-        query,
-      };
-
-      const result = await instance.buildMethods().queryIndex.byEmailProvider.aToF({
-        email: 'some@gmail.com',
-      });
-
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
-
-        index: 'anotherIndex',
-
-        range: {
-          operation: 'between',
-          end: 'f',
-          start: 'a',
-        },
-      });
-
-      expect(result).toBe(mockResult);
-    });
-
-    it('should handle a range query with params', async () => {
-      const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
+          index: 'anotherIndex',
+          range: {
+            operation: 'between',
+            end: 'f',
+            start: 'a',
           },
+        });
+        expect(result).toBe(mockResult);
+      });
 
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
+      it('should handle range query with params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
+        const schema = new SingleTableSchema(params);
 
-      const schema = new SingleTableSchema(params);
-
-      const user = schema.createEntity<User>().as({
-        type: 'USER',
-
-        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-        getRangeKey: () => ['#DATA'],
-
-        indexes: {
-          byEmailProvider: {
-            getPartitionKey: ({ email }: { email: string }) => [
-              'USERS_BY_EMAIL_PROVIDER',
-              email.split('@')[1],
-            ],
-
-            getRangeKey: ({ email }: { email: string }) => [email],
-
-            index: 'anotherIndex',
-
-            rangeQueries: {
-              startingWith: {
-                operation: `begins_with`,
-                getValues: ({ prefix }: { prefix: string }) => ({
-                  value: prefix,
-                }),
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+              rangeQueries: {
+                startingWith: {
+                  operation: 'begins_with',
+                  getValues: ({ prefix }: { prefix: string }) => ({
+                    value: prefix,
+                  }),
+                },
               },
             },
           },
-        },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        await instance.buildMethods().queryIndex.byEmailProvider.startingWith({
+          email: 'some@gmail.com',
+          prefix: 'k',
+        });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
+          index: 'anotherIndex',
+          range: {
+            operation: 'begins_with',
+            value: 'k',
+          },
+        });
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      it('should forward query config params in range queries', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-        dynamodbProvider: {} as any,
+        const schema = new SingleTableSchema(params);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+              rangeQueries: {
+                aToF: {
+                  operation: 'between',
+                  getValues: () => ({
+                    end: 'f',
+                    start: 'a',
+                  }),
+                },
+              },
+            },
+          },
+        });
+
+        const instance = new SingleTableFromEntityMethods(user, params);
+
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        await instance.buildMethods().queryIndex.byEmailProvider.aToF({
+          email: 'some@gmail.com',
+          limit: 10,
+          retrieveOrder: 'DESC',
+        });
+
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
+          index: 'anotherIndex',
+          range: {
+            operation: 'between',
+            end: 'f',
+            start: 'a',
+          },
+          limit: 10,
+          retrieveOrder: 'DESC',
+        });
       });
 
-      const mockResult = Symbol('query-result');
+      it('[TYPES] Range query should require range params', async () => {
+        const params = {
+          ...baseParams,
+          dynamodbProvider: {} as any,
+        };
 
-      const query = jest.fn().mockResolvedValue(mockResult);
+        const schema = new SingleTableSchema(params);
 
-      (instance as any).methods = {
-        query,
-      };
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          indexes: {
+            byEmailProvider: {
+              getPartitionKey: ({ email }: { email: string }) => [
+                'USERS_BY_EMAIL_PROVIDER',
+                email.split('@')[1],
+              ],
+              getRangeKey: ({ email }: { email: string }) => [email],
+              index: 'anotherIndex',
+              rangeQueries: {
+                startingWith: {
+                  operation: 'begins_with',
+                  getValues: ({ prefix }: { prefix: string }) => ({
+                    value: prefix,
+                  }),
+                },
+              },
+            },
+          },
+        });
 
-      const result = await instance.buildMethods().queryIndex.byEmailProvider.startingWith({
-        email: 'some@gmail.com',
+        const instance = new SingleTableFromEntityMethods(user, params);
 
-        prefix: 'k',
+        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
+        (instance as any).methods = { query };
+
+        // @ts-expect-error prefix is required
+        await instance.buildMethods().queryIndex.byEmailProvider.startingWith({
+          email: 'test@example.com',
+        });
+
+        // Should work with prefix
+        await instance.buildMethods().queryIndex.byEmailProvider.startingWith({
+          email: 'test@example.com',
+          prefix: 'k',
+        });
       });
-
-      expect(query).toHaveBeenCalled();
-      expect(query).toHaveBeenCalledWith({
-        partition: ['USERS_BY_EMAIL_PROVIDER', 'gmail.com'],
-
-        index: 'anotherIndex',
-
-        range: {
-          operation: 'begins_with',
-          value: 'k',
-        },
-      });
-
-      expect(result).toBe(mockResult);
     });
   });
 });
