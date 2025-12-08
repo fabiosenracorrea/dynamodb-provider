@@ -48,12 +48,12 @@ const baseParams = {
   },
 };
 
-function paramsFor<T extends 'get'>(method: T) {
+function paramsFor<T extends 'get' | 'batchGet'>(method: T, returnValue?: any) {
   return {
     ...baseParams,
 
     dynamodbProvider: {
-      [method]: jest.fn(),
+      [method]: jest.fn().mockResolvedValue(returnValue),
     } as any,
   };
 }
