@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ExtendableSingleTableEntity } from './definitions';
 import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
 import { SingleTableSchema } from './schema';
 
@@ -12,44 +13,67 @@ type User = {
   updatedAt?: string;
 };
 
+const dynamodbProvider = {} as any;
+
+const baseParams = {
+  dynamodbProvider,
+  partitionKey: 'hello',
+  rangeKey: 'key',
+
+  table: 'my-table',
+
+  typeIndex: {
+    name: 'TypeIndexName',
+    partitionKey: '_type',
+    rangeKey: '_ts',
+  },
+
+  expiresAt: '_expires',
+
+  indexes: {
+    someIndex: {
+      partitionKey: '_indexHash1',
+      rangeKey: '_indexRange1',
+    },
+
+    anotherIndex: {
+      partitionKey: '_indexHash2',
+      rangeKey: '_indexRange2',
+    },
+
+    yetAnotherIndex: {
+      partitionKey: '_indexHash3',
+      rangeKey: '_indexRange3',
+    },
+  },
+};
+
+function paramsFor<T extends 'get'>(method: T) {
+  return {
+    ...baseParams,
+
+    dynamodbProvider: {
+      [method]: jest.fn(),
+    } as any,
+  };
+}
+
+function keyFor<T extends ExtendableSingleTableEntity>(
+  entity: T,
+  params: Parameters<T['getKey']>[0],
+) {
+  return {
+    [baseParams.partitionKey]: (entity.getPartitionKey(params) as string[]).join('#'),
+    [baseParams.rangeKey]: (entity.getRangeKey(params) as string[]).join('#'),
+  };
+}
+
 describe('single table - from entity methods', () => {
   describe('get', () => {
-    it('should work with entity key params', async () => {
-      const params = {
-        partitionKey: 'hello',
-        rangeKey: 'key',
+    it('should work with entity partition key params [getter]', async () => {
+      const params = paramsFor('get');
 
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const get = jest.fn();
-
-      const schema = new SingleTableSchema(params);
+      const schema = new SingleTableSchema(baseParams);
 
       const user = schema.createEntity<User>().as({
         type: 'USER',
@@ -59,63 +83,131 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
 
-      await instance.buildMethods().get({
-        id: 'my-id',
-      });
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
 
-      expect(get).toHaveBeenCalled();
-      expect(get).toHaveBeenCalledWith({
-        table: params.table,
+      await instance.buildMethods().get({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
 
         key: {
-          [params.partitionKey]: ['USER', 'my-id'].join('#'),
-          [params.rangeKey]: '#DATA',
+          [baseParams.partitionKey]: ['USER', 'my-id'].join('#'),
+          [baseParams.rangeKey]: '#DATA',
         },
       });
     });
 
-    it('should work with entity with no key params', async () => {
-      const params = {
-        partitionKey: 'hello',
-        rangeKey: 'key',
+    it('should work with entity partition key params [key array]', async () => {
+      const params = paramsFor('get');
 
-        table: 'my-table',
+      const schema = new SingleTableSchema(baseParams);
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
+
+      await instance.buildMethods().get({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: ['USER', 'my-id'].join('#'),
+          [baseParams.rangeKey]: '#DATA',
         },
+      });
+    });
 
-        expiresAt: '_expires',
+    it('should work with entity range key params [getter]', async () => {
+      const params = paramsFor('get');
 
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
+      const schema = new SingleTableSchema(baseParams);
 
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
 
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
+        getPartitionKey: () => ['USERS'],
+
+        getRangeKey: ({ id }: Pick<User, 'id'>) => [id],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
+
+      await instance.buildMethods().get({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USERS',
+          [baseParams.rangeKey]: 'my-id',
         },
-      };
+      });
+    });
 
-      const get = jest.fn();
+    it('should work with entity range key params [key array]', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(baseParams);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USERS'],
+
+        getRangeKey: ['.id'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().get();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().get({});
+
+      await instance.buildMethods().get({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USERS',
+          [baseParams.rangeKey]: 'my-id',
+        },
+      });
+    });
+
+    it('should work with entity with no key params [getter]', async () => {
+      const params = paramsFor('get');
 
       const schema = new SingleTableSchema(params);
 
@@ -127,61 +219,228 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
+      const instance = new SingleTableFromEntityMethods(user, params);
 
       await instance.buildMethods().get();
 
-      expect(get).toHaveBeenCalled();
-      expect(get).toHaveBeenCalledWith({
-        table: params.table,
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
 
         key: {
-          [params.partitionKey]: 'USER',
-          [params.rangeKey]: '#DATA',
+          [baseParams.partitionKey]: 'USER',
+          [baseParams.rangeKey]: '#DATA',
         },
       });
     });
 
-    it('should forward config parmas', async () => {
-      const params = {
-        partitionKey: 'hello',
-        rangeKey: 'key',
+    it('should work with entity with no key params [key array]', async () => {
+      const params = paramsFor('get');
 
-        table: 'my-table',
+      const schema = new SingleTableSchema(params);
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER'],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().get();
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USER',
+          [baseParams.rangeKey]: '#DATA',
         },
+      });
+    });
 
-        expiresAt: '_expires',
+    it('should work with entity with both key params [getter]', async () => {
+      const params = paramsFor('get');
 
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
+      const schema = new SingleTableSchema(params);
 
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
 
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
+        getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+
+        getRangeKey: ({ name }: Pick<User, 'name'>) => [name],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().get({ id, name });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: keyFor(user, { id, name }),
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().get();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().get({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().get({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().get({ id });
+    });
+
+    it('should work with entity with both key params [key array]', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ['.name'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().get({ id, name });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
         },
-      };
+      });
 
-      const get = jest.fn();
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().get();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().get({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().get({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().get({ id });
+    });
+
+    it('should work with mixed key params [getter + key array]', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+
+        getRangeKey: ['.name'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().get({ id, name });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().get();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().get({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().get({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().get({ id });
+    });
+
+    it('should work with mixed key params [key array + getter]', async () => {
+      const params = paramsFor('get');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ({ name }: Pick<User, 'name'>) => [name],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().get({ id, name });
+
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().get();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().get({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().get({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().get({ id });
+    });
+
+    it('should forward config params', async () => {
+      const params = paramsFor('get');
 
       const schema = new SingleTableSchema(params);
 
@@ -190,16 +449,10 @@ describe('single table - from entity methods', () => {
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
-        getRangeKey: () => ['#DATA'],
+        getRangeKey: ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
-
-        dynamodbProvider: {
-          get,
-        } as any,
-      });
+      const instance = new SingleTableFromEntityMethods(user, params);
 
       await instance.buildMethods().get({
         id: 'my-id',
@@ -208,13 +461,13 @@ describe('single table - from entity methods', () => {
         propertiesToRetrieve: ['name'],
       });
 
-      expect(get).toHaveBeenCalled();
-      expect(get).toHaveBeenCalledWith({
+      expect(params.dynamodbProvider.get).toHaveBeenCalled();
+      expect(params.dynamodbProvider.get).toHaveBeenCalledWith({
         table: params.table,
 
         key: {
-          [params.partitionKey]: ['USER', 'my-id'].join('#'),
-          [params.rangeKey]: '#DATA',
+          [params.partitionKey]: user.getPartitionKey({ id: 'my-id' }).join('#'),
+          [params.rangeKey]: user.getRangeKey().join('#'),
         },
 
         consistentRead: true,
@@ -226,6 +479,8 @@ describe('single table - from entity methods', () => {
   describe('batch-get', () => {
     it('should properly get keys converted', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -297,6 +552,8 @@ describe('single table - from entity methods', () => {
 
     it('should forward config params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -380,6 +637,8 @@ describe('single table - from entity methods', () => {
   describe('delete', () => {
     it('should work with entity key params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -448,6 +707,8 @@ describe('single table - from entity methods', () => {
 
     it('should forward config params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -525,6 +786,8 @@ describe('single table - from entity methods', () => {
       // This fn is tested isolated, so we just need to tes that is the source of the params
 
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -609,6 +872,8 @@ describe('single table - from entity methods', () => {
       // This fn is tested isolated, so we just need to tes that is the source of the params
 
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -700,6 +965,8 @@ describe('single table - from entity methods', () => {
       // This fn is tested isolated, so we just need to tes that is the source of the params
 
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -776,6 +1043,8 @@ describe('single table - from entity methods', () => {
   describe('listing methods', () => {
     it('should not exist if no type-index is defined', () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -806,6 +1075,8 @@ describe('single table - from entity methods', () => {
 
     it('listAll - should simply call listAllFromType from adaptor', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -851,6 +1122,8 @@ describe('single table - from entity methods', () => {
 
     it('list - should simply call listType from adaptor', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -902,6 +1175,8 @@ describe('single table - from entity methods', () => {
 
     it('list - should properly forward configs', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -966,6 +1241,8 @@ describe('single table - from entity methods', () => {
   describe('query methods', () => {
     it('should have a custom query', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1010,6 +1287,8 @@ describe('single table - from entity methods', () => {
 
     it('should forward custom query params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1074,6 +1353,8 @@ describe('single table - from entity methods', () => {
 
     it('should have a query constructed from rangeQueries', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1136,6 +1417,8 @@ describe('single table - from entity methods', () => {
 
     it('should properly build range with params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1202,6 +1485,8 @@ describe('single table - from entity methods', () => {
   describe('query index methods', () => {
     it('should not exist if no index config is present', () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1231,6 +1516,8 @@ describe('single table - from entity methods', () => {
 
     it('should have a custom query on each index', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1321,6 +1608,8 @@ describe('single table - from entity methods', () => {
 
     it('should handle a custom query for an index partition with params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1397,6 +1686,8 @@ describe('single table - from entity methods', () => {
 
     it('should handle a range query with no params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
@@ -1489,6 +1780,8 @@ describe('single table - from entity methods', () => {
 
     it('should handle a range query with params', async () => {
       const params = {
+        dynamodbProvider,
+
         partitionKey: 'hello',
         rangeKey: 'key',
 
