@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Expect, Equal } from 'types';
+import type { Expect, Equal, PrettifyObject } from 'types';
 
 import type { ExtendableSingleTableEntity } from './definitions';
 import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
@@ -50,7 +50,10 @@ const baseParams = {
   },
 };
 
-function paramsFor<T extends 'get' | 'batchGet' | 'delete'>(method: T, returnValue?: any) {
+function paramsFor<T extends 'get' | 'batchGet' | 'delete' | 'create'>(
+  method: T,
+  returnValue?: any,
+) {
   return {
     ...baseParams,
 
@@ -1492,45 +1495,10 @@ describe('single table - from entity methods', () => {
   });
 
   // Here we intercept the calls to verify just the missing part of the flow is working
+  // getCreationParams is tested in isolation in definitions/entity/crud.spec.ts
   describe('create', () => {
-    it('should user entity getCreationParams fn', async () => {
-      // This fn is tested isolated, so we just need to tes that is the source of the params
-
-      const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const create = jest.fn();
+    it("should use entity's getCreationParams fn", async () => {
+      const params = paramsFor('create');
 
       const schema = new SingleTableSchema(params);
 
@@ -1542,20 +1510,13 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {
-          create,
-        } as any,
-      });
-
-      (instance as any).methods = {
-        create,
-      };
+      const create = jest.fn();
+      (instance as any).methods = { create };
 
       const getCreationParams = jest.fn().mockReturnValue({
-        item: 'here!',
+        item: 'mocked-result',
       });
 
       user.getCreationParams = getCreationParams;
@@ -1571,52 +1532,17 @@ describe('single table - from entity methods', () => {
 
       await instance.buildMethods().create(createUser);
 
-      expect(getCreationParams).toHaveBeenCalled();
-      expect(getCreationParams).toHaveBeenCalledWith(createUser);
-      expect(create).toHaveBeenCalled();
+      expect(getCreationParams).toHaveBeenCalledTimes(1);
+      expect(getCreationParams).toHaveBeenCalledWith(createUser, undefined);
+
+      expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith({
-        item: 'here!',
+        item: 'mocked-result',
       });
     });
 
-    it('should forward second param for getCreationParams', async () => {
-      // This fn is tested isolated, so we just need to tes that is the source of the params
-
-      const params = {
-        dynamodbProvider,
-
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const create = jest.fn();
+    it('should forward second param (expiresAt) to getCreationParams', async () => {
+      const params = paramsFor('create');
 
       const schema = new SingleTableSchema(params);
 
@@ -1628,18 +1554,13 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {} as any,
-      });
-
-      (instance as any).methods = {
-        create,
-      };
+      const create = jest.fn();
+      (instance as any).methods = { create };
 
       const getCreationParams = jest.fn().mockReturnValue({
-        item: 'here!',
+        item: 'mocked-result',
       });
 
       user.getCreationParams = getCreationParams;
@@ -1653,20 +1574,150 @@ describe('single table - from entity methods', () => {
         name: 'name',
       };
 
-      await instance.buildMethods().create(createUser, {
-        expiresAt: 20234394,
-      });
+      const configSymbol = Symbol('config-untouched') as any;
 
-      expect(getCreationParams).toHaveBeenCalled();
-      expect(getCreationParams).toHaveBeenCalledWith(createUser, {
-        expiresAt: 20234394,
-      });
+      await instance.buildMethods().create(createUser, configSymbol);
 
-      expect(create).toHaveBeenCalled();
+      expect(getCreationParams).toHaveBeenCalledTimes(1);
+      expect(getCreationParams).toHaveBeenCalledWith(createUser, configSymbol);
 
+      expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith({
-        item: 'here!',
+        item: 'mocked-result',
       });
+    });
+
+    it('[TYPES] Input type should be Entity', async () => {
+      const params = paramsFor('create');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const createFn = instance.buildMethods().create;
+
+      type Input1 = PrettifyObject<Parameters<typeof createFn>[0]>;
+
+      type _R = Expect<Equal<Input1, User>>;
+    });
+
+    it('[TYPES] Return type should be Entity', async () => {
+      const params = paramsFor('create');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const result = await instance.buildMethods().create({
+        address: 'add',
+        createdAt: 'created',
+        dob: 'dob',
+        email: 'email',
+        id: 'id',
+        name: 'name',
+      });
+
+      type _R = Expect<Equal<typeof result, User>>;
+    });
+
+    it('[TYPES] Extend: Return type should be (Entity & extend) if _extend_ is provided', async () => {
+      const params = paramsFor('create');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+
+        getRangeKey: ['#DATA'],
+
+        extend: () => ({
+          newProperty: 10,
+        }),
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const createUser: User = {
+        address: 'add',
+        createdAt: 'created',
+        dob: 'dob',
+        email: 'email',
+        id: 'id',
+        name: 'name',
+      };
+
+      const result = await instance.buildMethods().create(createUser);
+
+      interface NewUser567 extends User {
+        newProperty: number;
+      }
+
+      // @ts-expect-error User is not enough
+      type _R = Expect<Equal<typeof result, User>>;
+
+      type _R2 = Expect<Equal<typeof result, NewUser567>>;
+    });
+
+    it('[TYPES] expiresAt parameter should only be available when table has expiresAt configured', async () => {
+      const paramsWithExpires = paramsFor('create');
+
+      const schema = new SingleTableSchema(paramsWithExpires);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, paramsWithExpires);
+
+      const createUser: User = {
+        address: 'add',
+        createdAt: 'created',
+        dob: 'dob',
+        email: 'email',
+        id: 'id',
+        name: 'name',
+      };
+
+      // Should work with expiresAt when table has it configured
+      instance.buildMethods().create(createUser, { expiresAt: 123456 });
+
+      const { expiresAt: _, ...paramsWithoutExpires } = paramsWithExpires;
+
+      const schemaNoExpires = new SingleTableSchema(paramsWithoutExpires);
+
+      const userNoExpires = schemaNoExpires.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['#DATA'],
+      });
+
+      const instanceNoExpires = new SingleTableFromEntityMethods(
+        userNoExpires,
+        paramsWithoutExpires,
+      );
+
+      // @ts-expect-error expiresAt should not be available when table doesn't have it configured
+      instanceNoExpires.buildMethods().create(createUser, { expiresAt: 123456 });
     });
   });
 
