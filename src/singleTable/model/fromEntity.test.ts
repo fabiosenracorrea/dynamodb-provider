@@ -50,7 +50,7 @@ const baseParams = {
   },
 };
 
-function paramsFor<T extends 'get' | 'batchGet'>(method: T, returnValue?: any) {
+function paramsFor<T extends 'get' | 'batchGet' | 'delete'>(method: T, returnValue?: any) {
   return {
     ...baseParams,
 
@@ -1077,44 +1077,10 @@ describe('single table - from entity methods', () => {
   });
 
   describe('delete', () => {
-    it('should work with entity key params', async () => {
-      const params = {
-        dynamodbProvider,
+    it('should work with entity partition key params [getter]', async () => {
+      const params = paramsFor('delete');
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      };
-
-      const deleteMock = jest.fn();
-
-      const schema = new SingleTableSchema(params);
+      const schema = new SingleTableSchema(baseParams);
 
       const user = schema.createEntity<User>().as({
         type: 'USER',
@@ -1124,65 +1090,372 @@ describe('single table - from entity methods', () => {
         getRangeKey: () => ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {
-          delete: deleteMock,
-        } as any,
-      });
+      await instance.buildMethods().delete({ id: 'my-id' });
 
-      await instance.buildMethods().delete({
-        id: 'my-id',
-      });
-
-      expect(deleteMock).toHaveBeenCalled();
-      expect(deleteMock).toHaveBeenCalledWith({
-        table: params.table,
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
 
         key: {
-          [params.partitionKey]: ['USER', 'my-id'].join('#'),
-          [params.rangeKey]: '#DATA',
+          [baseParams.partitionKey]: ['USER', 'my-id'].join('#'),
+          [baseParams.rangeKey]: '#DATA',
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().delete();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().delete({});
+    });
+
+    it('should work with entity partition key params [key array]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(baseParams);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().delete({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: ['USER', 'my-id'].join('#'),
+          [baseParams.rangeKey]: '#DATA',
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().delete();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().delete({});
+    });
+
+    it('should work with entity range key params [getter]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(baseParams);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: () => ['USERS'],
+
+        getRangeKey: ({ id }: Pick<User, 'id'>) => [id],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().delete({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USERS',
+          [baseParams.rangeKey]: 'my-id',
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().delete();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().delete({});
+    });
+
+    it('should work with entity range key params [key array]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(baseParams);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USERS'],
+
+        getRangeKey: ['.id'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().delete({ id: 'my-id' });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USERS',
+          [baseParams.rangeKey]: 'my-id',
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error we have key params
+      instance.buildMethods().delete();
+
+      // @ts-expect-error id is required
+      instance.buildMethods().delete({});
+    });
+
+    it('should work with entity with no key params [getter]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: () => ['USER'],
+
+        getRangeKey: () => ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().delete();
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USER',
+          [baseParams.rangeKey]: '#DATA',
         },
       });
     });
 
-    it('should forward config params', async () => {
-      const params = {
-        dynamodbProvider,
+    it('should work with entity with no key params [key array]', async () => {
+      const params = paramsFor('delete');
 
-        partitionKey: 'hello',
-        rangeKey: 'key',
+      const schema = new SingleTableSchema(params);
 
-        table: 'my-table',
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
 
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
+        getPartitionKey: ['USER'],
+
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      await instance.buildMethods().delete();
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: 'USER',
+          [baseParams.rangeKey]: '#DATA',
         },
+      });
+    });
 
-        expiresAt: '_expires',
+    it('should work with entity with both key params [getter]', async () => {
+      const params = paramsFor('delete');
 
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
+      const schema = new SingleTableSchema(params);
 
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
 
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
+        getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+
+        getRangeKey: ({ name }: Pick<User, 'name'>) => [name],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().delete({ id, name });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: keyFor(user, { id, name }),
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().delete();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().delete({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().delete({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().delete({ id });
+    });
+
+    it('should work with entity with both key params [key array]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ['.name'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().delete({ id, name });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
         },
-      };
+      });
 
-      const deleteMock = jest.fn();
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().delete();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().delete({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().delete({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().delete({ id });
+    });
+
+    it('should work with mixed key params [getter + key array]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+
+        getRangeKey: ['.name'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().delete({ id, name });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().delete();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().delete({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().delete({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().delete({ id });
+    });
+
+    it('should work with mixed key params [key array + getter]', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+
+        getPartitionKey: ['USER', '.id'],
+
+        getRangeKey: ({ name }: Pick<User, 'name'>) => [name],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      const id = 'my-id';
+      const name = 'my-name';
+
+      await instance.buildMethods().delete({ id, name });
+
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
+        table: baseParams.table,
+
+        key: {
+          [baseParams.partitionKey]: user.getPartitionKey({ id }).join('#'),
+          [baseParams.rangeKey]: user.getRangeKey({ name }).join('#'),
+        },
+      });
+
+      // --- TYPES --
+
+      // @ts-expect-error params should be required
+      await instance.buildMethods().delete();
+
+      // @ts-expect-error id,name should be required
+      await instance.buildMethods().delete({});
+
+      // @ts-expect-error id should be required
+      await instance.buildMethods().delete({ name });
+
+      // @ts-expect-error name should be required
+      await instance.buildMethods().delete({ id });
+    });
+
+    it('should forward config params (conditions)', async () => {
+      const params = paramsFor('delete');
 
       const schema = new SingleTableSchema(params);
 
@@ -1191,33 +1464,29 @@ describe('single table - from entity methods', () => {
 
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
-        getRangeKey: () => ['#DATA'],
+        getRangeKey: ['#DATA'],
       });
 
-      const instance = new SingleTableFromEntityMethods(user, {
-        ...params,
+      const instance = new SingleTableFromEntityMethods(user, params);
 
-        dynamodbProvider: {
-          delete: deleteMock,
-        } as any,
-      });
+      const conditionsSymbol = Symbol('conditions-untouched') as any;
 
       await instance.buildMethods().delete({
         id: 'my-id',
 
-        conditions: ['BAD_COD'] as any,
+        conditions: conditionsSymbol,
       });
 
-      expect(deleteMock).toHaveBeenCalled();
-      expect(deleteMock).toHaveBeenCalledWith({
+      expect(params.dynamodbProvider.delete).toHaveBeenCalled();
+      expect(params.dynamodbProvider.delete).toHaveBeenCalledWith({
         table: params.table,
 
         key: {
-          [params.partitionKey]: ['USER', 'my-id'].join('#'),
-          [params.rangeKey]: '#DATA',
+          [params.partitionKey]: user.getPartitionKey({ id: 'my-id' }).join('#'),
+          [params.rangeKey]: user.getRangeKey().join('#'),
         },
 
-        conditions: ['BAD_COD'] as any,
+        conditions: conditionsSymbol,
       });
     });
   });
