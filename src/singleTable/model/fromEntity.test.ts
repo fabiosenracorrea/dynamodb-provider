@@ -1492,6 +1492,31 @@ describe('single table - from entity methods', () => {
         conditions: conditionsSymbol,
       });
     });
+
+    it('[TYPES] conditions should ensure existing prop references', async () => {
+      const params = paramsFor('delete');
+
+      const schema = new SingleTableSchema(params);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['#DATA'],
+      });
+
+      const instance = new SingleTableFromEntityMethods(user, params);
+
+      instance.buildMethods().delete({
+        id: 'my-id',
+
+        conditions: [
+          { property: 'address', operation: 'begins_with', value: 1 },
+
+          // @ts-expect-error no non-existing property reference
+          { property: 'INVALID', operation: 'begins_with', value: 1 },
+        ],
+      });
+    });
   });
 
   // Here we intercept the calls to verify just the missing part of the flow is working
