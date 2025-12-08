@@ -4,7 +4,6 @@
 
 - [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
 - *Feature*: Direct `collection` creation from `partition.collection()`
-
 - *Feature*: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
 
 ```ts
