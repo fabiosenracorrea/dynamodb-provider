@@ -1498,7 +1498,7 @@ describe('single table - from entity methods', () => {
   // getCreationParams is tested in isolation in definitions/entity/crud.spec.ts
   describe('create', () => {
     it("should use entity's getCreationParams fn", async () => {
-      const params = paramsFor('create');
+      const params = paramsFor('create', {});
 
       const schema = new SingleTableSchema(params);
 
@@ -1533,7 +1533,7 @@ describe('single table - from entity methods', () => {
       await instance.buildMethods().create(createUser);
 
       expect(getCreationParams).toHaveBeenCalledTimes(1);
-      expect(getCreationParams).toHaveBeenCalledWith(createUser, undefined);
+      expect(getCreationParams).toHaveBeenCalledWith(createUser);
 
       expect(create).toHaveBeenCalledTimes(1);
       expect(create).toHaveBeenCalledWith({
@@ -1542,7 +1542,7 @@ describe('single table - from entity methods', () => {
     });
 
     it('should forward second param (expiresAt) to getCreationParams', async () => {
-      const params = paramsFor('create');
+      const params = paramsFor('create', {});
 
       const schema = new SingleTableSchema(params);
 
@@ -1588,7 +1588,7 @@ describe('single table - from entity methods', () => {
     });
 
     it('[TYPES] Input type should be Entity', async () => {
-      const params = paramsFor('create');
+      const params = paramsFor('create', {});
 
       const schema = new SingleTableSchema(params);
 
@@ -1610,7 +1610,7 @@ describe('single table - from entity methods', () => {
     });
 
     it('[TYPES] Return type should be Entity', async () => {
-      const params = paramsFor('create');
+      const params = paramsFor('create', {});
 
       const schema = new SingleTableSchema(params);
 
@@ -1637,7 +1637,7 @@ describe('single table - from entity methods', () => {
     });
 
     it('[TYPES] Extend: Return type should be (Entity & extend) if _extend_ is provided', async () => {
-      const params = paramsFor('create');
+      const params = paramsFor('create', {});
 
       const schema = new SingleTableSchema(params);
 
@@ -1677,7 +1677,7 @@ describe('single table - from entity methods', () => {
     });
 
     it('[TYPES] expiresAt parameter should only be available when table has expiresAt configured', async () => {
-      const paramsWithExpires = paramsFor('create');
+      const paramsWithExpires = paramsFor('create', {});
 
       const schema = new SingleTableSchema(paramsWithExpires);
 
