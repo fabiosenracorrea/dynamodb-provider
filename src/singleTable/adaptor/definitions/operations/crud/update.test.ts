@@ -6,7 +6,7 @@ describe('single table adaptor - update', () => {
   // This tests guards the update method to be a simple proxy of db.update+updater.getParams
   // all the required logic to ensure its working is withing the param getter tests
   describe('updater', () => {
-    it('should simply build the params and pass in to db provider method', async () => {
+    it('should not return if _returnUpdatedProperties_ is not specified', async () => {
       const result = { value: 'Fake result to ensure db provider return is returned' };
 
       const updateMock = jest.fn().mockResolvedValue(result);
@@ -60,7 +60,67 @@ describe('single table adaptor - update', () => {
       expect(updateMock).toHaveBeenCalled();
       expect(updateMock).toHaveBeenCalledWith(builtParams);
 
-      expect(updateResult).toBe(result);
+      expect(updateResult).toBe(undefined);
+    });
+
+    it('should return if _returnUpdatedProperties_ is  specified', async () => {
+      const result = { value: 'Fake result to ensure db provider return is returned' };
+
+      const updateMock = jest.fn().mockResolvedValue(result);
+
+      const updater = new SingleTableUpdater({
+        db: {
+          update: updateMock,
+        } as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        },
+      });
+
+      const builtParams = {
+        value: 'simply fake params to ensure its whats gets passed',
+      };
+
+      const paramGetter = jest.fn().mockReturnValue(builtParams);
+
+      updater.getUpdateParams = paramGetter;
+
+      const updateResult = await updater.update({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+
+        returnUpdatedProperties: true,
+      });
+
+      expect(paramGetter).toHaveBeenCalled();
+      expect(paramGetter).toHaveBeenCalledWith({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+        returnUpdatedProperties: true,
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+      });
+
+      expect(updateMock).toHaveBeenCalled();
+      expect(updateMock).toHaveBeenCalledWith(builtParams);
+
+      expect(updateResult).toEqual(result);
     });
   });
 
@@ -343,7 +403,7 @@ describe('single table adaptor - update', () => {
           });
         };
 
-        const onAtomic = (): void => {
+        const onAtomic = () => {
           updater.getUpdateParams({
             partitionKey: 'some',
             rangeKey: 'sommeee',
@@ -351,7 +411,7 @@ describe('single table adaptor - update', () => {
             atomicOperations: [
               {
                 property: badProp,
-                operation: 'add',
+                type: 'add' as const,
                 value: 1,
               },
             ],
@@ -420,7 +480,7 @@ describe('single table adaptor - update', () => {
             atomicOperations: [
               {
                 property: okProp,
-                operation: 'add',
+                type: 'add',
                 value: 1,
               },
             ],
@@ -461,7 +521,7 @@ describe('single table adaptor - update', () => {
             atomicOperations: [
               {
                 property: badProp,
-                operation: 'add',
+                type: 'add',
                 value: 1,
               },
             ],
