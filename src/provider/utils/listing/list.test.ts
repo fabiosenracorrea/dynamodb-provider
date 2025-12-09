@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Equal, Expect } from 'types';
 import { getFilterParams } from '../filters';
 import { toPaginationToken } from '../pagination';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
@@ -426,6 +427,94 @@ describe('Lister', () => {
         TableName: 'table',
 
         ExclusiveStartKey: fakeLastKey,
+      });
+    });
+
+    it('[TYPES] Should return {items, paginationToken?}', async () => {
+      const fakeLastKey = {
+        id: '11',
+        name: 'fa',
+      };
+
+      const lister = new ItemLister({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            scan: jest.fn().mockReturnValue({
+              promise: jest.fn().mockResolvedValue({}),
+            }),
+          } as any,
+        },
+      });
+
+      type User = {
+        name: string;
+        id: string;
+      };
+
+      const result = await lister.list<User>('table', {
+        paginationToken: toPaginationToken(fakeLastKey),
+      });
+
+      type _R = Expect<Equal<typeof result, { paginationToken?: string; items: User[] }>>;
+    });
+
+    it('[TYPES] propertiesToRetrieve should narrow to type param', async () => {
+      const lister = new ItemLister({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            scan: jest.fn().mockReturnValue({
+              promise: jest.fn().mockResolvedValue({}),
+            }),
+          } as any,
+        },
+      });
+
+      type User = {
+        name: string;
+        id: string;
+      };
+
+      lister.list<User>('table', {
+        propertiesToRetrieve: ['id', 'name'],
+      });
+
+      lister.list<User>('table', {
+        // @ts-expect-error no invalid properties referenced
+        propertiesToRetrieve: ['bad_prop'],
+      });
+    });
+
+    it('[TYPES] filter should narrow to type param', async () => {
+      const lister = new ItemLister({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            scan: jest.fn().mockReturnValue({
+              promise: jest.fn().mockResolvedValue({}),
+            }),
+          } as any,
+        },
+      });
+
+      type User = {
+        name: string;
+        id: string;
+      };
+
+      lister.list<User>('table', {
+        filters: {
+          id: '1',
+          name: ['abel', 'carlo'],
+        },
+      });
+
+      lister.list<User>('table', {
+        filters: {
+          // @ts-expect-error no invalid properties referenced
+          _bad: '1',
+        },
       });
     });
   });
