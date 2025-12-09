@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from 'crypto';
 
+import { Equal, Expect, FirstParameter } from 'types';
 import { SingleTableSchema } from './schema';
 
 jest.mock('crypto');
@@ -78,6 +79,10 @@ describe('single table schema tests', () => {
         partitionKey: ['USER', 'my-id'],
         rangeKey: ['#DATA'],
       });
+
+      // -- TYPES --
+
+      type Tests = [Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>];
     });
 
     it('should not allow 2 entities with the same type', () => {
