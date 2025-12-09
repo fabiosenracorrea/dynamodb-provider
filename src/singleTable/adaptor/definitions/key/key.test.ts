@@ -44,7 +44,6 @@ describe('single table key helpers', () => {
           partitionKey: '_pk',
           rangeKey: '_sk',
           table: 'some_table',
-          typeIndex: {} as any,
         },
       );
 
@@ -54,7 +53,46 @@ describe('single table key helpers', () => {
       });
     });
 
-    it('should handle array references with default joiner #', () => {
+    it('[partition] should handle array references with default joiner #', () => {
+      const key = getPrimaryKey(
+        {
+          partitionKey: ['0', 'some-id-99'],
+          rangeKey: 'USER',
+        },
+        {
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          table: 'some_table',
+        },
+      );
+
+      expect(key).toStrictEqual({
+        _sk: 'USER',
+        _pk: '0#some-id-99',
+      });
+    });
+
+    it('[partition] should handle array references with custom joiner', () => {
+      const key = getPrimaryKey(
+        {
+          rangeKey: 'USER',
+          partitionKey: ['0', 'some-id-99'],
+        },
+        {
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          table: 'some_table',
+          keySeparator: '@',
+        },
+      );
+
+      expect(key).toStrictEqual({
+        _sk: 'USER',
+        _pk: '0@some-id-99',
+      });
+    });
+
+    it('[range] should handle array references with default joiner #', () => {
       const key = getPrimaryKey(
         {
           partitionKey: 'USER',
@@ -64,7 +102,6 @@ describe('single table key helpers', () => {
           partitionKey: '_pk',
           rangeKey: '_sk',
           table: 'some_table',
-          typeIndex: {} as any,
         },
       );
 
@@ -74,7 +111,7 @@ describe('single table key helpers', () => {
       });
     });
 
-    it('should handle array references with custom joiner', () => {
+    it('[range] should handle array references with custom joiner', () => {
       const key = getPrimaryKey(
         {
           partitionKey: 'USER',
