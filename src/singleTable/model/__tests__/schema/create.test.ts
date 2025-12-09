@@ -39,12 +39,28 @@ describe('single table schema - entity - key definitions', () => {
     type ExpectedKey = { id: string };
 
     type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
         Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
     ];
   });
