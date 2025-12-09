@@ -6,60 +6,61 @@ import { SingleTableSchema } from './schema';
 
 jest.mock('crypto');
 
+const config = {
+  dynamodbProvider: {} as any,
+  partitionKey: 'hello',
+  rangeKey: 'key',
+
+  table: 'my-table',
+
+  typeIndex: {
+    name: 'TypeIndexName',
+    partitionKey: '_type',
+    rangeKey: '_ts',
+  },
+
+  expiresAt: '_expires',
+
+  indexes: {
+    someIndex: {
+      partitionKey: '_indexHash1',
+      rangeKey: '_indexRange1',
+    },
+
+    anotherIndex: {
+      partitionKey: '_indexHash2',
+      rangeKey: '_indexRange2',
+    },
+
+    yetAnotherIndex: {
+      partitionKey: '_indexHash3',
+      rangeKey: '_indexRange3',
+    },
+  },
+};
+
+interface User {
+  name: string;
+  id: string;
+  email: string;
+  address: string;
+  dob: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 describe('single table schema tests', () => {
   afterAll(() => {
     jest.clearAllMocks();
   });
 
   describe('create entity tests', () => {
-    it('should create a simple entity', () => {
-      const schema = new SingleTableSchema({
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      });
-
-      type User = {
-        name: string;
-        id: string;
-        email: string;
-        address: string;
-        dob: string;
-        createdAt: string;
-        updatedAt?: string;
-      };
+    it('should create a simple entity [getter param + getter no params]', () => {
+      const schema = new SingleTableSchema(config);
 
       const user = schema.createEntity<User>().as({
         type: 'USER',
-
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
         getRangeKey: () => ['#DATA'],
       });
 
@@ -80,62 +81,18 @@ describe('single table schema tests', () => {
     });
 
     it('should not allow 2 entities with the same type', () => {
-      const schema = new SingleTableSchema({
-        partitionKey: 'hello',
-        rangeKey: 'key',
-
-        table: 'my-table',
-
-        typeIndex: {
-          name: 'TypeIndexName',
-          partitionKey: '_type',
-          rangeKey: '_ts',
-        },
-
-        expiresAt: '_expires',
-
-        indexes: {
-          someIndex: {
-            partitionKey: '_indexHash1',
-            rangeKey: '_indexRange1',
-          },
-
-          anotherIndex: {
-            partitionKey: '_indexHash2',
-            rangeKey: '_indexRange2',
-          },
-
-          yetAnotherIndex: {
-            partitionKey: '_indexHash3',
-            rangeKey: '_indexRange3',
-          },
-        },
-      });
-
-      type User = {
-        name: string;
-        id: string;
-        email: string;
-        address: string;
-        dob: string;
-        createdAt: string;
-        updatedAt?: string;
-      };
+      const schema = new SingleTableSchema(config);
 
       const doubleCreation = () => {
         schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER1', id],
-
           getRangeKey: () => ['#DATA'],
         });
 
         schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER2', id],
-
           getRangeKey: () => ['#DATA'],
         });
       };
@@ -145,142 +102,77 @@ describe('single table schema tests', () => {
 
     describe('entity type', () => {
       it('creation: should add the type property if type-index present', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
         });
 
-        const params = user.getCreationParams({
+        const createParams = {
           id: 'id',
           address: 'address',
           createdAt: 'now',
           dob: '1970',
           email: 'test@email.com',
           name: 'User',
-        });
+        };
+
+        const params = user.getCreationParams(createParams);
 
         expect(params.type).toBe('USER');
 
-        expect(params.item).toStrictEqual({
-          id: 'id',
-          address: 'address',
-          createdAt: 'now',
-          dob: '1970',
-          email: 'test@email.com',
-          name: 'User',
-        });
+        expect(params.item).toStrictEqual(createParams);
       });
 
       it('creation: should not add the type property if type-index not present', () => {
         const schema = new SingleTableSchema({
+          dynamodbProvider: {} as any,
           partitionKey: 'hello',
           rangeKey: 'key',
-
           table: 'my-table',
         });
 
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
-
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
         });
 
-        const params = user.getCreationParams({
+        const createAs = {
           id: 'id',
           address: 'address',
           createdAt: 'now',
           dob: '1970',
           email: 'test@email.com',
           name: 'User',
-        });
+        };
+
+        const params = user.getCreationParams(createAs);
 
         expect((params as any).type).toBe(undefined);
 
-        expect(params.item).toStrictEqual({
-          id: 'id',
-          address: 'address',
-          createdAt: 'now',
-          dob: '1970',
-          email: 'test@email.com',
-          name: 'User',
-        });
+        expect(params.item).toStrictEqual(createAs);
       });
     });
 
     describe('auto-gen', () => {
       it('creation: should auto-gen specified fields', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
+        const schema = new SingleTableSchema(config);
 
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
+        interface User123 extends User {
           hash: string;
-        };
+        }
 
         const mockTimestamp = '2024-01-01T00:00:00.000Z';
 
         jest.useFakeTimers().setSystemTime(new Date(mockTimestamp));
         (randomUUID as jest.Mock).mockReturnValue('mocked-uuid');
 
-        const user = schema.createEntity<User>().as({
+        const user = schema.createEntity<User123>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
 
           autoGen: {
@@ -292,18 +184,17 @@ describe('single table schema tests', () => {
           },
         });
 
-        const params = user.getCreationParams({
+        const creationParams = {
           address: 'address',
           dob: '1970',
           email: 'test@email.com',
           name: 'User',
-        });
+        };
+
+        const params = user.getCreationParams(creationParams);
 
         expect(params.item).toStrictEqual({
-          address: 'address',
-          dob: '1970',
-          email: 'test@email.com',
-          name: 'User',
+          ...creationParams,
 
           createdAt: mockTimestamp,
           id: 'mocked-uuid',
@@ -314,29 +205,7 @@ describe('single table schema tests', () => {
       });
 
       it('update: should auto-gen specified fields', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-          hash: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const mockTimestamp = '2024-01-01T00:00:00.000Z';
 
@@ -375,34 +244,11 @@ describe('single table schema tests', () => {
 
     describe('range-queries', () => {
       it('should handle a non-param query', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
 
           rangeQueries: {
@@ -422,28 +268,7 @@ describe('single table schema tests', () => {
       });
 
       it('should handle a param query', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -476,34 +301,11 @@ describe('single table schema tests', () => {
       });
 
       it('should handle a *default* between param query', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
 
           rangeQueries: {
@@ -526,28 +328,7 @@ describe('single table schema tests', () => {
       });
 
       it('should handle a *default* value param query', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -576,47 +357,7 @@ describe('single table schema tests', () => {
 
     describe('indexes', () => {
       it('should properly handle index base props', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -651,47 +392,7 @@ describe('single table schema tests', () => {
       });
 
       it('should properly generate getCreationIndexMapping', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -734,47 +435,7 @@ describe('single table schema tests', () => {
       });
 
       it('getCreationIndexMapping should allow incomplete references', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -815,47 +476,7 @@ describe('single table schema tests', () => {
       });
 
       it('should properly generate getUpdatedIndexMapping', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -898,47 +519,7 @@ describe('single table schema tests', () => {
       });
 
       it('getUpdatedIndexMapping should allow incomplete references', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -979,47 +560,7 @@ describe('single table schema tests', () => {
       });
 
       it('range queries: should handle NO param queries', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1052,47 +593,7 @@ describe('single table schema tests', () => {
       });
 
       it('range queries: should handle param queries', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1131,24 +632,7 @@ describe('single table schema tests', () => {
 
     describe('creation params', () => {
       it('should accept expiresAt if table config allows it', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          expiresAt: '_expires',
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1176,41 +660,7 @@ describe('single table schema tests', () => {
       });
 
       it('should properly build index mapping', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1252,41 +702,7 @@ describe('single table schema tests', () => {
       });
 
       it('should fully build params', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1338,30 +754,7 @@ describe('single table schema tests', () => {
 
     describe('update params', () => {
       it('should properly build key reference', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1389,30 +782,7 @@ describe('single table schema tests', () => {
       });
 
       it('should handle expiresAt', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1443,47 +813,7 @@ describe('single table schema tests', () => {
       });
 
       it('should handle indexes', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1529,47 +859,7 @@ describe('single table schema tests', () => {
       });
 
       it('should simply forward atomicOperations, conditions, remove and returnUpdatedProperties values', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-
-          expiresAt: '_expires',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
-
-        type User = {
-          name: string;
-          id: string;
-          email: string;
-          address: string;
-          dob: string;
-          createdAt: string;
-          updatedAt?: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1628,23 +918,7 @@ describe('single table schema tests', () => {
 
     describe('parsers', () => {
       it('should have a _parser_ property if _extend_ is provided', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          id: string;
-          dob: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1662,23 +936,7 @@ describe('single table schema tests', () => {
       });
 
       it('parser should merge data with extend', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
-
-        type User = {
-          id: string;
-          dob: string;
-        };
+        const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -1705,18 +963,7 @@ describe('single table schema tests', () => {
   describe('partition tests', () => {
     describe('entity partition tests', () => {
       it('should not allow 2 usages of the same entry', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          typeIndex: {
-            name: 'TypeIndexName',
-            partitionKey: '_type',
-            rangeKey: '_ts',
-          },
-        });
+        const schema = new SingleTableSchema(config);
 
         const partition = schema.createPartition({
           name: 'USER_PARTITION',
@@ -1738,29 +985,7 @@ describe('single table schema tests', () => {
       });
 
       it('should not contain "index" method', () => {
-        const schema = new SingleTableSchema({
-          partitionKey: 'hello',
-          rangeKey: 'key',
-
-          table: 'my-table',
-
-          indexes: {
-            someIndex: {
-              partitionKey: '_indexHash1',
-              rangeKey: '_indexRange1',
-            },
-
-            anotherIndex: {
-              partitionKey: '_indexHash2',
-              rangeKey: '_indexRange2',
-            },
-
-            yetAnotherIndex: {
-              partitionKey: '_indexHash3',
-              rangeKey: '_indexRange3',
-            },
-          },
-        });
+        const schema = new SingleTableSchema(config);
 
         const partition = schema.createPartition({
           name: 'USER_PARTITION',
