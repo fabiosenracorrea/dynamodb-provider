@@ -22,6 +22,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'id' })).toStrictEqual(['USER', 'id']);
     expect(user.getRangeKey()).toStrictEqual(['#DATA']);
 
@@ -76,6 +78,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
@@ -136,6 +140,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey()).toStrictEqual(['USERS']);
     expect(user.getRangeKey()).toStrictEqual(['#DATA']);
 
@@ -173,6 +179,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey()).toStrictEqual(['USERS']);
     expect(user.getRangeKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
@@ -229,6 +237,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey()).toStrictEqual(['#DATA']);
 
@@ -283,6 +293,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
       'USER',
@@ -346,6 +358,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
       'EMAIL',
@@ -405,6 +419,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey()).toStrictEqual(['#DATA']);
 
@@ -459,6 +475,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
@@ -519,6 +537,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey()).toStrictEqual(['USERS']);
     expect(user.getRangeKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
 
@@ -574,6 +594,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey()).toStrictEqual(['USERS', 'PARTITION']);
     expect(user.getRangeKey()).toStrictEqual(['DATA', 'RANGE']);
 
@@ -615,6 +637,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
       'USER',
@@ -681,6 +705,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
       'USER',
@@ -751,6 +777,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
       'USER',
       'id-123',
@@ -816,6 +844,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'id-123' })).toStrictEqual(['USER', 'id-123']);
     expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
       'DATA',
@@ -877,6 +907,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey()).toStrictEqual(['USERS']);
     expect(user.getRangeKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
       'USER',
@@ -937,6 +969,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'test-id', name: 'John' })).toStrictEqual([
       'USER',
       'test-id',
@@ -996,6 +1030,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(
       user.getPartitionKey({ id: 'test-id', email: 'test@example.com', name: 'John' }),
@@ -1061,6 +1097,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey()).toStrictEqual(['USERS']);
     expect(
       user.getRangeKey({ id: 'test-id', email: 'test@example.com', name: 'John' }),
@@ -1122,6 +1160,8 @@ describe('single table schema - entity - key definitions', () => {
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
 
+    schema.from(user);
+
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['test-id']);
     expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual(['test@example.com']);
 
@@ -1177,6 +1217,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
       'USER',
@@ -1239,6 +1281,8 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(user.__dbType).toBe('ENTITY');
     expect(user.type).toBe('USER');
+
+    schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
     expect(user.getRangeKey({ email: 'test@example.com', name: 'John' })).toStrictEqual([
