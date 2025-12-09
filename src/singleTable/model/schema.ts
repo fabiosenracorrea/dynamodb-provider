@@ -19,7 +19,7 @@ import {
   resolveKeySwaps,
   SingleTableEntity,
 } from './definitions';
-import { type From, SchemaFrom, type FromEntity, type FromCollection } from './from';
+import { type From, SchemaFrom } from './from';
 
 interface EntityCache {
   params: any;
@@ -208,18 +208,6 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
 
   getEntityByType(type: string): ExtendableSingleTableEntity | undefined {
     return this.configCache.get(type)?.entity;
-  }
-
-  fromEntity<Registered extends ExtendableSingleTableEntity>(
-    entity: Registered,
-  ): FromEntity<Registered, TableConfig> {
-    return this.repoCreator.fromEntity(entity);
-  }
-
-  fromCollection<Collection extends ExtendableCollection>(
-    collection: Collection,
-  ): FromCollection<Collection> {
-    return this.repoCreator.fromCollection(collection);
   }
 
   from<Target extends ExtendableSingleTableEntity | ExtendableCollection>(

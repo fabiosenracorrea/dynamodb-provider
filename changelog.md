@@ -3,8 +3,9 @@
 # v3.0.0
 
 - [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
+- [BREAKING] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
 - *Feature*: Direct `collection` creation from `partition.collection()`
-- *Feature*: `schema.fromEntity(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
+- *Feature*: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
 - *Feature*: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
 
 ```ts
@@ -30,7 +31,7 @@ table.schema.from(entity).query.noParam({ value: 'Something' })
 
 - *Fix*: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - *Fix*: Transaction size validation reference after null checks
-- *Fix*: `schema.fromEntity(xxx).delete()` params no longer required if entity has no key params
+- *Fix*: `schema.from(xxx).delete()` params no longer required if entity has no key params
 - *Fix*: `paginationToken` on `QueryResult` was marked as required.
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.
 
