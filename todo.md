@@ -36,7 +36,9 @@ includeTypeOnEveryUpdate?: boolean;
 
 - add a way to validate if we should carry an index update on create/update ops
 
+<!-- which one? -->
 - `query.one()` | `queryIndex.one()` | `query.all()` | `queryIndex.all()`
+- `queryOne.custom()` | `queryOneIndex.custom()` | `queryAll.custom()` | `queryAllIndex.custom()`
 
 - Export helper types for create params, key params etc
 

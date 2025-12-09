@@ -173,28 +173,7 @@ const MEDIA = singleTable.schema.createEntity<Media>().as({
 
 const methods = singleTable.schema.from(MEDIA);
 
-const {
-  batchGet,
-  create,
-  delete: deleteCall,
-  get,
-  list,
-  listAll,
-  query: { custom: queryCustom, dateSliceDefaultParams, dateSliceParams },
-  queryIndex,
-  update,
-} = methods;
-
-// @ts-expect-error param is required (media id)
-queryCustom();
-
-// @ts-expect-error startDate/endDate/id are required
-dateSliceParams();
-dateSliceParams({ endDate: '', startDate: '', id: '' });
-
-// @ts-expect-error start/end/id is required
-dateSliceDefaultParams();
-dateSliceDefaultParams({ start: '', end: '', id: '' });
+const { batchGet, create, delete: deleteCall, get, list, listAll, queryIndex, update } = methods;
 
 queryIndex.ByUploadTime.custom();
 

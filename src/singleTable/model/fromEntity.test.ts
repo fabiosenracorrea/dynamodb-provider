@@ -2755,7 +2755,7 @@ describe('single table - from entity methods', () => {
     });
 
     describe('rangeQueries', () => {
-      it('should have queries from rangeQueries definition [no params]', async () => {
+      it('should have queries from rangeQueries definition [getter key + no range params]', async () => {
         const schema = new SingleTableSchema(baseParams);
 
         const user = schema.createEntity<User>().as({
@@ -2786,9 +2786,58 @@ describe('single table - from entity methods', () => {
           },
         });
         expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id is required
+        repo.query.someQuery();
+
+        // @ts-expect-error params with id is required
+        repo.query.someQuery({});
       });
 
-      it('should have queries from rangeQueries definition [with params]', async () => {
+      it('should have queries from rangeQueries definition [key array + no range params]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USER', '.id'],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+              getValues: () => ({ value: '#DATA' }),
+            },
+          },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ id: 'my-id' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id is required
+        repo.query.someQuery();
+
+        // @ts-expect-error params with id is required
+        repo.query.someQuery({});
+      });
+
+      it('should have queries from rangeQueries definition [getter key + with range params]', async () => {
         const schema = new SingleTableSchema(baseParams);
 
         const user = schema.createEntity<User>().as({
@@ -2810,10 +2859,7 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        await repo.query.someQuery({
-          id: 'my-id',
-          someValue: 'CUSTOM!',
-        });
+        await repo.query.someQuery({ id: 'my-id', someValue: 'CUSTOM!' });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
@@ -2823,15 +2869,262 @@ describe('single table - from entity methods', () => {
             value: ['#DATA', 'CUSTOM!'],
           },
         });
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/someValue is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/someValue is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id is required
+        repo.query.someQuery({ someValue: '2390' });
+
+        // @ts-expect-error someValue is required
+        repo.query.someQuery({ id: '2390' });
+      });
+
+      it('should have queries from rangeQueries definition [key array + with range params]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USER', '.id'],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+              getValues: ({ someValue }: { someValue: string }) => ({
+                value: ['#DATA', someValue],
+              }),
+            },
+          },
+        });
+
+        const { instance, query } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        await repo.query.someQuery({ id: 'my-id', someValue: 'CUSTOM!' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: ['#DATA', 'CUSTOM!'],
+          },
+        });
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/someValue is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/someValue is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id is required
+        repo.query.someQuery({ someValue: '2390' });
+
+        // @ts-expect-error someValue is required
+        repo.query.someQuery({ id: '2390' });
+      });
+
+      it('[basic ranges] should have default values if _getValues_ is not provided [getter key]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+            },
+          },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ value: 'my-id', id: 'string' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/value is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/value is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id is required
+        repo.query.someQuery({ value: '11' });
+
+        // @ts-expect-error value is required
+        repo.query.someQuery({ id: '11' });
+      });
+
+      it('[between ranges] should have default values if _getValues_ is not provided [getter key]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'between',
+            },
+          },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ start: 'my-id', end: 'end', id: 'string' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/start/end is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/start/end is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id/end is required
+        repo.query.someQuery({ start: '11' });
+
+        // @ts-expect-error start/end is required
+        repo.query.someQuery({ id: '11' });
+
+        // @ts-expect-error start/id is required
+        repo.query.someQuery({ end: '11' });
+      });
+
+      it('[basic ranges] should have default values if _getValues_ is not provided [array key]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USER', '.id'],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'begins_with',
+            },
+          },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ value: 'my-id', id: 'string' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/value is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/value is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id is required
+        repo.query.someQuery({ value: '11' });
+
+        // @ts-expect-error value is required
+        repo.query.someQuery({ id: '11' });
+      });
+
+      it('[between ranges] should have default values if _getValues_ is not provided [array key]', async () => {
+        const schema = new SingleTableSchema(baseParams);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ['USER', '.id'],
+          getRangeKey: () => ['#DATA'],
+          rangeQueries: {
+            someQuery: {
+              operation: 'between',
+            },
+          },
+        });
+
+        const { instance, query, expectedResult } = queryInstance(user);
+
+        const repo = instance.buildMethods();
+        expect(repo.query.someQuery).toBeDefined();
+
+        const result = await repo.query.someQuery({ start: 'my-id', end: 'end', id: 'string' });
+
+        expect(query).toHaveBeenCalledTimes(1);
+        expect(query).toHaveBeenCalledWith({
+          partition: ['USER', 'my-id'],
+          range: {
+            operation: 'begins_with',
+            value: '#DATA',
+          },
+        });
+        expect(result).toBe(expectedResult);
+
+        // --- TYPES ---
+
+        // @ts-expect-error params with id/start/end is required
+        repo.query.someQuery();
+
+        // @ts-expect-error id/start/end is required
+        repo.query.someQuery({});
+
+        // @ts-expect-error id/end is required
+        repo.query.someQuery({ start: '11' });
+
+        // @ts-expect-error start/end is required
+        repo.query.someQuery({ id: '11' });
+
+        // @ts-expect-error start/id is required
+        repo.query.someQuery({ end: '11' });
       });
 
       it('should forward query config params in rangeQueries', async () => {
-        const params = {
-          ...baseParams,
-          dynamodbProvider: {} as any,
-        };
-
-        const schema = new SingleTableSchema(params);
+        const schema = new SingleTableSchema(baseParams);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -2845,15 +3138,19 @@ describe('single table - from entity methods', () => {
           },
         });
 
-        const instance = new SingleTableFromEntityMethods(user, params);
+        const { instance, query } = queryInstance(user);
 
-        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
-        (instance as any).methods = { query };
+        const params = {
+          limit: 10,
+          retrieveOrder: 'DESC' as const,
+          fullRetrieval: true,
+          paginationToken: '230923',
+          filters: Symbol('unique-filters') as any,
+        };
 
         await instance.buildMethods().query.someQuery({
           id: 'my-id',
-          limit: 10,
-          retrieveOrder: 'DESC',
+          ...params,
         });
 
         expect(query).toHaveBeenCalledWith({
@@ -2862,41 +3159,8 @@ describe('single table - from entity methods', () => {
             operation: 'begins_with',
             value: '#DATA',
           },
-          limit: 10,
-          retrieveOrder: 'DESC',
+          ...params,
         });
-      });
-
-      it('[TYPES] Range query should require range params', async () => {
-        const params = {
-          ...baseParams,
-          dynamodbProvider: {} as any,
-        };
-
-        const schema = new SingleTableSchema(params);
-
-        const user = schema.createEntity<User>().as({
-          type: 'USER',
-          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-          getRangeKey: () => ['#DATA'],
-          rangeQueries: {
-            withParam: {
-              operation: 'begins_with',
-              getValues: ({ prefix }: { prefix: string }) => ({ value: prefix }),
-            },
-          },
-        });
-
-        const instance = new SingleTableFromEntityMethods(user, params);
-
-        const query = jest.fn().mockResolvedValue({ items: [], paginationToken: '' });
-        (instance as any).methods = { query };
-
-        // @ts-expect-error prefix is required
-        await instance.buildMethods().query.withParam({ id: 'my-id' });
-
-        // Should work with prefix
-        await instance.buildMethods().query.withParam({ id: 'my-id', prefix: 'test' });
       });
     });
   });

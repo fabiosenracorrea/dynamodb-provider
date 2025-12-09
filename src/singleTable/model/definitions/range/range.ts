@@ -4,25 +4,32 @@ import { KeyValue } from 'singleTable/adaptor/definitions';
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig } from 'provider/utils';
 import { AnyFunction } from 'types';
 
-type RefBasicConfig = BasicRangeKeyConfig<any>;
 type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 
-type SingleRangeConfig =
-  | {
-      operation: RefBasicConfig['operation'];
-      getValues?: (...params: any) => { value: KeyValue | BasicRangeKeyConfig<unknown>['value'] };
-    }
-  | {
-      operation: BetweenRefConfig['operation'];
-      getValues?: (...params: any) => {
-        start: KeyValue | BetweenRefConfig['start'];
-        end: KeyValue | BetweenRefConfig['end'];
-      };
-    };
+type BasicRangeConfig = {
+  operation: BasicRangeKeyConfig<any>['operation'];
+  getValues?: (...params: any) => { value: KeyValue | BasicRangeKeyConfig<unknown>['value'] };
+};
+
+type BetweenRangeConfig = {
+  operation: BetweenRefConfig['operation'];
+  getValues?: (...params: any) => {
+    start: KeyValue | BetweenRefConfig['start'];
+    end: KeyValue | BetweenRefConfig['end'];
+  };
+};
+
+type SingleRangeConfig = BasicRangeConfig | BetweenRangeConfig;
 
 type RangeQuery = Record<string, SingleRangeConfig>;
 
-type RangeOperation = RefBasicConfig['operation'] | BetweenRefConfig['operation'];
+type RangeOperation = SingleRangeConfig['operation'];
+
+type DefaultRangeGetter<Op extends RangeOperation> = NonNullable<
+  Op extends BetweenRangeConfig['operation']
+    ? BetweenRangeConfig['getValues']
+    : BasicRangeConfig['getValues']
+>;
 
 /**
  * If `getValues` is not provided,
@@ -35,9 +42,7 @@ type EnsureValueGetter<
   //
   // -- system param --
   //
-  __RANGE_PARAMS__ = ReturnType<
-    Extract<Required<SingleRangeConfig>, { operation: Operation }>['getValues']
-  >,
+  __RANGE_PARAMS__ = ReturnType<DefaultRangeGetter<Operation>>,
 > = Fn extends AnyFunction ? Fn : (p: __RANGE_PARAMS__) => __RANGE_PARAMS__;
 
 type ResolvedRangeConfig<Config extends SingleRangeConfig> = Pick<Config, 'operation'> &
