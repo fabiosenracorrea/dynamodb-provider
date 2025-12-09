@@ -415,5 +415,192 @@ describe('Provider: expressions - builders tests', () => {
         ':no_in_prop_3': 6,
       });
     });
+
+    it('should handle prefix parameter correctly', () => {
+      const values = getExpressionValues(
+        [
+          {
+            operation: 'equal',
+            property: 'name',
+            value: 'test',
+          },
+          {
+            operation: 'in',
+            property: 'status',
+            values: ['active', 'pending'],
+          },
+          {
+            operation: 'between',
+            property: 'age',
+            start: 18,
+            end: 65,
+          },
+        ],
+        'PREFIX_',
+      );
+
+      expect(values).toEqual({
+        ':PREFIX_name': 'test',
+        ':PREFIX_status_0': 'active',
+        ':PREFIX_status_1': 'pending',
+        ':PREFIX_age_start': 18,
+        ':PREFIX_age_end': 65,
+      });
+    });
+
+    it('should return empty object when given empty array', () => {
+      const values = getExpressionValues([]);
+
+      expect(values).toEqual({});
+    });
+
+    it('should skip exists and not_exists operations (no values needed)', () => {
+      const values = getExpressionValues([
+        {
+          operation: 'exists',
+          property: 'field1',
+        },
+        {
+          operation: 'not_exists',
+          property: 'field2',
+        },
+      ]);
+
+      expect(values).toEqual({});
+    });
+
+    it('should handle single value operations correctly', () => {
+      const values = getExpressionValues([
+        {
+          operation: 'lower_than',
+          property: 'price',
+          value: 100,
+        },
+      ]);
+
+      expect(values).toEqual({
+        ':price': 100,
+      });
+    });
+
+    it('should handle list operations with multiple values', () => {
+      const values = getExpressionValues([
+        {
+          operation: 'in',
+          property: 'category',
+          values: ['electronics', 'books', 'clothing'],
+        },
+      ]);
+
+      expect(values).toEqual({
+        ':category_0': 'electronics',
+        ':category_1': 'books',
+        ':category_2': 'clothing',
+      });
+    });
+
+    it('should handle between operation with start and end values', () => {
+      const values = getExpressionValues([
+        {
+          operation: 'between',
+          property: 'timestamp',
+          start: '2024-01-01',
+          end: '2024-12-31',
+        },
+      ]);
+
+      expect(values).toEqual({
+        ':timestamp_start': '2024-01-01',
+        ':timestamp_end': '2024-12-31',
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    describe('empty inputs', () => {
+      it('buildExpressionAttributeNames should handle empty object', () => {
+        expect(buildExpressionAttributeNames({})).toEqual({});
+      });
+
+      it('buildExpressionAttributeValues should handle empty object', () => {
+        expect(buildExpressionAttributeValues({})).toEqual({});
+      });
+
+      it('buildExpressionAttributeValues should handle empty object with prefix', () => {
+        expect(buildExpressionAttributeValues({}, 'PREFIX_')).toEqual({});
+      });
+
+      it('getExpressionNames should handle empty array', () => {
+        expect(getExpressionNames([])).toEqual({});
+      });
+
+      it('getExpressionNames should handle empty array with prefix', () => {
+        expect(getExpressionNames([], 'PREFIX_')).toEqual({});
+      });
+    });
+
+    describe('empty arrays for list operations', () => {
+      it('expressionBuilders.in should handle empty array', () => {
+        const prop = 'status';
+
+        expect(expressionBuilders.in({ prop, value: [] })).toBe(`#${prop} in ()`);
+      });
+
+      it('expressionBuilders.not_in should handle empty array', () => {
+        const prop = 'status';
+
+        expect(expressionBuilders.not_in({ prop, value: [] })).toBe(`not #${prop} in ()`);
+      });
+
+      it('getExpressionValues should handle empty array for in operation', () => {
+        const values = getExpressionValues([
+          {
+            operation: 'in',
+            property: 'tags',
+            values: [],
+          },
+        ]);
+
+        expect(values).toEqual({});
+      });
+
+      it('getExpressionValues should handle empty array for not_in operation', () => {
+        const values = getExpressionValues([
+          {
+            operation: 'not_in',
+            property: 'tags',
+            values: [],
+          },
+        ]);
+
+        expect(values).toEqual({});
+      });
+    });
+
+    describe('special characters in property names', () => {
+      it('should handle properties with dots', () => {
+        const item = {
+          'user.name': 'John',
+        };
+
+        expect(buildExpressionAttributeNames(item)).toEqual({
+          '#user.name': 'user.name',
+        });
+      });
+
+      it('should handle properties with reserved keywords', () => {
+        const item = {
+          status: 'active',
+          name: 'test',
+          size: 'large',
+        };
+
+        expect(buildExpressionAttributeNames(item)).toEqual({
+          '#status': 'status',
+          '#name': 'name',
+          '#size': 'size',
+        });
+      });
+    });
   });
 });
