@@ -38,21 +38,27 @@ type DefaultRangeGetter<Op extends RangeOperation> = NonNullable<
  * take exactly the Range expected params (value or start/end)
  */
 type EnsureValueGetter<
-  Fn extends AnyFunction | undefined,
-  Operation extends RangeOperation,
+  Config extends SingleRangeConfig,
   //
   // -- system param --
   //
-  __RANGE_PARAMS__ = ReturnType<DefaultRangeGetter<Operation>>,
-> = Fn extends AnyFunction ? Fn : (p: __RANGE_PARAMS__) => __RANGE_PARAMS__;
+  __RANGE_PARAMS__ = ReturnType<DefaultRangeGetter<Config['operation']>>,
+> = Config['getValues'] extends AnyFunction
+  ? Config['getValues']
+  : (p: __RANGE_PARAMS__) => __RANGE_PARAMS__;
 
-type ResolvedRangeConfig<Config extends SingleRangeConfig> = Pick<Config, 'operation'> &
-  ReturnType<EnsureValueGetter<Config['getValues'], Config['operation']>>;
+type RangeGetter<
+  Config extends SingleRangeConfig,
+  //
+  // -- system param --
+  //
+  __GET_VALUES__ extends AnyFunction = EnsureValueGetter<Config>,
+> = (
+  ...params: Parameters<__GET_VALUES__>
+) => Pick<Config, 'operation'> & ReturnType<__GET_VALUES__>;
 
 export type RangeQueryGetters<Config extends RangeQuery> = {
-  [Key in keyof Config]: (
-    ...params: Parameters<EnsureValueGetter<Config[Key]['getValues'], Config[Key]['operation']>>
-  ) => ResolvedRangeConfig<Config[Key]>;
+  [Key in keyof Config]: RangeGetter<Config[Key]>;
 };
 
 export type RangeQueryInputProps = {
@@ -74,7 +80,7 @@ export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | und
     ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
     : object;
 
-export function pickRangeParams(operation: RangeOperation, params: AnyObject) {
+export function pickRangeParams(operation: RangeOperation, params: AnyObject = {}) {
   return pick(params, operation === 'between' ? ['end', 'start'] : ['value']);
 }
 
