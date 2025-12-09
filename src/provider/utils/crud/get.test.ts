@@ -181,7 +181,13 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get<any>({
+      type User = {
+        hello: string;
+        createdAt: string;
+        id: string;
+      };
+
+      await getter.get<User>({
         table: 'table',
         key: {
           id: '23023',
@@ -205,6 +211,13 @@ describe('GetItem actions', () => {
 
         ...getProjectExpressionParams(['hello', 'id', 'createdAt']),
       });
+
+      getter.get<User>({
+        table: 'table',
+        key: { id: 'asa' },
+        // @ts-expect-error no bad references
+        propertiesToRetrieve: ['hello', 'id', 'bad'],
+      });
     });
 
     it('v3: should properly build projection properties with its helpers', async () => {
@@ -220,7 +233,13 @@ describe('GetItem actions', () => {
         },
       });
 
-      await getter.get<any>({
+      type User = {
+        hello: string;
+        createdAt: string;
+        id: string;
+      };
+
+      await getter.get<User>({
         table: 'table',
         key: {
           id: '23023',
@@ -248,6 +267,13 @@ describe('GetItem actions', () => {
           },
         }),
       );
+
+      getter.get<User>({
+        table: 'table',
+        key: { id: 'asa' },
+        // @ts-expect-error no bad references
+        propertiesToRetrieve: ['hello', 'id', 'bad'],
+      });
     });
 
     it('v2: should log dynamodb params if option is passed', async () => {
