@@ -2,7 +2,8 @@
 import { KeyValue } from 'singleTable/adaptor/definitions';
 
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig } from 'provider/utils';
-import { AnyFunction } from 'types';
+import { AnyFunction, AnyObject } from 'types';
+import { pick } from 'utils/object';
 
 type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 
@@ -73,6 +74,10 @@ export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | und
     ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
     : object;
 
+export function pickRangeParams(operation: RangeOperation, params: AnyObject) {
+  return pick(params, operation === 'between' ? ['end', 'start'] : ['value']);
+}
+
 export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
   rangeQueries,
 }: Params): RangeQueryResultProps<Params> {
@@ -85,7 +90,7 @@ export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
 
         (valueParams: any) => ({
           operation,
-          ...(getValues?.(valueParams) ?? valueParams),
+          ...(getValues?.(valueParams) ?? pickRangeParams(operation, valueParams)),
         }),
       ]),
     ),
