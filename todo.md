@@ -36,6 +36,8 @@ includeTypeOnEveryUpdate?: boolean;
 
 - add a way to validate if we should carry an index update on create/update ops
 
+- custom `autoGen` methods that are globally set
+
 <!-- which one? -->
 - `query.one()` | `queryIndex.one()` | `query.all()` | `queryIndex.all()`
 - `queryOne.custom()` | `queryOneIndex.custom()` | `queryAll.custom()` | `queryAllIndex.custom()`
