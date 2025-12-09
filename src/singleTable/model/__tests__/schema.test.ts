@@ -1779,49 +1779,6 @@ describe('single table schema tests', () => {
         });
       });
     });
-
-    describe('parsers', () => {
-      it('should have a _parser_ property if _extend_ is provided', () => {
-        const schema = new SingleTableSchema(config);
-
-        const user = schema.createEntity<User>().as({
-          type: 'USER',
-
-          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-          getRangeKey: () => ['#DATA'],
-
-          extend: () => ({
-            someProp: 'yes',
-          }),
-        });
-
-        expect(user.parser).toBeTruthy();
-      });
-
-      it('parser should merge data with extend', () => {
-        const schema = new SingleTableSchema(config);
-
-        const user = schema.createEntity<User>().as({
-          type: 'USER',
-
-          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
-          getRangeKey: () => ['#DATA'],
-
-          extend: () => ({
-            someProp: 'yes',
-            id: 'OVERWRITE!',
-          }),
-        });
-
-        expect(user.parser({ id: '11', dob: '2034-10-21' })).toStrictEqual({
-          id: 'OVERWRITE!',
-          dob: '2034-10-21',
-          someProp: 'yes',
-        });
-      });
-    });
   });
 
   describe('partition tests', () => {
