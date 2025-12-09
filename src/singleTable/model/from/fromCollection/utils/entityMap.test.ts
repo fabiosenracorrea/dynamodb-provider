@@ -57,7 +57,7 @@ describe('collection entity map', () => {
           type: 'SINGLE',
         } as any,
       },
-    });
+    } as any);
 
     expect(result).toStrictEqual(entities);
   });
