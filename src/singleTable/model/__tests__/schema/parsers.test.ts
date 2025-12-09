@@ -20,6 +20,8 @@ describe('single table schema - entity - parsers', () => {
       }),
     });
 
+    schema.from(user);
+
     expect(user.parser).toBeTruthy();
 
     const baseRef = { name: 'Hey' } as User;
@@ -57,6 +59,8 @@ describe('single table schema - entity - parsers', () => {
       getRangeKey: () => ['#DATA'],
     });
 
+    schema.from(user);
+
     expect(user.parser).toBeUndefined();
 
     type _Tests = [
@@ -80,6 +84,8 @@ describe('single table schema - entity - parsers', () => {
         id: 123, // overwrite!
       }),
     });
+
+    schema.from(user);
 
     const parsed = user.parser({ id: '11', dob: '2034-10-21' } as User);
 

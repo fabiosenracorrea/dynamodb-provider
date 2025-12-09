@@ -13,6 +13,8 @@ describe('single table schema - entity - type', () => {
       getRangeKey: () => ['#DATA'],
     });
 
+    schema.from(user);
+
     const createParams = {
       id: 'id',
       address: 'address',
@@ -42,6 +44,8 @@ describe('single table schema - entity - type', () => {
       getPartitionKey: ({ id }: { id: string }) => ['USER', id],
       getRangeKey: () => ['#DATA'],
     });
+
+    schema.from(user);
 
     const createAs = {
       id: 'id',

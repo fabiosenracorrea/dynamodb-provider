@@ -38,6 +38,8 @@ describe('single table schema - entity - autogen', () => {
       },
     });
 
+    schema.from(user);
+
     const creationParams = {
       address: 'address',
       dob: '1970',
@@ -81,6 +83,8 @@ describe('single table schema - entity - autogen', () => {
       },
     });
 
+    schema.from(user);
+
     const params = user.getUpdateParams({
       id: 'user-id',
 
@@ -112,6 +116,8 @@ describe('single table schema - entity - autogen', () => {
         },
       },
     });
+
+    schema.from(user);
 
     const creationParams = {
       id: 'user-provided-id',
@@ -148,6 +154,8 @@ describe('single table schema - entity - autogen', () => {
       },
     });
 
+    schema.from(user);
+
     const creationParams = {
       id: 'explicit-id',
       address: 'address',
@@ -183,6 +191,8 @@ describe('single table schema - entity - autogen', () => {
       },
     });
 
+    schema.from(user);
+
     const params = user.getUpdateParams({
       id: 'user-id',
       values: {
@@ -215,6 +225,8 @@ describe('single table schema - entity - autogen', () => {
         },
       },
     });
+
+    schema.from(user);
 
     const params = user.getUpdateParams({
       id: 'user-id',
@@ -252,6 +264,8 @@ describe('single table schema - entity - autogen', () => {
         },
       },
     });
+
+    schema.from(user);
 
     const params = user.getUpdateParams({
       id: 'user-id',
@@ -301,6 +315,8 @@ describe('single table schema - entity - autogen', () => {
         },
       },
     });
+
+    schema.from(user);
 
     const params = user.getUpdateParams({
       id: 'user-id',

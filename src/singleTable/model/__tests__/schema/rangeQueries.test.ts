@@ -34,6 +34,8 @@ describe('single table schema - entity - rangeQueries', () => {
         },
       });
 
+      schema.from(user);
+
       expect(user.rangeQueries.from({ value: '100' })).toStrictEqual({
         operation,
         value: '100',
@@ -63,6 +65,8 @@ describe('single table schema - entity - rangeQueries', () => {
           },
         },
       });
+
+      schema.from(user);
 
       expect(user.rangeQueries.from()).toStrictEqual({
         operation,
@@ -95,6 +99,8 @@ describe('single table schema - entity - rangeQueries', () => {
           },
         },
       });
+
+      schema.from(user);
 
       expect(
         user.rangeQueries.from({
@@ -168,6 +174,8 @@ describe('single table schema - entity - rangeQueries', () => {
       },
     });
 
+    schema.from(user);
+
     expect(user.rangeQueries.aToF()).toStrictEqual({
       operation: 'between',
       start: 'a',
@@ -197,6 +205,8 @@ describe('single table schema - entity - rangeQueries', () => {
         },
       },
     });
+
+    schema.from(user);
 
     expect(
       user.rangeQueries.dateRange({
@@ -254,6 +264,8 @@ describe('single table schema - entity - rangeQueries', () => {
         },
       },
     });
+
+    schema.from(user);
 
     expect(user.rangeQueries.noParams()).toStrictEqual({
       operation: 'begins_with',
@@ -318,6 +330,8 @@ describe('single table schema - entity - rangeQueries', () => {
         },
       },
     });
+
+    schema.from(user);
 
     expect(user.rangeQueries.emailPrefix({ email: 'TEST@EXAMPLE.COM' })).toStrictEqual({
       operation: 'begins_with',
