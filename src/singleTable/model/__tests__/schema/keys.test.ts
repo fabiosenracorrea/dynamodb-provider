@@ -1353,4 +1353,52 @@ describe('single table schema - entity - key definitions', () => {
 
     expect(doubleCreation).toThrow();
   });
+
+  it('[TYPES] should not allow partition key params not present on entity', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    schema.createEntity<User>().as({
+      type: 'USER',
+      getRangeKey: () => ['#DATA'],
+
+      // @ts-expect-error only User props are allowed
+      getPartitionKey: ({ __bad__ }: { __bad__: string }) => ['USER1', __bad__],
+    });
+  });
+
+  it('[TYPES] should not allow partition key params different from Entity type', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    schema.createEntity<User>().as({
+      type: 'USER',
+      getRangeKey: () => ['#DATA'],
+
+      // @ts-expect-error User.id is string
+      getPartitionKey: ({ id }: { id: number }) => ['USER1', id],
+    });
+  });
+
+  it('[TYPES] should not allow range key params not present on entity', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    schema.createEntity<User>().as({
+      type: 'USER',
+      getPartitionKey: () => ['USERS'],
+
+      // @ts-expect-error only User props are allowed
+      getRangeKey: ({ __bad__ }: { __bad__: string }) => ['USER1', __bad__],
+    });
+  });
+
+  it('[TYPES] should not allow range key params different from Entity type', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    schema.createEntity<User>().as({
+      type: 'USER',
+      getPartitionKey: () => ['USERS'],
+
+      // @ts-expect-error User.id is string
+      getRangeKey: ({ id }: { id: number }) => ['USER1', id],
+    });
+  });
 });
