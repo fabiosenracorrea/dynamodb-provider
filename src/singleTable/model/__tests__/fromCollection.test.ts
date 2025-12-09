@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SingleTableSchema } from './schema';
-import { SingleTableFromCollection } from './from/fromCollection';
+import { SingleTableSchema } from '../schema';
+import { SingleTableFromCollection } from '../from/fromCollection';
 
 type User = {
   name: string;

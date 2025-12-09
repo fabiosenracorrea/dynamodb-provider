@@ -2,9 +2,9 @@
 import type { Expect, Equal, PrettifyObject } from 'types';
 
 import { SingleTableParams } from 'singleTable/adaptor';
-import type { ExtendableSingleTableEntity } from './definitions';
-import { SingleTableFromEntityMethods } from './from/fromEntity/methods';
-import { SingleTableSchema } from './schema';
+import type { ExtendableSingleTableEntity } from '../definitions';
+import { SingleTableFromEntityMethods } from '../from/fromEntity/methods';
+import { SingleTableSchema } from '../schema';
 
 interface User {
   name: string;
