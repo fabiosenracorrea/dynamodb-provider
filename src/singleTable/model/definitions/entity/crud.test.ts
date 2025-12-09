@@ -11,8 +11,8 @@ describe('getCRUDParamGetters', () => {
   const mockGetUpdatedIndexMapping = jest.fn().mockReturnValue({ updateIndex: true });
 
   const mockAutoGen = {
-    onCreate: { createdAt: 'timestamp' },
-    onUpdate: { updatedAt: 'timestamp' },
+    onCreate: { createdAt: 'timestamp' as const },
+    onUpdate: { updatedAt: 'timestamp' as const },
   };
 
   const tableConfig = {
@@ -38,6 +38,8 @@ describe('getCRUDParamGetters', () => {
   const crudParamsGenerator = {
     type,
     getKey: mockGetKey,
+    getPartitionKey: jest.fn(),
+    getRangeKey: jest.fn(),
     getCreationIndexMapping: mockGetCreationIndexMapping,
     getUpdatedIndexMapping: mockGetUpdatedIndexMapping,
     autoGen: mockAutoGen,
