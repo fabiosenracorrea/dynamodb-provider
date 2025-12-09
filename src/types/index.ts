@@ -36,6 +36,8 @@ export type OnlyOptional<T> = {
 
 export type MakePartial<T> = OmitUndefined<T> & OnlyOptional<T>;
 
+export type RequiredKeys<T> = keyof OmitUndefined<T>;
+
 export type AnyFunction = (...p: any[]) => any;
 
 export type FirstParameter<Fn extends AnyFunction> = Parameters<Fn>[0];

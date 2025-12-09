@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Equal, Expect, FirstParameter } from 'types';
+import { Equal, Expect, FirstParameter, RequiredKeys } from 'types';
 
 import { SingleTableSchema } from '../../schema';
 
@@ -95,10 +95,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -124,7 +146,20 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
-    type _Tests = [Expect<Equal<FirstParameter<typeof user.getKey>, undefined>>];
+    type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, undefined>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<Equal<RequiredKeys<FirstParameter<typeof user.getUpdateParams>>, never>>,
+
+      Expect<Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>>,
+
+      Expect<Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>>,
+      Expect<Equal<keyof FirstParameter<typeof user.getValidationParams>, 'conditions'>>,
+    ];
   });
 
   it('should create a simple entity [getter no params + getter param]', () => {
@@ -153,10 +188,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -186,9 +243,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -225,12 +305,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; createdAt: string };
+
     type _Tests = [
-      Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; createdAt: string }>
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { createdAt: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -264,10 +364,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -297,10 +419,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -334,10 +478,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -367,10 +533,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -397,9 +585,18 @@ describe('single table schema - entity - key definitions', () => {
     // -- TYPES --
 
     type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
       Expect<Equal<FirstParameter<typeof user.getKey>, undefined>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<Equal<RequiredKeys<FirstParameter<typeof user.getUpdateParams>>, never>>,
+
+      Expect<Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>>,
+
+      Expect<Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>>,
+      Expect<Equal<keyof FirstParameter<typeof user.getValidationParams>, 'conditions'>>,
     ];
   });
 
@@ -444,15 +641,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string; address: string };
+
     type _Tests = [
-      Expect<
-        Equal<
-          FirstParameter<typeof user.getKey>,
-          { id: string; email: string; name: string; address: string }
-        >
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -496,15 +710,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string; address: string };
+
     type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
       Expect<
         Equal<
-          FirstParameter<typeof user.getKey>,
-          { id: string; email: string; name: string; address: string }
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
         >
       >,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -540,11 +771,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string };
+
     type _Tests = [
-      Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -584,11 +836,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; name: string; address: string };
+
     type _Tests = [
-      Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; name: string; address: string }>
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -623,9 +896,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -660,9 +956,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; name: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; name: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; name: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -696,9 +1015,36 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string };
+
     type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        Equal<
+          FirstParameter<typeof user.getPartitionKey>,
+          { id: string; email: string; name: string }
+        >
+      >,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
     ];
   });
@@ -733,9 +1079,33 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string };
+
     type _Tests = [
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
       Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string; name: string }>
+      >,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
     ];
   });
@@ -767,8 +1137,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string };
+
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -805,11 +1199,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string };
+
     type _Tests = [
-      Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
+      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
@@ -846,11 +1261,32 @@ describe('single table schema - entity - key definitions', () => {
 
     // -- TYPES --
 
+    type ExpectedKey = { id: string; email: string; name: string };
+
     type _Tests = [
-      Expect<
-        Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
-      >,
+      Expect<Equal<(typeof user)['__entity'], User>>,
+
+      Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string; name: string }>>,
+
+      Expect<
+        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
+
+      Expect<
+        Equal<
+          Pick<FirstParameter<typeof user.transactValidateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
+      >,
     ];
   });
 
