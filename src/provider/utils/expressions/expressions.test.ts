@@ -766,4 +766,247 @@ describe('expression builder', () => {
       expect(getExpression(token as any)).toBe(token);
     });
   });
+
+  describe('edge cases', () => {
+    it('should handle empty conditions array', () => {
+      const expression = buildExpression([]);
+
+      expect(expression).toBe('');
+    });
+
+    it('should handle nested expressions with prefix', () => {
+      const prefix = 'PREFIX_';
+
+      const expression = buildExpression(
+        [
+          {
+            property: 'status',
+            operation: 'equal',
+            value: 'active',
+            nested: [
+              {
+                property: 'priority',
+                operation: 'bigger_than',
+                value: 5,
+              },
+            ],
+          },
+        ],
+        prefix,
+      );
+
+      expect(expression).toBe(
+        `((#${prefix}status = :${prefix}status) and (#${prefix}priority > :${prefix}priority))`,
+      );
+    });
+
+    it('should handle empty nested array (should be ignored)', () => {
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: 'status',
+          value: 'active',
+          nested: [],
+        },
+      ]);
+
+      expect(expression).toBe('(#status = :status)');
+    });
+
+    it('should handle mixed nested and non-nested expressions', () => {
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: 'type',
+          value: 'user',
+        },
+        {
+          operation: 'equal',
+          property: 'status',
+          value: 'active',
+          joinAs: 'and',
+          nested: [
+            {
+              operation: 'bigger_than',
+              property: 'age',
+              value: 18,
+            },
+          ],
+        },
+        {
+          operation: 'not_exists',
+          property: 'deletedAt',
+          joinAs: 'and',
+        },
+      ]);
+
+      expect(expression).toBe(
+        '(#type = :type) and ((#status = :status) and (#age > :age)) and (attribute_not_exists(#deletedAt))',
+      );
+    });
+
+    it('should properly handle all expression types in a complex scenario', () => {
+      const expression = buildExpression([
+        {
+          operation: 'equal',
+          property: 'field1',
+          value: 'value1',
+        },
+        {
+          operation: 'not_equal',
+          property: 'field2',
+          value: 'value2',
+          joinAs: 'or',
+        },
+        {
+          operation: 'lower_than',
+          property: 'field3',
+          value: 10,
+          joinAs: 'and',
+        },
+        {
+          operation: 'lower_or_equal_than',
+          property: 'field4',
+          value: 20,
+          joinAs: 'and',
+        },
+        {
+          operation: 'bigger_than',
+          property: 'field5',
+          value: 5,
+          joinAs: 'or',
+        },
+        {
+          operation: 'bigger_or_equal_than',
+          property: 'field6',
+          value: 15,
+          joinAs: 'and',
+        },
+        {
+          operation: 'begins_with',
+          property: 'field7',
+          value: 'prefix',
+          joinAs: 'or',
+        },
+        {
+          operation: 'contains',
+          property: 'field8',
+          value: 'substring',
+          joinAs: 'and',
+        },
+        {
+          operation: 'not_contains',
+          property: 'field9',
+          value: 'excluded',
+          joinAs: 'or',
+        },
+        {
+          operation: 'between',
+          property: 'field10',
+          start: 1,
+          end: 100,
+          joinAs: 'and',
+        },
+        {
+          operation: 'in',
+          property: 'field11',
+          values: [1, 2, 3],
+          joinAs: 'or',
+        },
+        {
+          operation: 'not_in',
+          property: 'field12',
+          values: [4, 5],
+          joinAs: 'and',
+        },
+        {
+          operation: 'exists',
+          property: 'field13',
+          joinAs: 'or',
+        },
+        {
+          operation: 'not_exists',
+          property: 'field14',
+          joinAs: 'and',
+        },
+      ]);
+
+      expect(expression).toBe(
+        [
+          '(#field1 = :field1)',
+          'or (#field2 <> :field2)',
+          'and (#field3 < :field3)',
+          'and (#field4 <= :field4)',
+          'or (#field5 > :field5)',
+          'and (#field6 >= :field6)',
+          'or (begins_with(#field7, :field7))',
+          'and (contains(#field8, :field8))',
+          'or (not contains(#field9, :field9))',
+          'and (#field10 between :field10_start and :field10_end)',
+          'or (#field11 in (:field11_0,:field11_1,:field11_2))',
+          'and (not #field12 in (:field12_0,:field12_1))',
+          'or (attribute_exists(#field13))',
+          'and (attribute_not_exists(#field14))',
+        ].join(' '),
+      );
+    });
+
+    it('should handle deeply nested with prefix', () => {
+      const prefix = 'PRE_';
+
+      const expression = buildExpression(
+        [
+          {
+            property: 'level1',
+            operation: 'equal',
+            value: 'a',
+            nested: [
+              {
+                property: 'level2',
+                operation: 'equal',
+                value: 'b',
+                nested: [
+                  {
+                    property: 'level3',
+                    operation: 'equal',
+                    value: 'c',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        prefix,
+      );
+
+      expect(expression).toBe(
+        `((#${prefix}level1 = :${prefix}level1) and ((#${prefix}level2 = :${prefix}level2) and (#${prefix}level3 = :${prefix}level3)))`,
+      );
+    });
+
+    it('should handle list operations with single value', () => {
+      const expression = buildExpression([
+        {
+          operation: 'in',
+          property: 'status',
+          values: ['active'],
+        },
+      ]);
+
+      expect(expression).toBe('(#status in (:status_0))');
+    });
+
+    it('should handle between operation with numeric values', () => {
+      const expression = buildExpression([
+        {
+          operation: 'between',
+          property: 'price',
+          start: 10.5,
+          end: 99.99,
+        },
+      ]);
+
+      expect(expression).toBe('(#price between :price_start and :price_end)');
+    });
+  });
 });
