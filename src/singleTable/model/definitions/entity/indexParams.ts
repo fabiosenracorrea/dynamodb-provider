@@ -33,7 +33,7 @@ type EntityIndexConfig<
    */
   indexes: {
     [IndexName in keyof IndexConfig]: RangeQueryResultProps<IndexConfig[IndexName]> &
-      EntityKeyGetters<Entity, IndexConfig[IndexName]>;
+      EntityKeyGetters<Entity, IndexConfig[IndexName]> & { index: IndexName };
   };
 
   getCreationIndexMapping: (params: IndexParams<Entity, IndexConfig>) => {

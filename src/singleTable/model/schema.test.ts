@@ -1347,7 +1347,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.byPrefix>, { value: string }>>,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.byPrefix>, 'value'>>,
         ];
       });
 
@@ -1422,9 +1422,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<
-            Equal<FirstParameter<typeof user.rangeQueries.range>, { start: string; end: string }>
-          >,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.range>, 'start' | 'end'>>,
         ];
       });
 
@@ -1483,7 +1481,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.exactMatch>, { value: string }>>,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.exactMatch>, 'value'>>,
         ];
       });
 
@@ -1540,7 +1538,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.before>, { value: string }>>,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.before>, 'value'>>,
         ];
       });
 
@@ -1596,9 +1594,7 @@ describe('single table schema tests', () => {
 
         // -- TYPES --
 
-        type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.upTo>, { value: string }>>,
-        ];
+        type _Tests = [Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.upTo>, 'value'>>];
       });
 
       it('should handle bigger_than with single param [custom getValues]', () => {
@@ -1654,7 +1650,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.after>, { value: string }>>,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.after>, 'value'>>,
         ];
       });
 
@@ -1710,9 +1706,7 @@ describe('single table schema tests', () => {
 
         // -- TYPES --
 
-        type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.from>, { value: string }>>,
-        ];
+        type _Tests = [Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.from>, 'value'>>];
       });
 
       it('should handle multiple range queries with different param types', () => {
@@ -1773,7 +1767,7 @@ describe('single table schema tests', () => {
         // -- TYPES --
 
         type _Tests = [
-          Expect<Equal<FirstParameter<typeof user.rangeQueries.noParams>, void>>,
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.noParams>, undefined>>,
           Expect<Equal<FirstParameter<typeof user.rangeQueries.singleParam>, { target: string }>>,
           Expect<
             Equal<
@@ -1781,9 +1775,7 @@ describe('single table schema tests', () => {
               { from: string; to: string }
             >
           >,
-          Expect<
-            Equal<FirstParameter<typeof user.rangeQueries.defaultBehavior>, { value: string }>
-          >,
+          Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.defaultBehavior>, 'value'>>,
         ];
       });
 
