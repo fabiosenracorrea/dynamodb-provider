@@ -2952,7 +2952,7 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ value: 'my-id', id: 'string' });
+        const result = await repo.query.someQuery({ value: '#DATA', id: 'my-id' });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
@@ -2998,14 +2998,15 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ start: 'my-id', end: 'end', id: 'string' });
+        const result = await repo.query.someQuery({ start: 'start', end: 'end', id: 'my-id' });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
           partition: ['USER', 'my-id'],
           range: {
-            operation: 'begins_with',
-            value: '#DATA',
+            operation: 'between',
+            start: 'start',
+            end: 'end',
           },
         });
         expect(result).toBe(expectedResult);
@@ -3047,7 +3048,7 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ value: 'my-id', id: 'string' });
+        const result = await repo.query.someQuery({ value: '#DATA', id: 'my-id' });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
@@ -3093,14 +3094,15 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ start: 'my-id', end: 'end', id: 'string' });
+        const result = await repo.query.someQuery({ start: 'start', end: 'end', id: 'my-id' });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
           partition: ['USER', 'my-id'],
           range: {
-            operation: 'begins_with',
-            value: '#DATA',
+            operation: 'between',
+            start: 'start',
+            end: 'end',
           },
         });
         expect(result).toBe(expectedResult);
@@ -3166,6 +3168,20 @@ describe('single table - from entity methods', () => {
   });
 
   describe('query index methods', () => {
+    function queryInstance<
+      T extends ExtendableSingleTableEntity,
+      Params extends SingleTableParams | undefined,
+    >(entity: T, params?: Params) {
+      const instance = new SingleTableFromEntityMethods(entity, params ?? baseParams);
+
+      const result = { items: [], paginationToken: '' };
+
+      const query = jest.fn().mockResolvedValue(result);
+      (instance as any).methods = { query };
+
+      return { instance, query, expectedResult: result };
+    }
+
     it('should not exist if no index config is present', () => {
       const params = {
         ...baseParams,
@@ -3189,12 +3205,7 @@ describe('single table - from entity methods', () => {
 
     describe('custom', () => {
       it('should have custom query on each index', async () => {
-        const params = {
-          ...baseParams,
-          dynamodbProvider: {} as any,
-        };
-
-        const schema = new SingleTableSchema(params);
+        const schema = new SingleTableSchema(baseParams);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
@@ -3214,11 +3225,7 @@ describe('single table - from entity methods', () => {
           },
         });
 
-        const instance = new SingleTableFromEntityMethods(user, params);
-
-        const mockResult = { items: [], paginationToken: '' };
-        const query = jest.fn().mockResolvedValue(mockResult);
-        (instance as any).methods = { query };
+        const { instance, expectedResult, query } = queryInstance(user);
 
         const result = await instance.buildMethods().queryIndex.byEmail.custom();
 
@@ -3226,7 +3233,7 @@ describe('single table - from entity methods', () => {
           partition: ['USERS_BY_EMAIL'],
           index: 'anotherIndex',
         });
-        expect(result).toBe(mockResult);
+        expect(result).toBe(expectedResult);
 
         const result2 = await instance.buildMethods().queryIndex.byName.custom();
 
@@ -3234,7 +3241,7 @@ describe('single table - from entity methods', () => {
           partition: ['USERS_BY_NAME'],
           index: 'someIndex',
         });
-        expect(result2).toBe(mockResult);
+        expect(result2).toBe(expectedResult);
       });
 
       it('should handle custom query with index partition params', async () => {
