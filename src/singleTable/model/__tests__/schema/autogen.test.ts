@@ -318,4 +318,26 @@ describe('single table schema - entity - autogen', () => {
 
     jest.useRealTimers();
   });
+
+  it('[TYPES] should not accept random generator strings', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    schema.createEntity<User>().as({
+      type: 'USER',
+      getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+      getRangeKey: () => ['#DATA'],
+
+      autoGen: {
+        onCreate: {
+          // @ts-expect-error bad type
+          updatedAt: 'bad',
+        },
+
+        onUpdate: {
+          // @ts-expect-error bad type
+          updatedAt: 'bad',
+        },
+      },
+    });
+  });
 });
