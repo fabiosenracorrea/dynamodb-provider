@@ -1065,7 +1065,10 @@ describe('single table schema tests', () => {
 
         // -- TYPES --
 
-        type _Tests = [Expect<Equal<FirstParameter<typeof user.rangeQueries.userData>, void>>];
+        type _Tests = [
+          //
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.userData>, undefined>>,
+        ];
       });
 
       it('should handle begins_with with single param [custom getValues]', () => {
