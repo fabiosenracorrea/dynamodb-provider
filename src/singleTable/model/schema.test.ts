@@ -82,7 +82,799 @@ describe('single table schema tests', () => {
 
       // -- TYPES --
 
-      type Tests = [Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>];
+      type _Tests = [Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>];
+    });
+
+    it('should create a simple entity [getter param + getter param]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ({ email }: { email: string }) => ['EMAIL', email],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
+        'EMAIL',
+        'test@example.com',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['EMAIL', 'user@example.com'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter no params + getter no params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: () => ['USERS'],
+        getRangeKey: () => ['#DATA'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS']);
+      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
+
+      expect(user.getKey()).toStrictEqual({
+        partitionKey: ['USERS'],
+        rangeKey: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [Expect<Equal<FirstParameter<typeof user.getKey>, undefined>>];
+    });
+
+    it('should create a simple entity [getter no params + getter param]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: () => ['USERS'],
+        getRangeKey: ({ id }: { id: string }) => ['USER', id],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS']);
+      expect(user.getRangeKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USERS'],
+        rangeKey: ['USER', 'my-id'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation + array notation]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id'],
+        getRangeKey: ['#DATA'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation with multiple refs + array notation]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id', '.email'],
+        getRangeKey: ['DATA', '.createdAt'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'test-id',
+        'test@example.com',
+      ]);
+
+      expect(user.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual(['DATA', '2024-01-01']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          createdAt: '2024-01-01',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'user@example.com'],
+        rangeKey: ['DATA', '2024-01-01'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<
+            FirstParameter<typeof user.getKey>,
+            { id: string; email: string; createdAt: string }
+          >
+        >,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { createdAt: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation + getter param]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id'],
+        getRangeKey: ({ email }: { email: string }) => ['EMAIL', email],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
+        'EMAIL',
+        'test@example.com',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['EMAIL', 'user@example.com'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation + getter no params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id'],
+        getRangeKey: () => ['#DATA'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+      ];
+    });
+
+    it('should create a simple entity [getter param + array notation]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['EMAIL', '.email'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
+        'EMAIL',
+        'test@example.com',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['EMAIL', 'user@example.com'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter no params + array notation]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: () => ['USERS'],
+        getRangeKey: ['USER', '.id'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS']);
+      expect(user.getRangeKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USERS'],
+        rangeKey: ['USER', 'my-id'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation only constants + array notation only constants]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USERS', 'PARTITION'],
+        getRangeKey: ['DATA', 'RANGE'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS', 'PARTITION']);
+      expect(user.getRangeKey()).toStrictEqual(['DATA', 'RANGE']);
+
+      expect(user.getKey()).toStrictEqual({
+        partitionKey: ['USERS', 'PARTITION'],
+        rangeKey: ['DATA', 'RANGE'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, undefined>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
+      ];
+    });
+
+    it('should create a simple entity [getter with multiple params + getter with multiple params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+        getRangeKey: ({ name, address }: { name: string; address: string }) => [
+          'DATA',
+          name,
+          address,
+        ],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'id-123',
+        'test@example.com',
+      ]);
+      expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
+        'DATA',
+        'John',
+        '123 Street',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+          address: '456 Ave',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'user@example.com'],
+        rangeKey: ['DATA', 'Jane', '456 Ave'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<
+            FirstParameter<typeof user.getKey>,
+            { id: string; email: string; name: string; address: string }
+          >
+        >,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array with mixed constants and refs + array with mixed]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id', 'CONST', '.email'],
+        getRangeKey: ['DATA', '.name', 'SEPARATOR', '.address'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'id-123',
+        'CONST',
+        'test@example.com',
+      ]);
+
+      expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
+        'DATA',
+        'John',
+        'SEPARATOR',
+        '123 Street',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+          address: '456 Ave',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'CONST', 'user@example.com'],
+        rangeKey: ['DATA', 'Jane', 'SEPARATOR', '456 Ave'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<
+            FirstParameter<typeof user.getKey>,
+            { id: string; email: string; name: string; address: string }
+          >
+        >,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter with multiple params + array notation]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+        getRangeKey: ['DATA', '.name'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'id-123',
+        'test@example.com',
+      ]);
+      expect(user.getRangeKey({ name: 'John' })).toStrictEqual(['DATA', 'John']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'user@example.com'],
+        rangeKey: ['DATA', 'Jane'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        >,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array notation + getter with multiple params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id'],
+        getRangeKey: ({ name, address }: { name: string; address: string }) => [
+          'DATA',
+          name,
+          address,
+        ],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'id-123' })).toStrictEqual(['USER', 'id-123']);
+      expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
+        'DATA',
+        'John',
+        '123 Street',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          name: 'Jane',
+          address: '456 Ave',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['DATA', 'Jane', '456 Ave'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; name: string; address: string }>
+        >,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter no params + getter with multiple params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: () => ['USERS'],
+        getRangeKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS']);
+      expect(user.getRangeKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'test-id',
+        'test@example.com',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USERS'],
+        rangeKey: ['USER', 'my-id', 'user@example.com'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter with multiple params + getter no params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id, name }: { id: string; name: string }) => ['USER', id, name],
+        getRangeKey: () => ['#DATA'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id', name: 'John' })).toStrictEqual([
+        'USER',
+        'test-id',
+        'John',
+      ]);
+      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'Jane'],
+        rangeKey: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; name: string }>>,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; name: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array with multiple refs + getter no params]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id', '.email', '.name'],
+        getRangeKey: () => ['#DATA'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(
+        user.getPartitionKey({ id: 'test-id', email: 'test@example.com', name: 'John' }),
+      ).toStrictEqual(['USER', 'test-id', 'test@example.com', 'John']);
+      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'user@example.com', 'Jane'],
+        rangeKey: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        >,
+      ];
+    });
+
+    it('should create a simple entity [getter no params + array with multiple refs]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: () => ['USERS'],
+        getRangeKey: ['DATA', '.id', '.email', '.name'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey()).toStrictEqual(['USERS']);
+      expect(
+        user.getRangeKey({ id: 'test-id', email: 'test@example.com', name: 'John' }),
+      ).toStrictEqual(['DATA', 'test-id', 'test@example.com', 'John']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USERS'],
+        rangeKey: ['DATA', 'my-id', 'user@example.com', 'Jane'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        >,
+      ];
+    });
+
+    it('should create a simple entity [array with single ref + array with single ref]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['.id'],
+        getRangeKey: ['.email'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['test-id']);
+      expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual(['test@example.com']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['my-id'],
+        rangeKey: ['user@example.com'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.getKey>, { id: string; email: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [array mixed + getter single param]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ['USER', '.id', 'SEP', '.email'],
+        getRangeKey: ({ name }: { name: string }) => ['DATA', name],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
+        'USER',
+        'test-id',
+        'SEP',
+        'test@example.com',
+      ]);
+      expect(user.getRangeKey({ name: 'John' })).toStrictEqual(['DATA', 'John']);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id', 'SEP', 'user@example.com'],
+        rangeKey: ['DATA', 'Jane'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        >,
+        Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string }>>,
+      ];
+    });
+
+    it('should create a simple entity [getter single param + array mixed]', () => {
+      const schema = new SingleTableSchema(config);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: ['EMAIL', '.email', 'NAME', '.name'],
+      });
+
+      expect(user.__dbType).toBe('ENTITY');
+      expect(user.type).toBe('USER');
+
+      expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['USER', 'test-id']);
+      expect(user.getRangeKey({ email: 'test@example.com', name: 'John' })).toStrictEqual([
+        'EMAIL',
+        'test@example.com',
+        'NAME',
+        'John',
+      ]);
+
+      expect(
+        user.getKey({
+          id: 'my-id',
+          email: 'user@example.com',
+          name: 'Jane',
+        }),
+      ).toStrictEqual({
+        partitionKey: ['USER', 'my-id'],
+        rangeKey: ['EMAIL', 'user@example.com', 'NAME', 'Jane'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<
+          Equal<FirstParameter<typeof user.getKey>, { id: string; email: string; name: string }>
+        >,
+        Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
+      ];
     });
 
     it('should not allow 2 entities with the same type', () => {
@@ -248,7 +1040,7 @@ describe('single table schema tests', () => {
     });
 
     describe('range-queries', () => {
-      it('should handle a non-param query', () => {
+      it('should handle begins_with with no params [custom getValues]', () => {
         const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
@@ -270,20 +1062,79 @@ describe('single table schema tests', () => {
           operation: 'begins_with',
           value: '#DATA',
         });
+
+        // -- TYPES --
+
+        type _Tests = [Expect<Equal<FirstParameter<typeof user.rangeQueries.userData>, void>>];
       });
 
-      it('should handle a param query', () => {
+      it('should handle begins_with with single param [custom getValues]', () => {
         const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
 
           rangeQueries: {
-            someBetweenQuery: {
+            byPrefix: {
+              operation: 'begins_with',
+              getValues: ({ prefix }: { prefix: string }) => ({
+                value: prefix,
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.byPrefix({ prefix: 'USER#' })).toStrictEqual({
+          operation: 'begins_with',
+          value: 'USER#',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.byPrefix>, { prefix: string }>>,
+        ];
+      });
+
+      it('should handle begins_with [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            byPrefix: {
+              operation: 'begins_with',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.byPrefix({ value: 'PREFIX' })).toStrictEqual({
+          operation: 'begins_with',
+          value: 'PREFIX',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.byPrefix>, { value: string }>>,
+        ];
+      });
+
+      it('should handle between with params [custom getValues]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            dateRange: {
               operation: 'between',
               getValues: ({ startDate, endDate }: { startDate: string; endDate: string }) => ({
                 start: startDate,
@@ -294,18 +1145,29 @@ describe('single table schema tests', () => {
         });
 
         expect(
-          user.rangeQueries.someBetweenQuery({
-            startDate: 'a',
-            endDate: 'z',
+          user.rangeQueries.dateRange({
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
           }),
         ).toStrictEqual({
           operation: 'between',
-          start: 'a',
-          end: 'z',
+          start: '2024-01-01',
+          end: '2024-12-31',
         });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<
+            Equal<
+              FirstParameter<typeof user.rangeQueries.dateRange>,
+              { startDate: string; endDate: string }
+            >
+          >,
+        ];
       });
 
-      it('should handle a *default* between param query', () => {
+      it('should handle between [default behavior]', () => {
         const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
@@ -314,49 +1176,455 @@ describe('single table schema tests', () => {
           getRangeKey: () => ['#DATA'],
 
           rangeQueries: {
-            someBetweenQuery: {
+            range: {
               operation: 'between',
             },
           },
         });
 
         expect(
-          user.rangeQueries.someBetweenQuery({
-            start: 'a',
-            end: 'z',
+          user.rangeQueries.range({
+            start: 'A',
+            end: 'Z',
           }),
         ).toStrictEqual({
           operation: 'between',
-          start: 'a',
-          end: 'z',
+          start: 'A',
+          end: 'Z',
         });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<
+            Equal<FirstParameter<typeof user.rangeQueries.range>, { start: string; end: string }>
+          >,
+        ];
       });
 
-      it('should handle a *default* value param query', () => {
+      it('should handle equal with single param [custom getValues]', () => {
         const schema = new SingleTableSchema(config);
 
         const user = schema.createEntity<User>().as({
           type: 'USER',
-
           getPartitionKey: ({ id }: { id: string }) => ['USER', id],
-
           getRangeKey: () => ['#DATA'],
 
           rangeQueries: {
-            someBetweenQuery: {
-              operation: 'begins_with',
+            exactMatch: {
+              operation: 'equal',
+              getValues: ({ targetValue }: { targetValue: string }) => ({
+                value: targetValue,
+              }),
             },
           },
         });
 
-        expect(
-          user.rangeQueries.someBetweenQuery({
-            value: 'a',
-          }),
-        ).toStrictEqual({
-          operation: 'begins_with',
-          value: 'a',
+        expect(user.rangeQueries.exactMatch({ targetValue: 'EXACT' })).toStrictEqual({
+          operation: 'equal',
+          value: 'EXACT',
         });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<
+            Equal<FirstParameter<typeof user.rangeQueries.exactMatch>, { targetValue: string }>
+          >,
+        ];
+      });
+
+      it('should handle equal [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            exactMatch: {
+              operation: 'equal',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.exactMatch({ value: 'EXACT' })).toStrictEqual({
+          operation: 'equal',
+          value: 'EXACT',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.exactMatch>, { value: string }>>,
+        ];
+      });
+
+      it('should handle lower_than with single param [custom getValues]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            before: {
+              operation: 'lower_than',
+              getValues: ({ maxValue }: { maxValue: string }) => ({
+                value: maxValue,
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.before({ maxValue: '2024-12-31' })).toStrictEqual({
+          operation: 'lower_than',
+          value: '2024-12-31',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.before>, { maxValue: string }>>,
+        ];
+      });
+
+      it('should handle lower_than [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            before: {
+              operation: 'lower_than',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.before({ value: '100' })).toStrictEqual({
+          operation: 'lower_than',
+          value: '100',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.before>, { value: string }>>,
+        ];
+      });
+
+      it('should handle lower_or_equal_than with single param [custom getValues]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            upTo: {
+              operation: 'lower_or_equal_than',
+              getValues: ({ maxValue }: { maxValue: string }) => ({
+                value: maxValue,
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.upTo({ maxValue: '2024-12-31' })).toStrictEqual({
+          operation: 'lower_or_equal_than',
+          value: '2024-12-31',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.upTo>, { maxValue: string }>>,
+        ];
+      });
+
+      it('should handle lower_or_equal_than [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            upTo: {
+              operation: 'lower_or_equal_than',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.upTo({ value: '100' })).toStrictEqual({
+          operation: 'lower_or_equal_than',
+          value: '100',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.upTo>, { value: string }>>,
+        ];
+      });
+
+      it('should handle bigger_than with single param [custom getValues]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            after: {
+              operation: 'bigger_than',
+              getValues: ({ minValue }: { minValue: string }) => ({
+                value: minValue,
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.after({ minValue: '2024-01-01' })).toStrictEqual({
+          operation: 'bigger_than',
+          value: '2024-01-01',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.after>, { minValue: string }>>,
+        ];
+      });
+
+      it('should handle bigger_than [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            after: {
+              operation: 'bigger_than',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.after({ value: '100' })).toStrictEqual({
+          operation: 'bigger_than',
+          value: '100',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.after>, { value: string }>>,
+        ];
+      });
+
+      it('should handle bigger_or_equal_than with single param [custom getValues]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            from: {
+              operation: 'bigger_or_equal_than',
+              getValues: ({ minValue }: { minValue: string }) => ({
+                value: minValue,
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.from({ minValue: '2024-01-01' })).toStrictEqual({
+          operation: 'bigger_or_equal_than',
+          value: '2024-01-01',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.from>, { minValue: string }>>,
+        ];
+      });
+
+      it('should handle bigger_or_equal_than [default behavior]', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            from: {
+              operation: 'bigger_or_equal_than',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.from({ value: '100' })).toStrictEqual({
+          operation: 'bigger_or_equal_than',
+          value: '100',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.from>, { value: string }>>,
+        ];
+      });
+
+      it('should handle multiple range queries with different param types', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            noParams: {
+              operation: 'begins_with',
+              getValues: () => ({
+                value: 'STATIC',
+              }),
+            },
+            singleParam: {
+              operation: 'equal',
+              getValues: ({ target }: { target: string }) => ({
+                value: target,
+              }),
+            },
+            multiParams: {
+              operation: 'between',
+              getValues: ({ from, to }: { from: string; to: string }) => ({
+                start: from,
+                end: to,
+              }),
+            },
+            defaultBehavior: {
+              operation: 'bigger_than',
+            },
+          },
+        });
+
+        expect(user.rangeQueries.noParams()).toStrictEqual({
+          operation: 'begins_with',
+          value: 'STATIC',
+        });
+
+        expect(user.rangeQueries.singleParam({ target: 'TARGET' })).toStrictEqual({
+          operation: 'equal',
+          value: 'TARGET',
+        });
+
+        expect(user.rangeQueries.multiParams({ from: 'A', to: 'Z' })).toStrictEqual({
+          operation: 'between',
+          start: 'A',
+          end: 'Z',
+        });
+
+        expect(user.rangeQueries.defaultBehavior({ value: '50' })).toStrictEqual({
+          operation: 'bigger_than',
+          value: '50',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.noParams>, void>>,
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.singleParam>, { target: string }>>,
+          Expect<
+            Equal<
+              FirstParameter<typeof user.rangeQueries.multiParams>,
+              { from: string; to: string }
+            >
+          >,
+          Expect<
+            Equal<FirstParameter<typeof user.rangeQueries.defaultBehavior>, { value: string }>
+          >,
+        ];
+      });
+
+      it('should handle complex getValues transformations', () => {
+        const schema = new SingleTableSchema(config);
+
+        const user = schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            emailPrefix: {
+              operation: 'begins_with',
+              getValues: ({ email }: { email: string }) => ({
+                value: email.toLowerCase(),
+              }),
+            },
+            dateRangeISO: {
+              operation: 'between',
+              getValues: ({ startDate, endDate }: { startDate: Date; endDate: Date }) => ({
+                start: startDate.toISOString(),
+                end: endDate.toISOString(),
+              }),
+            },
+            numericThreshold: {
+              operation: 'bigger_or_equal_than',
+              getValues: ({ threshold }: { threshold: number }) => ({
+                value: threshold.toString(),
+              }),
+            },
+          },
+        });
+
+        expect(user.rangeQueries.emailPrefix({ email: 'TEST@EXAMPLE.COM' })).toStrictEqual({
+          operation: 'begins_with',
+          value: 'test@example.com',
+        });
+
+        const start = new Date('2024-01-01T00:00:00.000Z');
+        const end = new Date('2024-12-31T23:59:59.999Z');
+
+        expect(user.rangeQueries.dateRangeISO({ startDate: start, endDate: end })).toStrictEqual({
+          operation: 'between',
+          start: '2024-01-01T00:00:00.000Z',
+          end: '2024-12-31T23:59:59.999Z',
+        });
+
+        expect(user.rangeQueries.numericThreshold({ threshold: 100 })).toStrictEqual({
+          operation: 'bigger_or_equal_than',
+          value: '100',
+        });
+
+        // -- TYPES --
+
+        type _Tests = [
+          Expect<Equal<FirstParameter<typeof user.rangeQueries.emailPrefix>, { email: string }>>,
+          Expect<
+            Equal<
+              FirstParameter<typeof user.rangeQueries.dateRangeISO>,
+              { startDate: Date; endDate: Date }
+            >
+          >,
+          Expect<
+            Equal<FirstParameter<typeof user.rangeQueries.numericThreshold>, { threshold: number }>
+          >,
+        ];
       });
     });
 
