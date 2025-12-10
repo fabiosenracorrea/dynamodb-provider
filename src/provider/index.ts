@@ -6,6 +6,7 @@ export {
   DBSet,
   QueryParams,
   QueryResult,
+  QueryConfigParams,
   UpdateParams,
   TransactionParams,
   CreateItemParams,

@@ -159,3 +159,7 @@ export type HasDefined<T extends readonly unknown[]> = T extends [
     ? true
     : HasDefined<Rest>
   : false;
+
+export type OptionalTupleIfUndefined<Ref, Params> = HasUndefined<[Ref]> extends true
+  ? [Params?]
+  : [Params];

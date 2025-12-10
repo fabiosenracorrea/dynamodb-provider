@@ -4,6 +4,7 @@ export {
   type DeleteItemParams,
   type ListOptions,
   type QueryParams,
+  type QueryConfigParams,
   type QueryResult,
   type TransactionParams,
   type UpdateParams,

@@ -3,7 +3,7 @@
 import {
   BasicRangeKeyConfig,
   BetweenRangeKeyConfig,
-  QueryParams,
+  QueryConfigParams,
   QueryResult,
 } from 'provider/utils';
 
@@ -42,7 +42,7 @@ type IndexParams<TableConfig extends SingleTableConfig> =
 export type SingleTableQueryParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = Omit<QueryParams<Entity>, 'index' | 'partitionKey' | 'rangeKey' | 'table'> &
+> = QueryConfigParams<Entity> &
   IndexParams<TableConfig> & {
     partition: KeyValue;
 

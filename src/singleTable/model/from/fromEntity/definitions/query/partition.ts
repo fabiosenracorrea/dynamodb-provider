@@ -1,18 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AnyEntity } from 'singleTable/model';
 import type { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
-import type { QueryResult } from 'provider';
-import type { FirstParameter, HasDefined, OptionalTupleIf, SafeObjMerge } from 'types';
-import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
+import type { QueryResult, QueryConfigParams } from 'provider';
+import type {
+  FirstParameter,
+  HasDefined,
+  OptionalTupleIf,
+  SafeObjMerge,
+  OptionalTupleIfUndefined,
+} from 'types';
 
 type BaseQueryParams<Registered extends AnyEntity> = SafeObjMerge<
   QueryConfigParams<Registered['__entity']>,
   FirstParameter<Registered['getPartitionKey']>
 >;
 
-type CustomQueryParams<Registered extends AnyEntity> =
-  BaseQueryParams<Registered> &
-    Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
+type CustomQueryParams<Registered extends AnyEntity> = BaseQueryParams<Registered> &
+  Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
 
 type EntityQueryResult<Registered extends AnyEntity> = QueryResult<
   Registered['__entity']

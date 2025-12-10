@@ -5,17 +5,13 @@ import type {
   HasDefined,
   OptionalTupleIf,
   SafeObjMerge,
+  OptionalTupleIfUndefined,
 } from 'types';
-import type { QueryResult } from 'provider';
+import type { QueryConfigParams, QueryResult } from 'provider';
 
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 
-import type {
-  AnyEntity,
-  RangeQueryGetters,
-  SingleIndex,
-} from 'singleTable/model';
-import type { OptionalTupleIfUndefined, QueryConfigParams } from './common';
+import type { AnyEntity, RangeQueryGetters, SingleIndex } from 'singleTable/model';
 
 type IndexPartitionParams<Index extends SingleIndex> = FirstParameter<
   Index['getPartitionKey']
@@ -68,16 +64,15 @@ export type SingleIndexQueryMethods<Entity, Index extends SingleIndex> = {
   ): Promise<QueryResult<Entity>>;
 } & RangeQueries<Entity, Index>;
 
-export type IndexQueryMethods<Registered extends AnyEntity> =
-  Registered extends {
-    indexes: any;
-  }
-    ? {
-        queryIndex: {
-          [Index in keyof Registered['indexes']]: SingleIndexQueryMethods<
-            Registered['__entity'],
-            Registered['indexes'][Index]
-          >;
-        };
-      }
-    : object;
+export type IndexQueryMethods<Registered extends AnyEntity> = Registered extends {
+  indexes: any;
+}
+  ? {
+      queryIndex: {
+        [Index in keyof Registered['indexes']]: SingleIndexQueryMethods<
+          Registered['__entity'],
+          Registered['indexes'][Index]
+        >;
+      };
+    }
+  : object;
