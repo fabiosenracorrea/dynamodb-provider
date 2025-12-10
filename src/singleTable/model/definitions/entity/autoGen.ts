@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { AnyObject, AtLeastOne } from 'types';
+import { SingleTableConfig } from 'singleTable/adaptor';
+import { AnyObject, AtLeastOne, IsUndefined, StringKey } from 'types';
 
 import { getId } from 'utils/id';
 import { omitUndefined } from 'utils/object';
@@ -56,24 +57,30 @@ type AutoType = (UUIDGen | KSUIDGen | TimestampGen | CountGen)['type'];
 
 type AutoGenOption = AutoType | (() => any);
 
-type AutoGenFieldConfig<Entity> = {
-  [Key in keyof Entity]?: AutoGenOption;
+type CustomDefaultGenOptions<TableConfig extends SingleTableConfig> = IsUndefined<
+  TableConfig['autoGenerators']
+> extends true
+  ? never
+  : StringKey<TableConfig['autoGenerators']>;
+
+type AutoGenFieldConfig<Entity, TableConfig extends SingleTableConfig> = {
+  [Key in keyof Entity]?: AutoGenOption | CustomDefaultGenOptions<TableConfig>;
 };
 
-export type AutoGenParams<Entity> = {
+export type AutoGenParams<Entity, TableConfig extends SingleTableConfig> = {
   /**
    * Map your entity keys to the auto generation method or a custom function generator
    *
    * Runs on create calls
    */
-  onCreate?: AutoGenFieldConfig<Entity>;
+  onCreate?: AutoGenFieldConfig<Entity, TableConfig>;
 
   /**
    * Map your entity keys to the auto generation method or a custom function generator
    *
    * Runs on update calls
    */
-  onUpdate?: AutoGenFieldConfig<Entity>;
+  onUpdate?: AutoGenFieldConfig<Entity, TableConfig>;
 };
 
 const generators: Record<AutoType, () => any> = {
@@ -86,15 +93,37 @@ const generators: Record<AutoType, () => any> = {
   timestamp: () => new Date().toISOString(),
 };
 
-export function addAutoGenParams<Values extends AnyObject>(
-  values: Values,
-  genConfig?: AutoGenFieldConfig<any>,
-): Values {
+interface AddAutoGenParams<
+  Values extends AnyObject,
+  TableConfig extends SingleTableConfig,
+> {
+  values: Values;
+  genConfig?: AutoGenFieldConfig<any, TableConfig>;
+  defaultGenerators?: TableConfig['autoGenerators'];
+}
+
+function generate(
+  target: string,
+  defaultGenerators?: SingleTableConfig['autoGenerators'],
+) {
+  const generator = defaultGenerators?.[target] ?? generators[target as AutoType];
+
+  return generator?.();
+}
+
+export function addAutoGenParams<
+  Values extends AnyObject,
+  TableConfig extends SingleTableConfig,
+>({
+  values,
+  defaultGenerators,
+  genConfig,
+}: AddAutoGenParams<Values, TableConfig>): Values {
   if (!genConfig) return values;
 
   const generated = Object.entries(genConfig).map(([prop, genRef]) => [
     prop,
-    typeof genRef === 'function' ? genRef() : generators[genRef!]?.(),
+    typeof genRef === 'function' ? genRef() : generate(genRef!, defaultGenerators),
   ]);
 
   return omitUndefined({
