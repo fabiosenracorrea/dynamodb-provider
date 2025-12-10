@@ -9,7 +9,7 @@ export {
   ListItemTypeResult,
   SingleTableBatchGetParams,
   SingleTableQueryParams,
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableGetParams,
   SingleTableUpdateParams,
   SingleTableDeleteParams,

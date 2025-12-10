@@ -10,7 +10,7 @@ import {
   ListItemTypeResult,
   SingleTableBatchGetParams,
   SingleTableQueryParams,
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableGetParams,
   SingleTableTransactionParams,
   SingleTableUpdateParams,
@@ -84,7 +84,7 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
   }
 
   async create<Entity>(
-    params: SingleTableCreateItemParams<Entity, SingleParams>,
+    params: SingleTableCreateParams<Entity, SingleParams>,
   ): Promise<Entity> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.creator.create(params as any);

@@ -5,7 +5,7 @@ import { AnyObject, StringKey } from 'types';
 import { DynamoDbProviderParams, IDynamodbProvider } from './definition';
 
 import {
-  CreateItemParams,
+  CreateParams,
   DeleteItemParams,
   UpdateParams,
   TransactionParams,
@@ -80,9 +80,9 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   }
 
   async create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: CreateItemParams<Entity, PKs>,
+    params: CreateParams<Entity, PKs>,
   ): Promise<Entity> {
-    return this.creator.create(params as CreateItemParams<Entity>);
+    return this.creator.create(params as CreateParams<Entity>);
   }
 
   async delete<Entity extends Record<string, any>>(

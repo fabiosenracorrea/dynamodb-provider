@@ -9,7 +9,7 @@ export {
   QueryConfigParams,
   UpdateParams,
   TransactionParams,
-  CreateItemParams,
+  CreateParams,
   DeleteItemParams,
   ListOptions,
 } from './utils';

@@ -15,6 +15,8 @@
   - `ExtendableSingleTableEntity` type renamed to `AnyEntity`
   - `TransactionConfig` type renamed to `TransactionParams`
   - `SingleTableTransactionConfig` type renamed to `SingleTableTransactionParams`
+  - `CreateItemParams` type renamed to `CreateParams`
+  - `SingleTableCreateItemParams` type renamed to `SingleTableCreateParams`
 
 - *Feature*: Direct `collection` creation from `partition.collection()`
 - *Feature*: `propertiesToRetrieve` added to query methods

@@ -159,7 +159,7 @@ const user = await provider.get<User>({
 Creates an item in the table. DynamoDB's PutItem overwrites existing items—use `conditions` to prevent this.
 
 ```ts
-create<Entity>(params: CreateItemParams<Entity>): Promise<Entity>
+create<Entity>(params: CreateParams<Entity>): Promise<Entity>
 ```
 
 **Parameters:**
@@ -506,7 +506,7 @@ transaction(configs: (TransactionParams | null)[]): Promise<void>
 **Note:** `executeTransaction` is deprecated. Use `transaction` instead.
 
 **Transaction types:**
-- `{ create: CreateItemParams }` - Put item
+- `{ create: CreateParams }` - Put item
 - `{ update: UpdateParams }` - Update item
 - `{ erase: DeleteItemParams }` - Delete item
 - `{ validate: ValidateTransactParams }` - Condition check
@@ -808,7 +808,7 @@ const items = await table.batchGet({
 Creates an item in the table.
 
 ```ts
-create<Entity>(params: SingleTableCreateItemParams<Entity>): Promise<Entity>
+create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
 ```
 
 **Parameters:**
@@ -953,7 +953,7 @@ transaction(configs: (SingleTableTransactionParams | null)[]): Promise<void>
 **Parameters:**
 
 - `configs` - Array of transaction configurations (max 100 items or 4MB total):
-  - `{ create: SingleTableCreateItemParams }` - Put item
+  - `{ create: SingleTableCreateParams }` - Put item
   - `{ update: SingleTableUpdateParams }` - Update item
   - `{ erase: SingleTableDeleteParams }` - Delete item
   - `{ validate: SingleTableValidateTransactParams }` - Condition check

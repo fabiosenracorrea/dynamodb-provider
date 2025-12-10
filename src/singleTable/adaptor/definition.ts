@@ -3,7 +3,7 @@ import { AnyObject, StringKey } from 'types';
 import { IDynamodbProvider, QueryResult, TransactionParams } from 'provider';
 
 import {
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableTransactionParams,
   SingleTableUpdateParams,
   SingleTableGetParams,
@@ -34,7 +34,7 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   ): Promise<Entity[]>;
 
   create<Entity>(
-    params: SingleTableCreateItemParams<Entity, SingleParams>,
+    params: SingleTableCreateParams<Entity, SingleParams>,
   ): Promise<Entity>;
 
   delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void>;

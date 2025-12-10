@@ -1,13 +1,13 @@
 export {
   DynamodbProvider,
-  type CreateItemParams,
+  type CreateParams,
   type DeleteItemParams,
+  type UpdateParams,
   type ListOptions,
   type QueryParams,
   type QueryConfigParams,
   type QueryResult,
   type TransactionParams,
-  type UpdateParams,
   type DBSet,
 } from './provider';
 

@@ -2,7 +2,7 @@
 import { AnyObject, StringKey } from 'types';
 
 import {
-  CreateItemParams,
+  CreateParams,
   DeleteItemParams,
   UpdateParams,
   QueryParams,
@@ -54,7 +54,7 @@ export interface IDynamodbProvider<
   ): Promise<Entity[]>;
 
   create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: CreateItemParams<Entity, PKs>,
+    params: CreateParams<Entity, PKs>,
   ): Promise<Entity>;
 
   update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(

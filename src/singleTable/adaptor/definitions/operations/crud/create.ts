@@ -3,7 +3,7 @@
 
 import { AnyObject } from 'types';
 
-import { CreateItemParams } from 'provider';
+import { CreateParams } from 'provider';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
@@ -45,7 +45,7 @@ type TypeParams<TableConfig extends SingleTableConfig> =
         type: string;
       };
 
-export type SingleTableCreateItemParams<
+export type SingleTableCreateParams<
   Entity = AnyObject,
   TableConfig extends SingleTableConfig = SingleTableConfig,
 > = IndexParams<TableConfig> &
@@ -90,7 +90,7 @@ export class SingleTableCreator extends BaseSingleTableOperator {
     type,
     indexes,
     expiresAt,
-  }: SingleTableCreateItemParams<Entity, RefConfig>): CreateItemParams<Entity> {
+  }: SingleTableCreateParams<Entity, RefConfig>): CreateParams<Entity> {
     return {
       table: this.config.table,
 
@@ -112,7 +112,7 @@ export class SingleTableCreator extends BaseSingleTableOperator {
 
   // We only need to extend config on our provider, this method here is not exposed to the application
   async create<Entity>(
-    params: SingleTableCreateItemParams<Entity, Required<SingleTableConfig>>,
+    params: SingleTableCreateParams<Entity, Required<SingleTableConfig>>,
   ): Promise<Entity> {
     const created = await this.db.create<any>(this.getCreateParams(params as any));
 

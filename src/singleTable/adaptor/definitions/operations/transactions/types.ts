@@ -3,7 +3,7 @@ import { AnyObject } from 'types';
 import { ValidateTransactParams } from 'provider/utils';
 
 import {
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableDeleteParams,
   SingleTableUpdateParams,
 } from '../crud';
@@ -24,7 +24,7 @@ export interface SingleTableCreateTransaction<
   TableConfig extends SingleTableConfig = SingleTableConfig,
   Entity extends AnyObject = AnyObject,
 > {
-  create: SingleTableCreateItemParams<Entity, TableConfig>;
+  create: SingleTableCreateParams<Entity, TableConfig>;
   update?: never;
   erase?: never;
   validate?: never;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   SingleTableConditionCheckTransaction,
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableCreateTransaction,
   SingleTableDeleteTransaction,
   SingleTableUpdateParams,
@@ -68,7 +68,7 @@ type BaseCRUDProps<
     >,
 
     ...config: TableConfig extends { expiresAt: string } ? [UnixExpiresAtProps?] : []
-  ) => SingleTableCreateItemParams<Entity, TableConfig>;
+  ) => SingleTableCreateParams<Entity, TableConfig>;
 
   getUpdateParams: (
     params: EntityKeyParams<Entity, Params> & UpdateCallProps<TableConfig, Entity>,
@@ -116,7 +116,7 @@ type TransactCRUDProps<
 
 // fromEntity was acting up
 export type ExtendableCRUDProps = {
-  getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
+  getCreationParams: (...params: any[]) => SingleTableCreateParams<any, any>;
   getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
   getValidationParams: (
     ...param: any[]
@@ -172,7 +172,7 @@ export function getCRUDParamGetters<
   const getCreationParams = (
     item: any,
     config = {},
-  ): SingleTableCreateItemParams<Entity, TableConfig> => {
+  ): SingleTableCreateParams<Entity, TableConfig> => {
     const actualItem = addAutoGenParams(item, autoGen?.onCreate);
 
     return {
