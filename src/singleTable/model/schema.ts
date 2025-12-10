@@ -8,8 +8,8 @@ import {
   createCollection,
   createEntity,
   CreatePartitionParams,
-  ExtendableCollection,
-  ExtendableSingleTableEntity,
+  AnyCollection,
+  AnyEntity,
   Partition,
   PartitionCollection,
   PartitionCollectionParams,
@@ -215,11 +215,11 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
     };
   }
 
-  getEntityByType(type: string): ExtendableSingleTableEntity | undefined {
+  getEntityByType(type: string): AnyEntity | undefined {
     return this.configCache.get(type)?.entity;
   }
 
-  from<Target extends ExtendableSingleTableEntity | ExtendableCollection>(
+  from<Target extends AnyEntity | AnyCollection>(
     target: Target,
   ): From<Target, TableConfig> {
     return this.repoCreator.from(target);

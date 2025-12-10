@@ -11,7 +11,7 @@ import type { QueryResult } from 'provider';
 import { SingleTableQueryParams } from 'singleTable/adaptor/definitions';
 
 import type {
-  ExtendableSingleTableEntity,
+  AnyEntity,
   RangeQueryGetters,
   SingleIndex,
 } from 'singleTable/model';
@@ -68,7 +68,7 @@ export type SingleIndexQueryMethods<Entity, Index extends SingleIndex> = {
   ): Promise<QueryResult<Entity>>;
 } & RangeQueries<Entity, Index>;
 
-export type IndexQueryMethods<Registered extends ExtendableSingleTableEntity> =
+export type IndexQueryMethods<Registered extends AnyEntity> =
   Registered extends {
     indexes: any;
   }

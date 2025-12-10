@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableMethods, type SingleTableParams } from 'singleTable/adaptor';
-import type { ExtendableSingleTableEntity, IndexMapping } from 'singleTable/model';
+import type { AnyEntity, IndexMapping } from 'singleTable/model';
 import {
   type SingleTableGetParams,
   singleTableParams,
@@ -17,7 +17,7 @@ import type {
 } from './definitions';
 
 export class SingleTableFromEntityMethods<
-  Entity extends ExtendableSingleTableEntity,
+  Entity extends AnyEntity,
   SingleParams extends SingleTableParams,
 > {
   private entity: Entity;
@@ -71,7 +71,7 @@ export class SingleTableFromEntityMethods<
     return this.bindObjectMethods(callers);
   }
 
-  private getQueryIndexMethods(): IndexQueryMethods<ExtendableSingleTableEntity> {
+  private getQueryIndexMethods(): IndexQueryMethods<AnyEntity> {
     const typed = this.entity as {
       indexes?: IndexMapping<SingleParams & { indexes: any }, any>;
     };

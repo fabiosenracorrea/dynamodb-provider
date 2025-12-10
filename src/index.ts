@@ -18,6 +18,6 @@ export {
   type GetCollectionParams,
   type GetCollectionResult,
   type ExtractTableConfig,
-  type ExtendableCollection,
-  type ExtendableSingleTableEntity,
+  type AnyEntity,
+  type AnyCollection,
 } from './singleTable';

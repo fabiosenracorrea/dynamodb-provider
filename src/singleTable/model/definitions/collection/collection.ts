@@ -8,9 +8,9 @@ import {
 } from 'singleTable/adaptor/definitions';
 
 import { pick } from 'utils/object';
-import { ExtendableSingleTableEntity } from '../entity';
+import { AnyEntity } from '../entity';
 
-type RefEntity = ExtendableSingleTableEntity;
+type RefEntity = AnyEntity;
 
 export type Sorter = (a: any, b: any) => number;
 export type Extractor<E = any> = (a: E) => any;
@@ -273,10 +273,9 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
  * Due to the complex nature of our entity obj, we rely on making this
  * as generic as possible, and ts infer will do the rest
  */
-export type ExtendableCollection = PartitionCollection<any>;
+export type AnyCollection = PartitionCollection<any>;
 
-export type GetCollectionType<Collection extends ExtendableCollection> =
-  Collection['__type'];
+export type GetCollectionType<Collection extends AnyCollection> = Collection['__type'];
 
 export function createCollection<Params extends PartitionCollectionParams<any>>({
   join,

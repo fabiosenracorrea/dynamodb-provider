@@ -2,7 +2,7 @@
 import type { Expect, Equal, PrettifyObject } from 'types';
 
 import { SingleTableParams } from 'singleTable/adaptor';
-import type { ExtendableSingleTableEntity } from '../definitions';
+import type { AnyEntity } from '../definitions';
 import { SingleTableFromEntityMethods } from '../from/fromEntity/methods';
 import { SingleTableSchema } from '../schema';
 
@@ -64,7 +64,7 @@ function paramsFor<T extends 'get' | 'batchGet' | 'delete' | 'create' | 'update'
   };
 }
 
-function keyFor<T extends ExtendableSingleTableEntity>(
+function keyFor<T extends AnyEntity>(
   entity: T,
   params: Parameters<T['getKey']>[0],
 ) {
@@ -2524,7 +2524,7 @@ describe('single table - from entity methods', () => {
 
   describe('query methods', () => {
     function queryInstance<
-      T extends ExtendableSingleTableEntity,
+      T extends AnyEntity,
       Params extends SingleTableParams | undefined,
     >(entity: T, params?: Params) {
       const instance = new SingleTableFromEntityMethods(entity, params ?? baseParams);
@@ -3293,7 +3293,7 @@ describe('single table - from entity methods', () => {
 
   describe('query index methods', () => {
     function queryInstance<
-      T extends ExtendableSingleTableEntity,
+      T extends AnyEntity,
       Params extends SingleTableParams | undefined,
     >(entity: T, params?: Params) {
       const instance = new SingleTableFromEntityMethods(entity, params ?? baseParams);

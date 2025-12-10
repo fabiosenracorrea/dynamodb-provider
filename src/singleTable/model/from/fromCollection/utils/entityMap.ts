@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type {
-  ExtendableCollection,
-  ExtendableSingleTableEntity,
-} from 'singleTable/model';
+import type { AnyCollection, AnyEntity } from 'singleTable/model';
 
-export type EntityMap = Record<string, ExtendableSingleTableEntity>;
+export type EntityMap = Record<string, AnyEntity>;
 
-function unwrapJoin(join: ExtendableCollection['join']): EntityMap {
+function unwrapJoin(join: AnyCollection['join']): EntityMap {
   const ref = Object.values(join ?? {});
 
   if (!ref.length) return {};
@@ -23,7 +20,7 @@ function unwrapJoin(join: ExtendableCollection['join']): EntityMap {
   }));
 }
 
-export function buildCollectionEntityMap(collection: ExtendableCollection): EntityMap {
+export function buildCollectionEntityMap(collection: AnyCollection): EntityMap {
   const joinEntities = unwrapJoin(collection.join);
 
   if (!collection.originEntity?.type) return joinEntities;

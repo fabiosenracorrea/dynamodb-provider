@@ -44,7 +44,7 @@ export type SingleTableEntity<
  * Due to the complex nature of our entity obj, we rely on making this
  * as generic as possible, and ts infer will do the rest
  */
-export type ExtendableSingleTableEntity = Omit<
+export type AnyEntity = Omit<
   SingleTableEntity<any, any, RegisterEntityParams<any, any>>,
   | 'getPartitionKey'
   | 'getRangeKey'

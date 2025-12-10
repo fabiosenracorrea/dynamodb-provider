@@ -1,8 +1,8 @@
-import type { ExtendableCollection } from 'singleTable/model';
+import type { AnyCollection } from 'singleTable/model';
 
 import type { GetCollectionParams, GetCollectionResult } from './get';
 
-export type FromCollection<Registered extends ExtendableCollection> = {
+export type FromCollection<Registered extends AnyCollection> = {
   /**
    * Retrieve your collection
    *
@@ -16,7 +16,7 @@ export type FromCollection<Registered extends ExtendableCollection> = {
 };
 
 export interface FromCollectionMethods {
-  fromCollection<Registered extends ExtendableCollection>(
+  fromCollection<Registered extends AnyCollection>(
     entity: Registered,
   ): FromCollection<Registered>;
 }
