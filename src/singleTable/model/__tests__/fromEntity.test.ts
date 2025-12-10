@@ -2433,8 +2433,8 @@ describe('single table - from entity methods', () => {
           newProperty: number;
         }
 
-        // @ts-expect-error User is not enough
         type _R = Expect<
+          // @ts-expect-error User is not enough
           Equal<typeof result, { items: User[]; paginationToken: string }>
         >;
 
@@ -2747,8 +2747,8 @@ describe('single table - from entity methods', () => {
           newProperty: number;
         }
 
-        // @ts-expect-error User is not enough
         type _R = Expect<
+          // @ts-expect-error User is not enough
           Equal<typeof result, { items: User[]; paginationToken?: string }>
         >;
 
@@ -3279,8 +3279,8 @@ describe('single table - from entity methods', () => {
           newProperty: number;
         }
 
-        // @ts-expect-error User is not enough
         type _R = Expect<
+          // @ts-expect-error User is not enough
           Equal<typeof result, { items: User[]; paginationToken?: string }>
         >;
 
@@ -3722,8 +3722,8 @@ describe('single table - from entity methods', () => {
           newProperty: number;
         }
 
-        // @ts-expect-error User is not enough
         type _R = Expect<
+          // @ts-expect-error User is not enough
           Equal<typeof result, { items: User[]; paginationToken?: string }>
         >;
 
@@ -4046,9 +4046,9 @@ describe('single table - from entity methods', () => {
         // @ts-expect-error email is required
         instance.buildMethods().queryIndex.byEmailProvider.startingWith({ prefix: 'k' });
 
-        // @ts-expect-error prefix is required
         instance
           .buildMethods()
+          // @ts-expect-error prefix is required
           .queryIndex.byEmailProvider.startingWith({ email: 't@t.com' });
       });
 
@@ -4212,8 +4212,8 @@ describe('single table - from entity methods', () => {
           newProperty: number;
         }
 
-        // @ts-expect-error User is not enough
         type _R = Expect<
+          // @ts-expect-error User is not enough
           Equal<typeof result, { items: User[]; paginationToken?: string }>
         >;
 

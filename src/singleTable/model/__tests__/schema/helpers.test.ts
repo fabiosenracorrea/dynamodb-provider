@@ -41,3 +41,9 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
 }
+
+describe('[BONUS!] test helpers', () => {
+  it('should be here', () => {
+    expect(true).toBe(true);
+  });
+});
