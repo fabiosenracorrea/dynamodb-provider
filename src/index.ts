@@ -23,4 +23,7 @@ export {
   type ExtractTableConfig,
   type AnyEntity,
   type AnyCollection,
+  type GetEntityParams,
+  type UpdateEntityParams,
+  type CreateEntityParams,
 } from './singleTable';

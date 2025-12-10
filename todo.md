@@ -32,8 +32,6 @@ includeTypeOnEveryUpdate?: boolean;
 
 - add a "safeUpdate" / "safeGetUpdateParams" to entity interactions that blocks any action that results in index keys de-sync (ex: if key if status+date and you provide the status, the index won't be updated correctly)
 
-- use-case tests across the lib: fix ts usages on .spec files (re-enforce ts checks properly - fix jest.config)
-
 - add a way to validate if we should carry an index update on create/update ops
 
 - custom `autoGen` methods that are globally set
@@ -42,36 +40,4 @@ includeTypeOnEveryUpdate?: boolean;
 - `query.one()` | `queryIndex.one()` | `query.all()` | `queryIndex.all()`
 - `queryOne.custom()` | `queryOneIndex.custom()` | `queryAll.custom()` | `queryAllIndex.custom()`
 
-- Export helper types for create params, key params etc
 
-- fix multiple conditions on the same property resolving for the same value. Ex:
-
-```ts
-{
-  atomicOperations: [
-    {
-      property: 'completesUsed',
-      type: 'add',
-      value: amount,
-      if: {
-        property: 'completesAcquired',
-        operation: 'bigger_than',
-        value: team.completesUsed + amount,
-      },
-    },
-  ],
-
-  conditions: [
-    {
-      property: 'completesUsed',
-      operation: 'equal',
-      value: team.completesUsed,
-    },
-    {
-      property: 'completesAcquired',
-      operation: 'equal',
-      value: team.completesAcquired,
-    },
-  ],
-}
-```
