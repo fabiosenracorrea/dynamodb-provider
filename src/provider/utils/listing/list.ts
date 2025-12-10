@@ -12,13 +12,6 @@ import { fromPaginationToken, toPaginationToken } from '../pagination';
 export interface ListOptions<Entity> {
   /**
    * Which properties to return from each entity
-   *
-   * @deprecated Use the standardized `propertiesToRetrieve`
-   */
-  propertiesToGet?: (keyof Entity)[];
-
-  /**
-   * Which properties to return from each entity
    */
   propertiesToRetrieve?: (keyof Entity)[];
 
@@ -115,7 +108,6 @@ export class ItemLister extends DynamodbExecutor {
     limit,
     paginationToken,
     parallelRetrieval,
-    propertiesToGet,
     propertiesToRetrieve,
     _internalStartKey,
   }: GetScanParams<Entity>): DBScanParams<Entity>['input'] {
@@ -123,14 +115,12 @@ export class ItemLister extends DynamodbExecutor {
 
     const isPaginated = _internalStartKey || paginationToken;
 
-    const propsToGet = propertiesToGet || propertiesToRetrieve;
-
     return omitUndefined({
       TableName: table,
 
       ConsistentRead: consistentRead,
 
-      ProjectionExpression: getProjectionExpression(propsToGet as string[]),
+      ProjectionExpression: getProjectionExpression(propertiesToRetrieve as string[]),
 
       ExclusiveStartKey: isPaginated
         ? _internalStartKey || fromPaginationToken(paginationToken!)
@@ -146,10 +136,10 @@ export class ItemLister extends DynamodbExecutor {
       ...filterParams,
 
       ExpressionAttributeNames:
-        filterParams.ExpressionAttributeNames || propsToGet?.length
+        filterParams.ExpressionAttributeNames || propertiesToRetrieve?.length
           ? {
               ...filterParams.ExpressionAttributeNames,
-              ...getProjectionExpressionNames(propsToGet as string[]),
+              ...getProjectionExpressionNames(propertiesToRetrieve as string[]),
             }
           : undefined,
     });
