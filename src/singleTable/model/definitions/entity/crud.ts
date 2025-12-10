@@ -35,7 +35,7 @@ type UpdateCallProps<
 > &
   (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown);
 
-type OnCreateConfig = Required<AutoGenParams<any>>['onCreate'];
+type OnCreateConfig = Required<AutoGenParams<any, SingleTableConfig>>['onCreate'];
 
 type WithOptionalCreationProps<
   CreationProps,
@@ -50,10 +50,8 @@ type WithOptionalCreationProps<
 type MakeGenPropsPartial<
   CreationProps,
   GenConfig extends RegisterEntityParams<any, any>['autoGen'],
-> = GenConfig extends AutoGenParams<any>
-  ? GenConfig['onCreate'] extends OnCreateConfig
-    ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
-    : CreationProps
+> = GenConfig extends { onCreate: any }
+  ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
   : CreationProps;
 
 type BaseCRUDProps<
@@ -172,7 +170,11 @@ export function getCRUDParamGetters<
     item: any,
     config = {},
   ): SingleTableCreateParams<Entity, TableConfig> => {
-    const actualItem = addAutoGenParams(item, autoGen?.onCreate);
+    const actualItem = addAutoGenParams({
+      values: item,
+      genConfig: autoGen?.onCreate,
+      tableConfig,
+    });
 
     return {
       ...config,
@@ -198,7 +200,11 @@ export function getCRUDParamGetters<
       expiresAt,
     } = updateParams;
 
-    const resolvedValues = addAutoGenParams(values ?? {}, autoGen?.onUpdate);
+    const resolvedValues = addAutoGenParams({
+      values: values ?? {},
+      genConfig: autoGen?.onUpdate,
+      tableConfig,
+    });
 
     return omitUndefined({
       atomicOperations,

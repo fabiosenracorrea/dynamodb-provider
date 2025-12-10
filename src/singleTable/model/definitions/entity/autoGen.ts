@@ -99,7 +99,7 @@ interface AddAutoGenParams<
 > {
   values: Values;
   genConfig?: AutoGenFieldConfig<any, TableConfig>;
-  defaultGenerators?: TableConfig['autoGenerators'];
+  tableConfig?: TableConfig;
 }
 
 function generate(
@@ -114,16 +114,14 @@ function generate(
 export function addAutoGenParams<
   Values extends AnyObject,
   TableConfig extends SingleTableConfig,
->({
-  values,
-  defaultGenerators,
-  genConfig,
-}: AddAutoGenParams<Values, TableConfig>): Values {
+>({ values, tableConfig, genConfig }: AddAutoGenParams<Values, TableConfig>): Values {
   if (!genConfig) return values;
 
   const generated = Object.entries(genConfig).map(([prop, genRef]) => [
     prop,
-    typeof genRef === 'function' ? genRef() : generate(genRef!, defaultGenerators),
+    typeof genRef === 'function'
+      ? genRef()
+      : generate(genRef!, tableConfig?.autoGenerators),
   ]);
 
   return omitUndefined({

@@ -43,7 +43,7 @@ type RawEntityRegisterParams<
   /**
    * Define params that should be auto generated `onCreate` and/or `onUpdate`
    */
-  autoGen?: AutoGenParams<Entity>;
+  autoGen?: AutoGenParams<Entity, TableConfig>;
 };
 
 export type RegisterEntityParams<
