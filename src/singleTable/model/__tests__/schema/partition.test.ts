@@ -273,7 +273,7 @@ describe('single table schema - partition', () => {
       const indexPartition = schema.createPartition({
         name: 'USER_PARTITION',
 
-        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
         index: 'anotherIndex',
 
@@ -288,11 +288,11 @@ describe('single table schema - partition', () => {
 
       expect(index.index).toBe('anotherIndex');
 
-      expect(index.getPartitionKey({ userId: 'idd' })).toStrictEqual(['USER', 'idd']);
+      expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
 
       expect(index.getRangeKey()).toStrictEqual(['#DATA']);
 
-      expect(index.getKey({ userId: 'idd' })).toStrictEqual({
+      expect(index.getKey({ id: 'idd' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
         rangeKey: ['#DATA'],
       });
@@ -342,7 +342,7 @@ describe('single table schema - partition', () => {
       const indexPartition = schema.createPartition({
         name: 'USER_PARTITION',
 
-        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
 
         index: 'anotherIndex',
 
