@@ -36,7 +36,9 @@ table.schema.from(entity).query.noParam({ value: 'Something' })
 - *Fix*: `nested` conditions were not properly generating their `ExpressionAttributeNames` and `ExpressionAttributeValues`
 - *Fix*: `propertiesToGet` deprecated on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive. Will be removed on v3.
 
-- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib were basically vulnerable to badly tested modifications
+### Huge Coverage increase!
+
+- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added almost **200** more tests as well.
 
 # v2.1.2
 
