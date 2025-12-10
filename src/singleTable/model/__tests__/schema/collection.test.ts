@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Equal, Expect, FirstParameter } from 'types';
+import { Equal, Expect, PrettifyObject } from 'types';
 import { SingleTableSchema } from '../../schema';
 
 import { tableConfig, type User } from './helpers.test';
@@ -287,7 +287,17 @@ describe('single table schema tests', () => {
 
       type Collection = (typeof collection)['__type'];
 
+      type Expected = PrettifyObject<
+        User & {
+          loginAttempts: UserLoginAttempt & {
+            deep2: UserLoginAttempt & { deep3: User & { deep4: User[] } };
+          };
+        }
+      >;
+
       type _Tests = [
+        Expect<Equal<Collection, Expected>>,
+
         Expect<Equal<Collection['loginAttempts']['deep2']['deep3']['deep4'], User[]>>,
       ];
     });
