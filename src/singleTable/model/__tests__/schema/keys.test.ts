@@ -48,7 +48,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -109,7 +112,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -161,9 +167,13 @@ describe('single table schema - entity - key definitions', () => {
 
       Expect<Equal<RequiredKeys<FirstParameter<typeof user.getUpdateParams>>, never>>,
 
-      Expect<Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>>,
+      Expect<
+        Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>
+      >,
 
-      Expect<Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>>,
+      Expect<
+        Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>
+      >,
       Expect<Equal<keyof FirstParameter<typeof user.getValidationParams>, 'conditions'>>,
     ];
   });
@@ -206,7 +216,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -263,7 +276,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -296,13 +312,14 @@ describe('single table schema - entity - key definitions', () => {
 
     schema.from(user);
 
-    expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
-      'USER',
-      'test-id',
-      'test@example.com',
-    ]);
+    expect(
+      user.getPartitionKey({ id: 'test-id', email: 'test@example.com' }),
+    ).toStrictEqual(['USER', 'test-id', 'test@example.com']);
 
-    expect(user.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual(['DATA', '2024-01-01']);
+    expect(user.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual([
+      'DATA',
+      '2024-01-01',
+    ]);
 
     expect(
       user.getKey({
@@ -323,11 +340,16 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>
+      >,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { createdAt: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -388,7 +410,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -445,7 +470,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -506,7 +534,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -563,7 +594,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -615,9 +649,13 @@ describe('single table schema - entity - key definitions', () => {
 
       Expect<Equal<RequiredKeys<FirstParameter<typeof user.getUpdateParams>>, never>>,
 
-      Expect<Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>>,
+      Expect<
+        Equal<RequiredKeys<FirstParameter<typeof user.transactUpdateParams>>, never>
+      >,
 
-      Expect<Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>>,
+      Expect<
+        Equal<keyof FirstParameter<typeof user.transactValidateParams>, 'conditions'>
+      >,
       Expect<Equal<keyof FirstParameter<typeof user.getValidationParams>, 'conditions'>>,
     ];
   });
@@ -627,7 +665,11 @@ describe('single table schema - entity - key definitions', () => {
 
     const user = schema.createEntity<User>().as({
       type: 'USER',
-      getPartitionKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+      getPartitionKey: ({ id, email }: { id: string; email: string }) => [
+        'USER',
+        id,
+        email,
+      ],
       getRangeKey: ({ name, address }: { name: string; address: string }) => [
         'DATA',
         name,
@@ -640,11 +682,9 @@ describe('single table schema - entity - key definitions', () => {
 
     schema.from(user);
 
-    expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
-      'USER',
-      'id-123',
-      'test@example.com',
-    ]);
+    expect(
+      user.getPartitionKey({ id: 'id-123', email: 'test@example.com' }),
+    ).toStrictEqual(['USER', 'id-123', 'test@example.com']);
     expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
       'DATA',
       'John',
@@ -671,11 +711,18 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>
+      >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -708,12 +755,9 @@ describe('single table schema - entity - key definitions', () => {
 
     schema.from(user);
 
-    expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
-      'USER',
-      'id-123',
-      'CONST',
-      'test@example.com',
-    ]);
+    expect(
+      user.getPartitionKey({ id: 'id-123', email: 'test@example.com' }),
+    ).toStrictEqual(['USER', 'id-123', 'CONST', 'test@example.com']);
 
     expect(user.getRangeKey({ name: 'John', address: '123 Street' })).toStrictEqual([
       'DATA',
@@ -742,11 +786,18 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>
+      >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -770,7 +821,11 @@ describe('single table schema - entity - key definitions', () => {
 
     const user = schema.createEntity<User>().as({
       type: 'USER',
-      getPartitionKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+      getPartitionKey: ({ id, email }: { id: string; email: string }) => [
+        'USER',
+        id,
+        email,
+      ],
       getRangeKey: ['DATA', '.name'],
     });
 
@@ -779,11 +834,9 @@ describe('single table schema - entity - key definitions', () => {
 
     schema.from(user);
 
-    expect(user.getPartitionKey({ id: 'id-123', email: 'test@example.com' })).toStrictEqual([
-      'USER',
-      'id-123',
-      'test@example.com',
-    ]);
+    expect(
+      user.getPartitionKey({ id: 'id-123', email: 'test@example.com' }),
+    ).toStrictEqual(['USER', 'id-123', 'test@example.com']);
     expect(user.getRangeKey({ name: 'John' })).toStrictEqual(['DATA', 'John']);
 
     expect(
@@ -805,11 +858,16 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>
+      >,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -873,10 +931,15 @@ describe('single table schema - entity - key definitions', () => {
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getRangeKey>, { name: string; address: string }>
+      >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -935,10 +998,15 @@ describe('single table schema - entity - key definitions', () => {
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string }>
+      >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -996,11 +1064,16 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; name: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; name: string }>
+      >,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -1066,7 +1139,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, undefined>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -1125,11 +1201,17 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, undefined>>,
       Expect<
-        Equal<FirstParameter<typeof user.getRangeKey>, { id: string; email: string; name: string }>
+        Equal<
+          FirstParameter<typeof user.getRangeKey>,
+          { id: string; email: string; name: string }
+        >
       >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -1163,7 +1245,9 @@ describe('single table schema - entity - key definitions', () => {
     schema.from(user);
 
     expect(user.getPartitionKey({ id: 'test-id' })).toStrictEqual(['test-id']);
-    expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual(['test@example.com']);
+    expect(user.getRangeKey({ email: 'test@example.com' })).toStrictEqual([
+      'test@example.com',
+    ]);
 
     expect(
       user.getKey({
@@ -1187,7 +1271,10 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -1220,12 +1307,9 @@ describe('single table schema - entity - key definitions', () => {
 
     schema.from(user);
 
-    expect(user.getPartitionKey({ id: 'test-id', email: 'test@example.com' })).toStrictEqual([
-      'USER',
-      'test-id',
-      'SEP',
-      'test@example.com',
-    ]);
+    expect(
+      user.getPartitionKey({ id: 'test-id', email: 'test@example.com' }),
+    ).toStrictEqual(['USER', 'test-id', 'SEP', 'test@example.com']);
     expect(user.getRangeKey({ name: 'John' })).toStrictEqual(['DATA', 'John']);
 
     expect(
@@ -1247,11 +1331,16 @@ describe('single table schema - entity - key definitions', () => {
       Expect<Equal<(typeof user)['__entity'], User>>,
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
-      Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getPartitionKey>, { id: string; email: string }>
+      >,
       Expect<Equal<FirstParameter<typeof user.getRangeKey>, { name: string }>>,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<
@@ -1312,10 +1401,15 @@ describe('single table schema - entity - key definitions', () => {
 
       Expect<Equal<FirstParameter<typeof user.getKey>, ExpectedKey>>,
       Expect<Equal<FirstParameter<typeof user.getPartitionKey>, { id: string }>>,
-      Expect<Equal<FirstParameter<typeof user.getRangeKey>, { email: string; name: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.getRangeKey>, { email: string; name: string }>
+      >,
 
       Expect<
-        Equal<Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>, ExpectedKey>
+        Equal<
+          Pick<FirstParameter<typeof user.getUpdateParams>, keyof ExpectedKey>,
+          ExpectedKey
+        >
       >,
 
       Expect<

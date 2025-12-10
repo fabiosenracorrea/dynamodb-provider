@@ -89,7 +89,10 @@ describe('single table schema - use cases', () => {
         });
 
       // Basic key generation with paramMatch
-      expect(MEDIA.getPartitionKey({ id: 'media-123' })).toStrictEqual(['MEDIA', 'media-123']);
+      expect(MEDIA.getPartitionKey({ id: 'media-123' })).toStrictEqual([
+        'MEDIA',
+        'media-123',
+      ]);
       expect(MEDIA.getRangeKey()).toStrictEqual(['#DATA']);
       expect(MEDIA.getKey({ id: 'media-123' })).toStrictEqual({
         partitionKey: ['MEDIA', 'media-123'],
@@ -136,14 +139,20 @@ describe('single table schema - use cases', () => {
           paramMatch: { mediaId: 'id' },
         });
 
-      expect(MEDIA.getPartitionKey({ id: 'media-123' })).toStrictEqual(['MEDIA', 'media-123']);
+      expect(MEDIA.getPartitionKey({ id: 'media-123' })).toStrictEqual([
+        'MEDIA',
+        'media-123',
+      ]);
       expect(MEDIA.getRangeKey()).toStrictEqual(['#DATA']);
 
       expect(MEDIA_VERSION.getPartitionKey({ id: 'media-123' })).toStrictEqual([
         'MEDIA',
         'media-123',
       ]);
-      expect(MEDIA_VERSION.getRangeKey({ versionId: 'v1' })).toStrictEqual(['VERSION', 'v1']);
+      expect(MEDIA_VERSION.getRangeKey({ versionId: 'v1' })).toStrictEqual([
+        'VERSION',
+        'v1',
+      ]);
 
       schema.from(MEDIA);
       schema.from(MEDIA_VERSION);
@@ -154,7 +163,10 @@ describe('single table schema - use cases', () => {
 
       const partition = schema.createPartition({
         name: 'PARTIAL_MATCH_TEST',
-        getPartitionKey: ({ mediaId }: { mediaId: string; s3Key: string }) => ['MEDIA', mediaId],
+        getPartitionKey: ({ mediaId }: { mediaId: string; s3Key: string }) => [
+          'MEDIA',
+          mediaId,
+        ],
         entries: {
           data: () => ['#DATA'],
         },
@@ -170,7 +182,10 @@ describe('single table schema - use cases', () => {
         });
 
       // Both params should still be usable in getPartitionKey
-      expect(entity.getPartitionKey({ id: 'aaa', s3Key: '11' })).toStrictEqual(['MEDIA', 'aaa']);
+      expect(entity.getPartitionKey({ id: 'aaa', s3Key: '11' })).toStrictEqual([
+        'MEDIA',
+        'aaa',
+      ]);
 
       schema.from(entity);
     });
@@ -408,8 +423,9 @@ describe('single table schema - use cases', () => {
       // -- TYPES -- //
       type MediaCollection = GetCollectionType<typeof collection>;
 
-      type CheckCollection<T extends Media & { versions: (typeof MEDIA_VERSION)['__entity'][] }> =
-        T;
+      type CheckCollection<
+        T extends Media & { versions: (typeof MEDIA_VERSION)['__entity'][] },
+      > = T;
 
       type _Tests = [
         // Collection should include Media and versions array
@@ -427,7 +443,10 @@ describe('single table schema - use cases', () => {
         getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
         index: 'Index3',
         entries: {
-          byUploadTime: ({ uploadedAt }: { uploadedAt: string }) => ['UPLOADED', uploadedAt],
+          byUploadTime: ({ uploadedAt }: { uploadedAt: string }) => [
+            'UPLOADED',
+            uploadedAt,
+          ],
         },
       });
 
@@ -451,17 +470,19 @@ describe('single table schema - use cases', () => {
       expect(MEDIA_BY_UPLOAD_INDEX.index).toBe('Index3');
 
       // Test key generation with paramMatch
-      expect(MEDIA_BY_UPLOAD_INDEX.getPartitionKey({ id: 'media-123' } as Media)).toStrictEqual([
-        'MEDIA',
-        'media-123',
-      ]);
+      expect(
+        MEDIA_BY_UPLOAD_INDEX.getPartitionKey({ id: 'media-123' } as Media),
+      ).toStrictEqual(['MEDIA', 'media-123']);
 
       expect(
         MEDIA_BY_UPLOAD_INDEX.getRangeKey({ uploadedAt: '2024-01-01' } as Media),
       ).toStrictEqual(['UPLOADED', '2024-01-01']);
 
       expect(
-        MEDIA_BY_UPLOAD_INDEX.getKey({ id: 'media-123', uploadedAt: '2024-01-01' } as Media),
+        MEDIA_BY_UPLOAD_INDEX.getKey({
+          id: 'media-123',
+          uploadedAt: '2024-01-01',
+        } as Media),
       ).toStrictEqual({
         partitionKey: ['MEDIA', 'media-123'],
         rangeKey: ['UPLOADED', '2024-01-01'],
@@ -558,10 +579,9 @@ describe('single table schema - use cases', () => {
       });
 
       expect(entity).toBeDefined();
-      expect(entity.getPartitionKey({ mediaId: 'test' } as MediaWithMediaId)).toStrictEqual([
-        'MEDIA',
-        'test',
-      ]);
+      expect(
+        entity.getPartitionKey({ mediaId: 'test' } as MediaWithMediaId),
+      ).toStrictEqual(['MEDIA', 'test']);
 
       schema.from(entity);
     });
@@ -738,9 +758,19 @@ describe('single table schema - use cases', () => {
       // -- TYPES -- //
       type _Tests = [
         // Custom range query should require prefix parameter
-        Expect<Equal<Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['prefix'], string>>,
+        Expect<
+          Equal<
+            Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['prefix'],
+            string
+          >
+        >,
         // Index query should require name from partition key
-        Expect<Equal<Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['name'], string>>,
+        Expect<
+          Equal<
+            Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['name'],
+            string
+          >
+        >,
       ];
     });
 

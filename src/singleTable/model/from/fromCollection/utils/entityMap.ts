@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ExtendableCollection, ExtendableSingleTableEntity } from 'singleTable/model';
+import type {
+  ExtendableCollection,
+  ExtendableSingleTableEntity,
+} from 'singleTable/model';
 
 export type EntityMap = Record<string, ExtendableSingleTableEntity>;
 

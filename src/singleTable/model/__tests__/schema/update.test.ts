@@ -194,7 +194,9 @@ describe('single table schema - entity - update params', () => {
 
       Expect<Equal<NonNullable<Params['remove']>, (keyof User)[]>>,
 
-      Expect<Equal<NonNullable<Params['atomicOperations']>[number]['property'], keyof User>>,
+      Expect<
+        Equal<NonNullable<Params['atomicOperations']>[number]['property'], keyof User>
+      >,
 
       Expect<Equal<NonNullable<Params['conditions']>[number]['property'], keyof User>>,
     ];

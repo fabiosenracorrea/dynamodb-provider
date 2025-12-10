@@ -252,16 +252,18 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
   [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
 } {
   return Object.fromEntries(
-    Object.entries(config).map(([key, { entity, join, joinBy = 'POSITION', ...params }]) => [
-      key,
-      {
-        ...params,
-        entity,
-        joinBy,
-        ref: entity.type,
-        join: join ? createCollectionJoin(join) : undefined,
-      },
-    ]),
+    Object.entries(config).map(
+      ([key, { entity, join, joinBy = 'POSITION', ...params }]) => [
+        key,
+        {
+          ...params,
+          entity,
+          joinBy,
+          ref: entity.type,
+          join: join ? createCollectionJoin(join) : undefined,
+        },
+      ],
+    ),
   ) as unknown as {
     [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
   };
@@ -273,7 +275,8 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
  */
 export type ExtendableCollection = PartitionCollection<any>;
 
-export type GetCollectionType<Collection extends ExtendableCollection> = Collection['__type'];
+export type GetCollectionType<Collection extends ExtendableCollection> =
+  Collection['__type'];
 
 export function createCollection<Params extends PartitionCollectionParams<any>>({
   join,

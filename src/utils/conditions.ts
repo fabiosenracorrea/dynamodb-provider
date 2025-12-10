@@ -18,7 +18,9 @@ export function cascadeEval<Cond extends Condition>(
   const matchCondition = firstTrue ? firstTrue.then : lastCondition?.then;
 
   return (
-    typeof matchCondition === 'function' ? (matchCondition as AnyFunction)?.() : matchCondition
+    typeof matchCondition === 'function'
+      ? (matchCondition as AnyFunction)?.()
+      : matchCondition
   ) as ConditionResult<Cond>;
 }
 

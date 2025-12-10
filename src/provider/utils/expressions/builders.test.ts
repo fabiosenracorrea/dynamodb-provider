@@ -173,15 +173,17 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the lower_or_equal_than expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.lower_or_equal_than({ prop })).toBe(`#${prop} <= :${prop}`);
+        expect(expressionBuilders.lower_or_equal_than({ prop })).toBe(
+          `#${prop} <= :${prop}`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.lower_or_equal_than({ prop, prefix: 'MASKED____' })).toBe(
-          `#MASKED____${prop} <= :MASKED____${prop}`,
-        );
+        expect(
+          expressionBuilders.lower_or_equal_than({ prop, prefix: 'MASKED____' }),
+        ).toBe(`#MASKED____${prop} <= :MASKED____${prop}`);
       });
     });
 
@@ -205,15 +207,17 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the bigger_or_equal_than expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.bigger_or_equal_than({ prop })).toBe(`#${prop} >= :${prop}`);
+        expect(expressionBuilders.bigger_or_equal_than({ prop })).toBe(
+          `#${prop} >= :${prop}`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.bigger_or_equal_than({ prop, prefix: 'MASKED____' })).toBe(
-          `#MASKED____${prop} >= :MASKED____${prop}`,
-        );
+        expect(
+          expressionBuilders.bigger_or_equal_than({ prop, prefix: 'MASKED____' }),
+        ).toBe(`#MASKED____${prop} >= :MASKED____${prop}`);
       });
     });
 
@@ -221,7 +225,9 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the begins_with expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.begins_with({ prop })).toBe(`begins_with(#${prop}, :${prop})`);
+        expect(expressionBuilders.begins_with({ prop })).toBe(
+          `begins_with(#${prop}, :${prop})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
@@ -237,7 +243,9 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the contains expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.contains({ prop })).toBe(`contains(#${prop}, :${prop})`);
+        expect(expressionBuilders.contains({ prop })).toBe(
+          `contains(#${prop}, :${prop})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
@@ -253,7 +261,9 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the not_contains expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.not_contains({ prop })).toBe(`not contains(#${prop}, :${prop})`);
+        expect(expressionBuilders.not_contains({ prop })).toBe(
+          `not contains(#${prop}, :${prop})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
@@ -285,7 +295,9 @@ describe('Provider: expressions - builders tests', () => {
       it('should properly create the not_exists expression, prefixed correctly on prop/value', () => {
         const prop = 'some_prop';
 
-        expect(expressionBuilders.not_exists({ prop })).toBe(`attribute_not_exists(#${prop})`);
+        expect(expressionBuilders.not_exists({ prop })).toBe(
+          `attribute_not_exists(#${prop})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
@@ -305,7 +317,9 @@ describe('Provider: expressions - builders tests', () => {
         const toName = (p: string, index: number) => `:${p}_${index}`;
         const valueString = value.map((_, index) => toName(prop, index)).join(',');
 
-        expect(expressionBuilders.in({ prop, value })).toBe(`#${prop} in (${valueString})`);
+        expect(expressionBuilders.in({ prop, value })).toBe(
+          `#${prop} in (${valueString})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {
@@ -329,7 +343,9 @@ describe('Provider: expressions - builders tests', () => {
         const toName = (p: string, index: number) => `:${p}_${index}`;
         const valueString = value.map((_, index) => toName(prop, index)).join(',');
 
-        expect(expressionBuilders.not_in({ prop, value })).toBe(`not #${prop} in (${valueString})`);
+        expect(expressionBuilders.not_in({ prop, value })).toBe(
+          `not #${prop} in (${valueString})`,
+        );
       });
 
       it('should be able to receive an optional prefix param that will be added properly before the prop value', () => {

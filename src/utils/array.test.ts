@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getLastIndex, getFirstItem, getLastItem, getNextIndex, ensureMaxArraySize } from './array';
+import {
+  getLastIndex,
+  getFirstItem,
+  getLastItem,
+  getNextIndex,
+  ensureMaxArraySize,
+} from './array';
 
 describe('array helpers', () => {
   describe('accessors', () => {

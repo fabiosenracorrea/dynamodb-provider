@@ -116,7 +116,10 @@ describe('single table schema - entity - rangeQueries', () => {
 
       type _Tests = [
         Expect<
-          Equal<FirstParameter<typeof user.rangeQueries.from>, { value1: string; value2: number }>
+          Equal<
+            FirstParameter<typeof user.rangeQueries.from>,
+            { value1: string; value2: number }
+          >
         >,
       ];
     });
@@ -151,7 +154,9 @@ describe('single table schema - entity - rangeQueries', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.range>, 'start' | 'end'>>,
+      Expect<
+        Equal<keyof FirstParameter<typeof user.rangeQueries.range>, 'start' | 'end'>
+      >,
     ];
   });
 
@@ -198,7 +203,13 @@ describe('single table schema - entity - rangeQueries', () => {
       rangeQueries: {
         dateRange: {
           operation: 'between',
-          getValues: ({ startDate, endDate }: { startDate: string; endDate: string }) => ({
+          getValues: ({
+            startDate,
+            endDate,
+          }: {
+            startDate: string;
+            endDate: string;
+          }) => ({
             start: startDate,
             end: endDate,
           }),
@@ -292,11 +303,18 @@ describe('single table schema - entity - rangeQueries', () => {
 
     type _Tests = [
       Expect<Equal<FirstParameter<typeof user.rangeQueries.noParams>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.rangeQueries.singleParam>, { target: string }>>,
       Expect<
-        Equal<FirstParameter<typeof user.rangeQueries.multiParams>, { from: string; to: string }>
+        Equal<FirstParameter<typeof user.rangeQueries.singleParam>, { target: string }>
       >,
-      Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.defaultBehavior>, 'value'>>,
+      Expect<
+        Equal<
+          FirstParameter<typeof user.rangeQueries.multiParams>,
+          { from: string; to: string }
+        >
+      >,
+      Expect<
+        Equal<keyof FirstParameter<typeof user.rangeQueries.defaultBehavior>, 'value'>
+      >,
     ];
   });
 
@@ -341,7 +359,9 @@ describe('single table schema - entity - rangeQueries', () => {
     const start = new Date('2024-01-01T00:00:00.000Z');
     const end = new Date('2024-12-31T23:59:59.999Z');
 
-    expect(user.rangeQueries.dateRangeISO({ startDate: start, endDate: end })).toStrictEqual({
+    expect(
+      user.rangeQueries.dateRangeISO({ startDate: start, endDate: end }),
+    ).toStrictEqual({
       operation: 'between',
       start: '2024-01-01T00:00:00.000Z',
       end: '2024-12-31T23:59:59.999Z',
@@ -355,7 +375,9 @@ describe('single table schema - entity - rangeQueries', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.rangeQueries.emailPrefix>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.rangeQueries.emailPrefix>, { email: string }>
+      >,
       Expect<
         Equal<
           FirstParameter<typeof user.rangeQueries.dateRangeISO>,
@@ -363,7 +385,10 @@ describe('single table schema - entity - rangeQueries', () => {
         >
       >,
       Expect<
-        Equal<FirstParameter<typeof user.rangeQueries.numericThreshold>, { threshold: number }>
+        Equal<
+          FirstParameter<typeof user.rangeQueries.numericThreshold>,
+          { threshold: number }
+        >
       >,
     ];
   });

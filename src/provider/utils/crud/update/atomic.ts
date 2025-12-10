@@ -150,8 +150,10 @@ export const atomicExpressionBuilders: Record<
 
   // it goes like ADD #prop :prop
   add: ({ property }) => `${toExpressionName(property)} ${toExpressionValue(property)}`,
-  add_to_set: ({ property }) => `${toExpressionName(property)} ${toExpressionValue(property)}`,
+  add_to_set: ({ property }) =>
+    `${toExpressionName(property)} ${toExpressionValue(property)}`,
 
   // it goes like DELETE #prop :prop
-  remove_from_set: ({ property }) => `${toExpressionName(property)} ${toExpressionValue(property)}`,
+  remove_from_set: ({ property }) =>
+    `${toExpressionName(property)} ${toExpressionValue(property)}`,
 };

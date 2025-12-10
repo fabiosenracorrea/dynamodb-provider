@@ -85,7 +85,8 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     const parentIndex = nullParent
       ? 0
       : options.findIndex(
-          (option) => parent[pkProp] === option[pkProp] && parent[skProp] === option[skProp],
+          (option) =>
+            parent[pkProp] === option[pkProp] && parent[skProp] === option[skProp],
         );
 
     if (parentIndex < 0 || parentIndex > getLastIndex(options)) return [];
@@ -120,7 +121,10 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private applySort<Entity>(list: Entity[], sorter?: (a: any, b: any) => number): Entity[] {
+  private applySort<Entity>(
+    list: Entity[],
+    sorter?: (a: any, b: any) => number,
+  ): Entity[] {
     if (!sorter) return list;
 
     return list.slice().sort(sorter);
@@ -161,7 +165,8 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
             joinBy,
           });
 
-          const childrenBase = type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;
+          const childrenBase =
+            type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;
 
           const children = cascadeEval([
             {

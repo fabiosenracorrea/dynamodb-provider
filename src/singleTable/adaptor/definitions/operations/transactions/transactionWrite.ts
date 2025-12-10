@@ -53,7 +53,9 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
     };
   }
 
-  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+  ejectTransactParams(
+    configs: (SingleTableTransactionConfig | null)[],
+  ): TransactionConfig[] {
     return (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
       ({ create, erase, update, validate }) => {
         if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };

@@ -97,7 +97,10 @@ describe('getCRUDParamGetters', () => {
 
     mockGetUpdatedIndexMapping.mockReturnValue({ index: true });
 
-    expect(addAutoGenParams).toHaveBeenCalledWith(mockUpdateParams.values, mockAutoGen.onUpdate);
+    expect(addAutoGenParams).toHaveBeenCalledWith(
+      mockUpdateParams.values,
+      mockAutoGen.onUpdate,
+    );
     expect(mockGetKey).toHaveBeenCalledWith(mockUpdateParams);
     expect(result).toEqual({
       ...mockUpdateParams,
@@ -150,7 +153,9 @@ describe('getCRUDParamGetters', () => {
 
       const updateParamsResult = getUpdateParams(mockUpdateParams as never);
 
-      const transactResult = transactParams.transactUpdateParams(mockUpdateParams as never);
+      const transactResult = transactParams.transactUpdateParams(
+        mockUpdateParams as never,
+      );
 
       expect(transactResult).toStrictEqual({
         update: updateParamsResult,

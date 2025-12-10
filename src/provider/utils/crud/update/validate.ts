@@ -42,7 +42,8 @@ export function validateUpdateParams({
 
     // multiple conditions on the same property
     // (enhance in the future to allow for this)
-    actualConditions.length !== new Set(actualConditions.map(({ property }) => property)).size,
+    actualConditions.length !==
+      new Set(actualConditions.map(({ property }) => property)).size,
   ].some(Boolean);
 
   // To do: change error to explicity say which reason

@@ -22,18 +22,22 @@ type BasicRangeKeyOp = Omit<BasicRangeKeyConfig<unknown>, 'name' | 'value'> & {
   value: KeyValue | number;
 };
 
-type BetweenRangeKeyOp = Omit<BetweenRangeKeyConfig<unknown>, 'name' | 'end' | 'start'> & {
+type BetweenRangeKeyOp = Omit<
+  BetweenRangeKeyConfig<unknown>,
+  'name' | 'end' | 'start'
+> & {
   start: KeyValue | number;
   end: KeyValue | number;
 };
 
 export type DefinedNameRangeKeyConfig = BasicRangeKeyOp | BetweenRangeKeyOp;
 
-type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
-  ? {}
-  : {
-      index?: keyof TableConfig['indexes'];
-    };
+type IndexParams<TableConfig extends SingleTableConfig> =
+  undefined extends TableConfig['indexes']
+    ? {}
+    : {
+        index?: keyof TableConfig['indexes'];
+      };
 
 export type SingleTableQueryParams<
   Entity,
@@ -85,9 +89,11 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
 
             end: range.operation === 'between' ? this.convertKey(range.end) : undefined,
 
-            start: range.operation === 'between' ? this.convertKey(range.start) : undefined,
+            start:
+              range.operation === 'between' ? this.convertKey(range.start) : undefined,
 
-            value: range.operation !== 'between' ? this.convertKey(range.value) : undefined,
+            value:
+              range.operation !== 'between' ? this.convertKey(range.value) : undefined,
 
             name: index ? getIndexRangeName(index, this.config) : this.config.rangeKey,
           } as any)

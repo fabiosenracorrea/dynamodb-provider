@@ -31,7 +31,9 @@ export class SingleTableRemover extends BaseSingleTableOperator {
     });
   }
 
-  async delete<Entity = AnyObject>(keyReference: SingleTableDeleteParams<Entity>): Promise<void> {
+  async delete<Entity = AnyObject>(
+    keyReference: SingleTableDeleteParams<Entity>,
+  ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await this.db.delete(this.getDeleteParams(keyReference as any));
   }

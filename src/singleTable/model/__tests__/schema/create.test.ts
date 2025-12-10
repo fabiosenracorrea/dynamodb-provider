@@ -243,7 +243,11 @@ describe('single table schema - entity - creation params', () => {
 
     const user = schema.createEntity<User>().as({
       type: 'USER',
-      getPartitionKey: ({ id, email }: { id: string; email: string }) => ['USER', id, email],
+      getPartitionKey: ({ id, email }: { id: string; email: string }) => [
+        'USER',
+        id,
+        email,
+      ],
       getRangeKey: ({ createdAt }: { createdAt: string }) => ['DATE', createdAt],
     });
 

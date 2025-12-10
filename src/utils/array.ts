@@ -20,7 +20,10 @@ export function getNextIndex(index: number): number {
   return index + 1;
 }
 
-export function ensureMaxArraySize<Entity = any>(items: Entity[], lengthLimit: number): Entity[][] {
+export function ensureMaxArraySize<Entity = any>(
+  items: Entity[],
+  lengthLimit: number,
+): Entity[][] {
   if (items.length <= lengthLimit) return [items];
 
   const numberOfSubArrays = Math.ceil(items.length / lengthLimit);

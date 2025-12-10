@@ -19,7 +19,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -41,7 +44,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -60,7 +66,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -80,7 +89,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -108,7 +120,10 @@ describe('single table schema - partition', () => {
       type _Tests = [
         // paramMatch should be optional (undefined) when all params exist in entity
         Expect<
-          Equal<FirstParameter<typeof createEntity>['paramMatch'], { id?: keyof User } | undefined>
+          Equal<
+            FirstParameter<typeof createEntity>['paramMatch'],
+            { id?: keyof User } | undefined
+          >
         >,
       ];
     });
@@ -122,7 +137,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          firstLogin: ({ createdAt }: { createdAt: string }) => ['FIRST_LOGIN', createdAt],
+          firstLogin: ({ createdAt }: { createdAt: string }) => [
+            'FIRST_LOGIN',
+            createdAt,
+          ],
         },
       });
 
@@ -169,7 +187,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -212,7 +233,10 @@ describe('single table schema - partition', () => {
         name: 'USER_PARTITION_WITH_RANGE',
         getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
         entries: {
-          firstLogin: ({ createdAt }: { createdAt: string }) => ['FIRST_LOGIN', createdAt],
+          firstLogin: ({ createdAt }: { createdAt: string }) => [
+            'FIRST_LOGIN',
+            createdAt,
+          ],
         },
       });
 
@@ -256,7 +280,10 @@ describe('single table schema - partition', () => {
         name: 'USER_PARTITION_RANGE_NOT_IN_ENTITY',
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
         entries: {
-          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempt: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -269,7 +296,10 @@ describe('single table schema - partition', () => {
 
       expect(loginAttempt.__dbType).toBe('ENTITY');
       expect(loginAttempt.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual([
+        'LOGIN_ATTEMPT',
+        'ts',
+      ]);
 
       expect(loginAttempt.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -297,7 +327,10 @@ describe('single table schema - partition', () => {
         name: 'USER_PARTITION_BOTH_NOT_IN_ENTITY',
         getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
         entries: {
-          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempt: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -310,7 +343,10 @@ describe('single table schema - partition', () => {
 
       expect(loginAttempt.__dbType).toBe('ENTITY');
       expect(loginAttempt.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual([
+        'LOGIN_ATTEMPT',
+        'ts',
+      ]);
 
       expect(loginAttempt.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -359,7 +395,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -380,7 +419,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -418,7 +460,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -438,7 +483,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -462,7 +510,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -504,7 +555,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -533,7 +587,9 @@ describe('single table schema - partition', () => {
         // paramMatch should be required when params not in entity
         Expect<
           Equal<
-            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            PrettifyObject<
+              Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']
+            >,
             { userId: keyof User }
           >
         >,
@@ -549,7 +605,10 @@ describe('single table schema - partition', () => {
         index: 'someIndex',
         entries: {
           data: () => [`#DATA`],
-          firstLogin: ({ createdAt }: { createdAt: string }) => ['FIRST_LOGIN', createdAt],
+          firstLogin: ({ createdAt }: { createdAt: string }) => [
+            'FIRST_LOGIN',
+            createdAt,
+          ],
         },
       });
 
@@ -559,7 +618,10 @@ describe('single table schema - partition', () => {
 
       expect(index.index).toBe('someIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(index.getRangeKey({ createdAt: 'create' })).toStrictEqual(['FIRST_LOGIN', 'create']);
+      expect(index.getRangeKey({ createdAt: 'create' })).toStrictEqual([
+        'FIRST_LOGIN',
+        'create',
+      ]);
 
       expect(index.getKey({ id: 'idd', createdAt: 'create' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -612,7 +674,9 @@ describe('single table schema - partition', () => {
         // paramMatch should be required when params not in entity
         Expect<
           Equal<
-            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            PrettifyObject<
+              Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']
+            >,
             { userId: keyof User }
           >
         >,
@@ -627,7 +691,10 @@ describe('single table schema - partition', () => {
         getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
         index: 'someIndex',
         entries: {
-          firstLogin: ({ createdAt }: { createdAt: string }) => ['FIRST_LOGIN', createdAt],
+          firstLogin: ({ createdAt }: { createdAt: string }) => [
+            'FIRST_LOGIN',
+            createdAt,
+          ],
         },
       });
 
@@ -639,7 +706,10 @@ describe('single table schema - partition', () => {
 
       expect(index.index).toBe('someIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(index.getRangeKey({ createdAt: 'create' })).toStrictEqual(['FIRST_LOGIN', 'create']);
+      expect(index.getRangeKey({ createdAt: 'create' })).toStrictEqual([
+        'FIRST_LOGIN',
+        'create',
+      ]);
 
       expect(index.getKey({ id: 'idd', createdAt: 'create' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -652,7 +722,9 @@ describe('single table schema - partition', () => {
         // paramMatch should be required for partition params, optional for range params in entity
         Expect<
           Equal<
-            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            PrettifyObject<
+              Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']
+            >,
             { userId: keyof User; createdAt?: keyof User }
           >
         >,
@@ -687,7 +759,10 @@ describe('single table schema - partition', () => {
         getPartitionKey: ({ id }: { id: string }) => ['USER', id],
         index: 'someIndex',
         entries: {
-          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempt: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -699,7 +774,10 @@ describe('single table schema - partition', () => {
 
       expect(index.index).toBe('someIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual([
+        'LOGIN_ATTEMPT',
+        'ts',
+      ]);
 
       expect(index.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -711,7 +789,9 @@ describe('single table schema - partition', () => {
       type _Tests = [
         Expect<
           Equal<
-            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            PrettifyObject<
+              Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']
+            >,
             { id?: keyof User; timestamp: keyof User }
           >
         >,
@@ -726,7 +806,10 @@ describe('single table schema - partition', () => {
         getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
         index: 'anotherIndex',
         entries: {
-          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempt: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -738,7 +821,10 @@ describe('single table schema - partition', () => {
 
       expect(index.index).toBe('anotherIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual([
+        'LOGIN_ATTEMPT',
+        'ts',
+      ]);
 
       expect(index.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
         partitionKey: ['USER', 'idd'],
@@ -750,7 +836,9 @@ describe('single table schema - partition', () => {
       type _Tests = [
         Expect<
           Equal<
-            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            PrettifyObject<
+              Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']
+            >,
             { userId: keyof User; timestamp: keyof User }
           >
         >,
@@ -788,7 +876,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -826,7 +917,10 @@ describe('single table schema - partition', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 

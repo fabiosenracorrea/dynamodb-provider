@@ -25,13 +25,17 @@ export interface SingleTableParams extends SingleTableConfig {
 
 export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   extends Pick<IDynamodbProvider, 'createSet'> {
-  get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>;
+  get<Entity = AnyObject>(
+    params: SingleTableGetParams<Entity>,
+  ): Promise<Entity | undefined>;
 
   batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]>;
 
-  create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity>;
+  create<Entity>(
+    params: SingleTableCreateItemParams<Entity, SingleParams>,
+  ): Promise<Entity>;
 
   delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void>;
 
@@ -46,14 +50,20 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
     params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>>;
 
-  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[];
+  ejectTransactParams(
+    configs: (SingleTableTransactionConfig | null)[],
+  ): TransactionConfig[];
 
   /**
    * [Deprecated soon] Prefer the more clean `transaction`
    */
-  executeTransaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
+  executeTransaction(
+    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+  ): Promise<void>;
 
-  transaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void>;
+  transaction(
+    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+  ): Promise<void>;
 
   generateTransactionConfigList<Item extends AnyObject>(
     items: Item[],

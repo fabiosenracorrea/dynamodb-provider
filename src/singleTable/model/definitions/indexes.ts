@@ -22,7 +22,7 @@ export type IndexMapping<
   Entity = undefined,
 > = Record<string, SingleIndex<TableConfig, Entity>>;
 
-export type IndexParams<Entity, IndexConfig extends IndexMapping<any, any>> = EntityKeyParams<
+export type IndexParams<
   Entity,
-  IndexConfig[keyof IndexConfig]
->;
+  IndexConfig extends IndexMapping<any, any>,
+> = EntityKeyParams<Entity, IndexConfig[keyof IndexConfig]>;

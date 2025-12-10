@@ -9,13 +9,21 @@ export type IsUnknown<T> = unknown extends T // `T` can be `unknown` or `any`
     : false
   : false;
 
-export type IsUndefined<T> = IsUnknown<T> extends true ? false : undefined extends T ? true : false;
+export type IsUndefined<T> = IsUnknown<T> extends true
+  ? false
+  : undefined extends T
+  ? true
+  : false;
 
 export type IfUndefined<T, Y, N> = IsUndefined<T> extends true ? Y : N;
 
 export type AnyObject = Record<string, any>;
 
-export type AnyMemberIsObject<T> = T extends any ? (T extends object ? true : never) : never;
+export type AnyMemberIsObject<T> = T extends any
+  ? T extends object
+    ? true
+    : never
+  : never;
 
 export type StringKey<Entity> = Extract<keyof Entity, string>;
 
@@ -31,7 +39,10 @@ export type OmitUndefined<T> = {
 };
 
 export type OnlyOptional<T> = {
-  [K in keyof T as T[K] extends Exclude<T[K], undefined> ? never : K]?: Exclude<T[K], undefined>;
+  [K in keyof T as T[K] extends Exclude<T[K], undefined> ? never : K]?: Exclude<
+    T[K],
+    undefined
+  >;
 };
 
 export type MakePartial<T> = OmitUndefined<T> & OnlyOptional<T>;
@@ -63,7 +74,9 @@ export type ExpectFalse<T extends false> = T;
 export type IsTrue<T extends true> = T;
 export type IsFalse<T extends false> = T;
 
-export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
+  ? 1
+  : 2
   ? true
   : false;
 export type NotEqual<X, Y> = true extends Equal<X, Y> ? false : true;
@@ -71,7 +84,9 @@ export type NotEqual<X, Y> = true extends Equal<X, Y> ? false : true;
 export type NotAny<T> = true extends IsAny<T> ? false : true;
 
 export type Debug<T> = { [K in keyof T]: T[K] };
-export type MergeInsertions<T> = T extends object ? { [K in keyof T]: MergeInsertions<T[K]> } : T;
+export type MergeInsertions<T> = T extends object
+  ? { [K in keyof T]: MergeInsertions<T[K]> }
+  : T;
 
 export type Alike<X, Y> = Equal<MergeInsertions<X>, MergeInsertions<Y>>;
 
@@ -126,7 +141,9 @@ export type EnsureUnionObj<T> = T extends undefined ? unknown : T;
  */
 export type SafeObjMerge<Obj1, Obj2> = EnsureUnionObj<Obj1> & EnsureUnionObj<Obj2>;
 
-export type OptionalTupleIf<Ref, Condition, Params> = Ref extends Condition ? [Params?] : [Params];
+export type OptionalTupleIf<Ref, Condition, Params> = Ref extends Condition
+  ? [Params?]
+  : [Params];
 
 export type HasUndefined<T extends readonly unknown[]> = IsUnknown<T[number]> extends true
   ? false
@@ -134,7 +151,10 @@ export type HasUndefined<T extends readonly unknown[]> = IsUnknown<T[number]> ex
   ? true
   : false;
 
-export type HasDefined<T extends readonly unknown[]> = T extends [infer Next, ...infer Rest]
+export type HasDefined<T extends readonly unknown[]> = T extends [
+  infer Next,
+  ...infer Rest,
+]
   ? IsUndefined<Next> extends false
     ? true
     : HasDefined<Rest>

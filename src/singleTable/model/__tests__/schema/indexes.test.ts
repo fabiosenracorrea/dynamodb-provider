@@ -37,9 +37,9 @@ describe('single table schema - entity - indexes', () => {
 
     expect(user.indexes.BY_EMAIL.index).toBe('anotherIndex');
     expect(user.indexes.BY_EMAIL.getPartitionKey()).toStrictEqual(['USERS_BY_EMAIL']);
-    expect(user.indexes.BY_EMAIL.getRangeKey({ email: 'email@EMAIL.com' })).toStrictEqual([
-      'email@email.com',
-    ]);
+    expect(user.indexes.BY_EMAIL.getRangeKey({ email: 'email@EMAIL.com' })).toStrictEqual(
+      ['email@email.com'],
+    );
 
     expect(
       user.indexes.BY_EMAIL.getKey({
@@ -53,9 +53,15 @@ describe('single table schema - entity - indexes', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>
+      >,
     ];
   });
 
@@ -74,7 +80,10 @@ describe('single table schema - entity - indexes', () => {
 
         BY_NAME: {
           getPartitionKey: () => ['USERS_BY_NAME'],
-          getRangeKey: ({ name }: { name: string }) => ['_name', name?.toLocaleLowerCase()],
+          getRangeKey: ({ name }: { name: string }) => [
+            '_name',
+            name?.toLocaleLowerCase(),
+          ],
           index: 'someIndex',
         },
       },
@@ -115,7 +124,10 @@ describe('single table schema - entity - indexes', () => {
 
         BY_NAME: {
           getPartitionKey: () => ['USERS_BY_NAME'],
-          getRangeKey: ({ name }: { name: string }) => ['_name', name?.toLocaleLowerCase()],
+          getRangeKey: ({ name }: { name: string }) => [
+            '_name',
+            name?.toLocaleLowerCase(),
+          ],
           index: 'someIndex',
         },
       },
@@ -154,7 +166,10 @@ describe('single table schema - entity - indexes', () => {
 
         BY_NAME: {
           getPartitionKey: () => ['USERS_BY_NAME'],
-          getRangeKey: ({ name }: { name: string }) => ['_name', name?.toLocaleLowerCase()],
+          getRangeKey: ({ name }: { name: string }) => [
+            '_name',
+            name?.toLocaleLowerCase(),
+          ],
           index: 'someIndex',
         },
       },
@@ -195,7 +210,10 @@ describe('single table schema - entity - indexes', () => {
 
         BY_NAME: {
           getPartitionKey: () => ['USERS_BY_NAME'],
-          getRangeKey: ({ name }: { name: string }) => ['_name', name?.toLocaleLowerCase()],
+          getRangeKey: ({ name }: { name: string }) => [
+            '_name',
+            name?.toLocaleLowerCase(),
+          ],
           index: 'someIndex',
         },
       },
@@ -264,7 +282,10 @@ describe('single table schema - entity - indexes', () => {
         >
       >,
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL_AND_NAME.getRangeKey>, { name: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL_AND_NAME.getRangeKey>,
+          { name: string }
+        >
       >,
       Expect<
         Equal<
@@ -302,7 +323,9 @@ describe('single table schema - entity - indexes', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.indexes.ALL_USERS.getPartitionKey>, undefined>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.ALL_USERS.getPartitionKey>, undefined>
+      >,
       Expect<Equal<FirstParameter<typeof user.indexes.ALL_USERS.getRangeKey>, undefined>>,
       Expect<Equal<FirstParameter<typeof user.indexes.ALL_USERS.getKey>, undefined>>,
     ];
@@ -342,9 +365,15 @@ describe('single table schema - entity - indexes', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>
+      >,
     ];
   });
 
@@ -365,10 +394,9 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    expect(user.indexes.BY_EMAIL_NAME.getPartitionKey({ email: 'test@test.com' })).toStrictEqual([
-      'BY_EMAIL',
-      'test@test.com',
-    ]);
+    expect(
+      user.indexes.BY_EMAIL_NAME.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['BY_EMAIL', 'test@test.com']);
     expect(
       user.indexes.BY_EMAIL_NAME.getRangeKey({ name: 'John', createdAt: '2024-01-01' }),
     ).toStrictEqual(['NAME', 'John', '2024-01-01']);
@@ -388,7 +416,10 @@ describe('single table schema - entity - indexes', () => {
 
     type _Tests = [
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL_NAME.getPartitionKey>, { email: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL_NAME.getPartitionKey>,
+          { email: string }
+        >
       >,
       Expect<
         Equal<
@@ -422,10 +453,9 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    expect(user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' })).toStrictEqual([
-      'BY_EMAIL',
-      'test@test.com',
-    ]);
+    expect(
+      user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['BY_EMAIL', 'test@test.com']);
     expect(user.indexes.BY_EMAIL.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual([
       'DATE',
       '2024-01-01',
@@ -445,10 +475,16 @@ describe('single table schema - entity - indexes', () => {
 
     type _Tests = [
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, { email: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>,
+          { email: string }
+        >
       >,
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { createdAt: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>,
+          { createdAt: string }
+        >
       >,
       Expect<
         Equal<
@@ -476,10 +512,9 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    expect(user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' })).toStrictEqual([
-      'BY_EMAIL',
-      'test@test.com',
-    ]);
+    expect(
+      user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['BY_EMAIL', 'test@test.com']);
     expect(user.indexes.BY_EMAIL.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual([
       '2024-01-01',
     ]);
@@ -498,10 +533,16 @@ describe('single table schema - entity - indexes', () => {
 
     type _Tests = [
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, { email: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>,
+          { email: string }
+        >
       >,
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { createdAt: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>,
+          { createdAt: string }
+        >
       >,
       Expect<
         Equal<
@@ -529,10 +570,9 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    expect(user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' })).toStrictEqual([
-      'BY_EMAIL',
-      'test@test.com',
-    ]);
+    expect(
+      user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['BY_EMAIL', 'test@test.com']);
     expect(user.indexes.BY_EMAIL.getRangeKey()).toStrictEqual(['#DATA']);
 
     expect(
@@ -548,10 +588,15 @@ describe('single table schema - entity - indexes', () => {
 
     type _Tests = [
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, { email: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>,
+          { email: string }
+        >
       >,
       Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>
+      >,
     ];
   });
 
@@ -572,9 +617,9 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    expect(user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' })).toStrictEqual([
-      'test@test.com',
-    ]);
+    expect(
+      user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['test@test.com']);
     expect(user.indexes.BY_EMAIL.getRangeKey()).toStrictEqual(['#DATA']);
 
     expect(
@@ -590,10 +635,15 @@ describe('single table schema - entity - indexes', () => {
 
     type _Tests = [
       Expect<
-        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, { email: string }>
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>,
+          { email: string }
+        >
       >,
       Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>
+      >,
     ];
   });
 
@@ -631,9 +681,15 @@ describe('single table schema - entity - indexes', () => {
     // -- TYPES --
 
     type _Tests = [
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>>,
-      Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>>,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>, undefined>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>, { email: string }>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_EMAIL.getKey>, { email: string }>
+      >,
     ];
   });
 
@@ -650,11 +706,13 @@ describe('single table schema - entity - indexes', () => {
             email,
             name,
           ],
-          getRangeKey: ({ createdAt, address }: { createdAt: string; address: string }) => [
-            'DATE',
+          getRangeKey: ({
             createdAt,
             address,
-          ],
+          }: {
+            createdAt: string;
+            address: string;
+          }) => ['DATE', createdAt, address],
           index: 'yetAnotherIndex',
         },
       },
@@ -739,7 +797,12 @@ describe('single table schema - entity - indexes', () => {
       // -- TYPES --
 
       type _Tests = [
-        Expect<Equal<FirstParameter<typeof user.indexes.BY_EMAIL.rangeQueries.aEmails>, undefined>>,
+        Expect<
+          Equal<
+            FirstParameter<typeof user.indexes.BY_EMAIL.rangeQueries.aEmails>,
+            undefined
+          >
+        >,
       ];
     });
 

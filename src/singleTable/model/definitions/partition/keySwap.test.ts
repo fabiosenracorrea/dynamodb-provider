@@ -85,7 +85,10 @@ describe('key swaps tests', () => {
     expect(getPartitionKey()).toEqual(['PARTITION']);
 
     // @ts-expect-error we are testing paramMatchers, unknown or match props should be handled
-    expect(getRangeKey({ someId: 'id!', matchId: 'matchId!' })).toEqual(['HI', 'matchId!']);
+    expect(getRangeKey({ someId: 'id!', matchId: 'matchId!' })).toEqual([
+      'HI',
+      'matchId!',
+    ]);
 
     expect(
       // @ts-expect-error we are testing paramMatchers, unknown or match props should be handled

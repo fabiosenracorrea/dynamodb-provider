@@ -7,7 +7,10 @@ import { getProjectExpressionParams } from '../projection';
 import { EntityPK } from './types';
 import { DynamodbExecutor } from '../dynamoDB';
 
-export interface GetItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
+export interface GetItemParams<
+  Entity,
+  PKs extends StringKey<Entity> | unknown = unknown,
+> {
   /**
    * Dynamodb Table
    */

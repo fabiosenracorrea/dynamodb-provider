@@ -140,7 +140,9 @@ export class QueryBuilder extends DynamodbExecutor {
     if (shouldStop)
       return {
         items: updatedItems,
-        paginationToken: LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined,
+        paginationToken: LastEvaluatedKey
+          ? toPaginationToken(LastEvaluatedKey)
+          : undefined,
       } as QueryResult<Entity>;
 
     return this.recursivelyListCollection({

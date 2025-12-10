@@ -46,7 +46,9 @@ export class TransactionWriter extends DynamodbExecutor {
     } as DBConditionTransactParams;
   }
 
-  private _getTransactParams(configs: TransactionConfig[]): DBTransactWriteParams['input'] {
+  private _getTransactParams(
+    configs: TransactionConfig[],
+  ): DBTransactWriteParams['input'] {
     const params = configs.map(({ create, erase, update, validate }) => {
       if (update) return { Update: this.updater.getUpdateParams(update) };
 

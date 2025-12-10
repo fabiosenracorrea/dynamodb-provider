@@ -8,7 +8,10 @@ import { resolvePropsFromList } from '../../parsers';
 
 type BasicRangeConfig = Pick<BasicRangeKeyConfig<AnyObject>, 'operation' | 'value'>;
 
-type BetweenRangeConfig = Pick<BetweenRangeKeyConfig<AnyObject>, 'start' | 'end' | 'operation'>;
+type BetweenRangeConfig = Pick<
+  BetweenRangeKeyConfig<AnyObject>,
+  'start' | 'end' | 'operation'
+>;
 
 export interface ListItemTypeParams
   extends Partial<

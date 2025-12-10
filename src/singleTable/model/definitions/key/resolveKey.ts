@@ -23,9 +23,12 @@ export function resolveKeys<Entity, Params extends EntityKeyResolvers<Entity>>({
   getRangeKey,
 }: Params): EntityKeyGetters<Entity, Params> {
   const partitionGetter =
-    typeof getPartitionKey === 'function' ? getPartitionKey : buildGetter(getPartitionKey);
+    typeof getPartitionKey === 'function'
+      ? getPartitionKey
+      : buildGetter(getPartitionKey);
 
-  const rangeGetter = typeof getRangeKey === 'function' ? getRangeKey : buildGetter(getRangeKey);
+  const rangeGetter =
+    typeof getRangeKey === 'function' ? getRangeKey : buildGetter(getRangeKey);
 
   return {
     getPartitionKey: partitionGetter,

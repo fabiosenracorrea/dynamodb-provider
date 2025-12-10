@@ -26,9 +26,13 @@ export type FromEntity<
   Registered extends ExtendableSingleTableEntity,
   SingleConfig extends SingleTableConfig,
 > = {
-  get(...params: EntityGetParams<Registered>): Promise<Registered['__entity'] | undefined>;
+  get(
+    ...params: EntityGetParams<Registered>
+  ): Promise<Registered['__entity'] | undefined>;
 
-  batchGet(params: EntityBatchGetParams<Registered>): Promise<Array<Registered['__entity']>>;
+  batchGet(
+    params: EntityBatchGetParams<Registered>,
+  ): Promise<Array<Registered['__entity']>>;
 
   create(...params: CreateEntityParams<Registered>): Promise<Registered['__entity']>;
 

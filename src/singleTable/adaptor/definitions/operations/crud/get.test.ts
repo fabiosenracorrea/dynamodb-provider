@@ -4,7 +4,9 @@ import { SingleTableGetter } from './get';
 
 describe('single table adaptor - dynamodb', () => {
   it('should properly call/return the db provider get method with the standard use case', async () => {
-    const getMock = jest.fn().mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
+    const getMock = jest
+      .fn()
+      .mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
 
     const getter = new SingleTableGetter({
       db: {
@@ -80,7 +82,9 @@ describe('single table adaptor - dynamodb', () => {
   });
 
   it('should forward consistentRead', async () => {
-    const getMock = jest.fn().mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
+    const getMock = jest
+      .fn()
+      .mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
 
     const getter = new SingleTableGetter({
       db: {
@@ -121,7 +125,9 @@ describe('single table adaptor - dynamodb', () => {
   });
 
   it('should forward propertiesToRetrieve', async () => {
-    const getMock = jest.fn().mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
+    const getMock = jest
+      .fn()
+      .mockResolvedValue({ prop: 'value', name: 'hello', age: 27 });
 
     const getter = new SingleTableGetter({
       db: {
@@ -247,7 +253,12 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    expect(result).toStrictEqual({ prop: 'value', name: 'hello', age: 27, _type: 'SOME_TYPE' });
+    expect(result).toStrictEqual({
+      prop: 'value',
+      name: 'hello',
+      age: 27,
+      _type: 'SOME_TYPE',
+    });
   });
 
   it('should use prop cleanup fn to resolve kept properties if configured', async () => {
@@ -351,6 +362,11 @@ describe('single table adaptor - dynamodb', () => {
       },
     });
 
-    expect(result).toStrictEqual({ prop: 'value', name: 'hello', age: 27, extraProp: 'yes!' });
+    expect(result).toStrictEqual({
+      prop: 'value',
+      name: 'hello',
+      age: 27,
+      extraProp: 'yes!',
+    });
   });
 });

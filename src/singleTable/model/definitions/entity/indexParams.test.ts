@@ -180,7 +180,10 @@ describe('single table entity model: getEntityIndexParams', () => {
         anything: Symbol('here'),
       };
 
-      const result = getEntityIndexParams<TableConfig, typeof params>(tableConfig, params);
+      const result = getEntityIndexParams<TableConfig, typeof params>(
+        tableConfig,
+        params,
+      );
 
       const creationMapping = result.getCreationIndexMapping(mockIndexParams);
 
@@ -211,7 +214,10 @@ describe('single table entity model: getEntityIndexParams', () => {
       };
       const mockIndexParams = { someParam: 'value' };
 
-      const result = getEntityIndexParams<TableConfig, typeof params>(tableConfig, params);
+      const result = getEntityIndexParams<TableConfig, typeof params>(
+        tableConfig,
+        params,
+      );
 
       const creationMapping = result.getCreationIndexMapping(mockIndexParams);
 
@@ -239,7 +245,10 @@ describe('single table entity model: getEntityIndexParams', () => {
         },
       };
 
-      const result = getEntityIndexParams<TableConfig, typeof params>(tableConfig, params);
+      const result = getEntityIndexParams<TableConfig, typeof params>(
+        tableConfig,
+        params,
+      );
 
       const creationMapping = result.getCreationIndexMapping({ someParam: 'value' });
 

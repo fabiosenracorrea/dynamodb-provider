@@ -117,7 +117,9 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     return this.batchGetter.batchGet(options);
   }
 
-  async query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
+  async query<Entity = AnyObject>(
+    params: QueryParams<Entity>,
+  ): Promise<QueryResult<Entity>> {
     return this.queryBuilder.query(params);
   }
 

@@ -17,11 +17,16 @@ export function buildConditionExpression(conditions: ItemExpression<any>[]): str
 
 function getConditionProps(conditions: ItemExpression<any>[]): string[] {
   return conditions
-    .map(({ property, nested }) => [property, ...(nested?.length ? getConditionProps(nested) : [])])
+    .map(({ property, nested }) => [
+      property,
+      ...(nested?.length ? getConditionProps(nested) : []),
+    ])
     .flat();
 }
 
-export function getConditionExpressionNames(conditions: ItemExpression<any>[]): AnyObject {
+export function getConditionExpressionNames(
+  conditions: ItemExpression<any>[],
+): AnyObject {
   return getExpressionNames(
     //
     getConditionProps(conditions),
@@ -31,15 +36,22 @@ export function getConditionExpressionNames(conditions: ItemExpression<any>[]): 
 
 function flatConditions(conditions: ItemExpression<any>[]): ItemExpression<any>[] {
   return conditions
-    .map(({ nested, ...cond }) => [cond, ...(nested?.length ? flatConditions(nested) : [])])
+    .map(({ nested, ...cond }) => [
+      cond,
+      ...(nested?.length ? flatConditions(nested) : []),
+    ])
     .flat();
 }
 
-export function getConditionExpressionValues(conditions: ItemExpression<any>[]): AnyObject {
+export function getConditionExpressionValues(
+  conditions: ItemExpression<any>[],
+): AnyObject {
   return getExpressionValues(flatConditions(conditions), CONDITION_PREFIX);
 }
 
-export function getConditionParams(conditions?: ItemExpression<any>[]): DBConditionParams {
+export function getConditionParams(
+  conditions?: ItemExpression<any>[],
+): DBConditionParams {
   if (!conditions?.length) return {};
 
   const ExpressionAttributeValues = getConditionExpressionValues(conditions);

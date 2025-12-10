@@ -26,7 +26,10 @@ describe('single table schema tests', () => {
       entries: {
         data: () => [`#DATA`],
         permissions: () => [`#PERMISSIONS`],
-        loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+        loginAttempts: ({ timestamp }: { timestamp: string }) => [
+          'LOGIN_ATTEMPT',
+          timestamp,
+        ],
       },
     });
 
@@ -39,9 +42,12 @@ describe('single table schema tests', () => {
         paramMatch: { userId: 'id' },
       });
 
-    const loginAttempts = partition.use('loginAttempts').create<UserLoginAttempt>().entity({
-      type: 'USER_LOGIN_ATTEMPT',
-    });
+    const loginAttempts = partition
+      .use('loginAttempts')
+      .create<UserLoginAttempt>()
+      .entity({
+        type: 'USER_LOGIN_ATTEMPT',
+      });
 
     it('should have the __dbType property', () => {
       const collection = schema.createCollection({
@@ -270,15 +276,18 @@ describe('single table schema tests', () => {
       expect(collection.join.loginAttempts.join.deep2.join.deep3.ref).toBe(user.type);
       expect(collection.join.loginAttempts.join.deep2.join.deep3.entity).toBe(user);
 
-      expect(collection.join.loginAttempts.join.deep2.join.deep3.join.deep4.ref).toBe(user.type);
-      expect(collection.join.loginAttempts.join.deep2.join.deep3.join.deep4.entity).toBe(user);
+      expect(collection.join.loginAttempts.join.deep2.join.deep3.join.deep4.ref).toBe(
+        user.type,
+      );
+      expect(collection.join.loginAttempts.join.deep2.join.deep3.join.deep4.entity).toBe(
+        user,
+      );
 
       // -- TYPES --
 
       type Collection = (typeof collection)['__type'];
 
       type _Tests = [
-        //
         Expect<Equal<Collection['loginAttempts']['deep2']['deep3']['deep4'], User[]>>,
       ];
     });
@@ -295,7 +304,10 @@ describe('single table schema tests', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -319,7 +331,10 @@ describe('single table schema tests', () => {
       const loginAttempts = schema.createEntity<UserLoginAttempt>().as({
         type: 'USER_LOGIN_ATTEMPT',
 
-        getPartitionKey: ({ userId }: { userId: string }) => ['USER_LOGIN_ATTEMPT', userId],
+        getPartitionKey: ({ userId }: { userId: string }) => [
+          'USER_LOGIN_ATTEMPT',
+          userId,
+        ],
 
         getRangeKey: ({ timestamp }: { timestamp: string }) => [timestamp],
 
@@ -370,7 +385,10 @@ describe('single table schema tests', () => {
       const loginAttempts = schema.createEntity<UserLoginAttempt>().as({
         type: 'USER_LOGIN_ATTEMPT',
 
-        getPartitionKey: ({ userId }: { userId: string }) => ['USER_LOGIN_ATTEMPT', userId],
+        getPartitionKey: ({ userId }: { userId: string }) => [
+          'USER_LOGIN_ATTEMPT',
+          userId,
+        ],
 
         getRangeKey: ({ timestamp }: { timestamp: string }) => [timestamp],
 
@@ -378,7 +396,10 @@ describe('single table schema tests', () => {
           singleUser: {
             getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
 
-            getRangeKey: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+            getRangeKey: ({ timestamp }: { timestamp: string }) => [
+              'LOGIN_ATTEMPT',
+              timestamp,
+            ],
 
             index: 'someIndex',
           },

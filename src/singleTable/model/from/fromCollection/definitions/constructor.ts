@@ -10,7 +10,9 @@ export type FromCollection<Registered extends ExtendableCollection> = {
    * the data fetch will continue as long as the collection query keeps
    * yielding items
    */
-  get(...params: GetCollectionParams<Registered>): Promise<GetCollectionResult<Registered>>;
+  get(
+    ...params: GetCollectionParams<Registered>
+  ): Promise<GetCollectionResult<Registered>>;
 };
 
 export interface FromCollectionMethods {

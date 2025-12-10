@@ -87,7 +87,10 @@ export interface ListOptions<Entity> {
   paginationToken?: string;
 }
 
-export type ListAllOptions<Entity> = Omit<ListOptions<Entity>, 'paginationToken' | 'limit'>;
+export type ListAllOptions<Entity> = Omit<
+  ListOptions<Entity>,
+  'paginationToken' | 'limit'
+>;
 
 type GetScanParams<Entity> = ListOptions<Entity> & {
   table: string;
@@ -188,7 +191,10 @@ export class ItemLister extends DynamodbExecutor {
     });
   }
 
-  async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
+  async listAll<Entity>(
+    table: string,
+    options = {} as ListAllOptions<Entity>,
+  ): Promise<Entity[]> {
     const items = await this.recursivelyGetAllItems({
       table,
       ...options,

@@ -17,7 +17,10 @@ import {
   SingleTableDeleteParams,
   SingleTableTransactConfigGenerator,
 } from './adaptor';
-import { SingleTableSchema as FullSingleTableSchema, SingleTableSchemaType } from './model';
+import {
+  SingleTableSchema as FullSingleTableSchema,
+  SingleTableSchemaType,
+} from './model';
 
 export class SingleTable<SingleParams extends SingleTableParams> {
   private methods: SingleTableMethods<SingleParams>;
@@ -46,11 +49,15 @@ export class SingleTable<SingleParams extends SingleTableParams> {
     };
   }
 
-  async get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
+  async get<Entity = AnyObject>(
+    params: SingleTableGetParams<Entity>,
+  ): Promise<Entity | undefined> {
     return this.methods.get(params);
   }
 
-  async create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity> {
+  async create<Entity>(
+    params: SingleTableCreateItemParams<Entity, SingleParams>,
+  ): Promise<Entity> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.methods.create(params as any);
   }
@@ -61,7 +68,9 @@ export class SingleTable<SingleParams extends SingleTableParams> {
     return this.methods.update(params);
   }
 
-  async delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void> {
+  async delete<Entity = AnyObject>(
+    params: SingleTableDeleteParams<Entity>,
+  ): Promise<void> {
     await this.methods.delete(params);
   }
 
@@ -81,7 +90,9 @@ export class SingleTable<SingleParams extends SingleTableParams> {
   /**
    *  Useful if you need to merge transactions from other tables
    */
-  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+  ejectTransactParams(
+    configs: (SingleTableTransactionConfig | null)[],
+  ): TransactionConfig[] {
     return this.methods.ejectTransactParams(configs);
   }
 
@@ -94,7 +105,9 @@ export class SingleTable<SingleParams extends SingleTableParams> {
     return this.methods.transaction(configs);
   }
 
-  async transaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void> {
+  async transaction(
+    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+  ): Promise<void> {
     return this.methods.transaction(configs);
   }
 

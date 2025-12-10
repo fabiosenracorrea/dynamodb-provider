@@ -1,5 +1,9 @@
 import type { AnyObject } from 'types';
-import type { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from 'provider/utils';
+import type {
+  BasicRangeKeyConfig,
+  BetweenRangeKeyConfig,
+  QueryParams,
+} from 'provider/utils';
 
 type BasicRangeConfig = {
   value: string;

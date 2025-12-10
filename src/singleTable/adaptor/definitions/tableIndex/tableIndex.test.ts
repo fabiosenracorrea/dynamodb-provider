@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getIndexHashName, getIndexRangeName, transformIndexReferences } from './tableIndex';
+import {
+  getIndexHashName,
+  getIndexRangeName,
+  transformIndexReferences,
+} from './tableIndex';
 
 describe('single table adaptor - index helpers', () => {
   it('getIndexHashName: should properly match referenced index to its partition column name', () => {

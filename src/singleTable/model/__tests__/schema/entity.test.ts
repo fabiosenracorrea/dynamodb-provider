@@ -65,7 +65,10 @@ describe('single table schema - entity use cases', () => {
 
       schema.from(MEDIA);
 
-      expect(MEDIA.getPartitionKey({ id: 'media-1' })).toStrictEqual(['MEDIA', 'media-1']);
+      expect(MEDIA.getPartitionKey({ id: 'media-1' })).toStrictEqual([
+        'MEDIA',
+        'media-1',
+      ]);
       expect(MEDIA.getRangeKey()).toStrictEqual(['#DATA']);
       expect(MEDIA.type).toBe('MEDIA');
     });
@@ -96,7 +99,10 @@ describe('single table schema - entity use cases', () => {
 
       schema.from(MEDIA);
 
-      expect(MEDIA.getPartitionKey({ id: 'media-2' } as Media)).toStrictEqual(['MEDIA', 'media-2']);
+      expect(MEDIA.getPartitionKey({ id: 'media-2' } as Media)).toStrictEqual([
+        'MEDIA',
+        'media-2',
+      ]);
       expect(MEDIA.getRangeKey()).toStrictEqual(['#DATA']);
       expect(MEDIA.type).toBe('MEDIA_DOT');
     });
@@ -127,7 +133,10 @@ describe('single table schema - entity use cases', () => {
 
       schema.from(MEDIA);
 
-      expect(MEDIA.getPartitionKey({ id: 'media-3' })).toStrictEqual(['MEDIA', 'media-3']);
+      expect(MEDIA.getPartitionKey({ id: 'media-3' })).toStrictEqual([
+        'MEDIA',
+        'media-3',
+      ]);
       expect(MEDIA.getRangeKey()).toStrictEqual(['#DATA']);
       expect(MEDIA.type).toBe('MEDIA_MIXED');
     });
@@ -154,7 +163,10 @@ describe('single table schema - entity use cases', () => {
 
       // Valid calls
       expect(MEDIA_FUNC.getPartitionKey({ id: 'test' })).toStrictEqual(['MEDIA', 'test']);
-      expect(MEDIA_DOT.getPartitionKey({ id: 'test' } as Media)).toStrictEqual(['MEDIA', 'test']);
+      expect(MEDIA_DOT.getPartitionKey({ id: 'test' } as Media)).toStrictEqual([
+        'MEDIA',
+        'test',
+      ]);
 
       // -- TYPES -- //
       // Type-only validation - prevent runtime execution
@@ -261,7 +273,13 @@ describe('single table schema - entity use cases', () => {
         rangeQueries: {
           dateSliceParams: {
             operation: 'between',
-            getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+            getValues: ({
+              endDate,
+              startDate,
+            }: {
+              startDate: string;
+              endDate: string;
+            }) => ({
               end: endDate ?? '2100-01-01T00:00:00.000Z',
               start: startDate ?? '2020-01-01T00:00:00.000Z',
             }),
@@ -298,9 +316,17 @@ describe('single table schema - entity use cases', () => {
       type _Tests = [
         // dateSliceParams should require startDate and endDate
         Expect<
-          Equal<Parameters<typeof MEDIA.rangeQueries.dateSliceParams>[0]['startDate'], string>
+          Equal<
+            Parameters<typeof MEDIA.rangeQueries.dateSliceParams>[0]['startDate'],
+            string
+          >
         >,
-        Expect<Equal<Parameters<typeof MEDIA.rangeQueries.dateSliceParams>[0]['endDate'], string>>,
+        Expect<
+          Equal<
+            Parameters<typeof MEDIA.rangeQueries.dateSliceParams>[0]['endDate'],
+            string
+          >
+        >,
       ];
     });
 
@@ -321,7 +347,13 @@ describe('single table schema - entity use cases', () => {
             rangeQueries: {
               dateSliceParams: {
                 operation: 'between',
-                getValues: ({ endDate, startDate }: { startDate: string; endDate: string }) => ({
+                getValues: ({
+                  endDate,
+                  startDate,
+                }: {
+                  startDate: string;
+                  endDate: string;
+                }) => ({
                   end: endDate ?? '2100-01-01T00:00:00.000Z',
                   start: startDate ?? '2020-01-01T00:00:00.000Z',
                 }),
@@ -340,7 +372,9 @@ describe('single table schema - entity use cases', () => {
       // Verify index range queries exist
       expect(MEDIA.indexes.ByUploadTime.rangeQueries).toBeDefined();
       expect(MEDIA.indexes.ByUploadTime.rangeQueries?.dateSliceParams).toBeDefined();
-      expect(MEDIA.indexes.ByUploadTime.rangeQueries?.dateSliceDefaultParams).toBeDefined();
+      expect(
+        MEDIA.indexes.ByUploadTime.rangeQueries?.dateSliceDefaultParams,
+      ).toBeDefined();
 
       // Valid calls
       const customResult = MEDIA.indexes.ByUploadTime.rangeQueries!.dateSliceParams({
@@ -349,10 +383,11 @@ describe('single table schema - entity use cases', () => {
       });
       expect(customResult).toBeDefined();
 
-      const defaultResult = MEDIA.indexes.ByUploadTime.rangeQueries!.dateSliceDefaultParams({
-        end: '2024-12-31',
-        start: '2024-01-01',
-      });
+      const defaultResult =
+        MEDIA.indexes.ByUploadTime.rangeQueries!.dateSliceDefaultParams({
+          end: '2024-12-31',
+          start: '2024-01-01',
+        });
       expect(defaultResult).toBeDefined();
 
       // -- TYPES -- //

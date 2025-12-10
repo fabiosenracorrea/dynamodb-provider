@@ -103,7 +103,9 @@ describe('single table model - key resolver', () => {
     it('partition: should create the getter if reference is array', () => {
       const newParams = { ...params, getPartitionKey: ['HELLO'] };
 
-      const { getPartitionKey, getRangeKey } = resolveKeys<EntityRef, typeof newParams>(newParams);
+      const { getPartitionKey, getRangeKey } = resolveKeys<EntityRef, typeof newParams>(
+        newParams,
+      );
 
       expect(typeof getPartitionKey).toBe('function');
       expect(getPartitionKey()).toEqual(['HELLO']);
@@ -117,7 +119,9 @@ describe('single table model - key resolver', () => {
     it('partition: should create the getter if array reference with dotted access', () => {
       const newParams = { ...params, getPartitionKey: getArrayKey(['HELLO', '.name']) };
 
-      const { getPartitionKey, getRangeKey } = resolveKeys<EntityRef, typeof newParams>(newParams);
+      const { getPartitionKey, getRangeKey } = resolveKeys<EntityRef, typeof newParams>(
+        newParams,
+      );
 
       expect(typeof getPartitionKey).toBe('function');
 
@@ -136,7 +140,9 @@ describe('single table model - key resolver', () => {
     it('range: should create the getter if reference is array', () => {
       const newParams = { ...params, getRangeKey: ['HELLO'] };
 
-      const { getRangeKey, getPartitionKey } = resolveKeys<EntityRef, typeof newParams>(newParams);
+      const { getRangeKey, getPartitionKey } = resolveKeys<EntityRef, typeof newParams>(
+        newParams,
+      );
 
       expect(typeof getRangeKey).toBe('function');
       expect(getRangeKey()).toEqual(['HELLO']);
@@ -150,9 +156,10 @@ describe('single table model - key resolver', () => {
     it('range: should create the getter if array reference with dotted access', () => {
       const newParams = { ...params, getRangeKey: getArrayKey(['HELLO', '.name']) };
 
-      const { getRangeKey, getKey, getPartitionKey } = resolveKeys<EntityRef, typeof newParams>(
-        newParams,
-      );
+      const { getRangeKey, getKey, getPartitionKey } = resolveKeys<
+        EntityRef,
+        typeof newParams
+      >(newParams);
 
       expect(typeof getRangeKey).toBe('function');
 

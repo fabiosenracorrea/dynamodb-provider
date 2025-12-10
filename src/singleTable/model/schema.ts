@@ -26,7 +26,10 @@ interface EntityCache {
   entity: any;
 }
 
-export interface DefinedMethods<TableConfig extends SingleTableParams, Entity extends AnyObject> {
+export interface DefinedMethods<
+  TableConfig extends SingleTableParams,
+  Entity extends AnyObject,
+> {
   as<Params extends RegisterEntityParams<TableConfig, Entity>>(
     params: Params,
   ): SingleTableEntity<TableConfig, Entity, Params>;
@@ -95,7 +98,10 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
       return {
         create: <Entity>() => ({
           index: (
-            { paramMatch, ...indexParams }: IndexParams<Entity> = {} as IndexParams<Entity>,
+            {
+              paramMatch,
+              ...indexParams
+            }: IndexParams<Entity> = {} as IndexParams<Entity>,
           ) => ({
             ...indexParams,
 
@@ -200,7 +206,10 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
     return entity as SingleTableEntity<TableConfig, Entity, Params>;
   }
 
-  createEntity<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
+  createEntity<Entity extends Record<string, any>>(): DefinedMethods<
+    TableConfig,
+    Entity
+  > {
     return {
       as: this.registerEntity.bind(this) as DefinedMethods<TableConfig, Entity>['as'],
     };

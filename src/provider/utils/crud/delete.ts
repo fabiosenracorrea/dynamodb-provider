@@ -8,7 +8,10 @@ import { getConditionParams } from '../conditions';
 
 import { EntityPK } from './types';
 
-export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
+export interface DeleteItemParams<
+  Entity,
+  PKs extends StringKey<Entity> | unknown = unknown,
+> {
   /**
    * Dynamodb Table
    */
@@ -25,7 +28,9 @@ export interface DeleteItemParams<Entity, PKs extends StringKey<Entity> | unknow
    *
    * The operation will fail if the condition is not met
    */
-  conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions?: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
+  >[];
 }
 
 export class ItemRemover extends DynamodbExecutor {

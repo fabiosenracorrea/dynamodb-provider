@@ -12,7 +12,9 @@ export interface UpdateTransaction<
   validate?: never;
 }
 
-export interface CreateTransaction<E extends Record<string, unknown> = Record<string, unknown>> {
+export interface CreateTransaction<
+  E extends Record<string, unknown> = Record<string, unknown>,
+> {
   create: CreateItemParams<E, keyof E>;
   update?: never;
   erase?: never;
@@ -36,7 +38,9 @@ export interface ValidateTransactParams<
   table: string;
   key: PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
 
-  conditions: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
+  >[];
 }
 
 export interface ConditionCheckTransaction<

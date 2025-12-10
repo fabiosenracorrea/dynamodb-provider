@@ -10,16 +10,17 @@ import { BaseSingleTableOperator } from '../../executor';
 import { resolveProps } from '../../parsers';
 import { transformIndexReferences } from '../../tableIndex';
 
-type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
-  ? {}
-  : {
-      /**
-       * Explicity describe each relevant index value on this creation, if applicable
-       */
-      indexes?: {
-        [key in keyof TableConfig['indexes']]?: SingleTableKeyReference;
+type IndexParams<TableConfig extends SingleTableConfig> =
+  undefined extends TableConfig['indexes']
+    ? {}
+    : {
+        /**
+         * Explicity describe each relevant index value on this creation, if applicable
+         */
+        indexes?: {
+          [key in keyof TableConfig['indexes']]?: SingleTableKeyReference;
+        };
       };
-    };
 
 type ExpiresAtParams<TableConfig extends SingleTableConfig> =
   undefined extends TableConfig['expiresAt']
@@ -31,17 +32,18 @@ type ExpiresAtParams<TableConfig extends SingleTableConfig> =
         expiresAt?: number;
       };
 
-type TypeParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['typeIndex']
-  ? {}
-  : {
-      /**
-       * The entity type
-       *
-       * This will be assigned the to column described
-       * in your config.typeIndex.partitionKey
-       */
-      type: string;
-    };
+type TypeParams<TableConfig extends SingleTableConfig> =
+  undefined extends TableConfig['typeIndex']
+    ? {}
+    : {
+        /**
+         * The entity type
+         *
+         * This will be assigned the to column described
+         * in your config.typeIndex.partitionKey
+         */
+        type: string;
+      };
 
 export type SingleTableCreateItemParams<
   Entity = AnyObject,
@@ -71,7 +73,9 @@ export class SingleTableCreator extends BaseSingleTableOperator {
     const { partitionKey, rangeKey, rangeKeyGenerator } = this.config.typeIndex;
 
     // This is specifically done to enable users to return `undefined` from generator and opt-out this property
-    const rangeValue = rangeKeyGenerator ? rangeKeyGenerator(item, type) : new Date().toISOString();
+    const rangeValue = rangeKeyGenerator
+      ? rangeKeyGenerator(item, type)
+      : new Date().toISOString();
 
     return {
       [partitionKey]: type,
@@ -93,7 +97,9 @@ export class SingleTableCreator extends BaseSingleTableOperator {
       item: {
         ...item,
 
-        ...(expiresAt && this.config.expiresAt ? { [this.config.expiresAt]: expiresAt } : {}),
+        ...(expiresAt && this.config.expiresAt
+          ? { [this.config.expiresAt]: expiresAt }
+          : {}),
 
         ...(indexes ? transformIndexReferences(indexes as any, this.config) : {}),
 

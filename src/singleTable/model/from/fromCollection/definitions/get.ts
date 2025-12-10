@@ -25,8 +25,13 @@ type JoinParams<ParamsA, ParamsB> = ParamsA extends undefined
 
 export type GetCollectionParams<
   Registered extends ExtendableCollection,
-  GetParams = JoinParams<Parameters<Registered['getPartitionKey']>[0], NarrowParams<Registered>>,
+  GetParams = JoinParams<
+    Parameters<Registered['getPartitionKey']>[0],
+    NarrowParams<Registered>
+  >,
 > = GetParams extends undefined ? [BaseParams?] : [BaseParams & GetParams];
 
 export type GetCollectionResult<Registered extends ExtendableCollection> =
-  Registered['__type'] extends Array<any> ? Registered['__type'] : Registered['__type'] | undefined;
+  Registered['__type'] extends Array<any>
+    ? Registered['__type']
+    : Registered['__type'] | undefined;

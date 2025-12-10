@@ -109,7 +109,10 @@ describe('single table adaptor - delete', () => {
         },
       });
 
-      const params = await remover.getDeleteParams({ partitionKey: 'some', rangeKey: 'other_pk' });
+      const params = await remover.getDeleteParams({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+      });
 
       expect(params).toStrictEqual({
         table: 'db-table',

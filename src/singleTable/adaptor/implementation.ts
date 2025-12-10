@@ -77,11 +77,15 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     this.querBuilder = new SingleTableQueryBuilder(params);
   }
 
-  async get<Entity = AnyObject>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined> {
+  async get<Entity = AnyObject>(
+    params: SingleTableGetParams<Entity>,
+  ): Promise<Entity | undefined> {
     return this.getter.get(params);
   }
 
-  async create<Entity>(params: SingleTableCreateItemParams<Entity, SingleParams>): Promise<Entity> {
+  async create<Entity>(
+    params: SingleTableCreateItemParams<Entity, SingleParams>,
+  ): Promise<Entity> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.creator.create(params as any);
   }
@@ -92,7 +96,9 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.updater.update(params);
   }
 
-  async delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void> {
+  async delete<Entity = AnyObject>(
+    params: SingleTableDeleteParams<Entity>,
+  ): Promise<void> {
     await this.remover.delete(params);
   }
 
@@ -109,7 +115,9 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.querBuilder.query(params as any);
   }
 
-  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
+  ejectTransactParams(
+    configs: (SingleTableTransactionConfig | null)[],
+  ): TransactionConfig[] {
     return this.transactWriter.ejectTransactParams(configs);
   }
 
@@ -122,7 +130,9 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.transactWriter.transaction(configs);
   }
 
-  async transaction(configs: (SingleTableTransactionConfig<SingleParams> | null)[]): Promise<void> {
+  async transaction(
+    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+  ): Promise<void> {
     return this.transactWriter.transaction(configs);
   }
 

@@ -5,7 +5,10 @@ import { DBCreateItemParams, DynamodbExecutor } from '../dynamoDB';
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
 
-export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
+export interface CreateItemParams<
+  Entity,
+  PKs extends StringKey<Entity> | unknown = unknown,
+> {
   /**
    * Dynamodb Table
    */
@@ -26,7 +29,9 @@ export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknow
    *
    * The operation will fail if the condition is not fulfilled
    */
-  conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions?: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
+  >[];
 }
 
 export class ItemCreator extends DynamodbExecutor {

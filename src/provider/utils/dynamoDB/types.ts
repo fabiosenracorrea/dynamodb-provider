@@ -47,7 +47,10 @@ export type DynamoDBConfig =
         UpdateCommand: CommandConstructor<UpdateCommand, UpdateCommandInput>;
         ScanCommand: CommandConstructor<ScanCommand>;
         QueryCommand: CommandConstructor<QueryCommand, QueryCommandInput>;
-        TransactWriteCommand: CommandConstructor<TransactWriteCommand, TransactWriteCommandInput>;
+        TransactWriteCommand: CommandConstructor<
+          TransactWriteCommand,
+          TransactWriteCommandInput
+        >;
       };
     };
 
@@ -55,11 +58,13 @@ interface ScanOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.ScanOutput, 
   Items: Entity[];
 }
 
-interface QueryOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.QueryOutput, 'Items'> {
+interface QueryOutput<Entity>
+  extends Omit<DynamoDBv2.DocumentClient.QueryOutput, 'Items'> {
   Items?: Entity[];
 }
 
-interface GetItemOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.GetItemOutput, 'Item'> {
+interface GetItemOutput<Entity>
+  extends Omit<DynamoDBv2.DocumentClient.GetItemOutput, 'Item'> {
   Item?: Entity;
 }
 
@@ -133,7 +138,9 @@ export type DBV2Set<T extends string | number> = T extends number
       values: string[];
     };
 
-export type DBV3Set<T extends string | number> = T extends number ? Set<number> : Set<string>;
+export type DBV3Set<T extends string | number> = T extends number
+  ? Set<number>
+  : Set<string>;
 
 export type DBSet<
   T extends string | number,

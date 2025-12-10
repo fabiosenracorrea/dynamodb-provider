@@ -43,7 +43,9 @@ export class SchemaFrom<SingleParams extends SingleTableParams> {
     target: Target,
   ): From<Target, SingleParams> {
     const result =
-      target.__dbType === 'ENTITY' ? this.fromEntity(target) : this.fromCollection(target);
+      target.__dbType === 'ENTITY'
+        ? this.fromEntity(target)
+        : this.fromCollection(target);
 
     return result as unknown as From<Target, SingleParams>;
   }

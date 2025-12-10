@@ -2434,9 +2434,13 @@ describe('single table - from entity methods', () => {
         }
 
         // @ts-expect-error User is not enough
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken: string }>
+        >;
 
-        type _R2 = Expect<Equal<typeof result, { items: NewUser789[]; paginationToken: string }>>;
+        type _R2 = Expect<
+          Equal<typeof result, { items: NewUser789[]; paginationToken: string }>
+        >;
       });
 
       it('[TYPES] params should be optional', async () => {
@@ -2720,7 +2724,9 @@ describe('single table - from entity methods', () => {
 
         const result = await instance.buildMethods().query.custom({ id: 'my-id' });
 
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] Extend: Return type should include extended properties', async () => {
@@ -2742,9 +2748,13 @@ describe('single table - from entity methods', () => {
         }
 
         // @ts-expect-error User is not enough
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
 
-        type _R2 = Expect<Equal<typeof result, { items: NewUser890[]; paginationToken?: string }>>;
+        type _R2 = Expect<
+          Equal<typeof result, { items: NewUser890[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] range operations should be typed correctly', async () => {
@@ -3046,7 +3056,11 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ start: 'start', end: 'end', id: 'my-id' });
+        const result = await repo.query.someQuery({
+          start: 'start',
+          end: 'end',
+          id: 'my-id',
+        });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
@@ -3142,7 +3156,11 @@ describe('single table - from entity methods', () => {
         const repo = instance.buildMethods();
         expect(repo.query.someQuery).toBeDefined();
 
-        const result = await repo.query.someQuery({ start: 'start', end: 'end', id: 'my-id' });
+        const result = await repo.query.someQuery({
+          start: 'start',
+          end: 'end',
+          id: 'my-id',
+        });
 
         expect(query).toHaveBeenCalledTimes(1);
         expect(query).toHaveBeenCalledWith({
@@ -3232,7 +3250,9 @@ describe('single table - from entity methods', () => {
 
         const result = await instance.buildMethods().query.someQuery({ id: 'my-id' });
 
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] Extend: Return type should include extended properties', async () => {
@@ -3260,9 +3280,13 @@ describe('single table - from entity methods', () => {
         }
 
         // @ts-expect-error User is not enough
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
 
-        type _R2 = Expect<Equal<typeof result, { items: NewUser901[]; paginationToken?: string }>>;
+        type _R2 = Expect<
+          Equal<typeof result, { items: NewUser901[]; paginationToken?: string }>
+        >;
       });
     });
   });
@@ -3668,7 +3692,9 @@ describe('single table - from entity methods', () => {
 
         const result = await instance.buildMethods().queryIndex.byEmail.custom();
 
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] Extend: Return type should include extended properties', async () => {
@@ -3697,9 +3723,13 @@ describe('single table - from entity methods', () => {
         }
 
         // @ts-expect-error User is not enough
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
 
-        type _R2 = Expect<Equal<typeof result, { items: NewUser912[]; paginationToken?: string }>>;
+        type _R2 = Expect<
+          Equal<typeof result, { items: NewUser912[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] range operations should be typed correctly', async () => {
@@ -4017,7 +4047,9 @@ describe('single table - from entity methods', () => {
         instance.buildMethods().queryIndex.byEmailProvider.startingWith({ prefix: 'k' });
 
         // @ts-expect-error prefix is required
-        instance.buildMethods().queryIndex.byEmailProvider.startingWith({ email: 't@t.com' });
+        instance
+          .buildMethods()
+          .queryIndex.byEmailProvider.startingWith({ email: 't@t.com' });
       });
 
       it('should handle range query with index partition params [key array] + with range query params', async () => {
@@ -4144,7 +4176,9 @@ describe('single table - from entity methods', () => {
 
         const result = await instance.buildMethods().queryIndex.byEmail.aToF();
 
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
       });
 
       it('[TYPES] Extend: Return type should include extended properties', async () => {
@@ -4179,9 +4213,13 @@ describe('single table - from entity methods', () => {
         }
 
         // @ts-expect-error User is not enough
-        type _R = Expect<Equal<typeof result, { items: User[]; paginationToken?: string }>>;
+        type _R = Expect<
+          Equal<typeof result, { items: User[]; paginationToken?: string }>
+        >;
 
-        type _R2 = Expect<Equal<typeof result, { items: NewUser923[]; paginationToken?: string }>>;
+        type _R2 = Expect<
+          Equal<typeof result, { items: NewUser923[]; paginationToken?: string }>
+        >;
       });
     });
   });

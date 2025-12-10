@@ -88,7 +88,9 @@ describe('condition expression helpers', () => {
     const params = getConditionParams(conditions);
 
     expect(params).toStrictEqual({
-      ConditionExpression: conditions.length ? buildConditionExpression(conditions) : undefined,
+      ConditionExpression: conditions.length
+        ? buildConditionExpression(conditions)
+        : undefined,
 
       ExpressionAttributeNames: getConditionExpressionNames(conditions),
 

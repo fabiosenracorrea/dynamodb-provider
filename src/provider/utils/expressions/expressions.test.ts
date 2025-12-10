@@ -486,7 +486,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`);
+      expect(expression).toBe(
+        `(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`,
+      );
     });
 
     it('should be able to handle 2 expressions with *and*', () => {
@@ -504,7 +506,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`);
+      expect(expression).toBe(
+        `(#some_prop = :some_prop) and (#other_prop in (:other_prop_0))`,
+      );
     });
 
     it('should be able to handle 2 of the same expression with *and*', () => {
@@ -522,7 +526,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) and (#other_prop = :other_prop)`);
+      expect(expression).toBe(
+        `(#some_prop = :some_prop) and (#other_prop = :other_prop)`,
+      );
     });
 
     it('should be able to handle 2 expressions with *or*', () => {
@@ -540,7 +546,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`(#some_prop = :some_prop) or (#other_prop in (:other_prop_0))`);
+      expect(expression).toBe(
+        `(#some_prop = :some_prop) or (#other_prop in (:other_prop_0))`,
+      );
     });
 
     it('should be able to handle 2 of the same expression with *or*', () => {
@@ -625,7 +633,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`((#${prop} = :${prop}) and (#${nestedProp} > :${nestedProp}))`);
+      expect(expression).toBe(
+        `((#${prop} = :${prop}) and (#${nestedProp} > :${nestedProp}))`,
+      );
     });
 
     it('should properly join nested expressions if single with explicit OR', () => {
@@ -648,7 +658,9 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe(`((#${prop} = :${prop}) or (#${nestedProp} > :${nestedProp}))`);
+      expect(expression).toBe(
+        `((#${prop} = :${prop}) or (#${nestedProp} > :${nestedProp}))`,
+      );
     });
 
     it('should handle multiple nested expressions', () => {

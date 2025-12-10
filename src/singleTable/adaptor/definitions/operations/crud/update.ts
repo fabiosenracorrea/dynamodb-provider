@@ -14,17 +14,18 @@ import { BaseSingleTableOperator } from '../../executor';
 import { transformIndexReferences } from '../../tableIndex';
 import { resolveProps } from '../../parsers';
 
-type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
-  ? {}
-  : {
-      /**
-       * Explicity describe each relevant index value to update
-       * You can chose to update just a partition/range
-       */
-      indexes?: {
-        [key in keyof TableConfig['indexes']]?: Partial<SingleTableKeyReference>;
+type IndexParams<TableConfig extends SingleTableConfig> =
+  undefined extends TableConfig['indexes']
+    ? {}
+    : {
+        /**
+         * Explicity describe each relevant index value to update
+         * You can chose to update just a partition/range
+         */
+        indexes?: {
+          [key in keyof TableConfig['indexes']]?: Partial<SingleTableKeyReference>;
+        };
       };
-    };
 
 type ExpiresAtParams<TableConfig extends SingleTableConfig> =
   undefined extends TableConfig['expiresAt']
@@ -72,7 +73,9 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
 
     if (!badRefs.length) return;
 
-    throw new Error(`Invalid Update Detected: Internal prop referenced: ${badRefs.join(', ')}.`);
+    throw new Error(
+      `Invalid Update Detected: Internal prop referenced: ${badRefs.join(', ')}.`,
+    );
   }
 
   private validateUpdateProps({
@@ -91,7 +94,8 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       allPropertiesMentioned.has(prop),
     );
 
-    if (includesPK) throw new Error(`Update contained references to ${this.config.table}'s PKs`);
+    if (includesPK)
+      throw new Error(`Update contained references to ${this.config.table}'s PKs`);
 
     this.validateInternalRef(allPropertiesMentioned);
 

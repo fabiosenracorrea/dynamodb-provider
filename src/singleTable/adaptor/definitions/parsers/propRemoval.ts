@@ -32,7 +32,10 @@ function resolveCleanUp({
   return (item) => omit(item, propsToRemove);
 }
 
-export function cleanInternalProps<E extends AnyObject>(obj: E, config: SingleTableConfig): E {
+export function cleanInternalProps<E extends AnyObject>(
+  obj: E,
+  config: SingleTableConfig,
+): E {
   const cleanUp = resolveCleanUp(config);
 
   return (cleanUp?.(obj) || obj) as E;

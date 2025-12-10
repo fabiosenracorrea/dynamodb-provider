@@ -35,7 +35,9 @@ export interface BetweenRangeKeyConfig<Entity> {
   operation: Extract<ExpressionOperation, 'between'>;
 }
 
-export type RangeKeyConfig<Entity> = BasicRangeKeyConfig<Entity> | BetweenRangeKeyConfig<Entity>;
+export type RangeKeyConfig<Entity> =
+  | BasicRangeKeyConfig<Entity>
+  | BetweenRangeKeyConfig<Entity>;
 
 export interface QueryParams<Entity> {
   /**

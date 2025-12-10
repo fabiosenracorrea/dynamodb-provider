@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableMethods, type SingleTableParams } from 'singleTable/adaptor';
 import type { ExtendableSingleTableEntity, IndexMapping } from 'singleTable/model';
-import { type SingleTableGetParams, singleTableParams } from 'singleTable/adaptor/definitions';
+import {
+  type SingleTableGetParams,
+  singleTableParams,
+} from 'singleTable/adaptor/definitions';
 import type { AnyObject } from 'types';
 
 import { pick } from 'utils/object';
@@ -57,7 +60,8 @@ export class SingleTableFromEntityMethods<
 
                 partition: this.entity.getPartitionKey(queryParams),
 
-                range: typeof paramGetter === 'function' ? paramGetter(queryParams) : null,
+                range:
+                  typeof paramGetter === 'function' ? paramGetter(queryParams) : null,
               } as any),
           ],
         ),
@@ -102,7 +106,10 @@ export class SingleTableFromEntityMethods<
 
                       partition: indexConfig.getPartitionKey(queryParams as any),
 
-                      range: typeof paramGetter === 'function' ? paramGetter(queryParams) : null,
+                      range:
+                        typeof paramGetter === 'function'
+                          ? paramGetter(queryParams)
+                          : null,
                     }),
                 ],
               ),
@@ -159,7 +166,8 @@ export class SingleTableFromEntityMethods<
         SingleParams
       >['delete'],
 
-      update: ((params) => this.methods.update(entity.getUpdateParams(params))) as FromEntity<
+      update: ((params) =>
+        this.methods.update(entity.getUpdateParams(params))) as FromEntity<
         Entity,
         SingleParams
       >['update'],

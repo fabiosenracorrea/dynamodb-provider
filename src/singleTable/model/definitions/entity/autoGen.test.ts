@@ -80,7 +80,11 @@ describe('single table model: addAutoGenParams', () => {
 
     const result = addAutoGenParams(values, { custom: () => 'custom-generated-value' });
 
-    expect(result).toEqual({ id: '123', name: 'John Doe', custom: 'custom-generated-value' });
+    expect(result).toEqual({
+      id: '123',
+      name: 'John Doe',
+      custom: 'custom-generated-value',
+    });
   });
 
   it('should remove undefined properties using omitUndefined', () => {

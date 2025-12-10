@@ -12,10 +12,10 @@ import { EntityCRUDProps, ExtendableCRUDProps } from './crud';
 import { EntityIndexResultProps, ExtendibleIndexProps } from './indexParams';
 import { EntityParseProps, ResolvedEntity } from './parsers';
 
-type RawEntity<Entity extends AnyObject, Params extends RegisterEntityParams<any, any>> = Pick<
-  Params,
-  'type'
-> &
+type RawEntity<
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<any, any>,
+> = Pick<Params, 'type'> &
   EntityKeyGetters<Entity, Params> & {
     /**
      * This is a helper property used solely internally for ease-of-map types

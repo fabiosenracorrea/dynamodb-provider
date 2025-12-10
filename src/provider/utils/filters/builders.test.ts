@@ -15,7 +15,8 @@ describe('filter helpers', () => {
       const result = buildFilterExpressionValuesAndExpression(filters);
 
       expect(result).toEqual({
-        FilterExpression: '(#__filter_age = :__filter_age) and (#__filter_count = :__filter_count)',
+        FilterExpression:
+          '(#__filter_age = :__filter_age) and (#__filter_count = :__filter_count)',
 
         ExpressionAttributeValues: {
           ':__filter_age': 24,
@@ -48,7 +49,10 @@ describe('filter helpers', () => {
     });
 
     it('should handle expression configuration', () => {
-      const result = buildFilterExpressionValuesAndExpression<{ status: string; age: number }>({
+      const result = buildFilterExpressionValuesAndExpression<{
+        status: string;
+        age: number;
+      }>({
         status: {
           operation: 'between',
           end: '9',
@@ -74,7 +78,10 @@ describe('filter helpers', () => {
     });
 
     it('should handle *or* cases', () => {
-      const result = buildFilterExpressionValuesAndExpression<{ status: string; age: number }>({
+      const result = buildFilterExpressionValuesAndExpression<{
+        status: string;
+        age: number;
+      }>({
         status: {
           operation: 'bigger_than',
           value: '4',

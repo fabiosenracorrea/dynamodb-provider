@@ -22,7 +22,10 @@ export class ItemUpdater extends DynamodbExecutor {
   private convertAtomicValue({
     type,
     value,
-  }: Pick<Exclude<UpdateParams<any>['atomicOperations'], undefined>[0], 'type' | 'value'>): any {
+  }: Pick<
+    Exclude<UpdateParams<any>['atomicOperations'], undefined>[0],
+    'type' | 'value'
+  >): any {
     switch (type) {
       case 'add_to_set':
       case 'remove_from_set':
@@ -94,9 +97,10 @@ export class ItemUpdater extends DynamodbExecutor {
         ...getExpressionNames(
           atomic
             .map(({ property, ...rest }) =>
-              [(rest as UpdateIfNotExistsOperation<any>).refProperty as string, property].filter(
-                Boolean,
-              ),
+              [
+                (rest as UpdateIfNotExistsOperation<any>).refProperty as string,
+                property,
+              ].filter(Boolean),
             )
             .flat(),
         ),

@@ -11,7 +11,8 @@ type BaseQueryParams<Registered extends ExtendableSingleTableEntity> = SafeObjMe
 >;
 
 type CustomQueryParams<Registered extends ExtendableSingleTableEntity> =
-  BaseQueryParams<Registered> & Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
+  BaseQueryParams<Registered> &
+    Pick<SingleTableQueryParams<Registered['__entity']>, 'range'>;
 
 type EntityQueryResult<Registered extends ExtendableSingleTableEntity> = QueryResult<
   Registered['__entity']

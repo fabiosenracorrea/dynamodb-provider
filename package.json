@@ -19,7 +19,7 @@
     "check-usage": "tsc --noEmit",
     "start": "node dist/index.js",
     "test": "jest --runInBand",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --fix",
     "format": "prettier --write .",
     "watch": "tsc-watch --onSuccess \"node dist/index.js\"",
     "run-local-file": "npx ts-node -r tsconfig-paths/register -P ./tsconfig.json src/index.ts",

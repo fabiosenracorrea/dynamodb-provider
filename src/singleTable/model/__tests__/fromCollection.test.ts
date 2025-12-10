@@ -62,7 +62,10 @@ describe('single table - from collection tests', () => {
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
-          loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+          loginAttempts: ({ timestamp }: { timestamp: string }) => [
+            'LOGIN_ATTEMPT',
+            timestamp,
+          ],
         },
       });
 
@@ -75,9 +78,12 @@ describe('single table - from collection tests', () => {
           paramMatch: { userId: 'id' },
         });
 
-      const loginAttempts = partition.use('loginAttempts').create<UserLoginAttempt>().entity({
-        type: 'USER_LOGIN_ATTEMPT',
-      });
+      const loginAttempts = partition
+        .use('loginAttempts')
+        .create<UserLoginAttempt>()
+        .entity({
+          type: 'USER_LOGIN_ATTEMPT',
+        });
 
       it('should correctly execute and join the most simple example', async () => {
         const queryMock = jest.fn().mockResolvedValue({
@@ -1490,7 +1496,10 @@ describe('single table - from collection tests', () => {
             entries: {
               data: () => [`#DATA`],
               permissions: () => [`#PERMISSIONS`],
-              loginAttempts: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+              loginAttempts: ({ timestamp }: { timestamp: string }) => [
+                'LOGIN_ATTEMPT',
+                timestamp,
+              ],
             },
           });
 

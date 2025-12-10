@@ -9,7 +9,9 @@ type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 
 type BasicRangeConfig = {
   operation: BasicRangeKeyConfig<any>['operation'];
-  getValues?: (...params: any) => { value: KeyValue | BasicRangeKeyConfig<unknown>['value'] };
+  getValues?: (...params: any) => {
+    value: KeyValue | BasicRangeKeyConfig<unknown>['value'];
+  };
 };
 
 type BetweenRangeConfig = {

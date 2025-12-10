@@ -15,7 +15,10 @@ describe('backOff utils', () => {
         counts.map(async (count) => {
           await waitExponentially(count);
 
-          expect(setTimeoutMock).toHaveBeenCalledWith(expect.any(Function), 2 ** count * 10);
+          expect(setTimeoutMock).toHaveBeenCalledWith(
+            expect.any(Function),
+            2 ** count * 10,
+          );
         }),
       );
 
