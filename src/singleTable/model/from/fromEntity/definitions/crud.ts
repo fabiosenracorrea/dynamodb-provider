@@ -36,8 +36,9 @@ export type DeleteEntityParams<Registered extends AnyEntity> =
           Omit<DeleteItemParams<Registered['__entity']>, 'table' | 'key'>,
       ];
 
-export type CreateEntityParams<Registered extends AnyEntity> =
-  Parameters<Registered['getCreationParams']>;
+export type CreateEntityParams<Registered extends AnyEntity> = Parameters<
+  Registered['getCreationParams']
+>;
 
 export type UpdateEntityParams<Registered extends AnyEntity> = Omit<
   UpdateParams<Registered['__entity']>,
