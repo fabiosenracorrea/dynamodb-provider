@@ -2,6 +2,13 @@ import type { AnyCollection } from 'singleTable/model';
 
 import type { GetCollectionParams, GetCollectionResult } from './get';
 
+/**
+ * Available methods unlocked by a collection
+ *
+ * ```ts
+ * const methods = schema.from(COLLECTION)
+ * ```
+ */
 export type FromCollection<Registered extends AnyCollection> = {
   /**
    * Retrieve your collection

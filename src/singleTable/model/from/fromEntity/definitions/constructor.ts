@@ -22,6 +22,13 @@ export type ListEntityMethods<
       list(params?: ListEntityParams): Promise<ListEntityResult<Registered['__entity']>>;
     };
 
+/**
+ * Available methods unlocked by an entity
+ *
+ * ```ts
+ * const methods = schema.from(ENTITY)
+ * ```
+ */
 export type FromEntity<
   Registered extends AnyEntity,
   SingleConfig extends SingleTableConfig,
