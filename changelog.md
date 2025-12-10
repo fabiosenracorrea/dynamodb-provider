@@ -38,7 +38,7 @@ table.schema.from(entity).query.noParam({ value: 'Something' })
 
 ### Huge Coverage increase!
 
-- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added almost **200** more tests as well.
+- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **250+ tests**.
 
 # v2.1.2
 
