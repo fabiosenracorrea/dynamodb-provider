@@ -286,6 +286,21 @@ describe('single table schema - partition', () => {
       expect(doubleUsage).toThrow();
     });
 
+    it('Has index accessible', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'USER_PARTITION',
+        index: 'anotherIndex',
+        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        entries: {
+          data: () => [`#DATA`],
+        },
+      });
+
+      expect(partition.index).toBe('anotherIndex');
+    });
+
     it('should not contain "entity" method', () => {
       const schema = new SingleTableSchema(tableConfig);
 
