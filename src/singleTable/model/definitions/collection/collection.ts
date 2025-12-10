@@ -275,6 +275,10 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
  */
 export type AnyCollection = PartitionCollection<any>;
 
+/**
+ * Simplified type helper to extract the resulting type out of your
+ * collection definition
+ */
 export type GetCollectionType<Collection extends AnyCollection> = Collection['__type'];
 
 export function createCollection<Params extends PartitionCollectionParams<any>>({

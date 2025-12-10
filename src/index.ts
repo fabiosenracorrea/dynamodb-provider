@@ -11,10 +11,10 @@ export {
 
 export {
   SingleTable,
-  type GetCollectionType,
   type SingleTableConfig,
   type FromCollection,
   type FromEntity,
+  type GetCollectionType,
   type GetCollectionParams,
   type GetCollectionResult,
   type ExtractTableConfig,
