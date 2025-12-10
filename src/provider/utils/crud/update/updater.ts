@@ -4,7 +4,7 @@ import { StringKey } from 'types';
 
 import { omitUndefined } from 'utils/object';
 
-import { DBUpdateItemParams, DynamodbExecutor } from '../../dynamoDB';
+import { DBUpdateParams, DynamodbExecutor } from '../../dynamoDB';
 
 import { getConditionParams } from '../../conditions';
 import {
@@ -66,7 +66,7 @@ export class ItemUpdater extends DynamodbExecutor {
 
   getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
-  ): DBUpdateItemParams['input'] {
+  ): DBUpdateParams['input'] {
     validateUpdateParams(params);
 
     const { key, table, remove, returnUpdatedProperties } = params;

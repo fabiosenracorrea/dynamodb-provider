@@ -12,7 +12,7 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 import { AnyObject, MakePartial } from 'types';
 
 import { omitUndefined } from 'utils/object';
-import { DeleteItemParams, ValidateTransactParams } from 'provider/utils';
+import { DeleteParams, ValidateTransactParams } from 'provider/utils';
 import { EntityKeyParams, KeyResolvers } from '../key';
 
 import { addAutoGenParams, AutoGenParams } from './autoGen';
@@ -104,8 +104,7 @@ type TransactCRUDProps<
   ) => TransactParamResult<TableConfig, Entity>['update'];
 
   transactDeleteParams: (
-    params: EntityKeyParams<Entity, Params> &
-      Omit<DeleteItemParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> & Omit<DeleteParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['erase'];
 
   transactValidateParams: (

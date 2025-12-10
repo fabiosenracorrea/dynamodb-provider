@@ -6,7 +6,7 @@ import { DynamoDbProviderParams, IDynamodbProvider } from './definition';
 
 import {
   CreateParams,
-  DeleteItemParams,
+  DeleteParams,
   UpdateParams,
   TransactionParams,
   DBSet,
@@ -86,7 +86,7 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   }
 
   async delete<Entity extends Record<string, any>>(
-    params: DeleteItemParams<Entity>,
+    params: DeleteParams<Entity>,
   ): Promise<void> {
     await this.remover.delete(params);
   }

@@ -1,7 +1,7 @@
 export {
   DynamodbProvider,
   type CreateParams,
-  type DeleteItemParams,
+  type DeleteParams,
   type UpdateParams,
   type ListOptions,
   type QueryParams,
@@ -14,6 +14,7 @@ export {
 export {
   SingleTable,
   type SingleTableConfig,
+  type SingleTableTransactionParams,
   type FromCollection,
   type FromEntity,
   type GetCollectionType,
@@ -22,6 +23,4 @@ export {
   type ExtractTableConfig,
   type AnyEntity,
   type AnyCollection,
-  //
-  type SingleTableTransactionParams,
 } from './singleTable';

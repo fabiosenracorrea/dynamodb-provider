@@ -7,9 +7,9 @@ import {
   DynamoDBV2Actions,
   DBBatchGetParams,
   DBGetParams,
-  DBDeleteItemParams,
-  DBCreateItemParams,
-  DBUpdateItemParams,
+  DBDeleteParams,
+  DBCreateParams,
+  DBUpdateParams,
   DBSet,
   DBScanParams,
   DBQueryParams,
@@ -89,8 +89,8 @@ export class DynamodbExecutor {
   }
 
   protected async _deleteItem(
-    params: DBDeleteItemParams['input'],
-  ): Promise<DBDeleteItemParams['output']> {
+    params: DBDeleteParams['input'],
+  ): Promise<DBDeleteParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.DeleteCommand,
@@ -99,8 +99,8 @@ export class DynamodbExecutor {
   }
 
   protected async _insertItem(
-    params: DBCreateItemParams['input'],
-  ): Promise<DBCreateItemParams['output']> {
+    params: DBCreateParams['input'],
+  ): Promise<DBCreateParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.PutCommand,
@@ -109,8 +109,8 @@ export class DynamodbExecutor {
   }
 
   protected async _updateItem(
-    params: DBUpdateItemParams['input'],
-  ): Promise<DBUpdateItemParams['output']> {
+    params: DBUpdateParams['input'],
+  ): Promise<DBUpdateParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.UpdateCommand,

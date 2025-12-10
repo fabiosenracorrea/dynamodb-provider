@@ -1,6 +1,6 @@
 import { StringKey } from 'types';
 import { ItemExpression } from '../expressions';
-import { CreateParams, DeleteItemParams, UpdateParams } from '../crud';
+import { CreateParams, DeleteParams, UpdateParams } from '../crud';
 
 export interface UpdateTransaction<
   E extends Record<string, unknown> = Record<string, unknown>,
@@ -25,7 +25,7 @@ export interface DeleteTransaction<
   E extends Record<string, unknown> = Record<string, unknown>,
   PKs extends StringKey<E> | unknown = unknown,
 > {
-  erase: DeleteItemParams<E, PKs>;
+  erase: DeleteParams<E, PKs>;
   update?: never;
   create?: never;
   validate?: never;

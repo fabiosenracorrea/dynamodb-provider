@@ -33,9 +33,7 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
     options: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]>;
 
-  create<Entity>(
-    params: SingleTableCreateParams<Entity, SingleParams>,
-  ): Promise<Entity>;
+  create<Entity>(params: SingleTableCreateParams<Entity, SingleParams>): Promise<Entity>;
 
   delete<Entity = AnyObject>(params: SingleTableDeleteParams<Entity>): Promise<void>;
 

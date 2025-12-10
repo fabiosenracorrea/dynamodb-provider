@@ -10,7 +10,7 @@ export {
   UpdateParams,
   TransactionParams,
   CreateParams,
-  DeleteItemParams,
+  DeleteParams,
   ListOptions,
 } from './utils';
 

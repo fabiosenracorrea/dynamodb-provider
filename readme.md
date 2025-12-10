@@ -250,7 +250,7 @@ conditions: [
 Deletes an item by primary key.
 
 ```ts
-delete<Entity>(params: DeleteItemParams<Entity>): Promise<void>
+delete<Entity>(params: DeleteParams<Entity>): Promise<void>
 ```
 
 **Parameters:**
@@ -508,7 +508,7 @@ transaction(configs: (TransactionParams | null)[]): Promise<void>
 **Transaction types:**
 - `{ create: CreateParams }` - Put item
 - `{ update: UpdateParams }` - Update item
-- `{ erase: DeleteItemParams }` - Delete item
+- `{ erase: DeleteParams }` - Delete item
 - `{ validate: ValidateTransactParams }` - Condition check
 
 **Example:**

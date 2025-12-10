@@ -3,7 +3,7 @@ import type {
   BatchListItemsArgs,
   GetItemParams,
   UpdateParams,
-  DeleteItemParams,
+  DeleteParams,
 } from 'provider/utils';
 import { FirstParameter, PrettifyObject, SafeObjMerge } from 'types';
 
@@ -30,10 +30,10 @@ export type EntityBatchGetParams<Registered extends AnyEntity> = Omit<
 
 export type DeleteEntityParams<Registered extends AnyEntity> =
   NoKeyParam<Registered> extends true
-    ? [Omit<DeleteItemParams<Registered['__entity']>, 'table' | 'key'>?]
+    ? [Omit<DeleteParams<Registered['__entity']>, 'table' | 'key'>?]
     : [
         KeyParams<Registered> &
-          Omit<DeleteItemParams<Registered['__entity']>, 'table' | 'key'>,
+          Omit<DeleteParams<Registered['__entity']>, 'table' | 'key'>,
       ];
 
 export type CreateEntityParams<Registered extends AnyEntity> = Parameters<

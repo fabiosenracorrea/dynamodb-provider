@@ -83,17 +83,17 @@ export type DBQueryParams<Entity> = {
   output: QueryOutput<Entity>;
 };
 
-export type DBDeleteItemParams = {
+export type DBDeleteParams = {
   input: DynamoDBv2.DocumentClient.DeleteItemInput;
   output: DynamoDBv2.DocumentClient.DeleteItemOutput;
 };
 
-export type DBCreateItemParams = {
+export type DBCreateParams = {
   input: DynamoDBv2.DocumentClient.PutItemInput;
   output: DynamoDBv2.DocumentClient.PutItemOutput;
 };
 
-export type DBUpdateItemParams = {
+export type DBUpdateParams = {
   input: DynamoDBv2.DocumentClient.UpdateItemInput;
   output: DynamoDBv2.DocumentClient.UpdateItemOutput;
 };

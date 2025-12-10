@@ -16,6 +16,7 @@
   - `TransactionConfig` type renamed to `TransactionParams`
   - `SingleTableTransactionConfig` type renamed to `SingleTableTransactionParams`
   - `CreateItemParams` type renamed to `CreateParams`
+  - `DeleteItemParams` type renamed to `DeleteParams`
   - `SingleTableCreateItemParams` type renamed to `SingleTableCreateParams`
 
 - *Feature*: Direct `collection` creation from `partition.collection()`

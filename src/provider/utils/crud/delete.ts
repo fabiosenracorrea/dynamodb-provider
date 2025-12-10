@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { StringKey } from 'types';
 
-import { DBDeleteItemParams, DynamodbExecutor } from '../dynamoDB';
+import { DBDeleteParams, DynamodbExecutor } from '../dynamoDB';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
 
 import { EntityPK } from './types';
 
-export interface DeleteItemParams<
-  Entity,
-  PKs extends StringKey<Entity> | unknown = unknown,
-> {
+export interface DeleteParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
    * Dynamodb Table
    */
@@ -38,7 +35,7 @@ export class ItemRemover extends DynamodbExecutor {
     key,
     table,
     conditions,
-  }: DeleteItemParams<Entity>): DBDeleteItemParams['input'] {
+  }: DeleteParams<Entity>): DBDeleteParams['input'] {
     return {
       TableName: table,
 
@@ -49,7 +46,7 @@ export class ItemRemover extends DynamodbExecutor {
   }
 
   async delete<Entity extends Record<string, any>>(
-    params: DeleteItemParams<Entity>,
+    params: DeleteParams<Entity>,
   ): Promise<void> {
     await this._deleteItem(this.getDeleteParams(params));
   }

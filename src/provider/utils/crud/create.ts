@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { DBCreateItemParams, DynamodbExecutor } from '../dynamoDB';
+import { DBCreateParams, DynamodbExecutor } from '../dynamoDB';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
@@ -36,7 +36,7 @@ export class ItemCreator extends DynamodbExecutor {
     item,
     table,
     conditions,
-  }: CreateParams<Entity>): DBCreateItemParams['input'] {
+  }: CreateParams<Entity>): DBCreateParams['input'] {
     return {
       TableName: table,
 

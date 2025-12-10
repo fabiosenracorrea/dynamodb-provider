@@ -3,7 +3,7 @@ import { AnyObject, StringKey } from 'types';
 
 import {
   CreateParams,
-  DeleteItemParams,
+  DeleteParams,
   UpdateParams,
   QueryParams,
   QueryResult,
@@ -61,9 +61,7 @@ export interface IDynamodbProvider<
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined>;
 
-  delete<Entity extends Record<string, any>>(
-    params: DeleteItemParams<Entity>,
-  ): Promise<void>;
+  delete<Entity extends Record<string, any>>(params: DeleteParams<Entity>): Promise<void>;
 
   query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
 

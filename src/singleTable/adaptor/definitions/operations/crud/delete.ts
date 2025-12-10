@@ -1,4 +1,4 @@
-import { DeleteItemParams } from 'provider';
+import { DeleteParams } from 'provider';
 
 import { AnyObject } from 'types';
 import { omitUndefined } from 'utils/object';
@@ -6,7 +6,7 @@ import { BaseSingleTableOperator } from '../../executor';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 
 export type SingleTableDeleteParams<Entity> = SingleTableKeyReference & {
-  conditions?: DeleteItemParams<Entity>['conditions'];
+  conditions?: DeleteParams<Entity>['conditions'];
 };
 
 export class SingleTableRemover extends BaseSingleTableOperator {
@@ -15,7 +15,7 @@ export class SingleTableRemover extends BaseSingleTableOperator {
     rangeKey,
 
     conditions,
-  }: SingleTableDeleteParams<AnyObject>): DeleteItemParams<SingleTableKeyReference> {
+  }: SingleTableDeleteParams<AnyObject>): DeleteParams<SingleTableKeyReference> {
     return omitUndefined({
       conditions,
 
