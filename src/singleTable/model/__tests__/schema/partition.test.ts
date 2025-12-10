@@ -86,7 +86,9 @@ describe('single table schema - partition', () => {
 
       expect(partition.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
 
-      const user = partition.use('data').create<User>().entity({
+      const createEntity = partition.use('data').create<User>().entity;
+
+      const user = createEntity({
         type: 'USER',
       });
 
@@ -100,6 +102,15 @@ describe('single table schema - partition', () => {
       });
 
       schema.from(user);
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be optional (undefined) when all params exist in entity
+        Expect<
+          Equal<FirstParameter<typeof createEntity>['paramMatch'], { id?: keyof User } | undefined>
+        >,
+      ];
     });
 
     it('should properly build entity from entry [partition params in entity + range params in entity]', () => {
@@ -115,7 +126,9 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const firstLogin = partition.use('firstLogin').create<User>().entity({
+      const createEntity = partition.use('firstLogin').create<User>().entity;
+
+      const firstLogin = createEntity({
         type: 'FIRST_LOGIN',
       });
 
@@ -133,6 +146,18 @@ describe('single table schema - partition', () => {
       });
 
       schema.from(firstLogin);
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be optional when all params exist in entity
+        Expect<
+          Equal<
+            FirstParameter<typeof createEntity>['paramMatch'],
+            { id?: keyof User; createdAt?: keyof User } | undefined
+          >
+        >,
+      ];
     });
 
     it('should required _paramMatch_ build entity from entry [partition params NOT on entity + no range params]', () => {
@@ -219,6 +244,88 @@ describe('single table schema - partition', () => {
           Equal<
             PrettifyObject<FirstParameter<typeof createEntity>['paramMatch']>,
             { userId: keyof User; createdAt?: keyof User }
+          >
+        >,
+      ];
+    });
+
+    it('should build entity [partition params in entity + range params NOT in entity]', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'USER_PARTITION_RANGE_NOT_IN_ENTITY',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        entries: {
+          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+        },
+      });
+
+      const createEntity = partition.use('loginAttempt').create<User>().entity;
+
+      const loginAttempt = createEntity({
+        type: 'USER_LOGIN_ATTEMPT',
+        paramMatch: { timestamp: 'createdAt' },
+      });
+
+      expect(loginAttempt.__dbType).toBe('ENTITY');
+      expect(loginAttempt.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
+      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+
+      expect(loginAttempt.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
+        partitionKey: ['USER', 'idd'],
+        rangeKey: ['LOGIN_ATTEMPT', 'ts'],
+      });
+
+      schema.from(loginAttempt);
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        Expect<
+          Equal<
+            PrettifyObject<FirstParameter<typeof createEntity>['paramMatch']>,
+            { id?: keyof User; timestamp: keyof User }
+          >
+        >,
+      ];
+    });
+
+    it('should build entity [partition params NOT in entity + range params NOT in entity]', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'USER_PARTITION_BOTH_NOT_IN_ENTITY',
+        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        entries: {
+          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+        },
+      });
+
+      const createEntity = partition.use('loginAttempt').create<User>().entity;
+
+      const loginAttempt = createEntity({
+        type: 'USER_LOGIN_ATTEMPT',
+        paramMatch: { userId: 'id', timestamp: 'createdAt' },
+      });
+
+      expect(loginAttempt.__dbType).toBe('ENTITY');
+      expect(loginAttempt.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
+      expect(loginAttempt.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+
+      expect(loginAttempt.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
+        partitionKey: ['USER', 'idd'],
+        rangeKey: ['LOGIN_ATTEMPT', 'ts'],
+      });
+
+      schema.from(loginAttempt);
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        Expect<
+          Equal<
+            PrettifyObject<FirstParameter<typeof createEntity>['paramMatch']>,
+            { userId: keyof User; timestamp: keyof User }
           >
         >,
       ];
@@ -359,7 +466,9 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const index = indexPartition.use('data').create<User>().index();
+      const createIndex = indexPartition.use('data').create<User>().index;
+
+      const index = createIndex();
 
       expect(index.index).toBe('anotherIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
@@ -368,6 +477,18 @@ describe('single table schema - partition', () => {
         partitionKey: ['USER', 'idd'],
         rangeKey: ['#DATA'],
       });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be optional when all params exist in entity
+        Expect<
+          Equal<
+            Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch'],
+            { id?: keyof User } | undefined
+          >
+        >,
+      ];
     });
 
     it('should build a standard index with param match', () => {
@@ -387,14 +508,13 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const index = indexPartition
-        .use('data')
-        .create<User>()
-        .index({
-          paramMatch: {
-            userId: 'id',
-          },
-        });
+      const createIndex = indexPartition.use('data').create<User>().index;
+
+      const index = createIndex({
+        paramMatch: {
+          userId: 'id',
+        },
+      });
 
       expect(index.index).toBe('anotherIndex');
 
@@ -406,6 +526,18 @@ describe('single table schema - partition', () => {
         partitionKey: ['USER', 'idd'],
         rangeKey: ['#DATA'],
       });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be required when params not in entity
+        Expect<
+          Equal<
+            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            { userId: keyof User }
+          >
+        >,
+      ];
     });
 
     it('should properly build index from entry [partition params in entity + range params in entity]', () => {
@@ -421,7 +553,9 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const index = indexPartition.use('firstLogin').create<User>().index();
+      const createIndex = indexPartition.use('firstLogin').create<User>().index;
+
+      const index = createIndex();
 
       expect(index.index).toBe('someIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
@@ -431,6 +565,18 @@ describe('single table schema - partition', () => {
         partitionKey: ['USER', 'idd'],
         rangeKey: ['FIRST_LOGIN', 'create'],
       });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be optional when all params exist in entity
+        Expect<
+          Equal<
+            Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch'],
+            { id?: keyof User; createdAt?: keyof User } | undefined
+          >
+        >,
+      ];
     });
 
     it('should build index with paramMatch [partition params NOT on entity + no range params]', () => {
@@ -445,12 +591,11 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const index = indexPartition
-        .use('userData')
-        .create<User>()
-        .index({
-          paramMatch: { userId: 'id' },
-        });
+      const createIndex = indexPartition.use('userData').create<User>().index;
+
+      const index = createIndex({
+        paramMatch: { userId: 'id' },
+      });
 
       expect(index.index).toBe('anotherIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
@@ -460,6 +605,18 @@ describe('single table schema - partition', () => {
         partitionKey: ['USER', 'idd'],
         rangeKey: ['#DATA'],
       });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be required when params not in entity
+        Expect<
+          Equal<
+            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            { userId: keyof User }
+          >
+        >,
+      ];
     });
 
     it('should build index with paramMatch [partition params NOT on entity + range params in entity]', () => {
@@ -474,12 +631,11 @@ describe('single table schema - partition', () => {
         },
       });
 
-      const index = indexPartition
-        .use('firstLogin')
-        .create<User>()
-        .index({
-          paramMatch: { userId: 'id' },
-        });
+      const createIndex = indexPartition.use('firstLogin').create<User>().index;
+
+      const index = createIndex({
+        paramMatch: { userId: 'id' },
+      });
 
       expect(index.index).toBe('someIndex');
       expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
@@ -489,6 +645,18 @@ describe('single table schema - partition', () => {
         partitionKey: ['USER', 'idd'],
         rangeKey: ['FIRST_LOGIN', 'create'],
       });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        // paramMatch should be required for partition params, optional for range params in entity
+        Expect<
+          Equal<
+            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            { userId: keyof User; createdAt?: keyof User }
+          >
+        >,
+      ];
     });
 
     it('[TYPES] should properly type paramMatch requirement when partition params not in entity', () => {
@@ -509,6 +677,84 @@ describe('single table schema - partition', () => {
         .index({
           paramMatch: { userId: 'id' }, // Correct - required when partition params not in entity
         });
+    });
+
+    it('should build index [partition params in entity + range params NOT in entity]', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const indexPartition = schema.createPartition({
+        name: 'USER_INDEX_PARTITION_RANGE_NOT_IN_ENTITY',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        index: 'someIndex',
+        entries: {
+          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+        },
+      });
+
+      const createIndex = indexPartition.use('loginAttempt').create<User>().index;
+
+      const index = createIndex({
+        paramMatch: { timestamp: 'createdAt' },
+      });
+
+      expect(index.index).toBe('someIndex');
+      expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
+      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+
+      expect(index.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
+        partitionKey: ['USER', 'idd'],
+        rangeKey: ['LOGIN_ATTEMPT', 'ts'],
+      });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        Expect<
+          Equal<
+            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            { id?: keyof User; timestamp: keyof User }
+          >
+        >,
+      ];
+    });
+
+    it('should build index [partition params NOT in entity + range params NOT in entity]', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const indexPartition = schema.createPartition({
+        name: 'USER_INDEX_PARTITION_BOTH_NOT_IN_ENTITY',
+        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        index: 'anotherIndex',
+        entries: {
+          loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
+        },
+      });
+
+      const createIndex = indexPartition.use('loginAttempt').create<User>().index;
+
+      const index = createIndex({
+        paramMatch: { userId: 'id', timestamp: 'createdAt' },
+      });
+
+      expect(index.index).toBe('anotherIndex');
+      expect(index.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
+      expect(index.getRangeKey({ createdAt: 'ts' })).toStrictEqual(['LOGIN_ATTEMPT', 'ts']);
+
+      expect(index.getKey({ id: 'idd', createdAt: 'ts' })).toStrictEqual({
+        partitionKey: ['USER', 'idd'],
+        rangeKey: ['LOGIN_ATTEMPT', 'ts'],
+      });
+
+      // -- TYPES -- //
+
+      type _Tests = [
+        Expect<
+          Equal<
+            PrettifyObject<Exclude<FirstParameter<typeof createIndex>, undefined>['paramMatch']>,
+            { userId: keyof User; timestamp: keyof User }
+          >
+        >,
+      ];
     });
 
     it('[TYPES] should not require paramMatch when partition params exist in entity', () => {
