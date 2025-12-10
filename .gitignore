@@ -8,3 +8,7 @@ dist
 suggestions.md
 
 notes/**
+
+.claude/**
+.cursor/**
+.ai/**
