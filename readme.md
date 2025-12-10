@@ -473,6 +473,7 @@ query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>
 - `fullRetrieval` - Auto-paginate until all items retrieved (default: true)
 - `paginationToken` - Continue from previous query
 - `filters` - Additional filter expressions
+- `propertiesToRetrieve` - Specific attributes to return (root-level only)
 
 Returns `{ items, paginationToken? }`
 
@@ -489,7 +490,8 @@ const { items } = await provider.query({
   },
   retrieveOrder: 'DESC',
   limit: 10,
-  filters: { status: 'shipped' }
+  filters: { status: 'shipped' },
+  propertiesToRetrieve: ['orderId', 'totalAmount', 'createdAt']
 });
 ```
 
@@ -919,6 +921,7 @@ query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entit
 - `fullRetrieval` (optional) - Auto-paginate until all items retrieved. Default: `true`
 - `paginationToken` (optional) - Continue from previous query
 - `filters` (optional) - Filter expressions
+- `propertiesToRetrieve` (optional) - Specific attributes to return (root-level only)
 
 Returns `{ items, paginationToken? }`
 
@@ -933,6 +936,7 @@ const { items, paginationToken } = await table.query({
   },
   retrieveOrder: 'DESC',
   limit: 10,
+  propertiesToRetrieve: ['id', 'timestamp', 'message']
 });
 ```
 

@@ -57,6 +57,7 @@ export const singleTableParams = [
   'paginationToken',
   'fullRetrieval',
   'filters',
+  'propertiesToRetrieve',
 ] as (keyof SingleTableQueryParams<any, any>)[];
 
 export class SingleTableQueryBuilder extends BaseSingleTableOperator {

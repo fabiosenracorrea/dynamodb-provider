@@ -303,6 +303,62 @@ describe('single table adaptor - query', () => {
     });
   });
 
+  it('should forward propertiesToRetrieve with other options', async () => {
+    const queryMock = jest.fn().mockResolvedValue({
+      items: [],
+    });
+
+    const queryBuilder = new SingleTableQueryBuilder({
+      db: {
+        query: queryMock,
+      } as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+      },
+    });
+
+    await queryBuilder.query<any>({
+      partition: ['hello', 'friend'],
+
+      range: {
+        operation: 'bigger_than',
+        value: 'test',
+      },
+
+      filters: { status: 'active' },
+      limit: 10,
+      propertiesToRetrieve: ['id', 'name', 'email'],
+    });
+
+    expect(queryMock).toHaveBeenCalled();
+    expect(queryMock).toHaveBeenCalledWith({
+      table: 'db-table',
+
+      partitionKey: {
+        name: '_pk',
+        value: 'hello#friend',
+      },
+
+      rangeKey: {
+        operation: 'bigger_than',
+        value: 'test',
+        name: '_sk',
+      },
+
+      filters: { status: 'active' },
+      limit: 10,
+      propertiesToRetrieve: ['id', 'name', 'email'],
+    });
+  });
+
   it('should return paginationToken if applicable', async () => {
     const token = 'TEST_TOKEN';
 
@@ -354,6 +410,55 @@ describe('single table adaptor - query', () => {
     });
 
     expect(result.paginationToken).toEqual(token);
+  });
+
+  it('should handle propertiesToRetrieve', async () => {
+    const queryMock = jest.fn().mockResolvedValue({
+      items: [
+        {
+          _pk: 'some',
+          _sk: 'other',
+          _type: 'SOME_TYPE',
+          _ts: '123',
+          id: '1',
+          name: 'some',
+        },
+      ],
+    });
+
+    const queryBuilder = new SingleTableQueryBuilder({
+      db: {
+        query: queryMock,
+      } as any,
+
+      config: {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        typeIndex: {
+          name: 'TypeIndexName',
+          partitionKey: '_type',
+          rangeKey: '_ts',
+        },
+      },
+    });
+
+    await queryBuilder.query({
+      partition: ['hello', 'friend'],
+      propertiesToRetrieve: ['id', 'name'],
+    });
+
+    expect(queryMock).toHaveBeenCalled();
+    expect(queryMock).toHaveBeenCalledWith({
+      table: 'db-table',
+
+      partitionKey: {
+        name: '_pk',
+        value: 'hello#friend',
+      },
+
+      propertiesToRetrieve: ['id', 'name'],
+    });
   });
 
   it('should apply _parser_ if present', async () => {

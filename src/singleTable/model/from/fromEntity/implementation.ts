@@ -12,9 +12,7 @@ export class SingleTableFromEntity<SingleParams extends SingleTableParams> {
     this.config = params;
   }
 
-  fromEntity<Entity extends AnyEntity>(
-    entity: Entity,
-  ): FromEntity<Entity, SingleParams> {
+  fromEntity<Entity extends AnyEntity>(entity: Entity): FromEntity<Entity, SingleParams> {
     return new SingleTableFromEntityMethods(entity, this.config).buildMethods();
   }
 }

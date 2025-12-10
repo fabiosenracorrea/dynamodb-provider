@@ -3,6 +3,7 @@
 
 import { getFilterParams } from '../filters';
 import { toPaginationToken } from '../pagination';
+import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 import { QueryBuilder } from './query';
 
 describe('query builder', () => {
@@ -304,6 +305,52 @@ describe('query builder', () => {
       });
 
       consoleLogMock.mockRestore();
+    });
+
+    it('should handle propertiesToRetrieve', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.query<any>({
+        table: 'some_table',
+
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+
+        propertiesToRetrieve: ['name', 'email', 'age'],
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith({
+        TableName: 'some_table',
+
+        ScanIndexForward: true,
+
+        KeyConditionExpression: '(#id = :id)',
+
+        ProjectionExpression: getProjectionExpression(['name', 'email', 'age']),
+
+        ExpressionAttributeNames: {
+          '#id': 'id',
+          ...getProjectionExpressionNames(['name', 'email', 'age']),
+        },
+
+        ExpressionAttributeValues: {
+          ':id': 'someId',
+        },
+      });
     });
 
     it('should handle filters', async () => {
@@ -1047,6 +1094,72 @@ describe('query builder', () => {
   });
 
   describe('complex scenarios', () => {
+    it('should handle propertiesToRetrieve with filters and range keys', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.query<any>({
+        table: 'some_table',
+
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+
+        rangeKey: {
+          operation: 'begins_with',
+          name: 'rangeKey',
+          value: 'rangeValue',
+        },
+
+        propertiesToRetrieve: ['name', 'email'],
+
+        filters: {
+          status: 'active',
+        },
+      });
+
+      const filterParams = getFilterParams({
+        status: 'active',
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith({
+        TableName: 'some_table',
+
+        ScanIndexForward: true,
+
+        KeyConditionExpression: '(#id = :id) and (begins_with(#rangeKey, :rangeKey))',
+
+        ProjectionExpression: getProjectionExpression(['name', 'email']),
+
+        ...filterParams,
+
+        ExpressionAttributeNames: {
+          '#id': 'id',
+          '#rangeKey': 'rangeKey',
+          ...getProjectionExpressionNames(['name', 'email']),
+          ...filterParams.ExpressionAttributeNames,
+        },
+
+        ExpressionAttributeValues: {
+          ':id': 'someId',
+          ':rangeKey': 'rangeValue',
+          ...filterParams.ExpressionAttributeValues,
+        },
+      });
+    });
+
     it('should handle all params', async () => {
       const queryMock = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({}),

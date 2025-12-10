@@ -64,10 +64,7 @@ function paramsFor<T extends 'get' | 'batchGet' | 'delete' | 'create' | 'update'
   };
 }
 
-function keyFor<T extends AnyEntity>(
-  entity: T,
-  params: Parameters<T['getKey']>[0],
-) {
+function keyFor<T extends AnyEntity>(entity: T, params: Parameters<T['getKey']>[0]) {
   return {
     [baseParams.partitionKey]: (entity.getPartitionKey(params) as string[]).join('#'),
     [baseParams.rangeKey]: (entity.getRangeKey(params) as string[]).join('#'),
@@ -2690,6 +2687,7 @@ describe('single table - from entity methods', () => {
           limit: 20,
           paginationToken: '2903',
           retrieveOrder: 'DESC',
+          propertiesToRetrieve: ['createdAt', 'email'],
           range: {
             operation: 'bigger_or_equal_than',
             value: '100',
@@ -2703,6 +2701,7 @@ describe('single table - from entity methods', () => {
           fullRetrieval: false,
           limit: 20,
           paginationToken: '2903',
+          propertiesToRetrieve: ['createdAt', 'email'],
           retrieveOrder: 'DESC',
           range: {
             operation: 'bigger_or_equal_than',
