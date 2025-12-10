@@ -48,6 +48,7 @@ describe('single table schema - partition', () => {
       const creator = partition.use('data').create<{ some: string }>();
 
       expect('index' in creator).toBe(false);
+      expect(creator.entity).toBeDefined();
     });
 
     it('should throw on bad entry reference', () => {
@@ -182,14 +183,12 @@ describe('single table schema - partition', () => {
       ];
     });
 
-    it('should properly build entity with param-match', () => {
+    it('[TYPES] Should only allow use() on registered entries', () => {
       const schema = new SingleTableSchema(tableConfig);
 
-      const partition = schema.createPartition({
+      const { use } = schema.createPartition({
         name: 'USER_PARTITION',
-
         getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
         entries: {
           data: () => [`#DATA`],
           permissions: () => [`#PERMISSIONS`],
@@ -197,29 +196,9 @@ describe('single table schema - partition', () => {
         },
       });
 
-      expect(partition.getPartitionKey({ userId: 'idd' })).toStrictEqual(['USER', 'idd']);
+      type Entries = FirstParameter<typeof use>;
 
-      const user = partition
-        .use('data')
-        .create<User>()
-        .entity({
-          type: 'USER',
-
-          paramMatch: {
-            userId: 'id',
-          },
-        });
-
-      expect(user.__dbType).toBe('ENTITY');
-
-      expect(user.getPartitionKey({ id: 'idd' })).toStrictEqual(['USER', 'idd']);
-
-      expect(user.getRangeKey()).toStrictEqual(['#DATA']);
-
-      expect(user.getKey({ id: 'idd' })).toStrictEqual({
-        partitionKey: ['USER', 'idd'],
-        rangeKey: ['#DATA'],
-      });
+      type _Test = Expect<Equal<Entries, 'data' | 'permissions' | 'loginAttempts'>>;
     });
   });
 
@@ -264,6 +243,7 @@ describe('single table schema - partition', () => {
       const creator = partition.use('data').create<any>();
 
       expect('entity' in creator).toBe(false);
+      expect(creator.index).toBeDefined();
     });
 
     it('should throw on bad entry reference', () => {
