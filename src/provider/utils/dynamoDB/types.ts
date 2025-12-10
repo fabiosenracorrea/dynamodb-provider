@@ -142,6 +142,11 @@ export type DBV3Set<T extends string | number> = T extends number
   ? Set<number>
   : Set<string>;
 
+/**
+ * The type your set items will be retrieved as.
+ *
+ * **WARNING** It varies depending on aws sdk version you choose
+ */
 export type DBSet<
   T extends string | number,
   DbSDKVersion extends DynamoDBConfig['target'],

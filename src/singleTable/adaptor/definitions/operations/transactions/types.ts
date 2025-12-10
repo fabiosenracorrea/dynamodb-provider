@@ -47,7 +47,7 @@ export interface SingleTableConditionCheckTransaction<E extends AnyObject = AnyO
   validate: SingleTableValidateTransactParams<E>;
 }
 
-export type SingleTableTransactionConfig<
+export type SingleTableTransactionParams<
   TableConfig extends SingleTableConfig = SingleTableConfig,
   Entity extends AnyObject = AnyObject,
 > =
@@ -62,6 +62,6 @@ export type SingleTableTransactConfigGenerator<
 > = (
   item: Item,
 ) =>
-  | (SingleTableTransactionConfig<TableConfig, Item> | null)[]
-  | SingleTableTransactionConfig<TableConfig, Item>
+  | (SingleTableTransactionParams<TableConfig, Item> | null)[]
+  | SingleTableTransactionParams<TableConfig, Item>
   | null;

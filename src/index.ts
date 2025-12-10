@@ -5,8 +5,9 @@ export {
   type ListOptions,
   type QueryParams,
   type QueryResult,
-  type TransactionConfig,
+  type TransactionParams,
   type UpdateParams,
+  type DBSet,
 } from './provider';
 
 export {
@@ -20,4 +21,6 @@ export {
   type ExtractTableConfig,
   type AnyEntity,
   type AnyCollection,
+  //
+  type SingleTableTransactionParams,
 } from './singleTable';

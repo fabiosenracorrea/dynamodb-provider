@@ -7,7 +7,7 @@ import {
   UpdateParams,
   QueryParams,
   QueryResult,
-  TransactionConfig,
+  TransactionParams,
   DBSet,
   GetItemParams,
   BatchListItemsArgs,
@@ -70,14 +70,14 @@ export interface IDynamodbProvider<
   /**
    * [Deprecated soon] Prefer the more clean `transaction`
    */
-  executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  executeTransaction(configs: (TransactionParams | null)[]): Promise<void>;
 
-  transaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  transaction(configs: (TransactionParams | null)[]): Promise<void>;
 
-  generateTransactionConfigList<Item>(
+  toTransactionParams<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[],
-  ): TransactionConfig[];
+    generator: (item: Item) => (TransactionParams | null)[],
+  ): TransactionParams[];
 
   createSet<T extends string[] | number[]>(
     items: T,

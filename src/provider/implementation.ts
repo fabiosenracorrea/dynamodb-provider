@@ -8,7 +8,7 @@ import {
   CreateItemParams,
   DeleteItemParams,
   UpdateParams,
-  TransactionConfig,
+  TransactionParams,
   DBSet,
   BatchListItemsArgs,
   GetItemParams,
@@ -126,19 +126,19 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   /**
    * [Deprecated soon] Prefer the more clean `transaction`
    */
-  async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
+  async executeTransaction(configs: (TransactionParams | null)[]): Promise<void> {
     await this.transactWriter.transaction(configs);
   }
 
-  async transaction(configs: (TransactionConfig | null)[]): Promise<void> {
+  async transaction(configs: (TransactionParams | null)[]): Promise<void> {
     await this.transactWriter.transaction(configs);
   }
 
-  generateTransactionConfigList<Item>(
+  toTransactionParams<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[],
-  ): TransactionConfig[] {
-    return this.transactWriter.generateTransactionConfigList(items, generator);
+    generator: (item: Item) => (TransactionParams | null)[],
+  ): TransactionParams[] {
+    return this.transactWriter.toTransactionParams(items, generator);
   }
 
   createSet<T extends string[] | number[]>(

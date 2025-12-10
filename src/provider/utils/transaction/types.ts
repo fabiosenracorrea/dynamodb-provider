@@ -53,7 +53,7 @@ export interface ConditionCheckTransaction<
   validate?: ValidateTransactParams<E, PKs>;
 }
 
-export type TransactionConfig<
+export type TransactionParams<
   E extends Record<string, unknown> = Record<string, unknown>,
   PKs extends StringKey<E> | unknown = unknown,
 > =

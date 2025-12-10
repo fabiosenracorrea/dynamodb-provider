@@ -58,7 +58,7 @@ describe('transactionWriter', () => {
         },
       ];
 
-      const params = writer.generateTransactionConfigList(items, ({ name, type }) => [
+      const params = writer.toTransactionParams(items, ({ name, type }) => [
         {
           update: {
             table: 'some_table',
@@ -206,7 +206,7 @@ describe('transactionWriter', () => {
         },
       ];
 
-      const params = writer.generateTransactionConfigList(items, ({ name, type }) =>
+      const params = writer.toTransactionParams(items, ({ name, type }) =>
         type === 'user'
           ? null
           : [

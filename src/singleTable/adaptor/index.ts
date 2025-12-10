@@ -3,7 +3,7 @@ export { SingleTableMethods } from './implementation';
 export * from './definition';
 
 export {
-  SingleTableTransactionConfig,
+  SingleTableTransactionParams,
   SingleTableConfig,
   ListItemTypeParams,
   ListItemTypeResult,

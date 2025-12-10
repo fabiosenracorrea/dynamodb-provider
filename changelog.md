@@ -5,6 +5,7 @@
 - [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
 - [BREAKING] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
 - [BREAKING] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
+- [BREAKING] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
 
 - [BREAKING - Types] `ExtendableCollection` type renamed to `AnyCollection`
 - [Breaking - Types] `ExtendableSingleTableEntity` type renamed to `AnyEntity`
@@ -12,6 +13,8 @@
 - [Breaking - Types] Renamed for better clarity:
   - `ExtendableCollection` type renamed to `AnyCollection`
   - `ExtendableSingleTableEntity` type renamed to `AnyEntity`
+  - `TransactionConfig` type renamed to `TransactionParams`
+  - `SingleTableTransactionConfig` type renamed to `SingleTableTransactionParams`
 
 - *Feature*: Direct `collection` creation from `partition.collection()`
 - *Feature*: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.

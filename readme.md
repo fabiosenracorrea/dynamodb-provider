@@ -498,7 +498,7 @@ const { items } = await provider.query({
 Executes multiple operations atomically. All operations succeed or all fail. Wraps TransactWrite (max 100 items or 4MB).
 
 ```ts
-transaction(configs: (TransactionConfig | null)[]): Promise<void>
+transaction(configs: (TransactionParams | null)[]): Promise<void>
 ```
 
 **Note:** `executeTransaction` is deprecated. Use `transaction` instead.
@@ -558,13 +558,13 @@ await provider.create({
 });
 ```
 
-**generateTransactionConfigList** - Maps items to transaction configs:
+**toTransactionParams** - Maps items to transaction configs:
 
 ```ts
-generateTransactionConfigList<Item>(
+toTransactionParams<Item>(
   items: Item[],
-  generator: (item: Item) => (TransactionConfig | null)[]
-): TransactionConfig[]
+  generator: (item: Item) => (TransactionParams | null)[]
+): TransactionParams[]
 ```
 
 ---
@@ -726,7 +726,7 @@ Available methods:
 - [query](#single-table-query)
 - [transaction](#single-table-transaction)
 - [ejectTransactParams](#single-table-eject-transact-params)
-- [generateTransactionConfigList](#single-table-generate-transaction-config-list)
+- [toTransactionParams](#single-table-generate-transaction-config-list)
 - [createSet](#single-table-create-set)
 - [listType](#single-table-list-type)
 - [listAllFromType](#single-table-list-all-from-type)
@@ -941,7 +941,7 @@ const { items, paginationToken } = await table.query({
 Executes multiple operations atomically. All operations succeed or all fail.
 
 ```ts
-transaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void>
+transaction(configs: (SingleTableTransactionParams | null)[]): Promise<void>
 ```
 
 **Note:** `executeTransaction` is deprecated. Use `transaction` instead.
@@ -995,7 +995,7 @@ await table.transaction([
 Converts single table transaction configs to provider transaction configs for merging with transactions from other tables.
 
 ```ts
-ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[]
+ejectTransactParams(configs: (SingleTableTransactionParams | null)[]): TransactionParams[]
 ```
 
 **Parameters:**
@@ -1022,10 +1022,10 @@ await otherProvider.transaction([
 Maps items to transaction configurations.
 
 ```ts
-generateTransactionConfigList<Item>(
+toTransactionParams<Item>(
   items: Item[],
-  generator: (item: Item) => SingleTableTransactionConfig | (SingleTableTransactionConfig | null)[] | null
-): SingleTableTransactionConfig[]
+  generator: (item: Item) => SingleTableTransactionParams | (SingleTableTransactionParams | null)[] | null
+): SingleTableTransactionParams[]
 ```
 
 **Parameters:**
@@ -1036,7 +1036,7 @@ generateTransactionConfigList<Item>(
 **Example:**
 
 ```ts
-const configs = table.generateTransactionConfigList(users, (user) => ({
+const configs = table.toTransactionParams(users, (user) => ({
   update: {
     partitionKey: ['USER', user.id],
     rangeKey: '#DATA',

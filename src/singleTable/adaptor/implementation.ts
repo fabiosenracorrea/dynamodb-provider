@@ -3,7 +3,7 @@ import { StringKey, AnyObject, AnyFunction } from 'types';
 
 import { IDynamodbProvider } from 'provider';
 
-import { QueryResult, TransactionConfig } from 'provider/utils';
+import { QueryResult, TransactionParams } from 'provider/utils';
 
 import {
   ListItemTypeParams,
@@ -12,7 +12,7 @@ import {
   SingleTableQueryParams,
   SingleTableCreateItemParams,
   SingleTableGetParams,
-  SingleTableTransactionConfig,
+  SingleTableTransactionParams,
   SingleTableUpdateParams,
   SingleTableLister,
   SingleTableConfig,
@@ -116,8 +116,8 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
   }
 
   ejectTransactParams(
-    configs: (SingleTableTransactionConfig | null)[],
-  ): TransactionConfig[] {
+    configs: (SingleTableTransactionParams | null)[],
+  ): TransactionParams[] {
     return this.transactWriter.ejectTransactParams(configs);
   }
 
@@ -125,25 +125,25 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
    * [Deprecated soon] Prefer the more clean `transaction`
    */
   async executeTransaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void> {
     return this.transactWriter.transaction(configs);
   }
 
   async transaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void> {
     return this.transactWriter.transaction(configs);
   }
 
-  generateTransactionConfigList<Item extends AnyObject>(
+  toTransactionParams<Item extends AnyObject>(
     items: Item[],
     generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
-  ): SingleTableTransactionConfig<SingleParams, Item>[] {
-    return this.transactWriter.generateTransactionConfigList(
+  ): SingleTableTransactionParams<SingleParams, Item>[] {
+    return this.transactWriter.toTransactionParams(
       items,
       generator as AnyFunction,
-    ) as SingleTableTransactionConfig<SingleParams, Item>[];
+    ) as SingleTableTransactionParams<SingleParams, Item>[];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

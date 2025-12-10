@@ -3,11 +3,11 @@ import { DynamodbProvider } from './implementation';
 export { IDynamodbProvider } from './definition';
 
 export {
-  TransactionConfig,
   DBSet,
   QueryParams,
   QueryResult,
   UpdateParams,
+  TransactionParams,
   CreateItemParams,
   DeleteItemParams,
   ListOptions,

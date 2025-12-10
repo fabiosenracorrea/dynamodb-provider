@@ -9,7 +9,7 @@ import {
   ExecutorParams,
 } from '../dynamoDB';
 
-import { TransactionConfig, ValidateTransactParams } from './types';
+import { TransactionParams, ValidateTransactParams } from './types';
 import { getConditionParams } from '../conditions';
 import { ItemCreator, ItemRemover, ItemUpdater } from '../crud';
 
@@ -47,7 +47,7 @@ export class TransactionWriter extends DynamodbExecutor {
   }
 
   private _getTransactParams(
-    configs: TransactionConfig[],
+    configs: TransactionParams[],
   ): DBTransactWriteParams['input'] {
     const params = configs.map(({ create, erase, update, validate }) => {
       if (update) return { Update: this.updater.getUpdateParams(update) };
@@ -66,7 +66,7 @@ export class TransactionWriter extends DynamodbExecutor {
     return { TransactItems: actualParams } as DBTransactWriteParams['input'];
   }
 
-  private async executeSingleTransaction(configs: TransactionConfig[]): Promise<void> {
+  private async executeSingleTransaction(configs: TransactionParams[]): Promise<void> {
     if (this.options.logCallParams) printLog(configs, 'TRANSACT WRITE PARAMS');
 
     const params = this._getTransactParams(configs);
@@ -84,7 +84,7 @@ export class TransactionWriter extends DynamodbExecutor {
   }
 
   // Should be an argument
-  // private validateTransactions(configs: TransactionConfig[]): void {
+  // private validateTransactions(configs: TransactionParams[]): void {
   //   const params = this._getTransactParams(configs);
 
   //   const itemKeys = params.TransactItems.map(({ Delete, Put, Update }) => {
@@ -105,8 +105,8 @@ export class TransactionWriter extends DynamodbExecutor {
   //     throw new Error('MULTIPLE OPERATIONS ON THE SAME ITEM FOUND...');
   // }
 
-  async transaction(configs: (TransactionConfig | null)[]): Promise<void> {
-    const validConfigs = configs.filter(Boolean) as TransactionConfig[];
+  async transaction(configs: (TransactionParams | null)[]): Promise<void> {
+    const validConfigs = configs.filter(Boolean) as TransactionParams[];
 
     if (!validConfigs.length) return console.log('EMPTY TRANSACTION RESOLVED');
 
@@ -116,13 +116,13 @@ export class TransactionWriter extends DynamodbExecutor {
     await this.executeSingleTransaction(validConfigs);
   }
 
-  generateTransactionConfigList<Item>(
+  toTransactionParams<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[] | TransactionConfig | null,
-  ): TransactionConfig[] {
+    generator: (item: Item) => (TransactionParams | null)[] | TransactionParams | null,
+  ): TransactionParams[] {
     return items
       .map((item) => generator(item))
       .flat()
-      .filter(Boolean) as TransactionConfig[];
+      .filter(Boolean) as TransactionParams[];
   }
 }

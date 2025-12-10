@@ -1,10 +1,10 @@
 import { AnyObject, StringKey } from 'types';
 
-import { IDynamodbProvider, QueryResult, TransactionConfig } from 'provider';
+import { IDynamodbProvider, QueryResult, TransactionParams } from 'provider';
 
 import {
   SingleTableCreateItemParams,
-  SingleTableTransactionConfig,
+  SingleTableTransactionParams,
   SingleTableUpdateParams,
   SingleTableGetParams,
   SingleTableBatchGetParams,
@@ -51,24 +51,24 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   ): Promise<QueryResult<Entity>>;
 
   ejectTransactParams(
-    configs: (SingleTableTransactionConfig | null)[],
-  ): TransactionConfig[];
+    configs: (SingleTableTransactionParams | null)[],
+  ): TransactionParams[];
 
   /**
    * [Deprecated soon] Prefer the more clean `transaction`
    */
   executeTransaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void>;
 
   transaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void>;
 
-  generateTransactionConfigList<Item extends AnyObject>(
+  toTransactionParams<Item extends AnyObject>(
     items: Item[],
     generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
-  ): SingleTableTransactionConfig<SingleParams, Item>[];
+  ): SingleTableTransactionParams<SingleParams, Item>[];
 
   findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined;
   filterTableItens<Entity>(items: AnyObject[], type: string): Entity[];

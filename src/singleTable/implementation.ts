@@ -1,6 +1,6 @@
 import { AnyObject, StringKey } from 'types';
 
-import { DBSet, QueryResult, TransactionConfig } from 'provider';
+import { DBSet, QueryResult, TransactionParams } from 'provider';
 
 import { omit } from 'utils/object';
 import {
@@ -12,7 +12,7 @@ import {
   SingleTableQueryParams,
   SingleTableCreateItemParams,
   SingleTableGetParams,
-  SingleTableTransactionConfig,
+  SingleTableTransactionParams,
   SingleTableUpdateParams,
   SingleTableDeleteParams,
   SingleTableTransactConfigGenerator,
@@ -44,8 +44,6 @@ export class SingleTable<SingleParams extends SingleTableParams> {
       createCollection: this.fullSchema.createCollection.bind(this.fullSchema),
       getEntityByType: this.fullSchema.getEntityByType.bind(this.fullSchema),
       from: this.fullSchema.from.bind(this.fullSchema),
-      fromCollection: this.fullSchema.fromCollection.bind(this.fullSchema),
-      fromEntity: this.fullSchema.fromEntity.bind(this.fullSchema),
     };
   }
 
@@ -91,8 +89,8 @@ export class SingleTable<SingleParams extends SingleTableParams> {
    *  Useful if you need to merge transactions from other tables
    */
   ejectTransactParams(
-    configs: (SingleTableTransactionConfig | null)[],
-  ): TransactionConfig[] {
+    configs: (SingleTableTransactionParams | null)[],
+  ): TransactionParams[] {
     return this.methods.ejectTransactParams(configs);
   }
 
@@ -100,25 +98,25 @@ export class SingleTable<SingleParams extends SingleTableParams> {
    * [Deprecated soon] Prefer the more clean `transaction`
    */
   async executeTransaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void> {
     return this.methods.transaction(configs);
   }
 
   async transaction(
-    configs: (SingleTableTransactionConfig<SingleParams> | null)[],
+    configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void> {
     return this.methods.transaction(configs);
   }
 
-  generateTransactionConfigList<Item extends AnyObject>(
+  toTransactionParams<Item extends AnyObject>(
     items: Item[],
     generator: SingleTableTransactConfigGenerator<Item, SingleParams>,
-  ): SingleTableTransactionConfig<SingleParams, Item>[] {
-    return this.methods.generateTransactionConfigList(
+  ): SingleTableTransactionParams<SingleParams, Item>[] {
+    return this.methods.toTransactionParams(
       items,
       generator,
-    ) as SingleTableTransactionConfig<SingleParams, Item>[];
+    ) as SingleTableTransactionParams<SingleParams, Item>[];
   }
 
   createSet<T extends string[] | number[]>(
