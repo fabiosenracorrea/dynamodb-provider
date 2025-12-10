@@ -9,6 +9,7 @@ import {
 
 import { omitUndefined } from 'utils/object';
 
+import { StableOmit } from 'types';
 import { convertKey, KeyValue } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
@@ -48,6 +49,32 @@ export type SingleTableQueryParams<
 
     range?: DefinedNameRangeKeyConfig;
   };
+
+/**
+ * Parameters for single table queryOne operation
+ *
+ * Returns the first item matching the query or undefined
+ */
+export type SingleTableQueryOneParams<
+  Entity,
+  TableConfig extends SingleTableConfig = SingleTableConfig,
+> = StableOmit<
+  SingleTableQueryParams<Entity, TableConfig>,
+  'limit' | 'paginationToken' | 'fullRetrieval'
+>;
+
+/**
+ * Parameters for single table queryAll operation
+ *
+ * Returns all items matching the query as a simple array
+ */
+export type SingleTableQueryAllParams<
+  Entity,
+  TableConfig extends SingleTableConfig = SingleTableConfig,
+> = StableOmit<
+  SingleTableQueryParams<Entity, TableConfig>,
+  'paginationToken' | 'fullRetrieval'
+>;
 
 export const singleTableParams = [
   'index',
@@ -114,5 +141,42 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
     const result = await this._listCollection<Entity>(params);
 
     return result;
+  }
+
+  /**
+   * Queries for the first item matching the criteria
+   *
+   * @param params - Query parameters (without limit, paginationToken, or fullRetrieval)
+   * @returns The first matching item or undefined if no items found
+   */
+  async queryOne<Entity>(
+    params: SingleTableQueryOneParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<Entity | undefined> {
+    const {
+      items: [item],
+    } = await this.query<Entity>({
+      ...params,
+      limit: 1,
+      fullRetrieval: false,
+    });
+
+    return item;
+  }
+
+  /**
+   * Queries for all items matching the criteria
+   *
+   * @param params - Query parameters (without paginationToken or fullRetrieval)
+   * @returns Array of all matching items
+   */
+  async queryAll<Entity>(
+    params: SingleTableQueryAllParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<Entity[]> {
+    const { items } = await this.query<Entity>({
+      ...params,
+      fullRetrieval: true,
+    });
+
+    return items;
   }
 }

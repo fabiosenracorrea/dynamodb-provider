@@ -17,7 +17,7 @@ import {
 } from '../expressions';
 import { getFilterParams } from '../filters';
 
-import { QueryParams, QueryResult } from './types';
+import { QueryParams, QueryResult, QueryOneParams, QueryAllParams } from './types';
 import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 
 export class QueryBuilder extends DynamodbExecutor {
@@ -167,5 +167,38 @@ export class QueryBuilder extends DynamodbExecutor {
 
   async query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
     return this.recursivelyListCollection(params);
+  }
+
+  /**
+   * Queries for the first item matching the criteria
+   *
+   * @param params - Query parameters (without limit, paginationToken, or fullRetrieval)
+   * @returns The first matching item or undefined if no items found
+   */
+  async queryOne<Entity>(params: QueryOneParams<Entity>): Promise<Entity | undefined> {
+    const {
+      items: [item],
+    } = await this.recursivelyListCollection({
+      ...params,
+      limit: 1,
+      fullRetrieval: false,
+    });
+
+    return item;
+  }
+
+  /**
+   * Queries for all items matching the criteria
+   *
+   * @param params - Query parameters (without paginationToken or fullRetrieval)
+   * @returns Array of all matching items
+   */
+  async queryAll<Entity>(params: QueryAllParams<Entity>): Promise<Entity[]> {
+    const { items } = await this.recursivelyListCollection({
+      ...params,
+      fullRetrieval: true,
+    });
+
+    return items;
   }
 }

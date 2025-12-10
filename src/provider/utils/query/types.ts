@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { StringKey } from 'types';
+import { StableOmit, StringKey } from 'types';
 
 import { ExpressionOperation } from '../expressions';
 import { Filters } from '../filters';
@@ -132,3 +132,23 @@ export interface QueryResult<Entity = any> {
 
   paginationToken?: string;
 }
+
+/**
+ * Parameters for queryOne operation
+ *
+ * Returns the first item matching the query or undefined
+ */
+export type QueryOneParams<Entity> = StableOmit<
+  QueryParams<Entity>,
+  'limit' | 'paginationToken' | 'fullRetrieval'
+>;
+
+/**
+ * Parameters for queryAll operation
+ *
+ * Returns all items matching the query as a simple array
+ */
+export type QueryAllParams<Entity> = StableOmit<
+  QueryParams<Entity>,
+  'paginationToken' | 'fullRetrieval'
+>;

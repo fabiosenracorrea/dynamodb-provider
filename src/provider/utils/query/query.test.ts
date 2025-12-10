@@ -1241,4 +1241,593 @@ describe('query builder', () => {
       });
     });
   });
+
+  describe('queryOne', () => {
+    it('should query for a single item and return it', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'a' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith({
+        TableName: 'some_table',
+        ScanIndexForward: true,
+        KeyConditionExpression: '(#id = :id)',
+        Limit: 1,
+        ExpressionAttributeNames: {
+          '#id': 'id',
+        },
+        ExpressionAttributeValues: {
+          ':id': 'someId',
+        },
+      });
+
+      expect(result).toEqual({ id: 'xx', name: 'a' });
+    });
+
+    it('should return undefined when no items found', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should support range key conditions', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', sk: 'DATA#123', name: 'test' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        rangeKey: {
+          name: 'sk',
+          operation: 'begins_with',
+          value: 'DATA',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith({
+        TableName: 'some_table',
+        ScanIndexForward: true,
+        KeyConditionExpression: '(#id = :id) and (begins_with(#sk, :sk))',
+        Limit: 1,
+        ExpressionAttributeNames: {
+          '#id': 'id',
+          '#sk': 'sk',
+        },
+        ExpressionAttributeValues: {
+          ':id': 'someId',
+          ':sk': 'DATA',
+        },
+      });
+
+      expect(result).toEqual({ id: 'xx', sk: 'DATA#123', name: 'test' });
+    });
+
+    it('should support filters', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'a', status: 'active' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        filters: {
+          status: 'active',
+        },
+      });
+
+      expect(result).toEqual({ id: 'xx', name: 'a', status: 'active' });
+    });
+
+    it('should support propertiesToRetrieve', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'a' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        propertiesToRetrieve: ['id', 'name'],
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ProjectionExpression: expect.any(String),
+        }),
+      );
+    });
+
+    it('should support index queries', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ gsi1pk: 'value', data: 'test' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        index: 'GSI1',
+        partitionKey: {
+          name: 'gsi1pk',
+          value: 'value',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          IndexName: 'GSI1',
+        }),
+      );
+    });
+
+    it('should support retrieveOrder', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'z' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        retrieveOrder: 'DESC',
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ScanIndexForward: false,
+        }),
+      );
+    });
+  });
+
+  describe('queryAll', () => {
+    it('should query for all items and return array', async () => {
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'a' },
+          { id: 'xx', name: 'b' },
+        ],
+        LastEvaluatedKey: { id: 'xx', name: 'b' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'c' },
+          { id: 'xx', name: 'd' },
+        ],
+      });
+
+      const queryMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(2);
+      expect(result).toEqual([
+        { id: 'xx', name: 'a' },
+        { id: 'xx', name: 'b' },
+        { id: 'xx', name: 'c' },
+        { id: 'xx', name: 'd' },
+      ]);
+    });
+
+    it('should return empty array when no items found', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('should support range key conditions', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [
+            { id: 'xx', sk: 'DATA#1' },
+            { id: 'xx', sk: 'DATA#2' },
+          ],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        rangeKey: {
+          name: 'sk',
+          operation: 'begins_with',
+          value: 'DATA',
+        },
+      });
+
+      expect(result).toHaveLength(2);
+      expect(result).toEqual([
+        { id: 'xx', sk: 'DATA#1' },
+        { id: 'xx', sk: 'DATA#2' },
+      ]);
+    });
+
+    it('should support filters', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [
+            { id: 'xx', name: 'a', status: 'active' },
+            { id: 'xx', name: 'b', status: 'active' },
+          ],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        filters: {
+          status: 'active',
+        },
+      });
+
+      expect(result).toHaveLength(2);
+    });
+
+    it('should support propertiesToRetrieve', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [
+            { id: 'xx', name: 'a' },
+            { id: 'yy', name: 'b' },
+          ],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        propertiesToRetrieve: ['id', 'name'],
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ProjectionExpression: expect.any(String),
+        }),
+      );
+    });
+
+    it('should support index queries', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [
+            { gsi1pk: 'value', data: 'test1' },
+            { gsi1pk: 'value', data: 'test2' },
+          ],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        index: 'GSI1',
+        partitionKey: {
+          name: 'gsi1pk',
+          value: 'value',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          IndexName: 'GSI1',
+        }),
+      );
+    });
+
+    it('should support retrieveOrder', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [
+            { id: 'xx', name: 'z' },
+            { id: 'xx', name: 'y' },
+          ],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        retrieveOrder: 'DESC',
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ScanIndexForward: false,
+        }),
+      );
+    });
+
+    it('should auto-paginate by default', async () => {
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [{ id: 'xx', name: 'a' }],
+        LastEvaluatedKey: { id: 'xx', name: 'a' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [{ id: 'xx', name: 'b' }],
+        LastEvaluatedKey: { id: 'xx', name: 'b' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [{ id: 'xx', name: 'c' }],
+      });
+
+      const queryMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(3);
+      expect(result).toEqual([
+        { id: 'xx', name: 'a' },
+        { id: 'xx', name: 'b' },
+        { id: 'xx', name: 'c' },
+      ]);
+    });
+
+    it('should support limit parameter as total limit', async () => {
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'a' },
+          { id: 'xx', name: 'b' },
+        ],
+        LastEvaluatedKey: { id: 'xx', name: 'b' },
+      });
+
+      const queryMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+        limit: 2,
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          Limit: 2,
+        }),
+      );
+      expect(result).toEqual([
+        { id: 'xx', name: 'a' },
+        { id: 'xx', name: 'b' },
+      ]);
+    });
+  });
 });

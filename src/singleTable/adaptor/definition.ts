@@ -9,6 +9,8 @@ import {
   SingleTableGetParams,
   SingleTableBatchGetParams,
   SingleTableQueryParams,
+  SingleTableQueryOneParams,
+  SingleTableQueryAllParams,
   ListItemTypeParams,
   ListItemTypeResult,
   SingleTableConfig,
@@ -48,16 +50,17 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
     params: SingleTableQueryParams<Entity, SingleParams>,
   ): Promise<QueryResult<Entity>>;
 
+  queryOne<Entity = AnyObject>(
+    params: SingleTableQueryOneParams<Entity, SingleParams>,
+  ): Promise<Entity | undefined>;
+
+  queryAll<Entity = AnyObject>(
+    params: SingleTableQueryAllParams<Entity, SingleParams>,
+  ): Promise<Entity[]>;
+
   ejectTransactParams(
     configs: (SingleTableTransactionParams | null)[],
   ): TransactionParams[];
-
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  executeTransaction(
-    configs: (SingleTableTransactionParams<SingleParams> | null)[],
-  ): Promise<void>;
 
   transaction(
     configs: (SingleTableTransactionParams<SingleParams> | null)[],

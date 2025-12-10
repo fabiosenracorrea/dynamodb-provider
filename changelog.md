@@ -6,6 +6,7 @@
 - [BREAKING] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
 - [BREAKING] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
 - [BREAKING] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
+- [BREAKING] `executeTransaction` removed. Use the `transaction` method instead
 
 - [BREAKING - Types] `ExtendableCollection` type renamed to `AnyCollection`
 - [Breaking - Types] `ExtendableSingleTableEntity` type renamed to `AnyEntity`
@@ -73,6 +74,36 @@ const Entity = table.schema.createEntity<EntityType>().as({
       versionId: 'KSUID'       // Uses built in generator
     },
   },
+});
+```
+
+- *Feature*: New query methods `queryOne` and `queryAll` for simplified query operations:
+  - `queryOne` - Returns the first matching item or undefined. Automatically sets `limit=1` and `fullRetrieval=false`.
+  - `queryAll` - Returns all matching items as a simple array. Automatically handles pagination with `fullRetrieval=true`. Supports optional `limit` parameter as maximum total items to return.
+
+```ts
+// Query for first match
+const user = await provider.queryOne({
+  table: 'Users',
+  partitionKey: { name: 'email', value: 'user@example.com' }
+});
+
+// Query for all matches
+const allOrders = await provider.queryAll({
+  table: 'Orders',
+  partitionKey: { name: 'customerId', value: '12345' },
+  limit: 100  // Optional: max total items
+});
+
+// Works with SingleTable too
+const log = await table.queryOne({
+  partition: ['USER', 'id'],
+  range: { value: 'LOG#', operation: 'begins_with' }
+});
+
+const allLogs = await table.queryAll({
+  partition: ['USER', 'id'],
+  range: { value: 'LOG#', operation: 'begins_with' }
 });
 ```
 

@@ -94,15 +94,6 @@ export class SingleTable<SingleParams extends SingleTableParams> {
     return this.methods.ejectTransactParams(configs);
   }
 
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  async executeTransaction(
-    configs: (SingleTableTransactionParams<SingleParams> | null)[],
-  ): Promise<void> {
-    return this.methods.transaction(configs);
-  }
-
   async transaction(
     configs: (SingleTableTransactionParams<SingleParams> | null)[],
   ): Promise<void> {

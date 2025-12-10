@@ -495,6 +495,67 @@ const { items } = await provider.query({
 });
 ```
 
+### queryOne
+
+Queries for the first item matching the criteria. Returns the item directly or undefined if no match found.
+
+```ts
+queryOne<Entity>(params: QueryOneParams<Entity>): Promise<Entity | undefined>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `limit` - always queries for 1 item
+- No `paginationToken` - returns first match only
+- No `fullRetrieval` - automatically set to false
+
+**Example:**
+
+```ts
+const user = await provider.queryOne({
+  table: 'Users',
+  partitionKey: { name: 'email', value: 'user@example.com' }
+});
+
+if (user) {
+  console.log(`Found user: ${user.name}`);
+}
+```
+
+### queryAll
+
+Queries for all items matching the criteria. Auto-paginates through all results and returns items directly as an array. Same behavior as `query` with `fullRetrieval: true`. Can't be paginated over like that case, however.
+
+```ts
+queryAll<Entity>(params: QueryAllParams<Entity>): Promise<Entity[]>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `paginationToken` - automatically handles pagination
+- No `fullRetrieval` - always set to true internally
+- `limit` (optional) - maximum total items to return (stops pagination when limit reached)
+
+**Example:**
+
+```ts
+const allOrders = await provider.queryAll({
+  table: 'Orders',
+  partitionKey: { name: 'customerId', value: '12345' },
+  rangeKey: {
+    name: 'createdAt',
+    operation: 'bigger_or_equal_than',
+    value: '2024-01-01'
+  },
+  filters: { status: 'completed' },
+  limit: 100 // Optional: max total items
+});
+
+console.log(`Found ${allOrders.length} completed orders`);
+```
+
 ### transaction
 
 Executes multiple operations atomically. All operations succeed or all fail. Wraps TransactWrite (max 100 items or 4MB).
@@ -502,8 +563,6 @@ Executes multiple operations atomically. All operations succeed or all fail. Wra
 ```ts
 transaction(configs: (TransactionParams | null)[]): Promise<void>
 ```
-
-**Note:** `executeTransaction` is deprecated. Use `transaction` instead.
 
 **Transaction types:**
 - `{ create: CreateParams }` - Put item
@@ -988,6 +1047,65 @@ const { items, paginationToken } = await table.query({
 });
 ```
 
+### single table queryOne
+
+Queries for the first item matching the criteria. Returns the item directly or undefined if no match found.
+
+```ts
+queryOne<Entity>(params: SingleTableQueryOneParams<Entity>): Promise<Entity | undefined>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `limit` - always queries for 1 item
+- No `paginationToken` - returns first match only
+- No `fullRetrieval` - automatically set to false
+
+**Example:**
+
+```ts
+const user = await table.queryOne({
+  partition: ['USER', 'user@example.com']
+});
+
+if (user) {
+  console.log(`Found user: ${user.name}`);
+}
+```
+
+### single table queryAll
+
+Queries for all items matching the criteria. Auto-paginates through all results and returns items directly as an array.
+
+```ts
+queryAll<Entity>(params: SingleTableQueryAllParams<Entity>): Promise<Entity[]>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `paginationToken` - automatically handles pagination
+- No `fullRetrieval` - always set to true internally
+- `limit` (optional) - maximum total items to return (stops pagination when limit reached)
+
+**Example:**
+
+```ts
+const allLogs = await table.queryAll({
+  partition: ['USER', 'your-id'],
+  range: {
+    value: 'LOG#',
+    operation: 'begins_with',
+  },
+  retrieveOrder: 'DESC',
+  filters: { level: 'ERROR' },
+  limit: 50 // Optional: max total items
+});
+
+console.log(`Found ${allLogs.length} error logs`);
+```
+
 ### single table transaction
 
 Executes multiple operations atomically. All operations succeed or all fail.
@@ -995,8 +1113,6 @@ Executes multiple operations atomically. All operations succeed or all fail.
 ```ts
 transaction(configs: (SingleTableTransactionParams | null)[]): Promise<void>
 ```
-
-**Note:** `executeTransaction` is deprecated. Use `transaction` instead.
 
 **Parameters:**
 

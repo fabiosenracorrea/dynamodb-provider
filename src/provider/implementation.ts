@@ -25,6 +25,8 @@ import {
   QueryBuilder,
   QueryParams,
   QueryResult,
+  QueryOneParams,
+  QueryAllParams,
   DynamoDBSet,
 } from './utils';
 
@@ -123,11 +125,14 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     return this.queryBuilder.query(params);
   }
 
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  async executeTransaction(configs: (TransactionParams | null)[]): Promise<void> {
-    await this.transactWriter.transaction(configs);
+  async queryOne<Entity = AnyObject>(
+    params: QueryOneParams<Entity>,
+  ): Promise<Entity | undefined> {
+    return this.queryBuilder.queryOne(params);
+  }
+
+  async queryAll<Entity = AnyObject>(params: QueryAllParams<Entity>): Promise<Entity[]> {
+    return this.queryBuilder.queryAll(params);
   }
 
   async transaction(configs: (TransactionParams | null)[]): Promise<void> {

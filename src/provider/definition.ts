@@ -7,6 +7,8 @@ import {
   UpdateParams,
   QueryParams,
   QueryResult,
+  QueryOneParams,
+  QueryAllParams,
   TransactionParams,
   DBSet,
   GetItemParams,
@@ -65,10 +67,11 @@ export interface IDynamodbProvider<
 
   query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
 
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  executeTransaction(configs: (TransactionParams | null)[]): Promise<void>;
+  queryOne<Entity = AnyObject>(
+    params: QueryOneParams<Entity>,
+  ): Promise<Entity | undefined>;
+
+  queryAll<Entity = AnyObject>(params: QueryAllParams<Entity>): Promise<Entity[]>;
 
   transaction(configs: (TransactionParams | null)[]): Promise<void>;
 

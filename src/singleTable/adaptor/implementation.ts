@@ -10,6 +10,8 @@ import {
   ListItemTypeResult,
   SingleTableBatchGetParams,
   SingleTableQueryParams,
+  SingleTableQueryOneParams,
+  SingleTableQueryAllParams,
   SingleTableCreateParams,
   SingleTableGetParams,
   SingleTableTransactionParams,
@@ -115,19 +117,24 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     return this.querBuilder.query(params as any);
   }
 
+  async queryOne<Entity = AnyObject>(
+    params: SingleTableQueryOneParams<Entity, SingleParams>,
+  ): Promise<Entity | undefined> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.querBuilder.queryOne(params as any);
+  }
+
+  async queryAll<Entity = AnyObject>(
+    params: SingleTableQueryAllParams<Entity, SingleParams>,
+  ): Promise<Entity[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.querBuilder.queryAll(params as any);
+  }
+
   ejectTransactParams(
     configs: (SingleTableTransactionParams | null)[],
   ): TransactionParams[] {
     return this.transactWriter.ejectTransactParams(configs);
-  }
-
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  async executeTransaction(
-    configs: (SingleTableTransactionParams<SingleParams> | null)[],
-  ): Promise<void> {
-    return this.transactWriter.transaction(configs);
   }
 
   async transaction(
