@@ -764,6 +764,7 @@ describe('single table schema - use cases', () => {
             string
           >
         >,
+
         // Index query should require name from partition key
         Expect<
           Equal<
