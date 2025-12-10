@@ -23,6 +23,9 @@ type JoinParams<ParamsA, ParamsB> = ParamsA extends undefined
   ? ParamsA
   : ParamsA & ParamsB;
 
+/**
+ * Accepted params for `schema.from(COLLECTION).get({...here})`
+ */
 export type GetCollectionParams<
   Registered extends AnyCollection,
   GetParams = JoinParams<
@@ -31,6 +34,9 @@ export type GetCollectionParams<
   >,
 > = GetParams extends undefined ? [BaseParams?] : [BaseParams & GetParams];
 
+/**
+ * Result type for `const Result = await schema.from(COLLECTION).get(params)`
+ */
 export type GetCollectionResult<Registered extends AnyCollection> =
   Registered['__type'] extends Array<any>
     ? Registered['__type']
