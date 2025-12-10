@@ -18,6 +18,7 @@ import {
 import { getFilterParams } from '../filters';
 
 import { QueryParams, QueryResult } from './types';
+import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 
 export class QueryBuilder extends DynamodbExecutor {
   private transformKeysToExpressions({
@@ -65,12 +66,17 @@ export class QueryBuilder extends DynamodbExecutor {
     partitionKey,
     filters,
     rangeKey,
-  }: Pick<QueryParams<any>, 'filters' | 'partitionKey' | 'rangeKey'>): Pick<
+    propertiesToRetrieve,
+  }: Pick<
+    QueryParams<any>,
+    'filters' | 'partitionKey' | 'rangeKey' | 'propertiesToRetrieve'
+  >): Pick<
     DBQueryParams<any>['input'],
     | 'KeyConditionExpression'
     | 'ExpressionAttributeNames'
     | 'ExpressionAttributeValues'
     | 'FilterExpression'
+    | 'ProjectionExpression'
   > {
     const filterValues = getFilterParams(filters);
     const expressionValues = this.getKeyParams({ partitionKey, rangeKey });
@@ -80,10 +86,12 @@ export class QueryBuilder extends DynamodbExecutor {
 
       KeyConditionExpression: expressionValues.KeyConditionExpression,
 
+      ProjectionExpression: getProjectionExpression(propertiesToRetrieve as string[]),
+
       ExpressionAttributeNames: {
         ...expressionValues.ExpressionAttributeNames,
-
         ...filterValues.ExpressionAttributeNames,
+        ...getProjectionExpressionNames(propertiesToRetrieve as string[]),
       },
 
       ExpressionAttributeValues: {

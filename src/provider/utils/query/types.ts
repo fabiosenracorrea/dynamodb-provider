@@ -81,6 +81,11 @@ export interface QueryConfigParams<Entity> {
    * 3: key:{<FilterConfig>} will handle more complex cases
    */
   filters?: Filters<NoInfer<Entity>>;
+
+  /**
+   * Which properties to return from each entity
+   */
+  propertiesToRetrieve?: (keyof Entity)[];
 }
 
 export interface QueryParams<Entity> extends QueryConfigParams<Entity> {
