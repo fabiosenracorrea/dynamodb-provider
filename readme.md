@@ -679,6 +679,54 @@ Items should contain all relevant properties independently without relying on ke
 
 The partition key check always runs as it violates DynamoDB rules.
 
+#### `autoGenerators`
+
+- **Type**: `Record<string, () => any>`
+- **Optional**
+- Define custom value generators that can be referenced in entity `autoGen` configurations.
+
+Extends or overrides the built-in auto-generation types (`UUID`, `KSUID`, `timestamp`, `count`). Custom generators defined here become available throughout all entities in the table.
+
+**Example:**
+
+```ts
+const table = new SingleTable({
+  dynamodbProvider: provider,
+  table: 'YOUR_TABLE_NAME',
+  partitionKey: 'pk',
+  rangeKey: 'sk',
+
+  autoGenerators: {
+    // Add custom generators
+    tenantId: () => getTenantFromContext(),
+    organizationId: () => getOrgFromContext(),
+
+    // Override built-in generators
+    UUID: () => customUUIDImplementation(),
+    timestamp: () => customTimestamp(),
+  },
+});
+
+// Use in entity definitions
+const User = table.schema.createEntity<UserType>().as({
+  type: 'USER',
+  getPartitionKey: ({ id }) => ['USER', id],
+  getRangeKey: () => '#DATA',
+
+  autoGen: {
+    onCreate: {
+      versionId: 'KSUID'       // Uses builtin implementation
+      id: 'UUID',              // Uses custom UUID implementation
+      tenantId: 'tenantId',    // Uses custom tenantId generator
+      createdAt: 'timestamp',  // Uses custom timestamp implementation
+    },
+    onUpdate: {
+      organizationId: 'organizationId', // Uses custom generator
+      updatedAt: 'timestamp',           // Uses custom timestamp
+    },
+  },
+});
+```
 
 ### Usage
 
@@ -1270,12 +1318,44 @@ Use functions for complex key generation logic. Dot notation handles simple prop
   };
   ```
 
-  Options for `AutoGenOption`:
+  **Built-in Generator Types:**
   - `'UUID'` - Generates v4 UUID
   - `'KSUID'` - Generates K-Sortable Unique ID
   - `'count'` - Assigns `0`
   - `'timestamp'` - Generates ISO timestamp via `new Date().toISOString()`
-  - `() => any` - Custom generator function
+  - `() => any` - Inline custom generator function
+  - Custom generator keys from table's `autoGenerators` config (see [autoGenerators](#autogenerators))
+
+  **Example:**
+  ```ts
+  // With custom table generators
+  const table = new SingleTable({
+    // ...config
+    autoGenerators: {
+      tenantId: () => getCurrentTenant(),
+    }
+  });
+
+  const Entity = table.schema.createEntity<EntityType>().as({
+    type: 'ENTITY',
+    getPartitionKey: ({ id }) => ['ENTITY', id],
+    getRangeKey: () => '#DATA',
+
+    autoGen: {
+      onCreate: {
+        id: 'UUID',              // Built-in generator
+        tenantId: 'tenantId',    // Custom generator from table config
+        createdAt: 'timestamp',  // Built-in generator
+        status: () => 'active',  // Inline function
+      },
+      onUpdate: {
+        updatedAt: 'timestamp',
+      },
+    },
+  });
+  ```
+
+  Properties with `autoGen` configured become optional in creation parameters. User-provided values always override generated ones.
 
 
 - **`rangeQueries`** (object, optional) - Predefined range key queries for the entity.

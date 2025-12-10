@@ -66,7 +66,11 @@ describe('getCRUDParamGetters', () => {
 
     const result = getCreationParams(mockItem, mockConfig);
 
-    expect(addAutoGenParams).toHaveBeenCalledWith(mockItem, mockAutoGen.onCreate);
+    expect(addAutoGenParams).toHaveBeenCalledWith({
+      values: mockItem,
+      genConfig: mockAutoGen.onCreate,
+      tableConfig,
+    });
     expect(mockGetKey).toHaveBeenCalledWith({ ...mockItem, ...mockGeneratedItem });
     expect(result).toEqual({
       ...mockConfig,
@@ -97,10 +101,11 @@ describe('getCRUDParamGetters', () => {
 
     mockGetUpdatedIndexMapping.mockReturnValue({ index: true });
 
-    expect(addAutoGenParams).toHaveBeenCalledWith(
-      mockUpdateParams.values,
-      mockAutoGen.onUpdate,
-    );
+    expect(addAutoGenParams).toHaveBeenCalledWith({
+      values: mockUpdateParams.values ?? {},
+      genConfig: mockAutoGen.onUpdate,
+      tableConfig,
+    });
     expect(mockGetKey).toHaveBeenCalledWith(mockUpdateParams);
     expect(result).toEqual({
       ...mockUpdateParams,

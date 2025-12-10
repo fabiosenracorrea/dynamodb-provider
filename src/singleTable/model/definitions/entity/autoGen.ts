@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SingleTableConfig } from 'singleTable/adaptor';
-import { AnyObject, AtLeastOne, IsUndefined, StringKey } from 'types';
+import { AnyObject, AtLeastOne, StringKey } from 'types';
 
 import { getId } from 'utils/id';
 import { omitUndefined } from 'utils/object';
@@ -57,11 +57,10 @@ type AutoType = (UUIDGen | KSUIDGen | TimestampGen | CountGen)['type'];
 
 type AutoGenOption = AutoType | (() => any);
 
-type CustomDefaultGenOptions<TableConfig extends SingleTableConfig> = IsUndefined<
-  TableConfig['autoGenerators']
-> extends true
-  ? never
-  : StringKey<TableConfig['autoGenerators']>;
+type CustomDefaultGenOptions<TableConfig extends SingleTableConfig> =
+  TableConfig['autoGenerators'] extends NonNullable<TableConfig['autoGenerators']>
+    ? StringKey<TableConfig['autoGenerators']>
+    : never;
 
 type AutoGenFieldConfig<Entity, TableConfig extends SingleTableConfig> = {
   [Key in keyof Entity]?: AutoGenOption | CustomDefaultGenOptions<TableConfig>;

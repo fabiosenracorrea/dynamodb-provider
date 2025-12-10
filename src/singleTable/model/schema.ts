@@ -199,7 +199,7 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
   >(params: Params): SingleTableEntity<TableConfig, Entity, Params> {
     this.registerType(params.type);
 
-    const entity = createEntity<SingleTableParams, Entity, Params>(this.config, params);
+    const entity = createEntity<TableConfig, Entity, Params>(this.config, params);
 
     this.cacheEntity({ entity, params });
 

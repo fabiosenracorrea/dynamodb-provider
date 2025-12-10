@@ -46,6 +46,36 @@ table.schema.from(entity).query.param({ name: 'Something' })
 table.schema.from(entity).query.noParam({ value: 'Something' })
 ```
 
+- *Feature*: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
+
+```ts
+const table = new SingleTable({
+  // ...config
+  autoGenerators: {
+    tenantId: () => getTenantFromContext(),
+
+    // Override built-in generators
+    UUID: () => customUUIDImplementation(),
+    timestamp: () => customTime(),
+  },
+});
+
+const Entity = table.schema.createEntity<EntityType>().as({
+  type: 'ENTITY',
+  getPartitionKey: ({ id }) => ['ENTITY', id],
+  getRangeKey: () => '#DATA',
+
+  autoGen: {
+    onCreate: {
+      id: 'UUID',              // Uses custom UUID implementation
+      tenantId: 'tenantId',    // Uses custom generator
+      createdAt: 'timestamp',  // Uses custom timestamp
+      versionId: 'KSUID'       // Uses built in generator
+    },
+  },
+});
+```
+
 - *Fix*: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - *Fix*: Transaction size validation reference after null checks
 - *Fix*: `schema.from(xxx).delete()` params no longer required if entity has no key params
