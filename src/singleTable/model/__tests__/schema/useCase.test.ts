@@ -506,10 +506,11 @@ describe('single table schema - use cases', () => {
       const schema = new SingleTableSchema(tableConfig);
 
       const mediaPartition = schema.createPartition({
-        name: 'MEDIA_PARTITION',
+        name: 'MEDIA_PARTITION_VALIDATION',
         getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
         entries: {
           version: ({ versionId }: { versionId: string }) => ['VERSION', versionId],
+          invalid: () => ['#INVALID'],
         },
       });
 
@@ -528,7 +529,7 @@ describe('single table schema - use cases', () => {
       // -- TYPES -- //
       // This should fail to compile - paramMatch is missing
       mediaPartition
-        .use('version')
+        .use('invalid')
         .create<Media>()
         // @ts-expect-error `paramMatch` should be required since mediaId is not a key on entity
         .entity({
@@ -563,6 +564,225 @@ describe('single table schema - use cases', () => {
       ]);
 
       schema.from(entity);
+    });
+  });
+
+  describe('key generation type safety', () => {
+    it('should enforce required parameters on key generation', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const mediaPartition = schema.createPartition({
+        name: 'KEY_SAFETY_PARTITION',
+        getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
+        entries: {
+          data: () => ['#DATA'],
+        },
+      });
+
+      const MEDIA = mediaPartition
+        .use('data')
+        .create<Media>()
+        .entity({
+          type: 'MEDIA',
+          paramMatch: { mediaId: 'id' },
+        });
+
+      // -- TYPES -- //
+      // @ts-expect-error partition key requires id parameter
+      MEDIA.getPartitionKey();
+
+      // Valid call
+      MEDIA.getPartitionKey({ id: 'test' });
+
+      // Range key has no params, so these should fail
+      MEDIA.getRangeKey();
+      // @ts-expect-error no parameters expected on range key
+      MEDIA.getRangeKey({ no: true });
+    });
+  });
+
+  describe('transaction validation type safety', () => {
+    it('should require conditions on transactValidateParams', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'TRANSACT_PARTITION',
+        getPartitionKey: ({ id }: { id: string }) => ['ITEM', id],
+        entries: {
+          data: () => ['#DATA'],
+        },
+      });
+
+      const ENTITY = partition.use('data').create<Media>().entity({
+        type: 'ENTITY',
+      });
+
+      // -- TYPES -- //
+      // Valid - conditions provided
+      ENTITY.transactValidateParams({
+        id: 'test',
+        conditions: [],
+      });
+
+      // @ts-expect-error conditions are required on validation transactions
+      ENTITY.transactValidateParams({
+        id: 'test',
+      });
+    });
+  });
+
+  describe('collection parameter validation', () => {
+    it('should enforce required collection configuration', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'COLLECTION_PARTITION',
+        getPartitionKey: ({ id }: { id: string }) => ['ITEM', id],
+        entries: {
+          data: () => ['#DATA'],
+          sub: ({ subId }: { subId: string }) => ['SUB', subId],
+        },
+      });
+
+      const MAIN = partition.use('data').create<Media>().entity({
+        type: 'MAIN',
+      });
+
+      const SUB = partition.use('sub').create<Media & { subId: string }>().entity({
+        type: 'SUB',
+      });
+
+      // Valid collection
+      const validCollection = partition.collection({
+        ref: MAIN,
+        type: 'SINGLE',
+        join: {
+          subs: {
+            entity: SUB,
+            type: 'MULTIPLE',
+          },
+        },
+      });
+
+      expect(validCollection).toBeDefined();
+
+      // -- TYPES -- //
+      // These should fail to compile - type-only validation
+      if (false as any) {
+        // @ts-expect-error must require collection params
+        partition.collection({});
+
+        // @ts-expect-error incomplete params - missing type
+        partition.collection({
+          join: {},
+        });
+
+        // @ts-expect-error incomplete params - missing join
+        partition.collection({
+          ref: null,
+          type: 'SINGLE',
+        });
+      }
+    });
+  });
+
+  describe('schema.from() method completeness', () => {
+    it('should expose all expected CRUD and query methods', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'COMPLETE_PARTITION',
+        getPartitionKey: ({ id }: { id: string }) => ['ITEM', id],
+        entries: {
+          data: () => ['#DATA'],
+        },
+      });
+
+      const ENTITY = partition
+        .use('data')
+        .create<Media>()
+        .entity({
+          type: 'ENTITY',
+          indexes: {
+            ByName: {
+              index: 'Index1',
+              getPartitionKey: ['BY_NAME', '.name'],
+              getRangeKey: ['.uploadedAt'],
+              rangeQueries: {
+                startsWith: {
+                  operation: 'begins_with',
+                  getValues: ({ prefix }: { prefix: string }) => ({ value: prefix }),
+                },
+              },
+            },
+          },
+        });
+
+      const methods = schema.from(ENTITY);
+
+      // Verify all expected methods exist
+      expect(methods.get).toBeDefined();
+      expect(methods.batchGet).toBeDefined();
+      expect(methods.create).toBeDefined();
+      expect(methods.update).toBeDefined();
+      expect(methods.delete).toBeDefined();
+      expect(methods.list).toBeDefined();
+      expect(methods.listAll).toBeDefined();
+      expect(methods.query).toBeDefined();
+      expect(methods.query.custom).toBeDefined();
+      expect(methods.queryIndex).toBeDefined();
+      expect(methods.queryIndex.ByName).toBeDefined();
+      expect(methods.queryIndex.ByName.custom).toBeDefined();
+      expect(methods.queryIndex.ByName.startsWith).toBeDefined();
+
+      // -- TYPES -- //
+      type _Tests = [
+        // Custom range query should require prefix parameter
+        Expect<Equal<Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['prefix'], string>>,
+        // Index query should require name from partition key
+        Expect<Equal<Parameters<typeof methods.queryIndex.ByName.startsWith>[0]['name'], string>>,
+      ];
+    });
+
+    it('should enforce required parameters on index query methods', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'QUERY_PARTITION',
+        getPartitionKey: ({ id }: { id: string }) => ['ITEM', id],
+        entries: {
+          data: () => ['#DATA'],
+        },
+      });
+
+      const ENTITY = partition
+        .use('data')
+        .create<Media>()
+        .entity({
+          type: 'ENTITY',
+          indexes: {
+            ByType: {
+              index: 'Index2',
+              getPartitionKey: ['BY_TYPE', '.contentType'],
+              getRangeKey: ['.uploadedAt'],
+            },
+          },
+        });
+
+      const { queryIndex } = schema.from(ENTITY);
+
+      // Verify query index exists
+      expect(queryIndex.ByType).toBeDefined();
+      expect(queryIndex.ByType.custom).toBeDefined();
+
+      // -- TYPES -- //
+      type _Tests = [
+        // contentType should be required on ByType custom query
+        Expect<
+          //
+          Equal<Parameters<typeof queryIndex.ByType.custom>[0]['contentType'], string>
+        >,
+      ];
     });
   });
 });
