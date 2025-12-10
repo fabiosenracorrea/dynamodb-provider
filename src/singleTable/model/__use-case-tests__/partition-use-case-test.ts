@@ -114,6 +114,10 @@ type Media = {
       };
 };
 
+// -------------------------------------------------------
+// ENTITY PARTITION - Integration with indexes and transactions
+// -------------------------------------------------------
+
 const mediaPartition = singleTable.schema.createPartition({
   name: 'MEDIA_PARTITION',
 
@@ -167,6 +171,7 @@ const MEDIA_VERSION = mediaPartition
     paramMatch: { mediaId: 'id' },
   });
 
+// Basic key generation with paramMatch
 // @ts-expect-error partition has param
 MEDIA.getPartitionKey();
 
@@ -177,11 +182,16 @@ MEDIA.getRangeKey();
 // @ts-expect-error no param is on range
 MEDIA.getRangeKey({ no: true });
 
+// Index mapping
 MEDIA.getCreationIndexMapping({ uploadedAt: '' });
 MEDIA.getUpdatedIndexMapping({ uploadedAt: '' });
 
-const _paramAcceptances_ = [
-  singleTable.schema.fromEntity(MEDIA),
+// -------------------------------------------------------
+// TRANSACTION INTEGRATION
+// -------------------------------------------------------
+
+const _transactionAcceptance_ = [
+  singleTable.schema.from(MEDIA),
 
   singleTable.executeTransaction([
     {
@@ -316,7 +326,10 @@ const _paramAcceptances_ = [
   ]),
 ];
 
-// nested conditions reference
+// -------------------------------------------------------
+// NESTED CONDITIONS
+// -------------------------------------------------------
+
 MEDIA.getUpdateParams({
   id: '1',
 
@@ -342,7 +355,10 @@ MEDIA.getUpdateParams({
   ],
 });
 
-// PARAM MATCH
+// -------------------------------------------------------
+// PARAM MATCH TYPE VALIDATION
+// -------------------------------------------------------
+
 mediaPartition
   .use('version')
   .create<Media>()
@@ -353,6 +369,7 @@ mediaPartition
     // paramMatch: { mediaId: 'id' }, // <--- obligatory
   });
 
+// Partial param match - when partition has multiple params but only some need matching
 singleTable.schema
   .createPartition({
     name: 'PARTIAL_MATCH_TEST',
@@ -366,16 +383,17 @@ singleTable.schema
   .use('data')
   .create<Media>()
   .entity({
-    type: 'MEDIA_1222',
+    type: 'MEDIA_PARTIAL_MATCH',
 
-    // s3Key should not be required
+    // s3Key should not be required since it exists in Media type
     paramMatch: { mediaId: 'id' },
   })
   // and still shown and used
   .getPartitionKey({ id: 'aaa', s3Key: '11' });
 
 // -------------------------------------------------------
-// DOT PROP INDEX
+// DOT NOTATION INDEXES ON PARTITION ENTITIES
+// -------------------------------------------------------
 
 const MEDIA_DOT_INDEX = mediaPartition
   .use('data')
@@ -415,6 +433,10 @@ MEDIA_DOT_INDEX.getPartitionKey({ id: '!' });
 MEDIA_DOT_INDEX.getRangeKey();
 MEDIA_DOT_INDEX.getKey({ id: '12' });
 
+// -------------------------------------------------------
+// SCHEMA.FROM() INTEGRATION - Query methods
+// -------------------------------------------------------
+
 const {
   batchGet,
   create,
@@ -437,6 +459,10 @@ fileStartsWith({ letter: '1', fullRetrieval: false });
 customIndexTwoQuery();
 
 customIndexTwoQuery({ contentType: 'Yes!' });
+
+// -------------------------------------------------------
+// COLLECTION INTEGRATION
+// -------------------------------------------------------
 
 // @ts-expect-error must require params
 mediaPartition.collection({});
@@ -471,3 +497,46 @@ type CollectionOk = CheckCollection<MediaCollection>;
 
 // @ts-expect-error versions needed
 type CollectionBad = CheckCollection<Media>;
+
+// -------------------------------------------------------
+// INDEX PARTITION - Integration scenarios
+// -------------------------------------------------------
+
+const mediaIndexPartition = singleTable.schema.createPartition({
+  name: 'MEDIA_INDEX_PARTITION',
+
+  getPartitionKey: ({ mediaId }: { mediaId: string }) => ['MEDIA', mediaId],
+
+  index: 'Index3',
+
+  entries: {
+    byUploadTime: ({ uploadedAt }: { uploadedAt: string }) => ['UPLOADED', uploadedAt],
+  },
+});
+
+const MEDIA_BY_UPLOAD_INDEX = mediaIndexPartition
+  .use('byUploadTime')
+  .create<Media>()
+  .index({
+    paramMatch: { mediaId: 'id' },
+
+    rangeQueries: {
+      uploadedAfter: {
+        operation: 'bigger_than',
+        getValues: ({ timestamp }: { timestamp: string }) => ({
+          value: timestamp,
+        }),
+      },
+    },
+  });
+
+// Verify index property exists
+const _indexName: 'Index3' = MEDIA_BY_UPLOAD_INDEX.index;
+
+// Key generation - type assertions needed as index getters may require full entity type
+MEDIA_BY_UPLOAD_INDEX.getPartitionKey({ id: 'media-123' } as Media);
+MEDIA_BY_UPLOAD_INDEX.getRangeKey({ uploadedAt: '2024-01-01' } as Media);
+MEDIA_BY_UPLOAD_INDEX.getKey({ id: 'media-123', uploadedAt: '2024-01-01' } as Media);
+
+// Range queries
+MEDIA_BY_UPLOAD_INDEX.rangeQueries?.uploadedAfter;
