@@ -1,5 +1,8 @@
 import { AnyObject } from 'types';
 
+/**
+ * Parameters accepted by the `SingleTable` instance
+ */
 export interface SingleTableConfig {
   /**
    * The logical separator that joins key paths
