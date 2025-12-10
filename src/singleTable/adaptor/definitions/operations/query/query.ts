@@ -3,13 +3,14 @@
 import {
   BasicRangeKeyConfig,
   BetweenRangeKeyConfig,
+  EnsureQueryAllParams,
+  EnsureQueryOneParams,
   QueryConfigParams,
   QueryResult,
 } from 'provider/utils';
 
 import { omitUndefined } from 'utils/object';
 
-import { StableOmit } from 'types';
 import { convertKey, KeyValue } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
@@ -58,10 +59,7 @@ export type SingleTableQueryParams<
 export type SingleTableQueryOneParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = StableOmit<
-  SingleTableQueryParams<Entity, TableConfig>,
-  'limit' | 'paginationToken' | 'fullRetrieval'
->;
+> = EnsureQueryOneParams<SingleTableQueryParams<Entity, TableConfig>>;
 
 /**
  * Parameters for single table queryAll operation
@@ -71,10 +69,7 @@ export type SingleTableQueryOneParams<
 export type SingleTableQueryAllParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = StableOmit<
-  SingleTableQueryParams<Entity, TableConfig>,
-  'paginationToken' | 'fullRetrieval'
->;
+> = EnsureQueryAllParams<SingleTableQueryParams<Entity, TableConfig>>;
 
 export const singleTableParams = [
   'index',

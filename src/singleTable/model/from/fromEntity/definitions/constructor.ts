@@ -9,7 +9,7 @@ import type {
   UpdateReturn,
 } from './crud';
 import type { ListEntityParams, ListEntityResult } from './list';
-import type { QueryMethods } from './query';
+import type { __NEWQueryMethods, QueryMethods } from './query';
 
 export type ListEntityMethods<
   Registered extends AnyEntity,
@@ -49,6 +49,7 @@ export type FromEntity<
     params: Params,
   ): Promise<UpdateReturn<Registered, Params>>;
 } & QueryMethods<Registered> &
+  __NEWQueryMethods<Registered> &
   ListEntityMethods<Registered, SingleConfig>;
 
 export interface FromEntityMethods<SingleConfig extends SingleTableConfig> {

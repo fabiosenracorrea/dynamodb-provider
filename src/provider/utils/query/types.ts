@@ -133,14 +133,23 @@ export interface QueryResult<Entity = any> {
   paginationToken?: string;
 }
 
+type ExcludedFromQueryOne = 'limit' | 'paginationToken' | 'fullRetrieval';
+
+type ExcludedFromQueryAll = 'paginationToken' | 'fullRetrieval';
+
+export type EnsureQueryOneParams<T> = StableOmit<T, ExcludedFromQueryOne>;
+
+export type EnsureQueryAllParams<T> = StableOmit<T, ExcludedFromQueryAll>;
+
 /**
  * Parameters for queryOne operation
  *
  * Returns the first item matching the query or undefined
  */
-export type QueryOneParams<Entity> = StableOmit<
-  QueryParams<Entity>,
-  'limit' | 'paginationToken' | 'fullRetrieval'
+export type QueryOneParams<Entity> = EnsureQueryOneParams<QueryParams<Entity>>;
+
+export type QueryOneConfigParams<Entity> = EnsureQueryOneParams<
+  QueryConfigParams<Entity>
 >;
 
 /**
@@ -148,7 +157,8 @@ export type QueryOneParams<Entity> = StableOmit<
  *
  * Returns all items matching the query as a simple array
  */
-export type QueryAllParams<Entity> = StableOmit<
-  QueryParams<Entity>,
-  'paginationToken' | 'fullRetrieval'
+export type QueryAllParams<Entity> = EnsureQueryAllParams<QueryParams<Entity>>;
+
+export type QueryAllConfigParams<Entity> = EnsureQueryAllParams<
+  QueryConfigParams<Entity>
 >;
