@@ -16,7 +16,7 @@
     "build:esm": "yarn check-usage && tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
     "build:cjs": "yarn check-usage && tsc --project tsconfig.cjs.json --outDir lib/cjs && tsc-alias -p tsconfig.cjs.json",
     "build": "tsc --noEmit",
-    "check-usage": "tsc --noEmit",
+    "check-ts": "tsc --noEmit",
     "start": "node dist/index.js",
     "test": "jest --runInBand",
     "lint": "eslint . --ext .ts --fix",
