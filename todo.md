@@ -32,10 +32,3 @@ includeTypeOnEveryUpdate?: boolean;
 - add a "safeUpdate" / "safeGetUpdateParams" to entity interactions that blocks any action that results in index keys de-sync (ex: if key if status+date and you provide the status, the index won't be updated correctly)
 
 - add a way to validate if we should carry an index update on create/update ops
-
-
-<!-- which one? -->
-- `query.one()` | `queryIndex.one()` | `query.all()` | `queryIndex.all()`
-- `queryOne.custom()` | `queryOneIndex.custom()` | `queryAll.custom()` | `queryAllIndex.custom()`
-
-
