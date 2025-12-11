@@ -77,8 +77,8 @@ const Entity = table.schema.createEntity<EntityType>().as({
 ```
 
 - **Feature**: New query methods `queryOne` and `queryAll` for simplified query operations:
-  - `queryOne` - Returns the first matching item or undefined. Automatically sets `limit=1` and `fullRetrieval=false`.
-  - `queryAll` - Returns all matching items as a simple array. Automatically handles pagination with `fullRetrieval=true`. Supports optional `limit` parameter as maximum total items to return.
+  - `queryOne` - Returns the first matching item or undefined.
+  - `queryAll` - Returns all matching items as a simple array. Supports optional `limit` parameter as maximum total items to return.
 
 ```ts
 // Query for first match
