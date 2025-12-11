@@ -65,3 +65,9 @@ export function keyFor<T extends AnyEntity>(
     [baseParams.rangeKey]: (entity.getRangeKey(params) as string[]).join('#'),
   };
 }
+
+describe('[BONUS!] test helpers', () => {
+  it('should be here', () => {
+    expect(true).toBe(true);
+  });
+});
