@@ -21,6 +21,7 @@
 - **Feature**: New entity helper types:  `GetEntityParams`, `UpdateEntityParams`, `CreateEntityParams` - easily reference the required params doing `Helper<typeof entity>`
 - **Feature**: `propertiesToRetrieve` added to query methods
 - **Feature**: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
+
 - **Feature**: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
 
 ```ts

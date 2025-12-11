@@ -71,7 +71,7 @@ export type SingleTableQueryAllParams<
   TableConfig extends SingleTableConfig = SingleTableConfig,
 > = EnsureQueryAllParams<SingleTableQueryParams<Entity, TableConfig>>;
 
-export const singleTableParams = [
+export const singleTableQueryParams = [
   'index',
   'range',
   'retrieveOrder',

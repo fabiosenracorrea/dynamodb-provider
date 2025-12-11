@@ -1610,7 +1610,11 @@ await userRepo.update({
 
 **Query Methods:**
 
-`query` and `queryIndex` expose `custom` method plus any defined `rangeQueries`:
+`query` and `queryIndex` expose `custom` method plus any defined `rangeQueries`. Each range query method supports three invocation styles:
+
+- **Default call** - Returns `QueryResult<Entity>` with pagination support
+- **`.one()`** - Returns first matching item or `undefined`
+- **`.all()`** - Returns all matching items as array
 
 ```ts
 type Log = {
@@ -1644,18 +1648,53 @@ const Logs = table.schema.createEntity<Log>().as({
 })
 
 // Query main partition
-await table.schema.from(Logs).query.custom()
-await table.schema.from(Logs).query.custom({ limit: 10, retrieveOrder: 'DESC' })
-await table.schema.from(Logs).query.recent({ since: '2024-01-01' })
+const { items, paginationToken } = await table.schema.from(Logs).query.custom()
+const { items: page } = await table.schema.from(Logs).query.custom({ limit: 10, retrieveOrder: 'DESC' })
 
-// Query index
-await table.schema.from(Logs).queryIndex.byType.custom({ type: 'ERROR' })
-await table.schema.from(Logs).queryIndex.byType.dateSlice({
+// Get first matching log
+const firstLog = await table.schema.from(Logs).query.one()
+// Returns: Log | undefined
+
+// Get all logs (auto-paginated)
+const allLogs = await table.schema.from(Logs).query.all()
+// Returns: Log[]
+
+const recentLog = await table.schema.from(Logs).query.recent({ since: '2025-01-01' })
+
+// Range queries with one/all
+const recentLog = await table.schema.from(Logs).query.recent.one({ since: '2024-01-01' })
+// Returns: Log | undefined
+
+const allRecent = await table.schema.from(Logs).query.recent.all({ since: '2024-01-01' })
+// Returns: Log[]
+
+// Query index with one/all
+const errorLog = await table.schema.from(Logs).queryIndex.byType.one({ type: 'ERROR' })
+// Returns: Log | undefined
+
+const allErrors = await table.schema.from(Logs).queryIndex.byType.all({ type: 'ERROR' })
+// Returns: Log[]
+
+// Index range queries with one/all
+const firstError = await table.schema.from(Logs).queryIndex.byType.dateSlice.one({
   type: 'ERROR',
   start: '2024-01-01',
   end: '2024-01-31'
 })
+
+const allJanErrors = await table.schema.from(Logs).queryIndex.byType.dateSlice.all({
+  type: 'ERROR',
+  start: '2024-01-01',
+  end: '2024-01-31',
+  limit: 100  // Optional: max total items to return
+})
 ```
+
+**Query Method Parameters:**
+
+- **Default call** - Accepts `limit`, `paginationToken`, `retrieveOrder`, `filters`, `propertiesToRetrieve`, `range`
+- **`.one(params?)`** - Accepts all params except `limit` and `paginationToken`
+- **`.all(params?)`** - Accepts all params except `paginationToken` (limit sets max total items)
 
 All retrieval methods apply `extend` function if defined.
 

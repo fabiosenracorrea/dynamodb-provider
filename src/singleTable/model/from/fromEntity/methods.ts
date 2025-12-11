@@ -3,9 +3,9 @@ import { SingleTableMethods, type SingleTableParams } from 'singleTable/adaptor'
 import type { AnyEntity, IndexMapping } from 'singleTable/model';
 import {
   type SingleTableGetParams,
-  singleTableParams,
+  singleTableQueryParams,
 } from 'singleTable/adaptor/definitions';
-import type { AnyObject } from 'types';
+import type { AnyFunction, AnyObject } from 'types';
 
 import { pick } from 'utils/object';
 
@@ -13,7 +13,8 @@ import type {
   FromEntity,
   IndexQueryMethods,
   ListEntityMethods,
-  PartitionQueryMethods,
+  QueryMethods,
+  QueryRef,
 } from './definitions';
 
 export class SingleTableFromEntityMethods<
@@ -41,34 +42,86 @@ export class SingleTableFromEntityMethods<
     ) as E;
   }
 
-  private buildEntityQuery(): PartitionQueryMethods<Entity> {
-    const callers = {
-      custom: (config = {} as any) =>
-        this.methods.query({
-          ...(pick(config || {}, singleTableParams as any) as any),
+  private toQueryCallers(getPartitionKey: AnyFunction, extraParams = {}) {
+    const custom = (config = {} as any) =>
+      this.methods.query({
+        ...pick(config || {}, singleTableQueryParams),
 
-          partition: this.entity.getPartitionKey(config),
-        }),
+        ...extraParams,
+
+        partition: getPartitionKey(config),
+      });
+
+    const one = (config = {} as any) =>
+      this.methods.queryOne({
+        ...pick(config || {}, singleTableQueryParams),
+
+        ...extraParams,
+
+        partition: getPartitionKey(config),
+      } as any);
+
+    const all = (config = {} as any) =>
+      this.methods.queryAll({
+        ...pick(config || {}, singleTableQueryParams),
+
+        ...extraParams,
+
+        partition: getPartitionKey(config),
+      } as any);
+
+    return this.bindObjectMethods({
+      custom,
+      one,
+      all,
+    });
+  }
+
+  private toCustomRangeCaller(
+    getPartitionKey: AnyFunction,
+    rangeGetter?: AnyFunction,
+    extraParams = {},
+  ) {
+    const caller = (queryParams = {} as any) =>
+      this.methods.query({
+        ...pick(queryParams || {}, singleTableQueryParams),
+        ...extraParams,
+
+        partition: getPartitionKey(queryParams),
+
+        range: rangeGetter?.(queryParams) ?? null,
+      });
+
+    const extraCallers = this.toQueryCallers(getPartitionKey);
+
+    caller.one = extraCallers.one;
+    caller.all = extraCallers.all;
+
+    return caller.bind(this);
+  }
+
+  private buildQuery<T extends QueryRef & { index?: PropertyKey }>({
+    getPartitionKey,
+    rangeQueries,
+    index,
+  }: T) {
+    const extraParams = index ? { index } : {};
+
+    return {
+      // binds happen inside...
+      ...this.toQueryCallers(getPartitionKey, extraParams),
 
       ...Object.fromEntries(
-        Object.entries((this.entity as any).rangeQueries ?? {}).map(
-          ([rangeQueryName, paramGetter]) => [
-            rangeQueryName,
-            (queryParams = {} as any) =>
-              this.methods.query({
-                ...(pick(queryParams || {}, singleTableParams as any) as any),
-
-                partition: this.entity.getPartitionKey(queryParams),
-
-                range:
-                  typeof paramGetter === 'function' ? paramGetter(queryParams) : null,
-              } as any),
-          ],
-        ),
+        Object.entries(rangeQueries ?? {}).map(([rangeQueryName, paramGetter]) => [
+          rangeQueryName,
+          this.toCustomRangeCaller(
+            getPartitionKey,
+            paramGetter as AnyFunction,
+            extraParams,
+          ),
+        ]),
       ),
-    } as PartitionQueryMethods<Entity>;
-
-    return this.bindObjectMethods(callers);
+    } as QueryMethods<T, Entity['__entity']>;
   }
 
   private getQueryIndexMethods(): IndexQueryMethods<AnyEntity> {
@@ -83,38 +136,7 @@ export class SingleTableFromEntityMethods<
         Object.entries(typed.indexes).map(([index, indexConfig]) => [
           index,
 
-          this.bindObjectMethods({
-            custom: async (params = {}) =>
-              this.methods.query({
-                ...(pick(params || {}, singleTableParams as any) as any),
-
-                index: indexConfig.index,
-
-                partition: indexConfig.getPartitionKey(params as any),
-              }),
-
-            ...Object.fromEntries(
-              Object.entries((indexConfig.rangeQueries as any) ?? {}).map(
-                ([rangeQueryName, paramGetter]) => [
-                  rangeQueryName,
-
-                  async (queryParams = {}) =>
-                    this.methods.query({
-                      ...(pick(queryParams || {}, singleTableParams as any) as any),
-
-                      index: indexConfig.index,
-
-                      partition: indexConfig.getPartitionKey(queryParams as any),
-
-                      range:
-                        typeof paramGetter === 'function'
-                          ? paramGetter(queryParams)
-                          : null,
-                    }),
-                ],
-              ),
-            ),
-          }),
+          this.buildQuery(indexConfig),
         ]),
       ),
     };
@@ -172,7 +194,7 @@ export class SingleTableFromEntityMethods<
         SingleParams
       >['update'],
 
-      query: this.buildEntityQuery(),
+      query: this.buildQuery(entity),
 
       ...this.getTypeListingParams(),
 

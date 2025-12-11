@@ -19,7 +19,7 @@ import {
  *
  * This will only be used where the conversions here make sense
  */
-type QueryRef = { getPartitionKey: AnyFunction; rangeQueries?: any };
+export type QueryRef = { getPartitionKey: AnyFunction; rangeQueries?: any };
 
 /**
  * Basically:
@@ -100,7 +100,7 @@ type RangeMethods<ConfigRef extends QueryRef, EntityType> = ConfigRef extends {
     }
   : unknown;
 
-export type TEST_QueryMethods<ConfigRef extends QueryRef, EntityType> = {
+export type QueryMethods<ConfigRef extends QueryRef, EntityType> = {
   custom(
     ...params: OptionalTupleIfUndefined<
       FirstParameter<ConfigRef['getPartitionKey']>,
@@ -123,15 +123,19 @@ export type TEST_QueryMethods<ConfigRef extends QueryRef, EntityType> = {
   ): Promise<EntityType[]>;
 } & RangeMethods<ConfigRef, EntityType>;
 
-export type TEST_IndexQueryMethods<Registered extends AnyEntity> = Registered extends {
+export type IndexQueryMethods<Registered extends AnyEntity> = Registered extends {
   indexes: any;
 }
   ? {
-      ___queryIndex: {
-        [Index in keyof Registered['indexes']]: TEST_QueryMethods<
+      queryIndex: {
+        [Index in keyof Registered['indexes']]: QueryMethods<
           Registered['indexes'][Index],
           Registered['__entity']
         >;
       };
     }
   : object;
+
+export type EntityQueries<Entity extends AnyEntity> = {
+  query: QueryMethods<Entity, Entity['__entity']>;
+} & IndexQueryMethods<Entity>;
