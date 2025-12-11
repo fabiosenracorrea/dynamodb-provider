@@ -204,9 +204,9 @@ const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
 
 ### Deprecation plan:
 
-- `schema.fromEntity(xxx)` and `schema.fromCollection(yyy)`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `from` moving forward
+- ~~`schema.fromEntity(xxx)` and `schema.fromCollection(yyy)`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `from` moving forward	~~. Removed on v3.
 
-- `schema.executeTransaction` and `table.executeTransaction`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `transaction` moving forward
+- ~~`schema.executeTransaction` and `table.executeTransaction`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `transaction` moving forward~~. Removed on v3.
 
 # v2.0.2
 
