@@ -2,16 +2,13 @@
 
 # v3.0.0
 
-- [BREAKING] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
-- [BREAKING] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
-- [BREAKING] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
-- [BREAKING] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
-- [BREAKING] `executeTransaction` removed. Use the `transaction` method instead
+- [**BREAKING**] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
+- [**BREAKING**] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
+- [**BREAKING**] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
+- [**BREAKING**] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
+- [**BREAKING**] `executeTransaction` removed. Use the `transaction` method instead
 
-- [BREAKING - Types] `ExtendableCollection` type renamed to `AnyCollection`
-- [Breaking - Types] `ExtendableSingleTableEntity` type renamed to `AnyEntity`
-
-- [Breaking - Types] Renamed for better clarity:
+- [**BREAKING - Types**] Renamed for better clarity:
   - `ExtendableCollection` type renamed to `AnyCollection`
   - `ExtendableSingleTableEntity` type renamed to `AnyEntity`
   - `TransactionConfig` type renamed to `TransactionParams`
@@ -20,11 +17,11 @@
   - `DeleteItemParams` type renamed to `DeleteParams`
   - `SingleTableCreateItemParams` type renamed to `SingleTableCreateParams`
 
-- *Feature*: Direct `collection` creation from `partition.collection()`
-- *Feature*: New entity helper types:  `GetEntityParams`, `UpdateEntityParams`, `CreateEntityParams` - easily reference the required params doing `Helper<typeof entity>`
-- *Feature*: `propertiesToRetrieve` added to query methods
-- *Feature*: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
-- *Feature*: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
+- **Feature**: Direct `collection` creation from `partition.collection()`
+- **Feature**: New entity helper types:  `GetEntityParams`, `UpdateEntityParams`, `CreateEntityParams` - easily reference the required params doing `Helper<typeof entity>`
+- **Feature**: `propertiesToRetrieve` added to query methods
+- **Feature**: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
+- **Feature**: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
 
 ```ts
 const entity = table.schema.createEntity<{ name: string, id: string }>().as({
@@ -47,7 +44,7 @@ table.schema.from(entity).query.param({ name: 'Something' })
 table.schema.from(entity).query.noParam({ value: 'Something' })
 ```
 
-- *Feature*: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
+- **Feature**: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
 
 ```ts
 const table = new SingleTable({
@@ -77,7 +74,7 @@ const Entity = table.schema.createEntity<EntityType>().as({
 });
 ```
 
-- *Feature*: New query methods `queryOne` and `queryAll` for simplified query operations:
+- **Feature**: New query methods `queryOne` and `queryAll` for simplified query operations:
   - `queryOne` - Returns the first matching item or undefined. Automatically sets `limit=1` and `fullRetrieval=false`.
   - `queryAll` - Returns all matching items as a simple array. Automatically handles pagination with `fullRetrieval=true`. Supports optional `limit` parameter as maximum total items to return.
 
@@ -107,23 +104,23 @@ const allLogs = await table.queryAll({
 });
 ```
 
-- *Fix*: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
-- *Fix*: Transaction size validation reference after null checks
-- *Fix*: `schema.from(xxx).delete()` params no longer required if entity has no key params
-- *Fix*: `paginationToken` on `QueryResult` was marked as required.
-- *Fix*: `nested` conditions were not properly generating their `ExpressionAttributeNames` and `ExpressionAttributeValues`
+- **Fix**: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
+- **Fix**: Transaction size validation reference after null checks
+- **Fix**: `schema.from(xxx).delete()` params no longer required if entity has no key params
+- **Fix**: `paginationToken` on `QueryResult` was marked as required.
+- **Fix**: `nested` conditions were not properly generating their `ExpressionAttributeNames` and `ExpressionAttributeValues`
 
 ### Huge Coverage increase!
 
-- *Testing*: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **250+ tests**.
+- **Testing**: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **250+ tests**.
 
 # v2.1.2
 
-- *Fix*: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
+- **Fix**: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
 
 # v2.1.1
 
-- *Fix*: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
+- **Fix**: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
 
 # v2.1.0
 
