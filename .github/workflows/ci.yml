@@ -22,7 +22,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Compile Check
-        run: yarn check-usage
+        run: yarn check-ts
 
       - name: Tests pass
         run: yarn test
