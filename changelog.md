@@ -105,6 +105,83 @@ const allLogs = await table.queryAll({
 });
 ```
 
+- **Feature**: Schema query methods now support `.one()` and `.all()` variants for simplified querying with entities. These methods provide a cleaner API for common query patterns:
+  - `.one()` - Returns first matching item or `undefined` (no `limit` or `paginationToken` allowed)
+  - `.all()` - Returns all items as array (no `paginationToken`, but accepts `limit` as max total items)
+
+Available on all query methods: `query.custom`, range queries, `queryIndex.custom`, and index range queries.
+
+```ts
+const User = table.schema.createEntity<User>().as({
+  type: 'USER',
+  getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+  getRangeKey: () => ['#DATA'],
+  rangeQueries: {
+    recent: {
+      operation: 'bigger_than',
+      getValues: ({ since }: { since: string }) => ({ value: since })
+    }
+  },
+  indexes: {
+    byEmail: {
+      getPartitionKey: ['USER_BY_EMAIL', '.email'],
+      getRangeKey: ['#DATA'],
+      index: 'EmailIndex',
+      rangeQueries: {
+        dateRange: {
+          operation: 'between',
+          getValues: ({ start, end }) => ({ start, end })
+        }
+      }
+    }
+  }
+});
+
+const userRepo = table.schema.from(User);
+
+// Query variants
+const firstUser = await userRepo.query.one({ id: 'user-123' });
+// Returns: User | undefined
+
+const allUsers = await userRepo.query.all({ id: 'user-123' });
+// Returns: User[]
+
+// Range query variants
+const recentItem = await userRepo.query.recent.one({ id: 'user-123', since: '2024-01-01' });
+// Returns: User | undefined
+
+const allRecent = await userRepo.query.recent.all({ id: 'user-123', since: '2024-01-01', limit: 50 });
+// Returns: User[]
+
+// Index query variants
+const userByEmail = await userRepo.queryIndex.byEmail.one({ email: 'test@example.com' });
+// Returns: User | undefined
+
+const allByEmail = await userRepo.queryIndex.byEmail.all({ email: 'test@example.com' });
+// Returns: User[]
+
+// Index range query variants
+const firstInRange = await userRepo.queryIndex.byEmail.dateRange.one({
+  email: 'test@example.com',
+  start: '2024-01-01',
+  end: '2024-12-31'
+});
+// Returns: User | undefined
+
+const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
+  email: 'test@example.com',
+  start: '2024-01-01',
+  end: '2024-12-31',
+  limit: 100  // Optional: max total items
+});
+// Returns: User[]
+```
+
+**Parameter restrictions:**
+- `.one()`: Cannot use `limit`, `paginationToken`, or `fullRetrieval`
+- `.all()`: Cannot use `paginationToken` or `fullRetrieval` (but `limit` sets max total items)
+- Default calls (no `.one()` or `.all()`): All parameters allowed, returns `QueryResult<Entity>`
+
 - **Fix**: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - **Fix**: Transaction size validation reference after null checks
 - **Fix**: `schema.from(xxx).delete()` params no longer required if entity has no key params

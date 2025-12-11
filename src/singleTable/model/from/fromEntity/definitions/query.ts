@@ -77,7 +77,7 @@ type RangeCall<
       false,
       EnsureQueryOneParams<__PARAMS__>
     >
-  ): Promise<EntityType>;
+  ): Promise<EntityType | undefined>;
 
   all(
     ...params: OptionalTupleIf<
@@ -113,7 +113,7 @@ export type QueryMethods<ConfigRef extends QueryRef, EntityType> = {
       FirstParameter<ConfigRef['getPartitionKey']>,
       EnsureQueryOneParams<QueryParams<ConfigRef, EntityType>>
     >
-  ): Promise<EntityType>;
+  ): Promise<EntityType | undefined>;
 
   all(
     ...params: OptionalTupleIfUndefined<

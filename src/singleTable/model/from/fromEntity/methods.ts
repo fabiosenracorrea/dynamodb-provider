@@ -42,7 +42,15 @@ export class SingleTableFromEntityMethods<
     ) as E;
   }
 
-  private toQueryCallers(getPartitionKey: AnyFunction, extraParams = {}) {
+  private toQueryCallers({
+    extraParams = {},
+    getPartitionKey,
+    getRange,
+  }: {
+    getPartitionKey: AnyFunction;
+    extraParams: AnyObject;
+    getRange?: AnyFunction;
+  }) {
     const custom = (config = {} as any) =>
       this.methods.query({
         ...pick(config || {}, singleTableQueryParams),
@@ -50,6 +58,8 @@ export class SingleTableFromEntityMethods<
         ...extraParams,
 
         partition: getPartitionKey(config),
+
+        range: getRange?.(config) ?? config.range,
       });
 
     const one = (config = {} as any) =>
@@ -59,6 +69,8 @@ export class SingleTableFromEntityMethods<
         ...extraParams,
 
         partition: getPartitionKey(config),
+
+        range: getRange?.(config) ?? config.range,
       } as any);
 
     const all = (config = {} as any) =>
@@ -68,6 +80,8 @@ export class SingleTableFromEntityMethods<
         ...extraParams,
 
         partition: getPartitionKey(config),
+
+        range: getRange?.(config) ?? config.range,
       } as any);
 
     return this.bindObjectMethods({
@@ -77,11 +91,15 @@ export class SingleTableFromEntityMethods<
     });
   }
 
-  private toCustomRangeCaller(
-    getPartitionKey: AnyFunction,
-    rangeGetter?: AnyFunction,
+  private toCustomRangeCaller({
     extraParams = {},
-  ) {
+    getPartitionKey,
+    getRange,
+  }: {
+    getPartitionKey: AnyFunction;
+    extraParams: AnyObject;
+    getRange?: AnyFunction;
+  }) {
     const caller = (queryParams = {} as any) =>
       this.methods.query({
         ...pick(queryParams || {}, singleTableQueryParams),
@@ -89,15 +107,22 @@ export class SingleTableFromEntityMethods<
 
         partition: getPartitionKey(queryParams),
 
-        range: rangeGetter?.(queryParams) ?? null,
+        range: getRange?.(queryParams) ?? null,
       });
 
-    const extraCallers = this.toQueryCallers(getPartitionKey);
+    const extraCallers = this.toQueryCallers({
+      getPartitionKey,
+      extraParams,
+      getRange,
+    });
 
-    caller.one = extraCallers.one;
-    caller.all = extraCallers.all;
+    const bound = caller.bind(this);
 
-    return caller.bind(this);
+    // this must happen after bind
+    (bound as any).one = extraCallers.one;
+    (bound as any).all = extraCallers.all;
+
+    return bound;
   }
 
   private buildQuery<T extends QueryRef & { index?: PropertyKey }>({
@@ -109,16 +134,16 @@ export class SingleTableFromEntityMethods<
 
     return {
       // binds happen inside...
-      ...this.toQueryCallers(getPartitionKey, extraParams),
+      ...this.toQueryCallers({ getPartitionKey, extraParams }),
 
       ...Object.fromEntries(
         Object.entries(rangeQueries ?? {}).map(([rangeQueryName, paramGetter]) => [
           rangeQueryName,
-          this.toCustomRangeCaller(
-            getPartitionKey,
-            paramGetter as AnyFunction,
+          this.toCustomRangeCaller({
             extraParams,
-          ),
+            getPartitionKey,
+            getRange: paramGetter as AnyFunction,
+          }),
         ]),
       ),
     } as QueryMethods<T, Entity['__entity']>;
