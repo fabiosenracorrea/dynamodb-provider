@@ -428,7 +428,7 @@ describe('query builder', () => {
   });
 
   describe('retrieval strategies/logics', () => {
-    it('should, by default, fully retrieve the query', async () => {
+    it('should, by default, **NOT** fully retrieve the query', async () => {
       const promiseMock = jest.fn();
 
       promiseMock.mockResolvedValueOnce({
@@ -469,7 +469,7 @@ describe('query builder', () => {
         },
       });
 
-      expect(queryMock).toHaveBeenCalledTimes(2);
+      expect(queryMock).toHaveBeenCalledTimes(1);
       expect(queryMock).toHaveBeenCalledWith({
         TableName: 'some_table',
 
@@ -486,7 +486,69 @@ describe('query builder', () => {
         },
       });
 
-      expect(queryMock).toHaveBeenCalledWith({
+      expect(result.items).toStrictEqual([
+        { id: 'xx', name: 'a' },
+        { id: 'xx', name: 'b' },
+      ]);
+
+      expect(result.paginationToken).toStrictEqual(
+        toPaginationToken({ id: 'xx', name: 'b' }),
+      );
+    });
+
+    it('should fully retrieve the query if param is true', async () => {
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'a' },
+          { id: 'xx', name: 'b' },
+        ],
+
+        LastEvaluatedKey: { id: 'xx', name: 'b' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'c' },
+          { id: 'xx', name: 'd' },
+        ],
+
+        LastEvaluatedKey: { id: 'xx', name: 'd' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [
+          { id: 'xx', name: 'e' },
+          { id: 'xx', name: 'f' },
+        ],
+      });
+
+      const queryMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.query<any>({
+        table: 'some_table',
+
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+
+        fullRetrieval: true,
+      });
+
+      const badeDynamoParams = {
         TableName: 'some_table',
 
         ScanIndexForward: true,
@@ -500,8 +562,19 @@ describe('query builder', () => {
         ExpressionAttributeValues: {
           ':id': 'xx',
         },
+      };
 
+      expect(queryMock).toHaveBeenCalledTimes(3);
+      expect(queryMock).toHaveBeenCalledWith(badeDynamoParams);
+
+      expect(queryMock).toHaveBeenCalledWith({
+        ...badeDynamoParams,
         ExclusiveStartKey: { id: 'xx', name: 'b' },
+      });
+
+      expect(queryMock).toHaveBeenCalledWith({
+        ...badeDynamoParams,
+        ExclusiveStartKey: { id: 'xx', name: 'd' },
       });
 
       expect(result.items).toStrictEqual([
@@ -509,7 +582,11 @@ describe('query builder', () => {
         { id: 'xx', name: 'b' },
         { id: 'xx', name: 'c' },
         { id: 'xx', name: 'd' },
+        { id: 'xx', name: 'e' },
+        { id: 'xx', name: 'f' },
       ]);
+
+      expect(result.paginationToken).toBeUndefined();
     });
 
     it('should handle paginated results if fully retrieval is turned off', async () => {

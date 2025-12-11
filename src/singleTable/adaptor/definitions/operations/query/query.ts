@@ -152,7 +152,6 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
     } = await this.query<Entity>({
       ...params,
       limit: 1,
-      fullRetrieval: false,
     });
 
     return item;

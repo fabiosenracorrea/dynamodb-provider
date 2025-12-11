@@ -103,7 +103,8 @@ export class QueryBuilder extends DynamodbExecutor {
 
   private async recursivelyListCollection<Entity>({
     table,
-    fullRetrieval = true,
+    // CHANGE THIS!!!
+    fullRetrieval,
     index,
     limit,
     paginationToken,
@@ -181,7 +182,6 @@ export class QueryBuilder extends DynamodbExecutor {
     } = await this.recursivelyListCollection({
       ...params,
       limit: 1,
-      fullRetrieval: false,
     });
 
     return item;

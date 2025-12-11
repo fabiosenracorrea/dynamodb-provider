@@ -7,6 +7,7 @@
 - [**BREAKING**] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
 - [**BREAKING**] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
 - [**BREAKING**] `executeTransaction` removed. Use the `transaction` method instead
+- [**BREAKING**] `query` / `schema.from(ENTITY).query.custom()` / `schema.from(ENTITY).queryIndex.custom()` **no longer fully retrieves the data by default**. This means you should pass in `fullRetrieval: true` to them to keep the same behavior or use the new queryAll options.
 
 - [**BREAKING - Types**] Renamed for better clarity:
   - `ExtendableCollection` type renamed to `AnyCollection`
