@@ -177,11 +177,6 @@ const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
 // Returns: User[]
 ```
 
-**Parameter restrictions:**
-- `.one()`: Cannot use `limit`, `paginationToken`, or `fullRetrieval`
-- `.all()`: Cannot use `paginationToken` or `fullRetrieval` (but `limit` sets max total items)
-- Default calls (no `.one()` or `.all()`): All parameters allowed, returns `QueryResult<Entity>`
-
 - **Fix**: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - **Fix**: Transaction size validation reference after null checks
 - **Fix**: `schema.from(xxx).delete()` params no longer required if entity has no key params
