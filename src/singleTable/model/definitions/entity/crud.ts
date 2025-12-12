@@ -26,6 +26,13 @@ type UnixExpiresAtProps = {
   expiresAt?: number;
 };
 
+export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
+  TableConfig['typeIndex'] extends { partitionKey: string }
+    ? {
+        includeTypeOnEveryUpdate?: boolean;
+      }
+    : unknown;
+
 type UpdateCallProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,

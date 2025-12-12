@@ -9,60 +9,24 @@ import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
 import { resolveProps } from '../../parsers';
 import { transformIndexReferences } from '../../tableIndex';
-
-type IndexParams<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['indexes']
-    ? {}
-    : {
-        /**
-         * Explicity describe each relevant index value on this creation, if applicable
-         */
-        indexes?: {
-          [key in keyof TableConfig['indexes']]?: SingleTableKeyReference;
-        };
-      };
-
-type ExpiresAtParams<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['expiresAt']
-    ? {}
-    : {
-        /**
-         * The UNIX timestamp expiration of this item
-         */
-        expiresAt?: number;
-      };
-
-type TypeParams<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['typeIndex']
-    ? {}
-    : {
-        /**
-         * The entity type
-         *
-         * This will be assigned the to column described
-         * in your config.typeIndex.partitionKey
-         */
-        type: string;
-      };
+import { ParamsByTableConfigForCreate } from './types';
 
 export type SingleTableCreateParams<
   Entity = AnyObject,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = IndexParams<TableConfig> &
-  ExpiresAtParams<TableConfig> &
-  TypeParams<TableConfig> & {
-    /**
-     * Any actual property of your item
-     */
-    item: Entity;
+> = ParamsByTableConfigForCreate<TableConfig> & {
+  /**
+   * Any actual property of your item
+   */
+  item: Entity;
 
-    /**
-     * The single table reference of your entity
-     *
-     * This is a separate prop to provide clarity and ease of understanding
-     */
-    key: SingleTableKeyReference;
-  };
+  /**
+   * The single table reference of your entity
+   *
+   * This is a separate prop to provide clarity and ease of understanding
+   */
+  key: SingleTableKeyReference;
+};
 
 type RefConfig = Required<SingleTableConfig>;
 

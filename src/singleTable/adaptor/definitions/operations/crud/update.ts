@@ -13,37 +13,14 @@ import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { BaseSingleTableOperator } from '../../executor';
 import { transformIndexReferences } from '../../tableIndex';
 import { resolveProps } from '../../parsers';
-
-type IndexParams<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['indexes']
-    ? {}
-    : {
-        /**
-         * Explicity describe each relevant index value to update
-         * You can chose to update just a partition/range
-         */
-        indexes?: {
-          [key in keyof TableConfig['indexes']]?: Partial<SingleTableKeyReference>;
-        };
-      };
-
-type ExpiresAtParams<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['expiresAt']
-    ? {}
-    : {
-        /**
-         * The UNIX timestamp expiration of this item
-         */
-        expiresAt?: number;
-      };
+import { ParamsByTableConfigForUpdate } from './types';
 
 export type SingleTableUpdateParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
   PKs extends StringKey<Entity> | unknown = unknown,
 > = SingleTableKeyReference &
-  IndexParams<TableConfig> &
-  ExpiresAtParams<TableConfig> &
+  Partial<ParamsByTableConfigForUpdate<TableConfig>> &
   Omit<UpdateParams<Entity, PKs>, 'table' | 'key'>;
 
 type RefConfig = Required<SingleTableConfig>;
@@ -64,7 +41,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     return toTruthyList(props);
   }
 
-  private validateInternalRef(properties: Set<string>): string | undefined {
+  private validateInternalRef(properties: Set<string>) {
     const check = this.config.blockInternalPropUpdate ?? true;
 
     if (!check) return;
@@ -83,7 +60,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     atomicOperations,
     remove,
   }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SingleTableUpdateParams<any>): void {
+  SingleTableUpdateParams<any>) {
     const allPropertiesMentioned = new Set([
       ...Object.keys(values || []),
       ...(remove || []),
@@ -120,11 +97,13 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       remove,
       values,
       returnUpdatedProperties,
+      type,
     } = params;
 
     const addValues = !!(
       (params.indexes && this.config.indexes) ||
-      (params.expiresAt && this.config.expiresAt)
+      (params.expiresAt && this.config.expiresAt) ||
+      (params.type && this.config.typeIndex)
     );
 
     return omitUndefined({
@@ -142,6 +121,8 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
             ...params.values,
 
             ...(expiresAt ? { [this.config.expiresAt!]: expiresAt } : {}),
+
+            ...(type ? { [this.config.typeIndex!.partitionKey]: type } : {}),
 
             ...(indexes ? transformIndexReferences(indexes as any, this.config) : {}),
           }

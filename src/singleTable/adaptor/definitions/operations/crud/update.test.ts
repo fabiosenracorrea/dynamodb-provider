@@ -357,6 +357,150 @@ describe('single table adaptor - update', () => {
       });
     });
 
+    it('should handle type updates if typeIndex is configured', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+
+        type: 'NEW_ENTITY_TYPE',
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'some',
+          _sk: 'other_pk',
+        },
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+          _type: 'NEW_ENTITY_TYPE',
+        },
+      });
+    });
+
+    it('should handle type along with other table config params', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+          expiresAt: '_expires',
+          indexes: {
+            someIndex: {
+              partitionKey: '_indexHash1',
+              rangeKey: '_indexRange1',
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+
+        type: 'UPDATED_TYPE',
+        expiresAt: 2302930,
+        indexes: {
+          someIndex: {
+            partitionKey: 'index value 1',
+          },
+        },
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'some',
+          _sk: 'other_pk',
+        },
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+          _type: 'UPDATED_TYPE',
+          _expires: 2302930,
+          _indexHash1: 'index value 1',
+        },
+      });
+    });
+
+    it('should not add type to values if type is not provided', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'some',
+          _sk: 'other_pk',
+        },
+
+        values: {
+          prop: 'value',
+          name: 'hello',
+        },
+      });
+    });
+
     it('should block all internal properties mentioned on any update by default', () => {
       const updater = new SingleTableUpdater({
         db: {} as any,
