@@ -14,5 +14,7 @@ notes/**
 .ai/**
 .vscode/**
 
+docs/.vitepress/dist
+docs/.vitepress/cache
 
 PLAYGROUND_IMPLEMENTATION_PLAN.md

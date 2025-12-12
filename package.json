@@ -23,7 +23,10 @@
     "format": "prettier --write .",
     "watch": "tsc-watch --onSuccess \"node dist/index.js\"",
     "run-local-file": "npx ts-node -r tsconfig-paths/register -P ./tsconfig.json src/index.ts",
-    "build-publish": "yarn build-both && npm publish"
+    "build-publish": "yarn build-both && npm publish",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "license": "MIT",
   "devDependencies": {
@@ -45,7 +48,8 @@
     "ts-jest": "^29.2.5",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.4.1"
+    "typescript": "^5.4.1",
+    "vitepress": "^1.6.4"
   },
   "dependencies": {
     "ksuid": "^3.0.0"
