@@ -23,6 +23,8 @@
 - **Feature**: `propertiesToRetrieve` added to query methods
 - **Feature**: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
 
+- **Feature**: Enable `includeTypeOnEveryUpdate` on your entity definition to automatically include the type value on every update operation. Especially useful if you have an entity you solely perform updates
+
 - **Feature**: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
 
 ```ts

@@ -155,6 +155,57 @@ describe('single table schema - entity - update params', () => {
     });
   });
 
+  it('should include type when _includeTypeOnEveryUpdate_ is true', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    const user = schema.createEntity<User>().as(baseEntityParams);
+
+    const params = user.getUpdateParams({
+      id: 'user-id',
+
+      values: {
+        email: 'new@email.com',
+      },
+
+      includeTypeOnEveryUpdate: true,
+    });
+
+    expect(params).toStrictEqual({
+      partitionKey: ['USER', 'user-id'],
+      rangeKey: ['#DATA'],
+      values: {
+        email: 'new@email.com',
+      },
+      type: 'USER',
+    });
+  });
+
+  it('should NOT allow __includeTypeOnEveryUpdate__ if no type index', () => {
+    const schema = new SingleTableSchema({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dynamodbProvider: {} as any,
+      partitionKey: 'pk',
+      rangeKey: 'sk',
+      table: 'table',
+    });
+
+    const user = schema.createEntity<User>().as(baseEntityParams);
+
+    const params = user.getUpdateParams({
+      id: 'user-id',
+
+      values: {
+        email: 'new@email.com',
+      },
+
+      // @ts-expect-error not allowed
+      includeTypeOnEveryUpdate: true,
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((params as any).type).toBeUndefined();
+  });
+
   it('[TYPES] Properly accept referenced to Entity', () => {
     const schema = new SingleTableSchema(tableConfig);
 

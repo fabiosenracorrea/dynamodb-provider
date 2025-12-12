@@ -116,6 +116,31 @@ describe('getCRUDParamGetters', () => {
     });
   });
 
+  it('should include type on updates when _includeTypeOnEveryUpdate_ is true', () => {
+    const mockUpdateParams = {
+      values: { name: 'Jane Doe' },
+      includeTypeOnEveryUpdate: true,
+    };
+    const mockGeneratedValues = {
+      ...mockUpdateParams.values,
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+
+    (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+    mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+    mockGetUpdatedIndexMapping.mockReturnValueOnce({ updateIndex: true });
+
+    const result = getUpdateParams(mockUpdateParams as never);
+
+    expect(result).toEqual({
+      partitionKey: 'partition#123',
+      sortKey: 'sort#123',
+      values: mockGeneratedValues,
+      type: 'mockType',
+      indexes: { updateIndex: true },
+    });
+  });
+
   describe('transaction param generation', () => {
     it('create: should generate params with getCreationParams', () => {
       const mockItem = { id: '123', name: 'John Doe' };

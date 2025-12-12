@@ -9,6 +9,7 @@ import { EntityIndexInputParams } from './indexParams';
 import { AutoGenParams } from './autoGen';
 import { EntityKeyResolvers } from '../key';
 import { EntityParseParams } from './parsers';
+import { EntityCRUConfigParams } from './crud';
 
 /**
  * Ensures we properly match constant strings if they are
@@ -51,6 +52,7 @@ export type RegisterEntityParams<
   Entity extends AnyObject = AnyObject,
 > = EntityKeyResolvers<Entity> &
   RangeQueryInputProps &
+  EntityCRUConfigParams<TableConfig> &
   EntityIndexInputParams<TableConfig, Entity> &
   EntityParseParams<Entity> &
   RawEntityRegisterParams<TableConfig, Entity>;

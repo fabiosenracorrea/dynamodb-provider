@@ -29,6 +29,15 @@ type UnixExpiresAtProps = {
 export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
   TableConfig['typeIndex'] extends { partitionKey: string }
     ? {
+        /**
+         * By setting this to `true`, **EVERY UPDATE** from an entity will include the `type` value
+         *
+         * Useful if you use any logic that exclusively rely on `update` to create/mutate an item
+         *
+         * This is opt-in as will require more write capacity for every update operation
+         *
+         * **IMPORTANT** Only the `partitionKey` here will be populated
+         */
         includeTypeOnEveryUpdate?: boolean;
       }
     : unknown;
@@ -40,7 +49,8 @@ type UpdateCallProps<
   SingleTableUpdateParams<Entity, TableConfig>,
   'atomicOperations' | 'conditions' | 'remove' | 'values' | 'returnUpdatedProperties'
 > &
-  (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown);
+  (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown) &
+  EntityCRUConfigParams<TableConfig>;
 
 type OnCreateConfig = Required<AutoGenParams<any, SingleTableConfig>>['onCreate'];
 
@@ -205,6 +215,7 @@ export function getCRUDParamGetters<
       values,
       returnUpdatedProperties,
       expiresAt,
+      includeTypeOnEveryUpdate,
     } = updateParams;
 
     const resolvedValues = addAutoGenParams({
@@ -223,6 +234,8 @@ export function getCRUDParamGetters<
       ...getKey(updateParams),
 
       values: resolvedValues,
+
+      type: tableConfig.typeIndex && includeTypeOnEveryUpdate ? type : undefined,
 
       indexes: getUpdatedIndexMapping?.({
         ...updateParams,

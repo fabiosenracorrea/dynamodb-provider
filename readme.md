@@ -988,6 +988,7 @@ update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity>
 - `returnUpdatedProperties` (optional) - Return updated values
 - `indexes` (optional) - Update index keys. Structure: `Record<IndexName, Partial<{ partitionKey, rangeKey }>>`. Only available if table has `indexes` configured.
 - `expiresAt` (optional) - UNIX timestamp for TTL. Only available if table has `expiresAt` configured.
+- `type` (optional) - Entity type value. Updates the `typeIndex.partitionKey` property. Only available if table has `typeIndex` configured.
 
 **Example:**
 
@@ -1546,6 +1547,35 @@ Use functions for complex key generation logic. Dot notation handles simple prop
   ```
 
   Retrieved items include the extended properties automatically.
+
+- **`includeTypeOnEveryUpdate`** (boolean, optional) - Automatically includes the entity's `type` value on every update operation. Only available if table has `typeIndex` configured. Default: `false`.
+
+  This is useful when using update operations as upserts or when you need to ensure the type is always set on items.
+
+  ```ts
+  const User = table.schema.createEntity<User>().as({
+    type: 'USER',
+    getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+    getRangeKey: () => '#DATA',
+  })
+
+  // Pass explicitly on each update call
+  await table.schema.from(User).update({
+    id: 'user-123',
+    values: { name: 'John' },
+    includeTypeOnEveryUpdate: true,  // Type will be included
+  });
+
+  // Or use getUpdateParams to generate params with type
+  const params = User.getUpdateParams({
+    id: 'user-123',
+    values: { name: 'John' },
+    includeTypeOnEveryUpdate: true,
+  });
+  // params.type === 'USER'
+  ```
+
+  Note: This only populates the `typeIndex.partitionKey` column. The `typeIndex.rangeKey` is not affected.
 
 ### Using Entities
 
