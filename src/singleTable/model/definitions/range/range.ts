@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { KeyValue } from 'singleTable/adaptor/definitions';
+import type { KeyValue } from 'singleTable/adaptor/definitions';
+import type { AnyFunction, AnyObject } from 'types';
 
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig } from 'provider/utils';
-import { AnyFunction, AnyObject } from 'types';
 import { pick } from 'utils/object';
-import { ensureArray } from 'utils/array';
+
+import { toKeyPrefix } from '../key';
 
 type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 
@@ -106,24 +107,6 @@ export function pickRangeParams(operation: RangeOperation, params: AnyObject = {
 
 type KeyParams = { getRangeKey?: (...p: any[]) => KeyValue };
 
-function toKeyPrefixParams(rangeGetter: KeyParams['getRangeKey']) {
-  if (!rangeGetter) return { value: [] };
-
-  const keyResult = rangeGetter({});
-
-  if (!keyResult) return { value: [] };
-
-  const asList = ensureArray(keyResult);
-
-  const firstInvalidIndex = asList.findIndex((x) => !x);
-
-  // If no invalid index found (-1), return all elements
-  // Otherwise, return slice up to (but not including) the invalid index
-  return {
-    value: firstInvalidIndex === -1 ? asList : asList.slice(0, firstInvalidIndex),
-  };
-}
-
 export function getRangeQueriesParams<Params extends RangeQueryInputProps & KeyParams>({
   rangeQueries,
   getRangeKey,
@@ -138,8 +121,8 @@ export function getRangeQueriesParams<Params extends RangeQueryInputProps & KeyP
         (valueParams: any) =>
           operation === 'key_prefix'
             ? {
-                ...toKeyPrefixParams(getRangeKey),
                 operation: 'begins_with',
+                value: toKeyPrefix(getRangeKey),
               }
             : {
                 operation,
