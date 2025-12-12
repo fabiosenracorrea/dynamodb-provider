@@ -2,6 +2,10 @@
 
 # v3.0.0
 
+Our biggest update yet! Lots of QOLs, 300+ more tests and more!
+
+### Breaking Changes
+
 - [**BREAKING**] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
 - [**BREAKING**] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
 - [**BREAKING**] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
@@ -17,6 +21,8 @@
   - `CreateItemParams` type renamed to `CreateParams`
   - `DeleteItemParams` type renamed to `DeleteParams`
   - `SingleTableCreateItemParams` type renamed to `SingleTableCreateParams`
+
+### Features
 
 - **Feature**: Direct `collection` creation from `partition.collection()`
 - **Feature**: New entity helper types:  `GetEntityParams`, `UpdateEntityParams`, `CreateEntityParams` - easily reference the required params doing `Helper<typeof entity>`
@@ -221,6 +227,8 @@ const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
 // Returns: User[]
 ```
 
+### Fixes
+
 - **Fix**: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
 - **Fix**: Transaction size validation reference after null checks
 - **Fix**: `schema.from(xxx).delete()` params no longer required if entity has no key params
@@ -229,7 +237,7 @@ const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
 
 ### Huge Coverage increase!
 
-- **Testing**: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **250+ tests**.
+- **Testing**: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **300+ tests**.
 
 # v2.1.2
 
