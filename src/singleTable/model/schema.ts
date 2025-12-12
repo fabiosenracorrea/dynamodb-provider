@@ -18,6 +18,7 @@ import {
   RegisterEntityParams,
   resolveKeySwaps,
   SingleTableEntity,
+  toKeyPrefix,
 } from './definitions';
 import { type From, SchemaFrom } from './from';
 
@@ -174,6 +175,9 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
       use: this.buildPartitionUsage(params),
 
       collection: () => ({} as any),
+
+      toKeyPrefix: (entry) =>
+        toKeyPrefix(params.entries[entry as keyof typeof params.entries]),
     } as Partition<TableConfig, Params>;
 
     return {

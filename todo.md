@@ -5,12 +5,6 @@
 - Allow simplified collection creation on joins - ref entity as [Entity] or Entity instead of { type: 'MULTIPLE', entity: Entity } or { type: 'SINGLE', entity: Entity }. If more config is needed (like sorter, etc), allow also { entity: [Entity], sorter: ... }
 - Have a "set fields config" on entities that have string[], number[] or `Set<string>` or `Set<number>` on their typing. This config stands: auto convert to Set (good for v2, safety placeholder definition) **and ensures we don't create an empty set, if opt-in**
 
-- Range query option to reference 'constant' values from key
-
-eg on a partition if we have services: ({ serviceId }: StringObj<'serviceId'>) => ['SERVICE', serviceId]
-
-use like keyRefs.services => automatically fills with ['SERVICE']
-
 - Optional to force the "type" of a single entity to always be included in the "update" operation
 ```ts
 {

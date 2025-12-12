@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableConfig } from 'singleTable/adaptor';
+import { KeyValue } from 'singleTable/adaptor/definitions';
 
 import { AnyObject } from 'types';
 import { CreatePartitionParams, PartitionEntry } from './params';
@@ -23,6 +24,18 @@ export type Partition<
   Params extends CreatePartitionParams<any>,
 > = Params & {
   id: string;
+
+  /**
+   *
+   * @param entry One of this partition's `entries`
+   *
+   * Generate the key prefix for the given rangeKey without repeating
+   * your constants
+   *
+   * if `getRangeKey({timestamp}) => ['LOG', timestamp]`
+   * the prefix will be `[LOG]`
+   */
+  toKeyPrefix<Entry extends PartitionEntry<Params>>(entry: Entry): KeyValue;
 
   /**
    * @param entry One of this partition's `entries`

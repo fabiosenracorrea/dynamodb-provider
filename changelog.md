@@ -64,6 +64,28 @@ const Entity = table.schema.createEntity<EntityType>().as({
 const logs = await table.schema.from(Entity).query.allLogs()
 ```
 
+- **Feature**: In line with the `key_prefix` idea, Partition `toKeyPrefix` method! Extract the constant prefix from partition entries without repeating yourself. Automatically returns all constant values up to the first variable parameter.
+
+```ts
+const partition = schema.createPartition({
+  name: 'USER_PARTITION',
+  getPartitionKey: ({ userId }) => ['USER', userId],
+  entries: {
+    // All constants - returns all values
+    metadata: () => ['METADATA', 'PROFILE'],
+
+    // Constants followed by variable - returns only constants
+    logs: ({ timestamp }) => ['LOG', 'ERROR', timestamp],
+
+    // Variable first - returns empty array
+    dynamic: ({ id }) => [id, 'SUFFIX'],
+  },
+});
+
+partition.toKeyPrefix('metadata');  // ['METADATA', 'PROFILE']
+partition.toKeyPrefix('logs');      // ['LOG', 'ERROR']
+partition.toKeyPrefix('dynamic');   // []
+```
 
 - **Feature**: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
 

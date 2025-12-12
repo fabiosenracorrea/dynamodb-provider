@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Equal, Expect, FirstParameter, PrettifyObject } from 'types';
+import { KeyValue } from 'singleTable/adaptor/definitions';
 import { SingleTableSchema } from '../../schema';
 import { tableConfig, User } from './helpers.test';
 
@@ -927,6 +928,89 @@ describe('single table schema - partition', () => {
       type Entries = FirstParameter<typeof use>;
 
       type _Test = Expect<Equal<Entries, 'data' | 'permissions' | 'loginAttempts'>>;
+    });
+  });
+
+  describe('toKeyPrefix', () => {
+    it('should return correct key prefix for various entry patterns', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const partition = schema.createPartition({
+        name: 'KEY_PREFIX_TEST_PARTITION',
+        getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
+        entries: {
+          // Entry with all constants - should return all values
+          allConstants: () => ['METADATA', 'PROFILE'],
+
+          // Entry with constants followed by variable - should return only constants
+          constantsWithVariable: ({ timestamp }: { timestamp: string }) => [
+            'LOG',
+            'ERROR',
+            timestamp,
+          ],
+
+          // Entry with variable as first element - should return empty array
+          variableFirst: ({ id }: { id: string }) => [id, 'SUFFIX'],
+
+          // Entry with single constant - should return that constant
+          singleConstant: () => 'SETTINGS',
+
+          // Entry with mixed constants and variables - should return prefix up to first variable
+          mixedPattern: ({ date, level }: { date: string; level: string }) => [
+            'AUDIT',
+            'LOG',
+            date,
+            level,
+          ],
+        },
+      });
+
+      // Test all constants
+      expect(partition.toKeyPrefix('allConstants')).toStrictEqual([
+        'METADATA',
+        'PROFILE',
+      ]);
+
+      // Test constants with variable
+      expect(partition.toKeyPrefix('constantsWithVariable')).toStrictEqual([
+        'LOG',
+        'ERROR',
+      ]);
+
+      // Test variable first
+      expect(partition.toKeyPrefix('variableFirst')).toStrictEqual([]);
+
+      // Test single constant
+      expect(partition.toKeyPrefix('singleConstant')).toStrictEqual(['SETTINGS']);
+
+      // Test mixed pattern
+      expect(partition.toKeyPrefix('mixedPattern')).toStrictEqual(['AUDIT', 'LOG']);
+
+      if (false as any) {
+        // @ts-expect-error only inferred entries
+        partition.getPartitionKey('__bad__');
+      }
+
+      // -- TYPES -- //
+
+      type EntryType = FirstParameter<typeof partition.toKeyPrefix>;
+      type KeyPrefixReturnType = ReturnType<typeof partition.toKeyPrefix>;
+
+      type _Tests = [
+        // Should only accept registered entry names
+        Expect<
+          Equal<
+            EntryType,
+            | 'allConstants'
+            | 'constantsWithVariable'
+            | 'variableFirst'
+            | 'singleConstant'
+            | 'mixedPattern'
+          >
+        >,
+        // Should return KeyValue type
+        Expect<Equal<KeyPrefixReturnType, KeyValue>>,
+      ];
     });
   });
 });
