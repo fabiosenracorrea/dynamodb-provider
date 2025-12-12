@@ -392,4 +392,204 @@ describe('single table schema - entity - rangeQueries', () => {
       >,
     ];
   });
+
+  describe('key_prefix operation', () => {
+    it('should handle key_prefix with simple range key', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: () => ['#DATA'],
+
+        rangeQueries: {
+          dataPrefix: {
+            operation: 'key_prefix',
+          },
+        },
+      });
+
+      schema.from(user);
+
+      const result = user.rangeQueries.dataPrefix();
+
+      expect(result).toStrictEqual({
+        operation: 'begins_with',
+        value: ['#DATA'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.rangeQueries.dataPrefix>, undefined>>,
+      ];
+
+      // @ts-expect-error key_prefix should not accept parameters
+      user.rangeQueries.dataPrefix({ any: 'value' });
+    });
+
+    it('should handle key_prefix with multi-part range key', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      type Log = {
+        id: string;
+        level: string;
+        timestamp: string;
+      };
+
+      const log = schema.createEntity<Log>().as({
+        type: 'LOG',
+        getPartitionKey: ({ id }: { id: string }) => ['LOG', id],
+        getRangeKey: ({ level, timestamp }: Pick<Log, 'level' | 'timestamp'>) => [
+          'ENTRY',
+          level!,
+          timestamp!,
+        ],
+
+        rangeQueries: {
+          entryPrefix: {
+            operation: 'key_prefix',
+          },
+        },
+      });
+
+      schema.from(log);
+
+      // When called without params, getRangeKey won't have level/timestamp
+      // so they'll be undefined, and prefix will stop at first undefined
+      const result = log.rangeQueries.entryPrefix();
+
+      expect(result).toStrictEqual({
+        operation: 'begins_with',
+        value: ['ENTRY'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [Expect<Equal<Parameters<typeof log.rangeQueries.entryPrefix>, []>>];
+    });
+
+    it('should handle key_prefix alongside other query types', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      const user = schema.createEntity<User>().as({
+        type: 'USER',
+        getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+        getRangeKey: () => ['PROFILE', 'DATA'],
+
+        rangeQueries: {
+          profilePrefix: {
+            operation: 'key_prefix',
+          },
+          exactMatch: {
+            operation: 'equal',
+          },
+          rangeMatch: {
+            operation: 'between',
+          },
+        },
+      });
+
+      schema.from(user);
+
+      const prefixResult = user.rangeQueries.profilePrefix();
+      expect(prefixResult).toStrictEqual({
+        operation: 'begins_with',
+        value: ['PROFILE', 'DATA'],
+      });
+
+      const exactResult = user.rangeQueries.exactMatch({ value: 'TEST' });
+      expect(exactResult).toStrictEqual({
+        operation: 'equal',
+        value: 'TEST',
+      });
+
+      const rangeResult = user.rangeQueries.rangeMatch({ start: 'A', end: 'Z' });
+      expect(rangeResult).toStrictEqual({
+        operation: 'between',
+        start: 'A',
+        end: 'Z',
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<FirstParameter<typeof user.rangeQueries.profilePrefix>, undefined>>,
+        Expect<Equal<keyof FirstParameter<typeof user.rangeQueries.exactMatch>, 'value'>>,
+        Expect<
+          Equal<
+            keyof FirstParameter<typeof user.rangeQueries.rangeMatch>,
+            'start' | 'end'
+          >
+        >,
+      ];
+    });
+
+    it('should handle key_prefix with partial range key (some undefined values)', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      type TimeseriesData = {
+        id: string;
+        year?: string;
+        month?: string;
+        day?: string;
+      };
+
+      const timeseries = schema.createEntity<TimeseriesData>().as({
+        type: 'TIMESERIES',
+        getPartitionKey: ({ id }: { id: string }) => ['TS', id],
+        getRangeKey: ({
+          year,
+          month,
+          day,
+        }: Pick<TimeseriesData, 'year' | 'month' | 'day'>) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ['DATE', year, month, day] as any,
+
+        rangeQueries: {
+          datePrefix: {
+            operation: 'key_prefix',
+          },
+        },
+      });
+
+      schema.from(timeseries);
+
+      // When called, getRangeKey will get undefined for all optional params
+      // so it should return just ['DATE']
+      const result = timeseries.rangeQueries.datePrefix();
+
+      expect(result).toStrictEqual({
+        operation: 'begins_with',
+        value: ['DATE'],
+      });
+
+      // -- TYPES --
+
+      type _Tests = [
+        Expect<Equal<Parameters<typeof timeseries.rangeQueries.datePrefix>, []>>,
+      ];
+    });
+
+    it('should reject getValues in key_prefix type definition', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      // -- TYPES ONLY --
+      if (false as any) {
+        schema.createEntity<User>().as({
+          type: 'USER',
+          getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+          getRangeKey: () => ['#DATA'],
+
+          rangeQueries: {
+            // @ts-expect-error key_prefix should not accept getValues
+            invalidPrefix: {
+              operation: 'key_prefix',
+              getValues: () => ({ value: 'test' }),
+            },
+          },
+        });
+      }
+    });
+  });
 });

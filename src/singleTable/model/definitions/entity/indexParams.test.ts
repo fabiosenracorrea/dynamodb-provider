@@ -134,6 +134,119 @@ describe('single table entity model: getEntityIndexParams', () => {
     type _Custom2 = Expect<Equal<CustomParams, { prefix: string }>>;
   });
 
+  it('should parse key_prefix rangeQuery if present', () => {
+    const params = {
+      type: 'SOME',
+      indexes: {
+        index1: {
+          getPartitionKey: () => ['SOME_KEY'],
+          getRangeKey: () => ['LOG', 'ERROR', 'TS'],
+          index: 'index1' as const,
+
+          rangeQueries: {
+            keyPrefix: {
+              operation: 'key_prefix' as const,
+            },
+          },
+        },
+      },
+    };
+
+    // Setup mock to return actual range query function
+    mockGetRangeQueriesParams.mockReturnValue({
+      rangeQueries: {
+        keyPrefix: () => ({ operation: 'begins_with', value: ['LOG', 'ERROR', 'TS'] }),
+      },
+    });
+
+    const {
+      indexes: {
+        index1: {
+          rangeQueries: { keyPrefix },
+        },
+      },
+    } = getEntityIndexParams<TableConfig, typeof params>(tableConfig, params);
+
+    expect(keyPrefix).toBeDefined();
+
+    type KeyPrefixParams = Parameters<typeof keyPrefix>;
+
+    type _KeyPrefix = Expect<Equal<KeyPrefixParams, []>>;
+
+    // -- TYPES ONLY --
+
+    // @ts-expect-error key_prefix should not accept parameters
+    keyPrefix({ any: 'param' });
+  });
+
+  it('should handle key_prefix alongside other range query types', () => {
+    const params = {
+      type: 'SOME',
+      indexes: {
+        index1: {
+          getPartitionKey: () => ['SOME_KEY'],
+          getRangeKey: () => ['LOG', 'ERROR'],
+          index: 'index1' as const,
+
+          rangeQueries: {
+            keyPrefix: {
+              operation: 'key_prefix' as const,
+            },
+            exactMatch: {
+              operation: 'equal' as const,
+            },
+            betweenMatch: {
+              operation: 'between' as const,
+              getValues: ({ start, end }: { start: string; end: string }) => ({
+                start,
+                end,
+              }),
+            },
+          },
+        },
+      },
+    };
+
+    // Setup mock to return actual range query functions
+    mockGetRangeQueriesParams.mockReturnValue({
+      rangeQueries: {
+        keyPrefix: () => ({ operation: 'begins_with', value: ['LOG', 'ERROR'] }),
+        exactMatch: ({ value }: { value: string }) => ({ operation: 'equal', value }),
+        betweenMatch: ({ start, end }: { start: string; end: string }) => ({
+          operation: 'between',
+          start,
+          end,
+        }),
+      },
+    });
+
+    const {
+      indexes: {
+        index1: {
+          rangeQueries: { keyPrefix, exactMatch, betweenMatch },
+        },
+      },
+    } = getEntityIndexParams<TableConfig, typeof params>(tableConfig, params);
+
+    expect(keyPrefix).toBeDefined();
+    expect(keyPrefix()).toEqual({
+      operation: 'begins_with',
+      value: ['LOG', 'ERROR'],
+    });
+
+    expect(exactMatch).toBeDefined();
+
+    expect(betweenMatch).toBeDefined();
+
+    type KeyPrefixParams = Parameters<typeof keyPrefix>;
+    type ExactParams = Parameters<typeof exactMatch>[0];
+    type BetweenParams = Parameters<typeof betweenMatch>[0];
+
+    type _KeyPrefix = Expect<Equal<KeyPrefixParams, []>>;
+    type _Exact = Expect<Equal<keyof ExactParams, 'value'>>;
+    type _Between = Expect<Equal<BetweenParams, { start: string; end: string }>>;
+  });
+
   it('should *throw* if duplicate index reference is present', () => {
     const params = {
       type: 'entity',

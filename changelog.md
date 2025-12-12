@@ -46,6 +46,25 @@ table.schema.from(entity).query.param({ name: 'Something' })
 table.schema.from(entity).query.noParam({ value: 'Something' })
 ```
 
+- **Feature**: New `key_prefix` range query for entities! Automatically match the valid prefixes of your range keys! It matches up until the first non constant value of your key.
+
+```ts
+const Entity = table.schema.createEntity<EntityType>().as({
+  type: 'ENTITY',
+  getPartitionKey: ({ id }) => ['ENTITY', id],
+  getRangeKey: ({timestamp}: {timestamp: string}) => ['LOG', timestamp],
+
+  rangeQueries: {
+    allLogs: { operation: 'key_prefix' }
+  }
+});
+
+// no param required! No need to repeat the 'LOG' prefix!!
+// automatically queries for { begins_with: 'LOG' }
+const logs = await table.schema.from(Entity).query.allLogs()
+```
+
+
 - **Feature**: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
 
 ```ts

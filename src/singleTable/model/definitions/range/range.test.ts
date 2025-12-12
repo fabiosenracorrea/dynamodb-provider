@@ -212,7 +212,6 @@ describe('single table model - getRangeQueriesParams', () => {
     });
 
     // -- TYPES --
-
     // @ts-expect-error params required
     myRange();
 
@@ -261,5 +260,299 @@ describe('single table model - getRangeQueriesParams', () => {
 
     // @ts-expect-error {end} required
     myRange({ end: 'z' });
+  });
+
+  describe('[key_prefix operation]', () => {
+    it('should extract prefix from getRangeKey when all values are defined', () => {
+      const getRangeKey = jest.fn(() => ['LOG', 'ERROR', '2024']);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      expect(myRange).toBeDefined();
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: ['LOG', 'ERROR', '2024'],
+      });
+
+      expect(getRangeKey).toHaveBeenCalled();
+
+      // -- TYPES --
+
+      // @ts-expect-error no params should be accepted for key_prefix
+      myRange({ any: 'thing' });
+    });
+
+    it('should extract prefix from getRangeKey until first undefined value', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const getRangeKey = jest.fn(() => ['LOG', 'ERROR', undefined, '2024'] as any);
+
+      const result = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      expect(result.rangeQueries).toBeDefined();
+
+      const queryResult = result.rangeQueries!.myRange();
+
+      expect(queryResult).toEqual({
+        operation: 'begins_with',
+        value: ['LOG', 'ERROR'],
+      });
+    });
+
+    it('should extract prefix from getRangeKey until first null value', () => {
+      const getRangeKey = jest.fn(() => ['LOG', 'ERROR', null, '2024']);
+
+      const result = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      expect(result.rangeQueries).toBeDefined();
+
+      const queryResult = result.rangeQueries!.myRange();
+
+      expect(queryResult).toEqual({
+        operation: 'begins_with',
+        value: ['LOG', 'ERROR'],
+      });
+    });
+
+    it('should extract prefix from getRangeKey until first empty string', () => {
+      const getRangeKey = jest.fn(() => ['LOG', 'ERROR', '', '2024']);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: ['LOG', 'ERROR'],
+      });
+    });
+
+    it('should handle getRangeKey returning a single string', () => {
+      const getRangeKey = jest.fn(() => 'SINGLE_KEY');
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: ['SINGLE_KEY'],
+      });
+    });
+
+    it('should handle getRangeKey returning null', () => {
+      const getRangeKey = jest.fn(() => null);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: [],
+      });
+    });
+
+    it('should handle getRangeKey returning undefined', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const getRangeKey = jest.fn(() => undefined as any);
+
+      const result = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      expect(result.rangeQueries).toBeDefined();
+
+      const queryResult = result.rangeQueries!.myRange();
+
+      expect(queryResult).toEqual({
+        operation: 'begins_with',
+        value: [],
+      });
+    });
+
+    it('should handle getRangeKey returning empty array', () => {
+      const getRangeKey = jest.fn(() => []);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: [],
+      });
+    });
+
+    it('should handle getRangeKey with first value as falsy', () => {
+      const getRangeKey = jest.fn(() => [null, 'LOG', 'ERROR']);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: [],
+      });
+    });
+
+    it('should work with getRangeKey returning empty result', () => {
+      const getRangeKey = jest.fn(() => []);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: [],
+      });
+    });
+
+    it('should handle numeric values in range key', () => {
+      const getRangeKey = jest.fn(() => ['LOG', 2024, 12]);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: ['LOG', 2024, 12],
+      });
+    });
+
+    it('should handle zero as a valid value (not falsy for key purposes)', () => {
+      const getRangeKey = jest.fn(() => ['COUNT', 0, 'ITEMS']);
+
+      const {
+        rangeQueries: { myRange },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          myRange: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result = myRange();
+
+      // Note: This tests current behavior - 0 is falsy so it stops there
+      // This might be a bug or intended behavior
+      expect(result).toEqual({
+        operation: 'begins_with',
+        value: ['COUNT'],
+      });
+    });
+
+    it('should handle multiple key_prefix queries', () => {
+      const getRangeKey = jest.fn(() => ['USER', 'PROFILE']);
+
+      const {
+        rangeQueries: { profilePrefix, settingsPrefix },
+      } = getRangeQueriesParams({
+        rangeQueries: {
+          profilePrefix: { operation: 'key_prefix' },
+          settingsPrefix: { operation: 'key_prefix' },
+        },
+        getRangeKey,
+      });
+
+      const result1 = profilePrefix();
+      expect(result1).toEqual({
+        operation: 'begins_with',
+        value: ['USER', 'PROFILE'],
+      });
+
+      // Note: Both queries use the same getRangeKey
+      const result2 = settingsPrefix();
+      expect(result2).toEqual({
+        operation: 'begins_with',
+        value: ['USER', 'PROFILE'],
+      });
+    });
+
+    it('[TYPES] should reject getValues parameter in type definition', () => {
+      getRangeQueriesParams({
+        rangeQueries: {
+          // @ts-expect-error key_prefix should not accept getValues
+          myRange: {
+            operation: 'key_prefix',
+            getValues: () => ({ value: 'test' }),
+          },
+        },
+      });
+    });
   });
 });

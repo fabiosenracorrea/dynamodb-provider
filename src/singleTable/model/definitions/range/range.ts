@@ -4,6 +4,7 @@ import { KeyValue } from 'singleTable/adaptor/definitions';
 import { BasicRangeKeyConfig, BetweenRangeKeyConfig } from 'provider/utils';
 import { AnyFunction, AnyObject } from 'types';
 import { pick } from 'utils/object';
+import { ensureArray } from 'utils/array';
 
 type BetweenRefConfig = BetweenRangeKeyConfig<any>;
 
@@ -22,7 +23,22 @@ type BetweenRangeConfig = {
   };
 };
 
-type SingleRangeConfig = BasicRangeConfig | BetweenRangeConfig;
+type KeyRefConfig = {
+  /**
+   * Automatically matches the prefix
+   * of your range key
+   *
+   * @example
+   * if `getRangeKey({timestamp}) => ['LOG', timestamp]`
+   * the query will be "begins_with": LOG
+   *
+   * It catches all the fixes params util it finds one not defined
+   */
+  operation: 'key_prefix';
+  getValues?: never;
+};
+
+type SingleRangeConfig = BasicRangeConfig | BetweenRangeConfig | KeyRefConfig;
 
 type RangeQuery = Record<string, SingleRangeConfig>;
 
@@ -45,7 +61,9 @@ type EnsureValueGetter<
   // -- system param --
   //
   __RANGE_PARAMS__ = ReturnType<DefaultRangeGetter<Config['operation']>>,
-> = Config['getValues'] extends AnyFunction
+> = Config['operation'] extends 'key_prefix'
+  ? () => { value: KeyValue }
+  : Config['getValues'] extends AnyFunction
   ? Config['getValues']
   : (p: __RANGE_PARAMS__) => __RANGE_PARAMS__;
 
@@ -78,7 +96,7 @@ export type RangeQueryInputProps = {
 };
 
 export type RangeQueryResultProps<RangeParams extends RangeQueryInputProps | undefined> =
-  RangeParams extends Required<RangeQueryInputProps>
+  RangeParams extends { rangeQueries: RangeQuery }
     ? { rangeQueries: RangeQueryGetters<RangeParams['rangeQueries']> }
     : object;
 
@@ -86,8 +104,29 @@ export function pickRangeParams(operation: RangeOperation, params: AnyObject = {
   return pick(params, operation === 'between' ? ['end', 'start'] : ['value']);
 }
 
-export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
+type KeyParams = { getRangeKey?: (...p: any[]) => KeyValue };
+
+function toKeyPrefixParams(rangeGetter: KeyParams['getRangeKey']) {
+  if (!rangeGetter) return { value: [] };
+
+  const keyResult = rangeGetter({});
+
+  if (!keyResult) return { value: [] };
+
+  const asList = ensureArray(keyResult);
+
+  const firstInvalidIndex = asList.findIndex((x) => !x);
+
+  // If no invalid index found (-1), return all elements
+  // Otherwise, return slice up to (but not including) the invalid index
+  return {
+    value: firstInvalidIndex === -1 ? asList : asList.slice(0, firstInvalidIndex),
+  };
+}
+
+export function getRangeQueriesParams<Params extends RangeQueryInputProps & KeyParams>({
   rangeQueries,
+  getRangeKey,
 }: Params): RangeQueryResultProps<Params> {
   if (!rangeQueries) return {} as RangeQueryResultProps<Params>;
 
@@ -96,10 +135,16 @@ export function getRangeQueriesParams<Params extends RangeQueryInputProps>({
       Object.entries(rangeQueries).map(([queryName, { getValues, operation }]) => [
         queryName,
 
-        (valueParams: any) => ({
-          operation,
-          ...(getValues?.(valueParams) ?? pickRangeParams(operation, valueParams)),
-        }),
+        (valueParams: any) =>
+          operation === 'key_prefix'
+            ? {
+                ...toKeyPrefixParams(getRangeKey),
+                operation: 'begins_with',
+              }
+            : {
+                operation,
+                ...(getValues?.(valueParams) ?? pickRangeParams(operation, valueParams)),
+              },
       ]),
     ),
   } as RangeQueryResultProps<Params>;

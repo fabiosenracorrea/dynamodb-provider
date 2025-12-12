@@ -31,7 +31,7 @@ export function createEntity<
 
     ...indexParams,
 
-    ...getRangeQueriesParams(params),
+    ...getRangeQueriesParams(params as any),
 
     ...getCRUDParamGetters(tableConfig, {
       ...params,

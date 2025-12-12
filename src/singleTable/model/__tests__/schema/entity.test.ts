@@ -411,6 +411,109 @@ describe('single table schema - entity use cases', () => {
         >,
       ];
     });
+
+    it('should validate entity-level key_prefix range query', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      type Log = {
+        level: string;
+        timestamp: string;
+        message: string;
+      };
+
+      const LOG = schema.createEntity<Log>().as({
+        type: 'LOG',
+        getPartitionKey: () => ['APP_LOG'],
+        getRangeKey: ({ level, timestamp }: Pick<Log, 'level' | 'timestamp'>) => [
+          'LOG',
+          level!,
+          timestamp!,
+        ],
+
+        rangeQueries: {
+          byLevelPrefix: {
+            operation: 'key_prefix',
+          },
+        },
+      });
+
+      schema.from(LOG);
+
+      // Verify range query exists
+      expect(LOG.rangeQueries).toBeDefined();
+      expect(LOG.rangeQueries?.byLevelPrefix).toBeDefined();
+
+      // Valid call - no params should be needed
+      const result = LOG.rangeQueries!.byLevelPrefix();
+
+      expect(result).toBeDefined();
+      expect(result.operation).toBe('begins_with');
+      expect(result.value).toEqual(['LOG']);
+
+      // -- TYPES --
+
+      type _Tests = [
+        // byLevelPrefix should not require params
+        Expect<Equal<Parameters<typeof LOG.rangeQueries.byLevelPrefix>, []>>,
+      ];
+
+      // @ts-expect-error key_prefix should not accept parameters
+      LOG.rangeQueries!.byLevelPrefix({ any: 'param' });
+    });
+
+    it('should validate index-level key_prefix range query', () => {
+      const schema = new SingleTableSchema(tableConfig);
+
+      type Log = {
+        level: string;
+        timestamp: string;
+        message: string;
+      };
+
+      const LOG = schema.createEntity<Log>().as({
+        type: 'LOG',
+        getPartitionKey: () => ['APP_LOG'],
+        getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => ['LOG', timestamp!],
+
+        indexes: {
+          ByLevel: {
+            index: 'Index1',
+            getPartitionKey: ({ level }: Pick<Log, 'level'>) => ['LOG_BY_LEVEL', level!],
+            getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => ['TS', timestamp!],
+
+            rangeQueries: {
+              timestampPrefix: {
+                operation: 'key_prefix',
+              },
+            },
+          },
+        },
+      });
+
+      schema.from(LOG);
+
+      // Verify index range query exists
+      expect(LOG.indexes.ByLevel.rangeQueries).toBeDefined();
+      expect(LOG.indexes.ByLevel.rangeQueries?.timestampPrefix).toBeDefined();
+
+      // Valid call - no params should be needed
+      const result = LOG.indexes.ByLevel.rangeQueries!.timestampPrefix();
+      expect(result).toBeDefined();
+      expect(result.operation).toBe('begins_with');
+      expect(result.value).toEqual(['TS']);
+
+      // -- TYPES --
+
+      type _Tests = [
+        // timestampPrefix should not require params
+        Expect<
+          Equal<Parameters<typeof LOG.indexes.ByLevel.rangeQueries.timestampPrefix>, []>
+        >,
+      ];
+
+      // @ts-expect-error key_prefix should not accept parameters
+      LOG.indexes.ByLevel.rangeQueries!.timestampPrefix({ any: 'param' });
+    });
   });
 
   describe('schema.from() integration', () => {
