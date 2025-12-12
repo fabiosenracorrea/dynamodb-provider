@@ -49,10 +49,6 @@ const user = await provider.get<User>({
   consistentRead: true,
   propertiesToRetrieve: ['name', 'email'],
 });
-
-if (user) {
-  console.log(user.name);  // Type-safe access
-}
 ```
 
 ## Consistent Reads
@@ -66,11 +62,6 @@ const user = await provider.get<User>({
   consistentRead: true  // Ensures you get the most recent data
 });
 ```
-
-**When to use consistent reads:**
-- ✅ Immediately after writing data
-- ✅ When data accuracy is critical
-- ❌ Most read operations (eventually consistent is faster and cheaper)
 
 ## Partial Retrieval
 
@@ -107,45 +98,6 @@ const item = await provider.get<OrderItem>({
     itemId: 'ITEM-456'     // Sort key
   }
 });
-```
-
-## Handling Missing Items
-
-The method returns `undefined` when an item doesn't exist:
-
-```typescript
-const user = await provider.get<User>({
-  table: 'Users',
-  key: { userId: 'non-existent' }
-});
-
-if (!user) {
-  throw new Error('User not found');
-}
-
-// user is defined here, TypeScript knows it's User type
-```
-
-## Type Safety
-
-The generic type parameter ensures type-safe access:
-
-```typescript
-interface User {
-  userId: string;
-  name: string;
-  email: string;
-}
-
-const user = await provider.get<User>({
-  table: 'Users',
-  key: { userId: '12345' }
-});
-
-if (user) {
-  console.log(user.name);   // ✅ Type-safe
-  console.log(user.age);    // ❌ TypeScript error - property doesn't exist
-}
 ```
 
 ## See Also

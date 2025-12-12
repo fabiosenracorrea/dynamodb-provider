@@ -5,6 +5,33 @@ export default defineConfig({
   title: "Dynamodb Provider",
   description: "Fast Develop for DynamoDB with a type-safe & single-table aware library!",
 
+  // SEO: Set the canonical base URL for your site
+  // Update this when you deploy (e.g., 'https://yourusername.github.io/dynamodb-provider/')
+  base: '/',
+
+  lang: 'en-US',
+
+  head: [
+    ['meta', { name: 'keywords', content: 'dynamodb, aws, typescript, single-table, dynamodb-provider, type-safe, orm' }],
+    ['meta', { name: 'author', content: 'fabiosenracorrea' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: 'Dynamodb Provider - Type-safe DynamoDB wrapper' }],
+    ['meta', { property: 'og:description', content: 'Fast Develop for DynamoDB with a type-safe & single-table aware library!' }],
+    ['meta', { property: 'og:url', content: 'https://github.com/fabiosenracorrea/dynamodb-provider' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'Dynamodb Provider - Type-safe DynamoDB wrapper' }],
+    ['meta', { name: 'twitter:description', content: 'Fast Develop for DynamoDB with a type-safe & single-table aware library!' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+  ],
+
+  // SEO: Generate clean URLs (removes .html extension)
+  cleanUrls: true,
+
+  // SEO: Generate sitemap for search engines
+  sitemap: {
+    hostname: 'https://yourusername.github.io/dynamodb-provider'
+  },
+
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [

@@ -1,6 +1,10 @@
 # create
 
-Creates an item in the table. DynamoDB's PutItem overwrites existing items—use `conditions` to prevent this.
+Creates an item in the table.
+
+::: tip
+DynamoDB's PutItem overwrites existing items—use `conditions` to prevent this.
+:::
 
 ## Method Signature
 
@@ -90,12 +94,12 @@ All available condition operations:
 - **`begins_with`** - String property starts with value
 - **`contains`** - Property contains value
 - **`not_contains`** - Property does not contain value
+- **`between`** - Property value is between start and end
 
 ### List Operations
 
 - **`in`** - Property value is in list
 - **`not_in`** - Property value is not in list
-- **`between`** - Property value is between start and end
 
 ### Existence Operations
 

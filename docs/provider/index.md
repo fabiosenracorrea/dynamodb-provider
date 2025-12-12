@@ -16,9 +16,9 @@ The DynamoDB Provider is the foundation layer that provides:
 
 Use the Provider for **table-per-entity designs** where each entity type has its own DynamoDB table:
 
-- ✅ You have separate `Users`, `Products`, `Orders` tables
-- ✅ You want minimal abstraction over DynamoDB
-- ✅ You need type-safe operations without complex modeling
+- You have separate `Users`, `Products`, `Orders` tables
+- You want minimal abstraction over DynamoDB
+- You need type-safe operations without complex modeling
 
 If you're using **single-table design**, consider [SingleTable](/single-table/) or [Schema](/schema/) layers instead.
 
@@ -63,7 +63,7 @@ await provider.update({
 - [delete](/provider/delete) - Delete an item
 - [batchGet](/provider/batch-get) - Retrieve multiple items at once
 
-### Query Operations
+### Listing Operations
 - [list](/provider/list) - Scan table with filters and pagination
 - [query](/provider/query) - Query items by partition key with range filters
 

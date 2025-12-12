@@ -25,7 +25,12 @@ const ddbClient = new DynamoDBClient({
   // Add any config you may need: credentials, endpoint, etc.
 });
 
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
+const documentClient = DynamoDBDocumentClient.from(ddbClient, {
+  marshallOptions: {
+      // this is important if using v3
+      removeUndefinedValues: true,
+  },
+});
 
 const provider = new DynamodbProvider({
   dynamoDB: {
@@ -159,48 +164,7 @@ npm install aws-sdk
 
 ### DocumentClient Only
 
-The provider only works with DocumentClient instances, not the raw DynamoDB client:
-
-✅ **Correct** (DocumentClient):
-```typescript
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
-const provider = new DynamodbProvider({
-  dynamoDB: { target: 'v3', instance: documentClient, commands: {...} }
-});
-```
-
-❌ **Incorrect** (Raw client):
-```typescript
-const ddbClient = new DynamoDBClient({});
-const provider = new DynamodbProvider({
-  dynamoDB: { target: 'v3', instance: ddbClient, commands: {...} }  // Won't work!
-});
-```
-
-## Local DynamoDB Setup
-
-For local development, configure the endpoint:
-
-```typescript
-const ddbClient = new DynamoDBClient({
-  region: 'local',
-  endpoint: 'http://localhost:8000',
-  credentials: {
-    accessKeyId: 'dummy',
-    secretAccessKey: 'dummy'
-  }
-});
-
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
-
-const provider = new DynamodbProvider({
-  dynamoDB: {
-    target: 'v3',
-    instance: documentClient,
-    commands: { /* ... */ }
-  }
-});
-```
+The provider only works with **DocumentClient instances**, not the raw DynamoDB client.
 
 ## Next Steps
 
