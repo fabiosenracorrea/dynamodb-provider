@@ -163,7 +163,7 @@ sorter: (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTim
 
 Join strategy. Default: `'POSITION'`.
 
-**`'POSITION'`** - Sequential join based on query order. Requires table `typeIndex` with existing DynamoDB index.
+**`'POSITION'`** - Sequential join based on query order. Requires table `typeIndex` to be configured.
 
 ```typescript
 joinBy: 'POSITION'

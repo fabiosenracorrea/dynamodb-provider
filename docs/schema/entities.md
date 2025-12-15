@@ -52,7 +52,7 @@ Generates partition key from entity properties.
 
 **KeyValue**: `null | string | Array<string | number | null>`
 
-Parameters are restricted to entity properties only.
+Parameters are restricted to entity properties only. **Be sure to define its types properly to leverage the type inference**.
 
 **Function form:**
 
@@ -65,6 +65,10 @@ getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id]
 ```typescript
 getPartitionKey: ['USER', '.id']  // References User.id
 ```
+
+:::tip
+Unless you need to perform logic on your key generation, prefer the .dot notation. It automatically infers the key parameters and its easier/faster to define
+:::
 
 ### `getRangeKey` (required)
 
@@ -135,8 +139,8 @@ type AutoGenParams<Entity> = {
 ```typescript
 const User = table.schema.createEntity<User>().as({
   type: 'USER',
-  getPartitionKey: ({ id }) => ['USER', id],
-  getRangeKey: () => '#DATA',
+  getPartitionKey: ['USER', '.id'],
+  getRangeKey: ['#DATA'],
 
   autoGen: {
     onCreate: {
@@ -201,8 +205,8 @@ type Log = {
 
 const Logs = table.schema.createEntity<Log>().as({
   type: 'APP_LOGS',
-  getPartitionKey: () => ['APP_LOG'],
-  getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
+  getPartitionKey: ['APP_LOG'],
+  getRangeKey: ['.timestamp'],
 
   rangeQueries: {
     dateSlice: {
@@ -226,6 +230,61 @@ const logs = await table.schema.from(Logs).query.dateSlice({
 });
 ```
 
+### Operations and using default `getValues` parameters
+
+- `"equal" | "lower_than" | "lower_or_equal_than" | "bigger_than" | "bigger_or_equal_than" | "begins_with"`
+
+  Expects `{ value: KeyValue }`
+
+- `"between"`
+
+  Expects `{ start: KeyValue, end: KeyValue }`
+
+- `"key_prefix"`
+
+  No value is needed. This builds your **range key** and queries for everything that starts with the defined prefix.
+
+  Example: If you have `getRangeKey: ['LOG', '.timestamp', '.status']`, it will query for `begins_with` with `LOG` as reference. Very useful to not repeat yourself with key prefixes across usages.
+
+If you are fine with the default values expected from the operations, you can omit the `getValues` definition:
+
+```ts
+const LOGS_CUSTOM = table.schema.createEntity<Log>().as({
+  ...config,
+  getPartitionKey: ['APP_LOG'],
+
+  rangeQueries: {
+    dateSlice: {
+      operation: 'between',
+      getValues: ({ startDate, endDate }: { start: string; end: string }) => ({
+        start: startDate,
+        end: endDate,
+      })
+    },
+  }
+});
+
+const LOGS_DEFAULT = table.schema.createEntity<Log>().as({
+  ...config,
+
+  rangeQueries: {
+    dateSlice: {
+      operation: 'between',
+    },
+  }
+});
+
+const logs = await table.schema.from(LOGS_CUSTOM).query.dateSlice({
+  startDate: '2024-01-01',
+  endDate: '2024-01-31'
+});
+
+const logs = await table.schema.from(LOGS_DEFAULT).query.dateSlice({
+  start: '2024-01-01',
+  end: '2024-01-31'
+});
+```
+
 ## Indexes
 
 Secondary index definitions.
@@ -242,15 +301,16 @@ const Logs = table.schema.createEntity<Log>().as({
   getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
 
   indexes: {
+    // Obj key is the descriptive name you give to identify it
     byType: {
-      getPartitionKey: ({ type }: Pick<Log, 'type'>) => ['APP_LOG_BY_TYPE', type],
-      getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
+      getPartitionKey: ['APP_LOG_BY_TYPE', '.type'],
+      getRangeKey: ['.timestamp'],
       index: 'DynamoIndex1',  // Must match table indexes config
 
+      // same exact config options as above
       rangeQueries: {
         dateRange: {
           operation: 'between',
-          getValues: ({ start, end }) => ({ start, end })
         }
       }
     }
@@ -258,7 +318,11 @@ const Logs = table.schema.createEntity<Log>().as({
 });
 
 // Query index
-const errorLogs = await table.schema.from(Logs).queryIndex.byType({
+const errorLogs = await table.schema.from(Logs).queryIndex.byType.custom({
+  type: 'ERROR'
+});
+
+const errorLogs = await table.schema.from(Logs).queryIndex.byType.dateRange({
   type: 'ERROR'
 });
 ```
@@ -314,16 +378,6 @@ await table.schema.from(User).update({
   id: 'user-123',
   values: { name: 'John' }
   // type: 'USER' automatically added
-});
-```
-
-Or pass explicitly on each update:
-
-```typescript
-await table.schema.from(User).update({
-  id: 'user-123',
-  values: { name: 'John' },
-  includeTypeOnEveryUpdate: true
 });
 ```
 

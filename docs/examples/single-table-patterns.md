@@ -24,7 +24,11 @@ const ddbClient = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-east-1'
 });
 
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
+const documentClient = DynamoDBDocumentClient.from(ddbClient, {
+  marshallOptions: {
+      removeUndefinedValues: true,
+  },
+});
 
 const provider = new DynamodbProvider({
   dynamoDB: {

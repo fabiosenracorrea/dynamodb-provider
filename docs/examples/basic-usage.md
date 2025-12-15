@@ -21,16 +21,16 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { DynamodbProvider } from 'dynamodb-provider';
 
-// Create DynamoDB client
 const ddbClient = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-east-1',
-  // For local development
-  ...(process.env.DYNAMODB_ENDPOINT && {
-    endpoint: process.env.DYNAMODB_ENDPOINT
-  })
+  ...awsConfig
 });
 
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
+const documentClient = DynamoDBDocumentClient.from(ddbClient, {
+  marshallOptions: {
+      removeUndefinedValues: true,
+  },
+});
 
 // Create provider
 export const provider = new DynamodbProvider({
@@ -129,25 +129,23 @@ export class UserService {
     }
   }
 
-  async getUserById(userId: string): Promise<User | null> {
+  async getUserById(userId: string): Promise<User | undefined> {
     const user = await provider.get<User>({
       table: this.tableName,
       key: { userId },
       consistentRead: true
     });
 
-    return user || null;
+    return user
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
-    const { items } = await provider.query<User>({
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return provider.queryOne<User>({
       table: this.tableName,
       index: 'EmailIndex',
       partitionKey: { name: 'email', value: email },
       limit: 1
     });
-
-    return items[0] || null;
   }
 
   async updateUser(userId: string, updates: Partial<Pick<User, 'name' | 'status'>>): Promise<void> {
@@ -172,7 +170,7 @@ export class UserService {
   }
 
   async incrementLoginCount(userId: string): Promise<number> {
-    const result = await provider.update({
+    const { loginCount } = await provider.update({
       table: this.tableName,
       key: { userId },
       atomicOperations: [
@@ -184,7 +182,7 @@ export class UserService {
       returnUpdatedProperties: true
     });
 
-    return result?.loginCount || 0;
+    return loginCount || 0;
   }
 
   async addRole(userId: string, role: string): Promise<void> {
@@ -195,7 +193,7 @@ export class UserService {
         {
           operation: 'add_to_set',
           property: 'roles',
-          value: provider.createSet([role])
+          value: [role]
         }
       ]
     });
@@ -209,7 +207,7 @@ export class UserService {
         {
           operation: 'remove_from_set',
           property: 'roles',
-          value: provider.createSet([role])
+          value: [role]
         }
       ]
     });
@@ -233,7 +231,7 @@ export class UserService {
   }
 
   async listActiveUsers(limit: number = 50): Promise<User[]> {
-    return await provider.listAll<User>(this.tableName, {
+    return provider.listAll<User>(this.tableName, {
       filters: {
         status: 'active'
       },
@@ -242,7 +240,7 @@ export class UserService {
   }
 
   async batchGetUsers(userIds: string[]): Promise<User[]> {
-    return await provider.batchGet<User>({
+    return provider.batchGet<User>({
       table: this.tableName,
       keys: userIds.map(userId => ({ userId })),
       throwOnUnprocessed: true
@@ -255,36 +253,33 @@ export class UserService {
 }
 
 // Usage
-async function example() {
-  const userService = new UserService();
 
-  // Create user
-  const newUser = await userService.createUser({
-    email: 'john@example.com',
-    name: 'John Doe'
-  });
-  console.log('Created user:', newUser);
+const userService = new UserService();
 
-  // Get user
-  const user = await userService.getUserById(newUser.userId);
-  console.log('Retrieved user:', user);
+// Create user
+const newUser = await userService.createUser({
+  email: 'john@example.com',
+  name: 'John Doe'
+});
 
-  // Update user
-  await userService.updateUser(newUser.userId, {
-    name: 'John Smith'
-  });
+// Get user
+const user = await userService.getUserById(newUser.userId);
 
-  // Increment login count
-  const count = await userService.incrementLoginCount(newUser.userId);
-  console.log('Login count:', count);
+// Update user
+await userService.updateUser(newUser.userId, {
+  name: 'John Smith'
+});
 
-  // Add role
-  await userService.addRole(newUser.userId, 'admin');
+// Increment login count
+const count = await userService.incrementLoginCount(newUser.userId);
+console.log('Login count:', count);
 
-  // List active users
-  const activeUsers = await userService.listActiveUsers();
-  console.log('Active users:', activeUsers.length);
-}
+// Add role
+await userService.addRole(newUser.userId, 'admin');
+
+// List active users
+const activeUsers = await userService.listActiveUsers();
+console.log('Active users:', activeUsers.length);
 ```
 
 ## E-Commerce Order System
@@ -408,7 +403,7 @@ export class OrderService {
   }
 
   async getOrdersByCustomer(customerId: string): Promise<Order[]> {
-    const { items } = await provider.query<Order>({
+    const items = await provider.queryAll<Order>({
       table: 'Orders',
       index: 'CustomerIndex',
       partitionKey: { name: 'customerId', value: customerId },
@@ -478,28 +473,25 @@ export class OrderService {
 }
 
 // Usage
-async function example() {
-  const orderService = new OrderService();
 
-  const cartItems: CartItem[] = [
-    { cartId: 'cart1', customerId: 'customer123', productId: 'prod1', quantity: 2 },
-    { cartId: 'cart2', customerId: 'customer123', productId: 'prod2', quantity: 1 }
-  ];
+const orderService = new OrderService();
 
-  // Create order
-  const order = await orderService.createOrder('customer123', cartItems);
-  console.log('Created order:', order);
+const cartItems: CartItem[] = [
+  { cartId: 'cart1', customerId: 'customer123', productId: 'prod1', quantity: 2 },
+  { cartId: 'cart2', customerId: 'customer123', productId: 'prod2', quantity: 1 }
+];
 
-  // Get customer orders
-  const orders = await orderService.getOrdersByCustomer('customer123');
-  console.log('Customer orders:', orders.length);
+// Create order
+const order = await orderService.createOrder('customer123', cartItems);
 
-  // Update status
-  await orderService.updateOrderStatus(order.orderId, 'confirmed');
+// Get customer orders
+const orders = await orderService.getOrdersByCustomer('customer123');
 
-  // Cancel order
-  await orderService.cancelOrder(order.orderId);
-}
+// Update status
+await orderService.updateOrderStatus(order.orderId, 'confirmed');
+
+// Cancel order
+await orderService.cancelOrder(order.orderId);
 ```
 
 ## See Also

@@ -74,13 +74,16 @@ type User = {
   email: string;
 }
 
-const User = userPartition.use('mainData').create<User>().entity({
-  type: 'USER',
-  paramMatch: {
-    userId: 'id'  // Maps partition param 'userId' to entity property 'id'
-  }
-  // Other entity parameters...
-});
+const User = userPartition
+  .use('mainData')
+  .create<User>()
+  .entity({
+    type: 'USER',
+    paramMatch: {
+      userId: 'id'  // Maps partition param 'userId' to entity property 'id'
+    }
+    // Other entity parameters...
+  });
 ```
 
 ## Parameter Matching {#param-match}
@@ -96,7 +99,7 @@ const User = userPartition.use('mainData').create<User>().entity({
 ```typescript
 // Partition expects userId
 const userPartition = table.schema.createPartition({
-  getPartitionKey: ({ userId }) => ['USER', userId],
+  getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
   entries: { mainData: () => '#DATA' }
 });
 
@@ -128,6 +131,8 @@ const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttem
   // No paramMatch needed
 });
 ```
+
+This is extremely useful to not have to second guess your properties and write to the wrong values. Keep your partition key names as descriptive as possible, and match them when needed.
 
 ## Entry Single-Use Restriction
 
@@ -165,7 +170,7 @@ type User = {
 
 const emailPartition = table.schema.createPartition({
   name: 'EMAIL_PARTITION',
-  index: 'EmailIndex',  // Targets EmailIndex
+  index: 'GSI_One',  // type safe across your configured indexes
   getPartitionKey: ({ email }: { email: string }) => ['EMAIL', email],
   entries: {
     userData: () => ['#DATA']
@@ -179,10 +184,9 @@ const User = table.schema.createEntity<User>().as({
   getRangeKey: () => '#DATA',
 
   indexes: {
-    byEmail: emailPartition.use('userData').create<User>().index({
-      paramMatch: { email: 'email' }
-      // rangeQueries and other index parameters
-    })
+    // no param match needed
+    // extend with range queries if you want
+    byEmail: emailPartition.use('userData').create<User>().index()
   }
 });
 ```
@@ -212,16 +216,19 @@ type User = {
   email: string;
 }
 
-const User = userPartition.use('mainData').create<User>().entity({
-  type: 'USER',
-  paramMatch: { userId: 'id' },
-  autoGen: {
-    onCreate: {
-      id: 'UUID',
-      createdAt: 'timestamp'
+const User = userPartition
+  .use('mainData')
+  .create<User>()
+  .entity({
+    type: 'USER',
+    paramMatch: { userId: 'id' },
+    autoGen: {
+      onCreate: {
+        id: 'UUID',
+        createdAt: 'timestamp'
+      }
     }
-  }
-});
+  });
 
 type UserProfile = {
   userId: string;
@@ -229,21 +236,30 @@ type UserProfile = {
   avatar: string;
 }
 
-const UserProfile = userPartition.use('profile').create<UserProfile>().entity({
-  type: 'USER_PROFILE'
-  // No paramMatch needed - userId exists in type
-});
+const UserProfile = userPartition
+  .use('profile')
+  .create<UserProfile>()
+  .entity({
+    type: 'USER_PROFILE'
+    // No paramMatch needed - userId exists in type
+  });
 
 type Order = {
   userId: string;
-  orderId: string;
+  id: string;
   total: number;
 }
 
-const Order = userPartition.use('orders').create<Order>().entity({
-  type: 'USER_ORDER'
-  // No paramMatch needed - all params exist
-});
+const Order = userPartition
+  .use('orders')
+  .create<Order>()
+  .entity({
+    type: 'USER_ORDER'
+
+    // userId from partition exists, but 'orderId' is simply 'id'.
+    // partial match required!
+    paramMatch: { orderId: 'id' }
+  });
 ```
 
 ## Using with Collections
@@ -254,12 +270,14 @@ Partitions are especially useful for creating collections:
 const userWithData = userPartition.collection({
   ref: User,
   type: 'SINGLE',
+
   join: {
     profile: {
       entity: UserProfile,
       type: 'SINGLE',
       joinBy: 'TYPE'
     },
+
     orders: {
       entity: Order,
       type: 'MULTIPLE',
