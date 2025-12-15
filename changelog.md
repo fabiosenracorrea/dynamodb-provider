@@ -4,6 +4,8 @@
 
 Our biggest update yet! Lots of QOLs, 300+ more tests and more!
 
+New documentation website [here](fabiosenracorrea.github.io/dynamodb-provider)
+
 ### Breaking Changes
 
 - [**BREAKING**] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
