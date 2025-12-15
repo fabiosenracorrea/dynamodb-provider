@@ -18,3 +18,4 @@ docs/.vitepress/dist
 docs/.vitepress/cache
 
 PLAYGROUND_IMPLEMENTATION_PLAN.md
+.npmrc

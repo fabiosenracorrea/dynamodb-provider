@@ -6,3 +6,6 @@ tsconfig.json
 .eslintrc.json
 .prettierrc
 *.map
+.npmrc
+docs/*
+**/**.test.ts
