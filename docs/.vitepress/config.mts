@@ -6,8 +6,8 @@ export default defineConfig({
   description: "Fast Develop for DynamoDB with a type-safe & single-table aware library!",
 
   // SEO: Set the canonical base URL for your site
-  // Update this when you deploy (e.g., 'https://yourusername.github.io/dynamodb-provider/')
-  base: '/',
+  // GitHub Pages base path
+  base: '/dynamodb-provider/',
 
   lang: 'en-US',
 
@@ -17,7 +17,7 @@ export default defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Dynamodb Provider - Type-safe DynamoDB wrapper' }],
     ['meta', { property: 'og:description', content: 'Fast Develop for DynamoDB with a type-safe & single-table aware library!' }],
-    ['meta', { property: 'og:url', content: 'https://github.com/fabiosenracorrea/dynamodb-provider' }],
+    ['meta', { property: 'og:url', content: 'https://fabiosenracorrea.github.io/dynamodb-provider' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:title', content: 'Dynamodb Provider - Type-safe DynamoDB wrapper' }],
     ['meta', { name: 'twitter:description', content: 'Fast Develop for DynamoDB with a type-safe & single-table aware library!' }],
@@ -29,7 +29,7 @@ export default defineConfig({
 
   // SEO: Generate sitemap for search engines
   sitemap: {
-    hostname: 'https://yourusername.github.io/dynamodb-provider'
+    hostname: 'https://fabiosenracorrea.github.io/dynamodb-provider'
   },
 
   themeConfig: {

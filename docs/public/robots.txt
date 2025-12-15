@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fabiosenracorrea.github.io/dynamodb-provider/sitemap.xml
