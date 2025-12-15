@@ -112,6 +112,9 @@ partitionKey: ['USER', id]  // → 'USER::id'
 
 Index configuration for entity type identification. Required for `listType`, `listAllFromType`, `findTableItem`, and `filterTableItens` methods.
 
+Treat this as your "table name" column. While we do recommend creating an Index to easily manage all your entities, you can get by configuring it just to have the column set up
+on every item. It is **strongly recommended** to mark items by their type as single table's best practices.
+
 ```typescript
 typeIndex: {
   partitionKey: string;         // Column name for type identifier
@@ -185,7 +188,7 @@ const table = new SingleTable({
 
 // Use with create
 await table.create({
-  key: { partitionKey: 'SESSION#123', rangeKey: '#DATA' },
+  key: { partitionKey: ['SESSION', '123'], rangeKey: '#DATA' },
   item: { sessionId: '123', data: '...' },
   expiresAt: Math.floor(Date.now() / 1000) + 3600  // Expires in 1 hour
 });
@@ -206,12 +209,12 @@ const table = new SingleTable({
   indexes: {
     // Index name as defined in DynamoDB
     EmailIndex: {
-      partitionKey: 'email',     // GSI partition key column
-      rangeKey: 'createdAt'      // GSI range key column
+      partitionKey: 'gsih1',     // GSI partition key column
+      rangeKey: 'gsir1'      // GSI range key column
     },
     StatusIndex: {
-      partitionKey: 'status',
-      rangeKey: 'updatedAt'
+      partitionKey: 'gsih2',
+      rangeKey: 'gsir2'
     }
   }
 });
@@ -221,6 +224,7 @@ await table.create({
   key: { partitionKey: 'USER#123', rangeKey: '#DATA' },
   item: { userId: '123', name: 'John', email: 'john@example.com' },
   indexes: {
+    // type safe object key
     EmailIndex: {
       partitionKey: 'john@example.com',
       rangeKey: new Date().toISOString()
@@ -271,13 +275,15 @@ autoRemoveTableProperties: false
 // Returns all properties including pk, sk, etc.
 ```
 
-**Important:** Items should contain all relevant properties independently without relying on key extraction. For example, if PK is `USER#id`, include an `id` property in the item.
+:::tip ⚠️ Important
+**Best practices:** Items should contain all relevant properties independently without relying on key extraction. For example, if PK is `USER#id`, include an `id` property in the item. As a rule of thumb, single table columns should be low level and not relied as app-level values.
+:::
 
 ### `keepTypeProperty`
 - **Type**: `boolean`
 - **Default**: `false`
 
-Retains the `typeIndex` partition key column in returned items. Only applies when `autoRemoveTableProperties` is `true`.
+Retains the `typeIndex` partition key column in returned items. Only applies when `autoRemoveTableProperties` is `true`. This
 
 ```typescript
 const table = new SingleTable({
@@ -316,11 +322,8 @@ const table = new SingleTable({
   propertyCleanup: (item) => {
     // Custom cleanup logic
     const { pk, sk, _internal, ...cleaned } = item;
-    return {
-      ...cleaned,
-      // Add computed properties
-      fullName: `${cleaned.firstName} ${cleaned.lastName}`
-    };
+
+    return cleaned
   }
 });
 ```
@@ -345,15 +348,9 @@ await table.update({
   partitionKey: 'USER#123',
   rangeKey: '#DATA',
   values: {
-    pk: 'NEW_VALUE'  // Error: Cannot update internal property
+    _type: 'NEW_VALUE'  // Error: Cannot update internal property
   }
 });
-```
-
-**Disable validation:**
-
-```typescript
-blockInternalPropUpdate: false  // Allows updating any property (not recommended)
 ```
 
 ### `badUpdateValidation`

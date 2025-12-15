@@ -84,10 +84,10 @@ await table.update({
     status: 'active'
   },
   indexes: {
-    EmailIndex: {
+    GSI_One: {
       partitionKey: 'new@example.com'
     },
-    StatusIndex: {
+    GSI_Two: {
       partitionKey: 'active',
       rangeKey: new Date().toISOString()
     }
@@ -136,7 +136,7 @@ const result = await table.update({
   ],
   expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
   indexes: {
-    EmailIndex: {
+    GSI_One: {
       partitionKey: 'newemail@example.com'
     }
   },

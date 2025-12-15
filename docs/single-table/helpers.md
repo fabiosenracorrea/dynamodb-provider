@@ -36,36 +36,6 @@ await table.create({
 });
 ```
 
-### With Atomic Operations
-
-```typescript
-// Add to set
-await table.update({
-  partitionKey: 'ITEM#1',
-  rangeKey: '#DATA',
-  atomicOperations: [
-    {
-      operation: 'add_to_set',
-      property: 'tags',
-      value: table.createSet(['new', 'featured'])
-    }
-  ]
-});
-
-// Remove from set
-await table.update({
-  partitionKey: 'ITEM#1',
-  rangeKey: '#DATA',
-  atomicOperations: [
-    {
-      operation: 'remove_from_set',
-      property: 'tags',
-      value: table.createSet(['old'])
-    }
-  ]
-});
-```
-
 ## toTransactionParams
 
 See [transaction](/single-table/transaction#to-transaction-params) page.

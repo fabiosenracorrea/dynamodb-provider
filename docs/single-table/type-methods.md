@@ -107,7 +107,7 @@ const { items } = await table.listType({
 
 ## findTableItem
 
-Finds the first item matching a type. Requires `typeIndex` configured (index need not exist in DynamoDB).
+Finds the first item matching a type. Requires items to have the `typeIndex` partition column on them. Index does not need to exist as this is in code operation
 
 ### Method Signature
 
@@ -152,7 +152,7 @@ const settings = table.findTableItem<Settings>(items, 'USER_SETTINGS');
 
 ## filterTableItens
 
-Filters items by type. Requires `typeIndex` configured (index need not exist in DynamoDB).
+Filters items by type. Requires items to have the `typeIndex` partition column on them. Index does not need to exist as this is in code operation
 
 ### Method Signature
 
@@ -204,10 +204,7 @@ Requires `typeIndex` with an index that exists in DynamoDB:
 
 ```typescript
 const table = new SingleTable({
-  dynamodbProvider: provider,
-  table: 'AppData',
-  partitionKey: 'pk',
-  rangeKey: 'sk',
+  ...config,
   typeIndex: {
     name: 'TypeIndex',        // Must exist in DynamoDB
     partitionKey: '_type',
@@ -227,7 +224,8 @@ const table = new SingleTable({
   partitionKey: 'pk',
   rangeKey: 'sk',
   typeIndex: {
-    partitionKey: '_type',  // Only this is required
+    name: 'FakeIndexName',
+    partitionKey: '_type',  // Only this is required - it will be added to items
     // Index doesn't need to exist
   }
 });

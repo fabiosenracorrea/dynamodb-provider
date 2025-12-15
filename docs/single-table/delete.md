@@ -24,7 +24,7 @@ delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void>
 
 ## Return Value
 
-Returns `void`.
+No data is returned.
 
 ## Basic Example
 

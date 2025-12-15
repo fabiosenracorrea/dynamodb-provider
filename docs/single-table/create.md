@@ -102,11 +102,11 @@ const user = await table.create({
   },
   type: 'USER',
   indexes: {
-    EmailIndex: {
+    GSI_One: {
       partitionKey: 'john@example.com',
       rangeKey: new Date().toISOString()
     },
-    StatusIndex: {
+    GSI_Two: {
       partitionKey: 'active',
       rangeKey: userId
     }
@@ -132,7 +132,7 @@ const user = await table.create({
   type: 'USER',
   expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days
   indexes: {
-    EmailIndex: {
+    GSI_One: {
       partitionKey: 'john@example.com',
       rangeKey: new Date().toISOString()
     }
@@ -159,8 +159,6 @@ await provider.create({
   ]
 });
 ```
-
-Or use transactions for conditional creates.
 
 ## See Also
 

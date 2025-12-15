@@ -75,15 +75,6 @@ const items = await table.batchGet({
 // Automatically batched if > 100 items
 ```
 
-## Consistent Reads
-
-```typescript
-const items = await table.batchGet({
-  keys: [/* ... */],
-  consistentRead: true
-});
-```
-
 ## Throw on Unprocessed
 
 ```typescript

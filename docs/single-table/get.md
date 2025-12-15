@@ -82,53 +82,6 @@ const user = await table.get({
 });
 ```
 
-## Property Cleanup
-
-Internal properties are automatically removed:
-
-```typescript
-// In DynamoDB:
-{
-  pk: 'USER#123',
-  sk: '#DATA',
-  _type: 'USER',
-  _timestamp: '2024-01-15T10:30:00Z',
-  userId: '123',
-  name: 'John'
-}
-
-// Returned (with autoRemoveTableProperties: true):
-{
-  userId: '123',
-  name: 'John'
-}
-```
-
-## Consistent Reads
-
-```typescript
-const user = await table.get({
-  partitionKey: ['USER', userId],
-  rangeKey: '#DATA',
-  consistentRead: true  // Ensures latest data
-});
-```
-
-## Handling Missing Items
-
-```typescript
-const user = await table.get({
-  partitionKey: ['USER', 'non-existent'],
-  rangeKey: '#DATA'
-});
-
-if (!user) {
-  throw new Error('User not found');
-}
-
-// user is defined here
-```
-
 ## Type Safety
 
 ```typescript
