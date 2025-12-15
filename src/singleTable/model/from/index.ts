@@ -2,17 +2,17 @@ import { SingleTableParams } from 'singleTable/adaptor';
 
 import { FromEntity, SingleTableFromEntity } from './fromEntity';
 import { FromCollection, SingleTableFromCollection } from './fromCollection';
-import { ExtendableCollection, ExtendableSingleTableEntity } from '../definitions';
+import { AnyCollection, AnyEntity } from '../definitions';
 
 export * from './fromCollection';
 export * from './fromEntity';
 
 export type From<
-  Target extends ExtendableSingleTableEntity | ExtendableCollection,
+  Target extends AnyEntity | AnyCollection,
   Params extends SingleTableParams,
-> = Target extends ExtendableSingleTableEntity
+> = Target extends AnyEntity
   ? FromEntity<Target, Params>
-  : Target extends ExtendableCollection
+  : Target extends AnyCollection
   ? FromCollection<Target>
   : never;
 
@@ -27,23 +27,25 @@ export class SchemaFrom<SingleParams extends SingleTableParams> {
     this.collectionRepo = new SingleTableFromCollection(params);
   }
 
-  fromEntity<Registered extends ExtendableSingleTableEntity>(
+  fromEntity<Registered extends AnyEntity>(
     entity: Registered,
   ): FromEntity<Registered, SingleParams> {
     return this.entityRepo.fromEntity(entity);
   }
 
-  fromCollection<Collection extends ExtendableCollection>(
+  fromCollection<Collection extends AnyCollection>(
     collection: Collection,
   ): FromCollection<Collection> {
     return this.collectionRepo.fromCollection(collection);
   }
 
-  from<Target extends ExtendableSingleTableEntity | ExtendableCollection>(
+  from<Target extends AnyEntity | AnyCollection>(
     target: Target,
   ): From<Target, SingleParams> {
     const result =
-      target.__dbType === 'ENTITY' ? this.fromEntity(target) : this.fromCollection(target);
+      target.__dbType === 'ENTITY'
+        ? this.fromEntity(target)
+        : this.fromCollection(target);
 
     return result as unknown as From<Target, SingleParams>;
   }

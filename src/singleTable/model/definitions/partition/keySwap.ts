@@ -79,7 +79,10 @@ export type ParamMatchArgs<
       paramMatch: {
         [GetterKey in Extract<_KEYS_TO_MATCH, string>]: keyof Entity;
       } & {
-        [GetterKey in Exclude<keyof KeyParams<KeyGetters>, _KEYS_TO_MATCH>]?: keyof Entity;
+        [GetterKey in Exclude<
+          keyof KeyParams<KeyGetters>,
+          _KEYS_TO_MATCH
+        >]?: keyof Entity;
       };
     };
 
@@ -149,7 +152,11 @@ export type FullPartitionKeys<
     SafeParamMatchRef<RefParams>
   >;
 
-  getRangeKey: SwapParams<InitialGetters['getRangeKey'], Entity, SafeParamMatchRef<RefParams>>;
+  getRangeKey: SwapParams<
+    InitialGetters['getRangeKey'],
+    Entity,
+    SafeParamMatchRef<RefParams>
+  >;
 }>;
 
 type RefSwapParams = ParamMatchArgs<any, any> & EntityKeyResolvers<any>;

@@ -1,12 +1,253 @@
 # DynamoDB Provider Changelog
 
+# v3.0.0
+
+Our biggest update yet! Lots of QOLs, 300+ more tests and more!
+
+New documentation website [here](fabiosenracorrea.github.io/dynamodb-provider)
+
+### Breaking Changes
+
+- [**BREAKING**] *UUID*: Remove `uuid` library in favor of crypto's `randomUUID`. Min node supported version is now v16.
+- [**BREAKING**] `schema.fromCollection` and `schema.fromEntity` generators removed. Use `schema.from(xxx)` for both!
+- [**BREAKING**] `propertiesToGet` renamed on `list`/`listAll` methods, as `propertiesToRetrieve` is used on `get`/`batchGet` and is more descriptive.
+- [**BREAKING**] Helper method `generateTransactionConfigList` renamed to `toTransactionParams`
+- [**BREAKING**] `executeTransaction` removed. Use the `transaction` method instead
+- [**BREAKING**] `query` / `schema.from(ENTITY).query.custom()` / `schema.from(ENTITY).queryIndex.custom()` **no longer fully retrieves the data by default**. This means you should pass in `fullRetrieval: true` to them to keep the same behavior or use the new queryAll options.
+
+- [**BREAKING - Types**] Renamed for better clarity:
+  - `ExtendableCollection` type renamed to `AnyCollection`
+  - `ExtendableSingleTableEntity` type renamed to `AnyEntity`
+  - `TransactionConfig` type renamed to `TransactionParams`
+  - `SingleTableTransactionConfig` type renamed to `SingleTableTransactionParams`
+  - `CreateItemParams` type renamed to `CreateParams`
+  - `DeleteItemParams` type renamed to `DeleteParams`
+  - `SingleTableCreateItemParams` type renamed to `SingleTableCreateParams`
+
+### Features
+
+- **Feature**: Direct `collection` creation from `partition.collection()`
+- **Feature**: New entity helper types:  `GetEntityParams`, `UpdateEntityParams`, `CreateEntityParams` - easily reference the required params doing `Helper<typeof entity>`
+- **Feature**: `propertiesToRetrieve` added to query methods
+- **Feature**: `schema.from(xxx).update()` now property infers return type if `returnUpdatedProperties` is true.
+
+- **Feature**: Enable `includeTypeOnEveryUpdate` on your entity definition to automatically include the type value on every update operation. Especially useful if you have an entity you solely perform updates
+
+- **Feature**: Entities' **Range Queries** now support definitions with only the operation provided. Required params will be the default for its respective operation
+
+```ts
+const entity = table.schema.createEntity<{ name: string, id: string }>().as({
+  getPartitionKey: ['FIXED_KEY'],
+  getRangeKey: ['.name', '.id'],
+  type: 'ENTITY',
+  rangeQueries: {
+    param: {
+      operation: 'begins_with',
+      getValues: (p: { name: string }) => ({ value: p.name }),
+    },
+    noParam: {
+      operation: 'begins_with',
+    }
+  },
+});
+
+table.schema.from(entity).query.param({ name: 'Something' })
+
+table.schema.from(entity).query.noParam({ value: 'Something' })
+```
+
+- **Feature**: New `key_prefix` range query for entities! Automatically match the valid prefixes of your range keys! It matches up until the first non constant value of your key.
+
+```ts
+const Entity = table.schema.createEntity<EntityType>().as({
+  type: 'ENTITY',
+  getPartitionKey: ({ id }) => ['ENTITY', id],
+  getRangeKey: ({timestamp}: {timestamp: string}) => ['LOG', timestamp],
+
+  rangeQueries: {
+    allLogs: { operation: 'key_prefix' }
+  }
+});
+
+// no param required! No need to repeat the 'LOG' prefix!!
+// automatically queries for { begins_with: 'LOG' }
+const logs = await table.schema.from(Entity).query.allLogs()
+```
+
+- **Feature**: In line with the `key_prefix` idea, Partition `toKeyPrefix` method! Extract the constant prefix from partition entries without repeating yourself. Automatically returns all constant values up to the first variable parameter.
+
+```ts
+const partition = schema.createPartition({
+  name: 'USER_PARTITION',
+  getPartitionKey: ({ userId }) => ['USER', userId],
+  entries: {
+    // All constants - returns all values
+    metadata: () => ['METADATA', 'PROFILE'],
+
+    // Constants followed by variable - returns only constants
+    logs: ({ timestamp }) => ['LOG', 'ERROR', timestamp],
+
+    // Variable first - returns empty array
+    dynamic: ({ id }) => [id, 'SUFFIX'],
+  },
+});
+
+partition.toKeyPrefix('metadata');  // ['METADATA', 'PROFILE']
+partition.toKeyPrefix('logs');      // ['LOG', 'ERROR']
+partition.toKeyPrefix('dynamic');   // []
+```
+
+- **Feature**: `autoGenerators` configuration added to `SingleTable`. Define custom value generators or override built-in ones (`UUID`, `KSUID`, `timestamp`, `count`) that can be referenced in entity `autoGen` configurations. Custom generators are shared across all entities in the table.
+
+```ts
+const table = new SingleTable({
+  // ...config
+  autoGenerators: {
+    tenantId: () => getTenantFromContext(),
+
+    // Override built-in generators
+    UUID: () => customUUIDImplementation(),
+    timestamp: () => customTime(),
+  },
+});
+
+const Entity = table.schema.createEntity<EntityType>().as({
+  type: 'ENTITY',
+  getPartitionKey: ({ id }) => ['ENTITY', id],
+  getRangeKey: () => '#DATA',
+
+  autoGen: {
+    onCreate: {
+      id: 'UUID',              // Uses custom UUID implementation
+      tenantId: 'tenantId',    // Uses custom generator
+      createdAt: 'timestamp',  // Uses custom timestamp
+      versionId: 'KSUID'       // Uses built in generator
+    },
+  },
+});
+```
+
+- **Feature**: New query methods `queryOne` and `queryAll` for simplified query operations:
+  - `queryOne` - Returns the first matching item or undefined.
+  - `queryAll` - Returns all matching items as a simple array. Supports optional `limit` parameter as maximum total items to return.
+
+```ts
+// Query for first match
+const user = await provider.queryOne({
+  table: 'Users',
+  partitionKey: { name: 'email', value: 'user@example.com' }
+});
+
+// Query for all matches
+const allOrders = await provider.queryAll({
+  table: 'Orders',
+  partitionKey: { name: 'customerId', value: '12345' },
+  limit: 100  // Optional: max total items
+});
+
+// Works with SingleTable too
+const log = await table.queryOne({
+  partition: ['USER', 'id'],
+  range: { value: 'LOG#', operation: 'begins_with' }
+});
+
+const allLogs = await table.queryAll({
+  partition: ['USER', 'id'],
+  range: { value: 'LOG#', operation: 'begins_with' }
+});
+```
+
+- **Feature**: Schema query methods now support `.one()` and `.all()` variants for simplified querying with entities. These methods provide a cleaner API for common query patterns:
+  - `.one()` - Returns first matching item or `undefined` (no `limit` or `paginationToken` allowed)
+  - `.all()` - Returns all items as array (no `paginationToken`, but accepts `limit` as max total items)
+
+Available on all query methods: `query.custom`, range queries, `queryIndex.custom`, and index range queries.
+
+```ts
+const User = table.schema.createEntity<User>().as({
+  type: 'USER',
+  getPartitionKey: ({ id }: { id: string }) => ['USER', id],
+  getRangeKey: () => ['#DATA'],
+  rangeQueries: {
+    recent: {
+      operation: 'bigger_than',
+      getValues: ({ since }: { since: string }) => ({ value: since })
+    }
+  },
+  indexes: {
+    byEmail: {
+      getPartitionKey: ['USER_BY_EMAIL', '.email'],
+      getRangeKey: ['#DATA'],
+      index: 'EmailIndex',
+      rangeQueries: {
+        dateRange: {
+          operation: 'between',
+          getValues: ({ start, end }) => ({ start, end })
+        }
+      }
+    }
+  }
+});
+
+const userRepo = table.schema.from(User);
+
+// Query variants
+const firstUser = await userRepo.query.one({ id: 'user-123' });
+// Returns: User | undefined
+
+const allUsers = await userRepo.query.all({ id: 'user-123' });
+// Returns: User[]
+
+// Range query variants
+const recentItem = await userRepo.query.recent.one({ id: 'user-123', since: '2024-01-01' });
+// Returns: User | undefined
+
+const allRecent = await userRepo.query.recent.all({ id: 'user-123', since: '2024-01-01', limit: 50 });
+// Returns: User[]
+
+// Index query variants
+const userByEmail = await userRepo.queryIndex.byEmail.one({ email: 'test@example.com' });
+// Returns: User | undefined
+
+const allByEmail = await userRepo.queryIndex.byEmail.all({ email: 'test@example.com' });
+// Returns: User[]
+
+// Index range query variants
+const firstInRange = await userRepo.queryIndex.byEmail.dateRange.one({
+  email: 'test@example.com',
+  start: '2024-01-01',
+  end: '2024-12-31'
+});
+// Returns: User | undefined
+
+const allInRange = await userRepo.queryIndex.byEmail.dateRange.all({
+  email: 'test@example.com',
+  start: '2024-01-01',
+  end: '2024-12-31',
+  limit: 100  // Optional: max total items
+});
+// Returns: User[]
+```
+
+### Fixes
+
+- **Fix**: Resolution of Entity's range queries required params. Some calls were falling into the optional param branch when it shouldn't
+- **Fix**: Transaction size validation reference after null checks
+- **Fix**: `schema.from(xxx).delete()` params no longer required if entity has no key params
+- **Fix**: `paginationToken` on `QueryResult` was marked as required.
+- **Fix**: `nested` conditions were not properly generating their `ExpressionAttributeNames` and `ExpressionAttributeValues`
+
+### Huge Coverage increase!
+
+- **Testing**: Type checks enabled and type tests incorporated on every test file. Previously, updates to types could easily break usages via type-check breaks. Actual runtime results were OK but one of the huge benefits of our lib was basically vulnerable to badly tested modifications. Added **300+ tests**.
+
 # v2.1.2
 
-- *Fix*: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
+- **Fix**: `.property` references on `getPartitionKey` and/or `getRangeKey` specifically when creating an entity from a partition would result in `never` instead of the proper entity
 
 # v2.1.1
 
-- *Fix*: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
+- **Fix**: DynamoDB's v3 type. Passing commands directly from `@aws-sdk/lib-dynamodb` was being rejected
 
 # v2.1.0
 
@@ -16,9 +257,9 @@
 
 ### Deprecation plan:
 
-- `schema.fromEntity(xxx)` and `schema.fromCollection(yyy)`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `from` moving forward
+- ~~`schema.fromEntity(xxx)` and `schema.fromCollection(yyy)`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `from` moving forward~~. Removed on v3.
 
-- `schema.executeTransaction` and `table.executeTransaction`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `transaction` moving forward
+- ~~`schema.executeTransaction` and `table.executeTransaction`  will be removed in a future version, but will only be marked as deprecated later on. Prefer the new `transaction` moving forward~~. Removed on v3.
 
 # v2.0.2
 

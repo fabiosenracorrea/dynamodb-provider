@@ -33,7 +33,7 @@ type EntityIndexConfig<
    */
   indexes: {
     [IndexName in keyof IndexConfig]: RangeQueryResultProps<IndexConfig[IndexName]> &
-      EntityKeyGetters<Entity, IndexConfig[IndexName]>;
+      EntityKeyGetters<Entity, IndexConfig[IndexName]> & { index: IndexName };
   };
 
   getCreationIndexMapping: (params: IndexParams<Entity, IndexConfig>) => {
@@ -108,11 +108,14 @@ export function getEntityIndexParams<
   tableConfig: SingleTableConfig,
   params: IParams,
 ): EntityIndexResultProps<TableConfig, AnyObject, IParams> {
-  const okParams = tableConfig.indexes && typeof params === 'object' && 'indexes' in params!;
+  const okParams =
+    tableConfig.indexes && typeof params === 'object' && 'indexes' in params!;
 
   if (!okParams) return {} as EntityIndexResultProps<TableConfig, AnyObject, IParams>;
 
-  const { indexes } = params as { indexes: IndexMapping<SingleTableConfigWithIndex, any> };
+  const { indexes } = params as {
+    indexes: IndexMapping<SingleTableConfigWithIndex, any>;
+  };
 
   validateDoubleReference(indexes, params.type);
 

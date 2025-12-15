@@ -79,7 +79,8 @@ export interface ListExpression<Entity> extends BasalExpressionValues<Entity> {
   operation: Extract<ExpressionOperation, 'in' | 'not_in'>;
 }
 
-export interface AttributeExistenceExpression<Entity> extends BasalExpressionValues<Entity> {
+export interface AttributeExistenceExpression<Entity>
+  extends BasalExpressionValues<Entity> {
   operation: Extract<ExpressionOperation, 'exists' | 'not_exists'>;
 }
 

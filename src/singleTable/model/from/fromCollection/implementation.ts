@@ -6,7 +6,7 @@ import { cascadeEval } from 'utils/conditions';
 import { SingleTableMethods, SingleTableParams } from 'singleTable/adaptor';
 import type {
   BaseJoinConfig,
-  ExtendableCollection,
+  AnyCollection,
   Extractor,
   JoinResolutionParams,
   Sorter,
@@ -85,7 +85,8 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     const parentIndex = nullParent
       ? 0
       : options.findIndex(
-          (option) => parent[pkProp] === option[pkProp] && parent[skProp] === option[skProp],
+          (option) =>
+            parent[pkProp] === option[pkProp] && parent[skProp] === option[skProp],
         );
 
     if (parentIndex < 0 || parentIndex > getLastIndex(options)) return [];
@@ -120,7 +121,10 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private applySort<Entity>(list: Entity[], sorter?: (a: any, b: any) => number): Entity[] {
+  private applySort<Entity>(
+    list: Entity[],
+    sorter?: (a: any, b: any) => number,
+  ): Entity[] {
     if (!sorter) return list;
 
     return list.slice().sort(sorter);
@@ -134,7 +138,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
   }: {
     item: AnyObject;
     options: AnyObject[]; // all the options available to be joined
-    join: ExtendableCollection['join'];
+    join: AnyCollection['join'];
     mapping: Record<string, AnyObject[]>; // byType to easily reduce times if joinBy is BY TYPE
   }): AnyObject {
     const joinProps = Object.fromEntries(
@@ -148,7 +152,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
             sorter,
             extractor,
           } = config as typeof config & {
-            join?: ExtendableCollection['join'];
+            join?: AnyCollection['join'];
             sorter?: Sorter;
             extractor?: Extractor;
           };
@@ -161,7 +165,8 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
             joinBy,
           });
 
-          const childrenBase = type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;
+          const childrenBase =
+            type === 'SINGLE' ? getFirstItem(joinOptions) : joinOptions;
 
           const children = cascadeEval([
             {
@@ -244,7 +249,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
 
   private cleanCollectionProps<Result extends AnyObject | AnyObject[]>(
     result: Result,
-    collection: ExtendableCollection,
+    collection: AnyCollection,
   ): Result {
     return this.cleanSingleCollectionEntry(
       result,
@@ -253,7 +258,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     );
   }
 
-  private buildCollection<Collection extends ExtendableCollection>(
+  private buildCollection<Collection extends AnyCollection>(
     collection: Collection,
     items: AnyObject[],
   ): GetCollectionResult<Collection> {
@@ -300,7 +305,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     return this.cleanCollectionProps(joined, collection);
   }
 
-  private async getPartitionCollection<Collection extends ExtendableCollection>(
+  private async getPartitionCollection<Collection extends AnyCollection>(
     collection: Collection,
     ...params: Parameters<FromCollection<Collection>['get']>
   ): Promise<GetCollectionResult<Collection>> {
@@ -339,7 +344,7 @@ export class SingleTableFromCollection<SingleParams extends SingleTableParams> {
     return this.buildCollection(collection, items);
   }
 
-  fromCollection<Collection extends ExtendableCollection>(
+  fromCollection<Collection extends AnyCollection>(
     collection: Collection,
   ): FromCollection<Collection> {
     const methods: FromCollection<Collection> = {

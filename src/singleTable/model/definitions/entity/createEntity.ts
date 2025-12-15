@@ -16,7 +16,10 @@ export function createEntity<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
->(tableConfig: TableConfig, params: Params): SingleTableEntity<TableConfig, Entity, Params> {
+>(
+  tableConfig: TableConfig,
+  params: Params,
+): SingleTableEntity<TableConfig, Entity, Params> {
   const keyParams = resolveKeys(params as any);
 
   const indexParams = getEntityIndexParams(tableConfig, params);
@@ -28,7 +31,7 @@ export function createEntity<
 
     ...indexParams,
 
-    ...getRangeQueriesParams(params),
+    ...getRangeQueriesParams(params as any),
 
     ...getCRUDParamGetters(tableConfig, {
       ...params,

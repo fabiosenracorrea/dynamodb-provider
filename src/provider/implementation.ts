@@ -5,10 +5,10 @@ import { AnyObject, StringKey } from 'types';
 import { DynamoDbProviderParams, IDynamodbProvider } from './definition';
 
 import {
-  CreateItemParams,
-  DeleteItemParams,
+  CreateParams,
+  DeleteParams,
   UpdateParams,
-  TransactionConfig,
+  TransactionParams,
   DBSet,
   BatchListItemsArgs,
   GetItemParams,
@@ -25,6 +25,8 @@ import {
   QueryBuilder,
   QueryParams,
   QueryResult,
+  QueryOneParams,
+  QueryAllParams,
   DynamoDBSet,
 } from './utils';
 
@@ -80,13 +82,13 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   }
 
   async create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: CreateItemParams<Entity, PKs>,
+    params: CreateParams<Entity, PKs>,
   ): Promise<Entity> {
-    return this.creator.create(params as CreateItemParams<Entity>);
+    return this.creator.create(params as CreateParams<Entity>);
   }
 
   async delete<Entity extends Record<string, any>>(
-    params: DeleteItemParams<Entity>,
+    params: DeleteParams<Entity>,
   ): Promise<void> {
     await this.remover.delete(params);
   }
@@ -117,26 +119,31 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     return this.batchGetter.batchGet(options);
   }
 
-  async query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
+  async query<Entity = AnyObject>(
+    params: QueryParams<Entity>,
+  ): Promise<QueryResult<Entity>> {
     return this.queryBuilder.query(params);
   }
 
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  async executeTransaction(configs: (TransactionConfig | null)[]): Promise<void> {
+  async queryOne<Entity = AnyObject>(
+    params: QueryOneParams<Entity>,
+  ): Promise<Entity | undefined> {
+    return this.queryBuilder.queryOne(params);
+  }
+
+  async queryAll<Entity = AnyObject>(params: QueryAllParams<Entity>): Promise<Entity[]> {
+    return this.queryBuilder.queryAll(params);
+  }
+
+  async transaction(configs: (TransactionParams | null)[]): Promise<void> {
     await this.transactWriter.transaction(configs);
   }
 
-  async transaction(configs: (TransactionConfig | null)[]): Promise<void> {
-    await this.transactWriter.transaction(configs);
-  }
-
-  generateTransactionConfigList<Item>(
+  toTransactionParams<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[],
-  ): TransactionConfig[] {
-    return this.transactWriter.generateTransactionConfigList(items, generator);
+    generator: (item: Item) => (TransactionParams | null)[],
+  ): TransactionParams[] {
+    return this.transactWriter.toTransactionParams(items, generator);
   }
 
   createSet<T extends string[] | number[]>(

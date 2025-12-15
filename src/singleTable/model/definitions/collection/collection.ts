@@ -8,9 +8,9 @@ import {
 } from 'singleTable/adaptor/definitions';
 
 import { pick } from 'utils/object';
-import { ExtendableSingleTableEntity } from '../entity';
+import { AnyEntity } from '../entity';
 
-type RefEntity = ExtendableSingleTableEntity;
+type RefEntity = AnyEntity;
 
 export type Sorter = (a: any, b: any) => number;
 export type Extractor<E = any> = (a: E) => any;
@@ -153,7 +153,7 @@ type ConfiguredJoin<Config extends JoinConfig> = JoinResolutionParams &
       }
     : unknown);
 
-export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = EntityDepthParams & {
+export type CollectionParamsWithoutKey = EntityDepthParams & {
   /**
    * Root entity.
    *
@@ -173,7 +173,10 @@ export type PartitionCollectionParams<TableConfig extends SingleTableConfig> = E
    * - `Function` - Define a custom range narrower for your collection
    */
   narrowBy?: 'RANGE_KEY' | ((...params: any[]) => DefinedNameRangeKeyConfig);
-} & PartitionRefParams<TableConfig>;
+};
+
+export type PartitionCollectionParams<TableConfig extends SingleTableConfig> =
+  CollectionParamsWithoutKey & PartitionRefParams<TableConfig>;
 
 type SingleOrArray<Entity, Type extends EntityJoinType> = Type extends 'SINGLE'
   ? PrettifyObject<Entity>
@@ -249,24 +252,34 @@ function createCollectionJoin<Config extends BaseJoinConfig>(
   [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
 } {
   return Object.fromEntries(
-    Object.entries(config).map(([key, { entity, join, joinBy = 'POSITION', ...params }]) => [
-      key,
-      {
-        ...params,
-        entity,
-        joinBy,
-        ref: entity.type,
-        join: join ? createCollectionJoin(join) : undefined,
-      },
-    ]),
+    Object.entries(config).map(
+      ([key, { entity, join, joinBy = 'POSITION', ...params }]) => [
+        key,
+        {
+          ...params,
+          entity,
+          joinBy,
+          ref: entity.type,
+          join: join ? createCollectionJoin(join) : undefined,
+        },
+      ],
+    ),
   ) as unknown as {
     [Key in keyof Config]: ConfiguredJoin<Config[Key]>;
   };
 }
 
-export type ExtendableCollection = PartitionCollection<any>;
+/**
+ * Due to the complex nature of our entity obj, we rely on making this
+ * as generic as possible, and ts infer will do the rest
+ */
+export type AnyCollection = PartitionCollection<any>;
 
-export type GetCollectionType<Collection extends ExtendableCollection> = Collection['__type'];
+/**
+ * Simplified type helper to extract the resulting type out of your
+ * collection definition
+ */
+export type GetCollectionType<Collection extends AnyCollection> = Collection['__type'];
 
 export function createCollection<Params extends PartitionCollectionParams<any>>({
   join,

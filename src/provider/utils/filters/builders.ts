@@ -76,7 +76,10 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
     Object.entries(filters)
       .filter(([, value]) =>
         cascadeEval([
-          { is: Array.isArray(value), then: () => (value as any[]).filter(isNonNullable).length },
+          {
+            is: Array.isArray(value),
+            then: () => (value as any[]).filter(isNonNullable).length,
+          },
           {
             is: typeof value === 'object',
             then: () =>
@@ -85,12 +88,14 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
                 {
                   is: 'between',
                   then: !!(
-                    (value as BetweenFilterConfig)?.start && (value as BetweenFilterConfig)?.end
+                    (value as BetweenFilterConfig)?.start &&
+                    (value as BetweenFilterConfig)?.end
                   ),
                 },
                 {
                   is: ['in', 'not_in'],
-                  then: () => (value as ListFilterConfig).values.filter(isNonNullable).length,
+                  then: () =>
+                    (value as ListFilterConfig).values.filter(isNonNullable).length,
                 },
                 {
                   is: true,
@@ -103,7 +108,10 @@ export function purgeUndefinedFilters<Entity extends AnyObject>(
       )
       .map(([key, value]) =>
         cascadeEval([
-          { is: Array.isArray(value), then: () => [key, (value as any[]).filter(isNonNullable)] },
+          {
+            is: Array.isArray(value),
+            then: () => [key, (value as any[]).filter(isNonNullable)],
+          },
           {
             is: typeof value === 'object',
             then: () =>

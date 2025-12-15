@@ -15,18 +15,43 @@ export function buildConditionExpression(conditions: ItemExpression<any>[]): str
   return buildExpression(conditions, CONDITION_PREFIX);
 }
 
-export function getConditionExpressionNames(conditions: ItemExpression<any>[]): AnyObject {
+function getConditionProps(conditions: ItemExpression<any>[]): string[] {
+  return conditions
+    .map(({ property, nested }) => [
+      property,
+      ...(nested?.length ? getConditionProps(nested) : []),
+    ])
+    .flat();
+}
+
+export function getConditionExpressionNames(
+  conditions: ItemExpression<any>[],
+): AnyObject {
   return getExpressionNames(
-    conditions.map(({ property }) => property),
+    //
+    getConditionProps(conditions),
     CONDITION_PREFIX,
   );
 }
 
-export function getConditionExpressionValues(conditions: ItemExpression<any>[]): AnyObject {
-  return getExpressionValues(conditions, CONDITION_PREFIX);
+function flatConditions(conditions: ItemExpression<any>[]): ItemExpression<any>[] {
+  return conditions
+    .map(({ nested, ...cond }) => [
+      cond,
+      ...(nested?.length ? flatConditions(nested) : []),
+    ])
+    .flat();
 }
 
-export function getConditionParams(conditions?: ItemExpression<any>[]): DBConditionParams {
+export function getConditionExpressionValues(
+  conditions: ItemExpression<any>[],
+): AnyObject {
+  return getExpressionValues(flatConditions(conditions), CONDITION_PREFIX);
+}
+
+export function getConditionParams(
+  conditions?: ItemExpression<any>[],
+): DBConditionParams {
   if (!conditions?.length) return {};
 
   const ExpressionAttributeValues = getConditionExpressionValues(conditions);

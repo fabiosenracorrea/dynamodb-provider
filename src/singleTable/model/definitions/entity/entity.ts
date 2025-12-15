@@ -12,10 +12,10 @@ import { EntityCRUDProps, ExtendableCRUDProps } from './crud';
 import { EntityIndexResultProps, ExtendibleIndexProps } from './indexParams';
 import { EntityParseProps, ResolvedEntity } from './parsers';
 
-type RawEntity<Entity extends AnyObject, Params extends RegisterEntityParams<any, any>> = Pick<
-  Params,
-  'type'
-> &
+type RawEntity<
+  Entity extends AnyObject,
+  Params extends RegisterEntityParams<any, any>,
+> = Pick<Params, 'type'> &
   EntityKeyGetters<Entity, Params> & {
     /**
      * This is a helper property used solely internally for ease-of-map types
@@ -44,7 +44,7 @@ export type SingleTableEntity<
  * Due to the complex nature of our entity obj, we rely on making this
  * as generic as possible, and ts infer will do the rest
  */
-export type ExtendableSingleTableEntity = Omit<
+export type AnyEntity = Omit<
   SingleTableEntity<any, any, RegisterEntityParams<any, any>>,
   | 'getPartitionKey'
   | 'getRangeKey'

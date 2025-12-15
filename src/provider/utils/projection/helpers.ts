@@ -6,7 +6,9 @@ import { getExpressionNames, toExpressionName } from '../expressions';
 
 const PROJECT_EXPRESSION_PREFIX = '__projection_';
 
-export function getProjectionExpression(properties?: string[] | undefined): string | undefined {
+export function getProjectionExpression(
+  properties?: string[] | undefined,
+): string | undefined {
   if (!properties?.length) return;
 
   return properties
@@ -14,13 +16,17 @@ export function getProjectionExpression(properties?: string[] | undefined): stri
     .join(', ');
 }
 
-export function getProjectionExpressionNames(properties?: string[] | undefined): AnyObject {
+export function getProjectionExpressionNames(
+  properties?: string[] | undefined,
+): AnyObject {
   if (!properties?.length) return {};
 
   return getExpressionNames(properties, PROJECT_EXPRESSION_PREFIX);
 }
 
-export function getProjectExpressionParams(properties?: string[] | undefined): DBProjectionParams {
+export function getProjectExpressionParams(
+  properties?: string[] | undefined,
+): DBProjectionParams {
   if (!properties?.length) return {};
 
   return {

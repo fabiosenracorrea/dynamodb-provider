@@ -27,7 +27,10 @@ export function buildExpression(conditions: ItemExpression<any>[], prefix = ''):
     const isFirst = !acc;
 
     const nextExpression = nested.length
-      ? buildExpression([omit(condition, ['nested']) as ItemExpression<any>, ...nested], prefix)
+      ? buildExpression(
+          [omit(condition, ['nested']) as ItemExpression<any>, ...nested],
+          prefix,
+        )
       : expressionBuilders[operation]({
           prop: property,
           value: getConditionValue(condition),

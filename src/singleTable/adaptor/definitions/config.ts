@@ -1,5 +1,8 @@
 import { AnyObject } from 'types';
 
+/**
+ * Parameters accepted by the `SingleTable` instance
+ */
 export interface SingleTableConfig {
   /**
    * The logical separator that joins key paths
@@ -191,4 +194,35 @@ export interface SingleTableConfig {
    * params
    */
   badUpdateValidation?: (propertiesInUpdate: Set<string>) => boolean | string;
+
+  /**
+   * Extend/Overwrite schema's `autoGen` capabilities
+   * by defining your custom generators. These generation
+   * types will be available for reference on each `autoGen`
+   * with the same key as they appear here
+   *
+   * @example
+   * ```ts
+   * const table = new SingleTable({
+   *   ...config,
+   *
+   *   autoGenerators: {
+   *      'my-generator': () => 'CUSTOM!',
+   *   }
+   * });
+   *
+   * const entity = table.schema.createEntity({
+   *   ...config,
+   *
+   *    autoGen: {
+   *       onCrate: {
+   *          createdAt: 'timestamp',
+   *          someProp: 'my-generator',
+   *       }
+   *    }
+   * });
+   * ```
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  autoGenerators?: Record<string, () => any>;
 }

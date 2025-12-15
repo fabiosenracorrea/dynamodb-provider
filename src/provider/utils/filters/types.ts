@@ -43,7 +43,9 @@ export type FilterConfig =
 
 // https://stackoverflow.com/questions/54520676/in-typescript-how-to-get-the-keys-of-an-object-type-whose-values-are-of-a-given
 // type KeysMatching<T, V> = { [K in keyof T]-?: T[K] extends V ? K : never }[keyof T];
-type KeysWithValuesOfType<T, V> = keyof { [P in keyof T as T[P] extends V ? P : never]: P };
+type KeysWithValuesOfType<T, V> = keyof {
+  [P in keyof T as T[P] extends V ? P : never]: P;
+};
 
 type GoodFilterTargets = string | number | boolean | null | undefined;
 

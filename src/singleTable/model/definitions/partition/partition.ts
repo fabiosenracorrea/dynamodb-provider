@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SingleTableConfig } from 'singleTable/adaptor';
+import { KeyValue } from 'singleTable/adaptor/definitions';
 
 import { AnyObject } from 'types';
 import { CreatePartitionParams, PartitionEntry } from './params';
 import { PartitionIndexCreator } from './indexPartition';
 import { PartitionEntityCreator } from './entityPartition';
+import { CollectionParamsWithoutKey, PartitionCollection } from '../collection';
 
 type PartitionDumpParams<
   TableConfig extends SingleTableConfig,
@@ -22,6 +24,18 @@ export type Partition<
   Params extends CreatePartitionParams<any>,
 > = Params & {
   id: string;
+
+  /**
+   *
+   * @param entry One of this partition's `entries`
+   *
+   * Generate the key prefix for the given rangeKey without repeating
+   * your constants
+   *
+   * if `getRangeKey({timestamp}) => ['LOG', timestamp]`
+   * the prefix will be `[LOG]`
+   */
+  toKeyPrefix<Entry extends PartitionEntry<Params>>(entry: Entry): KeyValue;
 
   /**
    * @param entry One of this partition's `entries`
@@ -42,4 +56,14 @@ export type Partition<
     >(): // ...params: T extends void ? ['You must provided a type parameter'] : []
     PartitionDumpParams<TableConfig, Params, Entry, T>;
   };
+
+  collection<T extends CollectionParamsWithoutKey>(
+    params: T,
+  ): PartitionCollection<
+    T extends CollectionParamsWithoutKey
+      ? T & {
+          partition: Partition<TableConfig, Params>;
+        }
+      : never
+  >;
 };

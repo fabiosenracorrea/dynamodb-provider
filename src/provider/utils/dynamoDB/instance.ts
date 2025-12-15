@@ -7,9 +7,9 @@ import {
   DynamoDBV2Actions,
   DBBatchGetParams,
   DBGetParams,
-  DBDeleteItemParams,
-  DBCreateItemParams,
-  DBUpdateItemParams,
+  DBDeleteParams,
+  DBCreateParams,
+  DBUpdateParams,
   DBSet,
   DBScanParams,
   DBQueryParams,
@@ -89,8 +89,8 @@ export class DynamodbExecutor {
   }
 
   protected async _deleteItem(
-    params: DBDeleteItemParams['input'],
-  ): Promise<DBDeleteItemParams['output']> {
+    params: DBDeleteParams['input'],
+  ): Promise<DBDeleteParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.DeleteCommand,
@@ -99,8 +99,8 @@ export class DynamodbExecutor {
   }
 
   protected async _insertItem(
-    params: DBCreateItemParams['input'],
-  ): Promise<DBCreateItemParams['output']> {
+    params: DBCreateParams['input'],
+  ): Promise<DBCreateParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.PutCommand,
@@ -109,8 +109,8 @@ export class DynamodbExecutor {
   }
 
   protected async _updateItem(
-    params: DBUpdateItemParams['input'],
-  ): Promise<DBUpdateItemParams['output']> {
+    params: DBUpdateParams['input'],
+  ): Promise<DBUpdateParams['output']> {
     return this.execute({
       params,
       Command: this.dynamoDB.commands?.UpdateCommand,
@@ -128,9 +128,14 @@ export class DynamodbExecutor {
     });
   }
 
-  protected _createSet<T extends string[] | number[]>(items: T): DBSet<T[number], 'v2' | 'v3'> {
+  protected _createSet<T extends string[] | number[]>(
+    items: T,
+  ): DBSet<T[number], 'v2' | 'v3'> {
     if (this.dynamoDB.target === 'v3') return new Set(items as any[]);
 
-    return this.dynamoDB.instance.createSet(items) as any as DBSet<T[number], 'v2' | 'v3'>;
+    return this.dynamoDB.instance.createSet(items) as any as DBSet<
+      T[number],
+      'v2' | 'v3'
+    >;
   }
 }

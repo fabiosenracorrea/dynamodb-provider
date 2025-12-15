@@ -4,40 +4,7 @@ import { SingleTableSchema } from './schema';
 
 export type SingleTableSchemaType<SingleParams extends SingleTableParams> = {
   /**
-   * [Deprecated soon] Prefer `from` going forward.
-   *
-   * Create a repository-like structure from a Collection to easily extract it joined.
-   *
-   * This could be useful to easily extract item collections and join them.
-   *
-   * Let's say you have a Kanban app in which the following entries are present in your DB:
-   *
-   * - PROJECT
-   * - TAGS
-   * - TASKS
-   * - TASK SUBTASKS
-   * - TASK TAGS
-   *
-   * All of which are under the same PROJECT#id partitionKey
-   *
-   * Create its Collection and the relevant methods by passing it to this method
-   * ```
-   */
-  fromCollection: SingleTableSchema<SingleParams>['fromCollection'];
-
-  /**
-   * [Deprecated soon] Prefer `from` going forward.
-   *
-   * Create a repository-like structure from an entity, easily execute CRUD methods on said entity
-   *
-   * Every key param will be inferred and queries will be available to directly call
-   */
-  fromEntity: SingleTableSchema<SingleParams>['fromEntity'];
-
-  /**
-   * Create a repository-like structure for an entity or collection, easily.
-   *
-   * A better and more direct way than using `fromEntity` and `fromCollection`
+   * Create a repository-like structure for an entity or collection.
    */
   from: SingleTableSchema<SingleParams>['from'];
 

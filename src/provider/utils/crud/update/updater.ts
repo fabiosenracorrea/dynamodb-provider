@@ -4,7 +4,7 @@ import { StringKey } from 'types';
 
 import { omitUndefined } from 'utils/object';
 
-import { DBUpdateItemParams, DynamodbExecutor } from '../../dynamoDB';
+import { DBUpdateParams, DynamodbExecutor } from '../../dynamoDB';
 
 import { getConditionParams } from '../../conditions';
 import {
@@ -22,7 +22,10 @@ export class ItemUpdater extends DynamodbExecutor {
   private convertAtomicValue({
     type,
     value,
-  }: Pick<Exclude<UpdateParams<any>['atomicOperations'], undefined>[0], 'type' | 'value'>): any {
+  }: Pick<
+    Exclude<UpdateParams<any>['atomicOperations'], undefined>[0],
+    'type' | 'value'
+  >): any {
     switch (type) {
       case 'add_to_set':
       case 'remove_from_set':
@@ -63,7 +66,7 @@ export class ItemUpdater extends DynamodbExecutor {
 
   getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
-  ): DBUpdateItemParams['input'] {
+  ): DBUpdateParams['input'] {
     validateUpdateParams(params);
 
     const { key, table, remove, returnUpdatedProperties } = params;
@@ -94,9 +97,10 @@ export class ItemUpdater extends DynamodbExecutor {
         ...getExpressionNames(
           atomic
             .map(({ property, ...rest }) =>
-              [(rest as UpdateIfNotExistsOperation<any>).refProperty as string, property].filter(
-                Boolean,
-              ),
+              [
+                (rest as UpdateIfNotExistsOperation<any>).refProperty as string,
+                property,
+              ].filter(Boolean),
             )
             .flat(),
         ),

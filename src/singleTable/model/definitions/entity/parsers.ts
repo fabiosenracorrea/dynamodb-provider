@@ -23,7 +23,9 @@ type Extended<Entity extends AnyObject, ExtendResult> = PrettifyObject<
 export type ResolvedEntity<
   Entity extends AnyObject,
   Params extends EntityParseParams<Entity>,
-> = Params['extend'] extends AnyFunction ? Extended<Entity, ReturnType<Params['extend']>> : Entity;
+> = Params['extend'] extends AnyFunction
+  ? Extended<Entity, ReturnType<Params['extend']>>
+  : Entity;
 
 export type EntityParser<E extends AnyObject, Parsers extends EntityParseParams<E>> = (
   entity: E,

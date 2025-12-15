@@ -22,7 +22,10 @@ export function toExpressionValue(property: string): string {
   return `${EXPRESSION_VALUES_CHAR}${property}`;
 }
 
-export function getExpressionNames(properties: string[], prefix = ''): Record<string, string> {
+export function getExpressionNames(
+  properties: string[],
+  prefix = '',
+): Record<string, string> {
   return Object.fromEntries(
     properties.map((property) => [toExpressionName(`${prefix}${property}`), property]),
   );
@@ -34,7 +37,10 @@ export function buildExpressionAttributeNames(item: AnyObject): Record<string, s
 
 export function buildExpressionAttributeValues(item: AnyObject, prefix = ''): AnyObject {
   return Object.fromEntries(
-    Object.entries(item).map(([key, value]) => [toExpressionValue(`${prefix}${key}`), value]),
+    Object.entries(item).map(([key, value]) => [
+      toExpressionValue(`${prefix}${key}`),
+      value,
+    ]),
   );
 }
 
@@ -49,7 +55,9 @@ function toListValueName(prop: string, index: number) {
 }
 
 function toListExp(prop: string, values: any[], prefix?: string) {
-  const spread = values.map((_, index) => addPrefix(toListValueName(prop, index), 'value', prefix));
+  const spread = values.map((_, index) =>
+    addPrefix(toListValueName(prop, index), 'value', prefix),
+  );
 
   return `(${spread.join(',')})`;
 }
@@ -86,16 +94,25 @@ export const expressionBuilders: Record<
     ].join(' '),
 
   begins_with: ({ prop, prefix }) =>
-    `begins_with(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
+    `begins_with(${addPrefix(prop, 'name', prefix)}, ${addPrefix(
+      prop,
+      'value',
+      prefix,
+    )})`,
 
   contains: ({ prop, prefix }) =>
     `contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
 
   not_contains: ({ prop, prefix }) =>
-    `not contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(prop, 'value', prefix)})`,
+    `not contains(${addPrefix(prop, 'name', prefix)}, ${addPrefix(
+      prop,
+      'value',
+      prefix,
+    )})`,
 
   exists: ({ prop, prefix }) => `attribute_exists(${addPrefix(prop, 'name', prefix)})`,
-  not_exists: ({ prop, prefix }) => `attribute_not_exists(${addPrefix(prop, 'name', prefix)})`,
+  not_exists: ({ prop, prefix }) =>
+    `attribute_not_exists(${addPrefix(prop, 'name', prefix)})`,
 
   in: ({ prop, prefix, value = [] }) =>
     `${addPrefix(prop, 'name', prefix)} in ${toListExp(prop, value, prefix)}`,
@@ -104,7 +121,10 @@ export const expressionBuilders: Record<
     `not ${addPrefix(prop, 'name', prefix)} in ${toListExp(prop, value, prefix)}`,
 };
 
-export function getExpressionValues(expressions: ItemExpression<any>[], prefix = ''): AnyObject {
+export function getExpressionValues(
+  expressions: ItemExpression<any>[],
+  prefix = '',
+): AnyObject {
   if (!expressions.length) return {};
 
   const withPrefix = (prop: string): string => addPrefix(prop, 'value', prefix);
@@ -151,7 +171,10 @@ export function getExpressionValues(expressions: ItemExpression<any>[], prefix =
             withPrefix(`${expression.property}_start`),
             (expression as BetweenExpression<any>).start,
           ],
-          [withPrefix(`${expression.property}_end`), (expression as BetweenExpression<any>).end],
+          [
+            withPrefix(`${expression.property}_end`),
+            (expression as BetweenExpression<any>).end,
+          ],
         ],
       },
     ]);

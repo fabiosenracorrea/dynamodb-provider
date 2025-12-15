@@ -2,12 +2,14 @@
 import { AnyObject, StringKey } from 'types';
 
 import {
-  CreateItemParams,
-  DeleteItemParams,
+  CreateParams,
+  DeleteParams,
   UpdateParams,
   QueryParams,
   QueryResult,
-  TransactionConfig,
+  QueryOneParams,
+  QueryAllParams,
+  TransactionParams,
   DBSet,
   GetItemParams,
   BatchListItemsArgs,
@@ -34,10 +36,15 @@ export interface DynamoDbProviderParams {
   logCallParams?: boolean;
 }
 
-export interface IDynamodbProvider<Params extends DynamoDbProviderParams = DynamoDbProviderParams> {
+export interface IDynamodbProvider<
+  Params extends DynamoDbProviderParams = DynamoDbProviderParams,
+> {
   target: Params['dynamoDB']['target'];
 
-  list<Entity>(tableName: string, options?: ListOptions<Entity>): Promise<ListTableResult<Entity>>;
+  list<Entity>(
+    tableName: string,
+    options?: ListOptions<Entity>,
+  ): Promise<ListTableResult<Entity>>;
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;
 
   get<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -49,28 +56,29 @@ export interface IDynamodbProvider<Params extends DynamoDbProviderParams = Dynam
   ): Promise<Entity[]>;
 
   create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
-    params: CreateItemParams<Entity, PKs>,
+    params: CreateParams<Entity, PKs>,
   ): Promise<Entity>;
 
   update<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): Promise<Partial<Entity> | undefined>;
 
-  delete<Entity extends Record<string, any>>(params: DeleteItemParams<Entity>): Promise<void>;
+  delete<Entity extends Record<string, any>>(params: DeleteParams<Entity>): Promise<void>;
 
   query<Entity = AnyObject>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>;
 
-  /**
-   * [Deprecated soon] Prefer the more clean `transaction`
-   */
-  executeTransaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  queryOne<Entity = AnyObject>(
+    params: QueryOneParams<Entity>,
+  ): Promise<Entity | undefined>;
 
-  transaction(configs: (TransactionConfig | null)[]): Promise<void>;
+  queryAll<Entity = AnyObject>(params: QueryAllParams<Entity>): Promise<Entity[]>;
 
-  generateTransactionConfigList<Item>(
+  transaction(configs: (TransactionParams | null)[]): Promise<void>;
+
+  toTransactionParams<Item>(
     items: Item[],
-    generator: (item: Item) => (TransactionConfig | null)[],
-  ): TransactionConfig[];
+    generator: (item: Item) => (TransactionParams | null)[],
+  ): TransactionParams[];
 
   createSet<T extends string[] | number[]>(
     items: T,

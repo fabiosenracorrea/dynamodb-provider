@@ -3,7 +3,9 @@
 import {
   BasicRangeKeyConfig,
   BetweenRangeKeyConfig,
-  QueryParams,
+  EnsureQueryAllParams,
+  EnsureQueryOneParams,
+  QueryConfigParams,
   QueryResult,
 } from 'provider/utils';
 
@@ -22,30 +24,54 @@ type BasicRangeKeyOp = Omit<BasicRangeKeyConfig<unknown>, 'name' | 'value'> & {
   value: KeyValue | number;
 };
 
-type BetweenRangeKeyOp = Omit<BetweenRangeKeyConfig<unknown>, 'name' | 'end' | 'start'> & {
+type BetweenRangeKeyOp = Omit<
+  BetweenRangeKeyConfig<unknown>,
+  'name' | 'end' | 'start'
+> & {
   start: KeyValue | number;
   end: KeyValue | number;
 };
 
 export type DefinedNameRangeKeyConfig = BasicRangeKeyOp | BetweenRangeKeyOp;
 
-type IndexParams<TableConfig extends SingleTableConfig> = undefined extends TableConfig['indexes']
-  ? {}
-  : {
-      index?: keyof TableConfig['indexes'];
-    };
+type IndexParams<TableConfig extends SingleTableConfig> =
+  undefined extends TableConfig['indexes']
+    ? {}
+    : {
+        index?: keyof TableConfig['indexes'];
+      };
 
 export type SingleTableQueryParams<
   Entity,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = Omit<QueryParams<Entity>, 'index' | 'partitionKey' | 'rangeKey' | 'table'> &
+> = QueryConfigParams<Entity> &
   IndexParams<TableConfig> & {
     partition: KeyValue;
 
     range?: DefinedNameRangeKeyConfig;
   };
 
-export const singleTableParams = [
+/**
+ * Parameters for single table queryOne operation
+ *
+ * Returns the first item matching the query or undefined
+ */
+export type SingleTableQueryOneParams<
+  Entity,
+  TableConfig extends SingleTableConfig = SingleTableConfig,
+> = EnsureQueryOneParams<SingleTableQueryParams<Entity, TableConfig>>;
+
+/**
+ * Parameters for single table queryAll operation
+ *
+ * Returns all items matching the query as a simple array
+ */
+export type SingleTableQueryAllParams<
+  Entity,
+  TableConfig extends SingleTableConfig = SingleTableConfig,
+> = EnsureQueryAllParams<SingleTableQueryParams<Entity, TableConfig>>;
+
+export const singleTableQueryParams = [
   'index',
   'range',
   'retrieveOrder',
@@ -53,6 +79,7 @@ export const singleTableParams = [
   'paginationToken',
   'fullRetrieval',
   'filters',
+  'propertiesToRetrieve',
 ] as (keyof SingleTableQueryParams<any, any>)[];
 
 export class SingleTableQueryBuilder extends BaseSingleTableOperator {
@@ -85,9 +112,11 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
 
             end: range.operation === 'between' ? this.convertKey(range.end) : undefined,
 
-            start: range.operation === 'between' ? this.convertKey(range.start) : undefined,
+            start:
+              range.operation === 'between' ? this.convertKey(range.start) : undefined,
 
-            value: range.operation !== 'between' ? this.convertKey(range.value) : undefined,
+            value:
+              range.operation !== 'between' ? this.convertKey(range.value) : undefined,
 
             name: index ? getIndexRangeName(index, this.config) : this.config.rangeKey,
           } as any)
@@ -107,5 +136,41 @@ export class SingleTableQueryBuilder extends BaseSingleTableOperator {
     const result = await this._listCollection<Entity>(params);
 
     return result;
+  }
+
+  /**
+   * Queries for the first item matching the criteria
+   *
+   * @param params - Query parameters (without limit, paginationToken, or fullRetrieval)
+   * @returns The first matching item or undefined if no items found
+   */
+  async queryOne<Entity>(
+    params: SingleTableQueryOneParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<Entity | undefined> {
+    const {
+      items: [item],
+    } = await this.query<Entity>({
+      ...params,
+      limit: 1,
+    });
+
+    return item;
+  }
+
+  /**
+   * Queries for all items matching the criteria
+   *
+   * @param params - Query parameters (without paginationToken or fullRetrieval)
+   * @returns Array of all matching items
+   */
+  async queryAll<Entity>(
+    params: SingleTableQueryAllParams<Entity, Required<SingleTableConfig>>,
+  ): Promise<Entity[]> {
+    const { items } = await this.query<Entity>({
+      ...params,
+      fullRetrieval: true,
+    });
+
+    return items;
   }
 }

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { StringKey } from 'types';
+import { StableOmit, StringKey } from 'types';
 
 import { ExpressionOperation } from '../expressions';
 import { Filters } from '../filters';
@@ -35,46 +35,15 @@ export interface BetweenRangeKeyConfig<Entity> {
   operation: Extract<ExpressionOperation, 'between'>;
 }
 
-export type RangeKeyConfig<Entity> = BasicRangeKeyConfig<Entity> | BetweenRangeKeyConfig<Entity>;
+export type RangeKeyConfig<Entity> =
+  | BasicRangeKeyConfig<Entity>
+  | BetweenRangeKeyConfig<Entity>;
 
-export interface QueryParams<Entity> {
-  /**
-   * The table to perform the query
-   */
-  table: string;
-
-  /**
-   * Table Index, be it local or global
-   */
-  index?: string;
-
-  /**
-   * The partition key of the item
-   *
-   * Pass in the column name + value
-   */
-  partitionKey: {
-    name: StringKey<NoInfer<Entity>>;
-
-    value: string;
-  };
-
-  /**
-   * Further improve the query operation by adding
-   * range key conditions
-   *
-   * Valid operations:
-   *
-   * - equal
-   * - lower_than
-   * - lower_or_equal_than
-   * - bigger_than
-   * - bigger_or_equal_than
-   * - begins_with
-   * - between
-   */
-  rangeKey?: RangeKeyConfig<NoInfer<Entity>>;
-
+/**
+ * Parameters used to modify the main
+ * query behavior
+ */
+export interface QueryConfigParams<Entity> {
   /**
    * DynamoDB naturally stores items in ASC order
    */
@@ -112,10 +81,84 @@ export interface QueryParams<Entity> {
    * 3: key:{<FilterConfig>} will handle more complex cases
    */
   filters?: Filters<NoInfer<Entity>>;
+
+  /**
+   * Which properties to return from each entity
+   */
+  propertiesToRetrieve?: (keyof Entity)[];
+}
+
+export interface QueryParams<Entity> extends QueryConfigParams<Entity> {
+  /**
+   * The table to perform the query
+   */
+  table: string;
+
+  /**
+   * Table Index, be it local or global
+   */
+  index?: string;
+
+  /**
+   * The partition key of the item
+   *
+   * Pass in the column name + value
+   */
+  partitionKey: {
+    name: StringKey<NoInfer<Entity>>;
+
+    value: string;
+  };
+
+  /**
+   * Further improve the query operation by adding
+   * range key conditions
+   *
+   * Valid operations:
+   *
+   * - equal
+   * - lower_than
+   * - lower_or_equal_than
+   * - bigger_than
+   * - bigger_or_equal_than
+   * - begins_with
+   * - between
+   */
+  rangeKey?: RangeKeyConfig<NoInfer<Entity>>;
 }
 
 export interface QueryResult<Entity = any> {
   items: Entity[];
 
-  paginationToken: string;
+  paginationToken?: string;
 }
+
+type ExcludedFromQueryOne = 'limit' | 'paginationToken' | 'fullRetrieval';
+
+type ExcludedFromQueryAll = 'paginationToken' | 'fullRetrieval';
+
+export type EnsureQueryOneParams<T> = StableOmit<T, ExcludedFromQueryOne>;
+
+export type EnsureQueryAllParams<T> = StableOmit<T, ExcludedFromQueryAll>;
+
+/**
+ * Parameters for queryOne operation
+ *
+ * Returns the first item matching the query or undefined
+ */
+export type QueryOneParams<Entity> = EnsureQueryOneParams<QueryParams<Entity>>;
+
+export type QueryOneConfigParams<Entity> = EnsureQueryOneParams<
+  QueryConfigParams<Entity>
+>;
+
+/**
+ * Parameters for queryAll operation
+ *
+ * Returns all items matching the query as a simple array
+ */
+export type QueryAllParams<Entity> = EnsureQueryAllParams<QueryParams<Entity>>;
+
+export type QueryAllConfigParams<Entity> = EnsureQueryAllParams<
+  QueryConfigParams<Entity>
+>;

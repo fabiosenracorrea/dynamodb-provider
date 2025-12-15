@@ -1,22 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyObject } from 'types';
 
-import { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from 'provider/utils';
+import {
+  BasicRangeKeyConfig,
+  BetweenRangeKeyConfig,
+  QueryConfigParams,
+  QueryParams,
+} from 'provider/utils';
 
 import { BaseSingleTableOperator } from '../../executor';
 import { resolvePropsFromList } from '../../parsers';
 
 type BasicRangeConfig = Pick<BasicRangeKeyConfig<AnyObject>, 'operation' | 'value'>;
 
-type BetweenRangeConfig = Pick<BetweenRangeKeyConfig<AnyObject>, 'start' | 'end' | 'operation'>;
+type BetweenRangeConfig = Pick<
+  BetweenRangeKeyConfig<AnyObject>,
+  'start' | 'end' | 'operation'
+>;
 
-export interface ListItemTypeParams
-  extends Partial<
-    Pick<
-      QueryParams<AnyObject>,
-      'fullRetrieval' | 'paginationToken' | 'limit' | 'retrieveOrder' | 'filters'
-    >
-  > {
+export interface ListItemTypeParams extends QueryConfigParams<AnyObject> {
   type: string;
 
   range?: BasicRangeConfig | BetweenRangeConfig;

@@ -16,13 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Compile Check
-        run: yarn check-usage
+        run: yarn check-ts
 
       - name: Tests pass
         run: yarn test

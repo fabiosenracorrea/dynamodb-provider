@@ -1,8 +1,15 @@
-import type { ExtendableCollection } from 'singleTable/model';
+import type { AnyCollection } from 'singleTable/model';
 
 import type { GetCollectionParams, GetCollectionResult } from './get';
 
-export type FromCollection<Registered extends ExtendableCollection> = {
+/**
+ * Available methods unlocked by a collection
+ *
+ * ```ts
+ * const methods = schema.from(COLLECTION)
+ * ```
+ */
+export type FromCollection<Registered extends AnyCollection> = {
   /**
    * Retrieve your collection
    *
@@ -10,11 +17,13 @@ export type FromCollection<Registered extends ExtendableCollection> = {
    * the data fetch will continue as long as the collection query keeps
    * yielding items
    */
-  get(...params: GetCollectionParams<Registered>): Promise<GetCollectionResult<Registered>>;
+  get(
+    ...params: GetCollectionParams<Registered>
+  ): Promise<GetCollectionResult<Registered>>;
 };
 
 export interface FromCollectionMethods {
-  fromCollection<Registered extends ExtendableCollection>(
+  fromCollection<Registered extends AnyCollection>(
     entity: Registered,
   ): FromCollection<Registered>;
 }

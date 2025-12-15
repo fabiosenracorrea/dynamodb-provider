@@ -8,8 +8,8 @@ import {
   createCollection,
   createEntity,
   CreatePartitionParams,
-  ExtendableCollection,
-  ExtendableSingleTableEntity,
+  AnyCollection,
+  AnyEntity,
   Partition,
   PartitionCollection,
   PartitionCollectionParams,
@@ -18,15 +18,19 @@ import {
   RegisterEntityParams,
   resolveKeySwaps,
   SingleTableEntity,
+  toKeyPrefix,
 } from './definitions';
-import { type From, SchemaFrom, type FromEntity, type FromCollection } from './from';
+import { type From, SchemaFrom } from './from';
 
 interface EntityCache {
   params: any;
   entity: any;
 }
 
-export interface DefinedMethods<TableConfig extends SingleTableParams, Entity extends AnyObject> {
+export interface DefinedMethods<
+  TableConfig extends SingleTableParams,
+  Entity extends AnyObject,
+> {
   as<Params extends RegisterEntityParams<TableConfig, Entity>>(
     params: Params,
   ): SingleTableEntity<TableConfig, Entity, Params>;
@@ -95,7 +99,10 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
       return {
         create: <Entity>() => ({
           index: (
-            { paramMatch, ...indexParams }: IndexParams<Entity> = {} as IndexParams<Entity>,
+            {
+              paramMatch,
+              ...indexParams
+            }: IndexParams<Entity> = {} as IndexParams<Entity>,
           ) => ({
             ...indexParams,
 
@@ -160,12 +167,27 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
   createPartition<Params extends CreatePartitionParams<TableConfig>>(
     params: Params,
   ): Partition<TableConfig, Params> {
-    return {
+    const partition = {
       ...params,
 
       id: getId('UUID'),
 
       use: this.buildPartitionUsage(params),
+
+      collection: () => ({} as any),
+
+      toKeyPrefix: (entry) =>
+        toKeyPrefix(params.entries[entry as keyof typeof params.entries]),
+    } as Partition<TableConfig, Params>;
+
+    return {
+      ...partition,
+
+      collection: ((collectionParams: any) =>
+        this.createCollection({
+          ...collectionParams,
+          partition,
+        })) as any as Partition<TableConfig, Params>['collection'],
     };
   }
 
@@ -181,36 +203,27 @@ export class SingleTableSchema<TableConfig extends SingleTableParams> {
   >(params: Params): SingleTableEntity<TableConfig, Entity, Params> {
     this.registerType(params.type);
 
-    const entity = createEntity<SingleTableParams, Entity, Params>(this.config, params);
+    const entity = createEntity<TableConfig, Entity, Params>(this.config, params);
 
     this.cacheEntity({ entity, params });
 
     return entity as SingleTableEntity<TableConfig, Entity, Params>;
   }
 
-  createEntity<Entity extends Record<string, any>>(): DefinedMethods<TableConfig, Entity> {
+  createEntity<Entity extends Record<string, any>>(): DefinedMethods<
+    TableConfig,
+    Entity
+  > {
     return {
       as: this.registerEntity.bind(this) as DefinedMethods<TableConfig, Entity>['as'],
     };
   }
 
-  getEntityByType(type: string): ExtendableSingleTableEntity | undefined {
+  getEntityByType(type: string): AnyEntity | undefined {
     return this.configCache.get(type)?.entity;
   }
 
-  fromEntity<Registered extends ExtendableSingleTableEntity>(
-    entity: Registered,
-  ): FromEntity<Registered, TableConfig> {
-    return this.repoCreator.fromEntity(entity);
-  }
-
-  fromCollection<Collection extends ExtendableCollection>(
-    collection: Collection,
-  ): FromCollection<Collection> {
-    return this.repoCreator.fromCollection(collection);
-  }
-
-  from<Target extends ExtendableSingleTableEntity | ExtendableCollection>(
+  from<Target extends AnyEntity | AnyCollection>(
     target: Target,
   ): From<Target, TableConfig> {
     return this.repoCreator.from(target);

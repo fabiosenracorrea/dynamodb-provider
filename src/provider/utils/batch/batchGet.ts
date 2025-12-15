@@ -11,7 +11,10 @@ import { EntityPK } from '../crud/types';
 const MAX_BATCH_GET_RETIRES = 8;
 const DYNAMO_BATCH_GET_LIMIT = 100;
 
-export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
+export interface BatchListItemsArgs<
+  Entity,
+  PKs extends StringKey<Entity> | unknown = unknown,
+> {
   /**
    * Dynamodb Table
    */
@@ -62,7 +65,10 @@ export interface BatchListItemsArgs<Entity, PKs extends StringKey<Entity> | unkn
 // };
 
 export class BatchGetter extends DynamodbExecutor {
-  private async safeBatchGetOperation<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
+  private async safeBatchGetOperation<
+    Entity,
+    PKs extends StringKey<Entity> | unknown = unknown,
+  >(
     args: BatchListItemsArgs<Entity, PKs>,
     items: Entity[] = [],
     retries = 1,
@@ -96,13 +102,17 @@ export class BatchGetter extends DynamodbExecutor {
 
     const maxRetriesReached = retries >= maxRetries;
 
-    if (maxRetriesReached && throwOnUnprocessed) throw new Error(`Unprocessed items timeout`);
+    if (maxRetriesReached && throwOnUnprocessed)
+      throw new Error(`Unprocessed items timeout`);
 
     if (!UnprocessedKeys?.[table] || maxRetriesReached) return updatedItems;
 
     await waitExponentially(retries);
 
-    const unprocessedItems = UnprocessedKeys[table].Keys as BatchListItemsArgs<Entity, PKs>['keys'];
+    const unprocessedItems = UnprocessedKeys[table].Keys as BatchListItemsArgs<
+      Entity,
+      PKs
+    >['keys'];
 
     return this.safeBatchGetOperation(
       { ...args, keys: unprocessedItems },

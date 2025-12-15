@@ -1,11 +1,11 @@
 import { AnyObject, StringKey } from 'types';
 
-import { DBCreateItemParams, DynamodbExecutor } from '../dynamoDB';
+import { DBCreateParams, DynamodbExecutor } from '../dynamoDB';
 
 import { ItemExpression } from '../expressions';
 import { getConditionParams } from '../conditions';
 
-export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
+export interface CreateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown> {
   /**
    * Dynamodb Table
    */
@@ -26,7 +26,9 @@ export interface CreateItemParams<Entity, PKs extends StringKey<Entity> | unknow
    *
    * The operation will fail if the condition is not fulfilled
    */
-  conditions?: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions?: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
+  >[];
 }
 
 export class ItemCreator extends DynamodbExecutor {
@@ -34,7 +36,7 @@ export class ItemCreator extends DynamodbExecutor {
     item,
     table,
     conditions,
-  }: CreateItemParams<Entity>): DBCreateItemParams['input'] {
+  }: CreateParams<Entity>): DBCreateParams['input'] {
     return {
       TableName: table,
 
@@ -44,7 +46,7 @@ export class ItemCreator extends DynamodbExecutor {
     };
   }
 
-  async create<Entity>(params: CreateItemParams<Entity>): Promise<Entity> {
+  async create<Entity>(params: CreateParams<Entity>): Promise<Entity> {
     await this._insertItem(this.getCreateParams(params));
 
     return params.item;

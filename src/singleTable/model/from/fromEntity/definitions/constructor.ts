@@ -1,4 +1,4 @@
-import type { ExtendableSingleTableEntity } from 'singleTable/model';
+import type { AnyEntity } from 'singleTable/model';
 import type { SingleTableConfig } from 'singleTable/adaptor/definitions';
 import type {
   CreateEntityParams,
@@ -6,12 +6,13 @@ import type {
   EntityBatchGetParams,
   EntityGetParams,
   UpdateEntityParams,
+  UpdateReturn,
 } from './crud';
 import type { ListEntityParams, ListEntityResult } from './list';
-import type { QueryMethods } from './query';
+import type { EntityQueries } from './query';
 
 export type ListEntityMethods<
-  Registered extends ExtendableSingleTableEntity,
+  Registered extends AnyEntity,
   SingleConfig extends SingleTableConfig,
 > = undefined extends SingleConfig['typeIndex']
   ? object
@@ -21,24 +22,37 @@ export type ListEntityMethods<
       list(params?: ListEntityParams): Promise<ListEntityResult<Registered['__entity']>>;
     };
 
+/**
+ * Available methods unlocked by an entity
+ *
+ * ```ts
+ * const methods = schema.from(ENTITY)
+ * ```
+ */
 export type FromEntity<
-  Registered extends ExtendableSingleTableEntity,
+  Registered extends AnyEntity,
   SingleConfig extends SingleTableConfig,
 > = {
-  get(...params: EntityGetParams<Registered>): Promise<Registered['__entity'] | undefined>;
+  get(
+    ...params: EntityGetParams<Registered>
+  ): Promise<Registered['__entity'] | undefined>;
 
-  batchGet(params: EntityBatchGetParams<Registered>): Promise<Array<Registered['__entity']>>;
+  batchGet(
+    params: EntityBatchGetParams<Registered>,
+  ): Promise<Array<Registered['__entity']>>;
 
   create(...params: CreateEntityParams<Registered>): Promise<Registered['__entity']>;
 
-  delete(params: DeleteEntityParams<Registered>): Promise<void>;
+  delete(...params: DeleteEntityParams<Registered>): Promise<void>;
 
-  update(params: UpdateEntityParams<Registered>): Promise<void>;
-} & QueryMethods<Registered> &
+  update<Params extends UpdateEntityParams<Registered>>(
+    params: Params,
+  ): Promise<UpdateReturn<Registered, Params>>;
+} & EntityQueries<Registered> &
   ListEntityMethods<Registered, SingleConfig>;
 
 export interface FromEntityMethods<SingleConfig extends SingleTableConfig> {
-  fromEntity<Registered extends ExtendableSingleTableEntity>(
+  fromEntity<Registered extends AnyEntity>(
     entity: Registered,
   ): FromEntity<Registered, SingleConfig>;
 }

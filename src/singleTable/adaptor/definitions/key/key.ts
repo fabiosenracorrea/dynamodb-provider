@@ -25,9 +25,10 @@ export function convertKey(key: KeyValue | number, config: SingleTableConfig): s
   return `${key}`;
 }
 
-type PK<Entity, PKs extends StringKey<Entity> | unknown = unknown> = PKs extends StringKey<Entity>
-  ? { [K in PKs]: Entity[K] }
-  : Partial<Entity>;
+type PK<
+  Entity,
+  PKs extends StringKey<Entity> | unknown = unknown,
+> = PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
 
 export function getPrimaryKey<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
   { partitionKey, rangeKey }: SingleTableKeyReference,

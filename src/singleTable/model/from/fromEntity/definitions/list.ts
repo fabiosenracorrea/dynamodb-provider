@@ -1,5 +1,9 @@
 import type { AnyObject } from 'types';
-import type { BasicRangeKeyConfig, BetweenRangeKeyConfig, QueryParams } from 'provider/utils';
+import type {
+  BasicRangeKeyConfig,
+  BetweenRangeKeyConfig,
+  QueryConfigParams,
+} from 'provider/utils';
 
 type BasicRangeConfig = {
   value: string;
@@ -11,11 +15,7 @@ type BasicRangeConfig = {
 
 type BetweenRangeConfig = Omit<BetweenRangeKeyConfig<AnyObject>, 'name'>;
 
-export interface ListEntityParams
-  extends Pick<
-    QueryParams<AnyObject>,
-    'fullRetrieval' | 'paginationToken' | 'limit' | 'retrieveOrder'
-  > {
+export interface ListEntityParams extends QueryConfigParams<AnyObject> {
   range?: BasicRangeConfig | BetweenRangeConfig;
 }
 

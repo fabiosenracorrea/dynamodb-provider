@@ -61,7 +61,8 @@ export type CreatePartitionParams<TableConfig extends SingleTableConfig> =
     };
   };
 
-export type PartitionEntry<Params extends CreatePartitionParams<any>> = keyof Params['entries'];
+export type PartitionEntry<Params extends CreatePartitionParams<any>> =
+  keyof Params['entries'];
 
 export type PartitionKeyGetters<
   Params extends CreatePartitionParams<any>,

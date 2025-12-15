@@ -1,6 +1,6 @@
 import { StringKey } from 'types';
 import { ItemExpression } from '../expressions';
-import { CreateItemParams, DeleteItemParams, UpdateParams } from '../crud';
+import { CreateParams, DeleteParams, UpdateParams } from '../crud';
 
 export interface UpdateTransaction<
   E extends Record<string, unknown> = Record<string, unknown>,
@@ -12,8 +12,10 @@ export interface UpdateTransaction<
   validate?: never;
 }
 
-export interface CreateTransaction<E extends Record<string, unknown> = Record<string, unknown>> {
-  create: CreateItemParams<E, keyof E>;
+export interface CreateTransaction<
+  E extends Record<string, unknown> = Record<string, unknown>,
+> {
+  create: CreateParams<E, keyof E>;
   update?: never;
   erase?: never;
   validate?: never;
@@ -23,7 +25,7 @@ export interface DeleteTransaction<
   E extends Record<string, unknown> = Record<string, unknown>,
   PKs extends StringKey<E> | unknown = unknown,
 > {
-  erase: DeleteItemParams<E, PKs>;
+  erase: DeleteParams<E, PKs>;
   update?: never;
   create?: never;
   validate?: never;
@@ -36,7 +38,9 @@ export interface ValidateTransactParams<
   table: string;
   key: PKs extends StringKey<Entity> ? { [K in PKs]: Entity[K] } : Partial<Entity>;
 
-  conditions: ItemExpression<PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity>[];
+  conditions: ItemExpression<
+    PKs extends StringKey<Entity> ? Omit<Entity, PKs> : Entity
+  >[];
 }
 
 export interface ConditionCheckTransaction<
@@ -49,7 +53,7 @@ export interface ConditionCheckTransaction<
   validate?: ValidateTransactParams<E, PKs>;
 }
 
-export type TransactionConfig<
+export type TransactionParams<
   E extends Record<string, unknown> = Record<string, unknown>,
   PKs extends StringKey<E> | unknown = unknown,
 > =

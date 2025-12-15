@@ -17,7 +17,8 @@ import {
 } from '../expressions';
 import { getFilterParams } from '../filters';
 
-import { QueryParams, QueryResult } from './types';
+import { QueryParams, QueryResult, QueryOneParams, QueryAllParams } from './types';
+import { getProjectionExpression, getProjectionExpressionNames } from '../projection';
 
 export class QueryBuilder extends DynamodbExecutor {
   private transformKeysToExpressions({
@@ -65,12 +66,17 @@ export class QueryBuilder extends DynamodbExecutor {
     partitionKey,
     filters,
     rangeKey,
-  }: Pick<QueryParams<any>, 'filters' | 'partitionKey' | 'rangeKey'>): Pick<
+    propertiesToRetrieve,
+  }: Pick<
+    QueryParams<any>,
+    'filters' | 'partitionKey' | 'rangeKey' | 'propertiesToRetrieve'
+  >): Pick<
     DBQueryParams<any>['input'],
     | 'KeyConditionExpression'
     | 'ExpressionAttributeNames'
     | 'ExpressionAttributeValues'
     | 'FilterExpression'
+    | 'ProjectionExpression'
   > {
     const filterValues = getFilterParams(filters);
     const expressionValues = this.getKeyParams({ partitionKey, rangeKey });
@@ -80,10 +86,12 @@ export class QueryBuilder extends DynamodbExecutor {
 
       KeyConditionExpression: expressionValues.KeyConditionExpression,
 
+      ProjectionExpression: getProjectionExpression(propertiesToRetrieve as string[]),
+
       ExpressionAttributeNames: {
         ...expressionValues.ExpressionAttributeNames,
-
         ...filterValues.ExpressionAttributeNames,
+        ...getProjectionExpressionNames(propertiesToRetrieve as string[]),
       },
 
       ExpressionAttributeValues: {
@@ -95,7 +103,8 @@ export class QueryBuilder extends DynamodbExecutor {
 
   private async recursivelyListCollection<Entity>({
     table,
-    fullRetrieval = true,
+    // CHANGE THIS!!!
+    fullRetrieval,
     index,
     limit,
     paginationToken,
@@ -140,7 +149,9 @@ export class QueryBuilder extends DynamodbExecutor {
     if (shouldStop)
       return {
         items: updatedItems,
-        paginationToken: LastEvaluatedKey ? toPaginationToken(LastEvaluatedKey) : undefined,
+        paginationToken: LastEvaluatedKey
+          ? toPaginationToken(LastEvaluatedKey)
+          : undefined,
       } as QueryResult<Entity>;
 
     return this.recursivelyListCollection({
@@ -157,5 +168,37 @@ export class QueryBuilder extends DynamodbExecutor {
 
   async query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>> {
     return this.recursivelyListCollection(params);
+  }
+
+  /**
+   * Queries for the first item matching the criteria
+   *
+   * @param params - Query parameters (without limit, paginationToken, or fullRetrieval)
+   * @returns The first matching item or undefined if no items found
+   */
+  async queryOne<Entity>(params: QueryOneParams<Entity>): Promise<Entity | undefined> {
+    const {
+      items: [item],
+    } = await this.recursivelyListCollection({
+      ...params,
+      limit: 1,
+    });
+
+    return item;
+  }
+
+  /**
+   * Queries for all items matching the criteria
+   *
+   * @param params - Query parameters (without paginationToken or fullRetrieval)
+   * @returns Array of all matching items
+   */
+  async queryAll<Entity>(params: QueryAllParams<Entity>): Promise<Entity[]> {
+    const { items } = await this.recursivelyListCollection({
+      ...params,
+      fullRetrieval: true,
+    });
+
+    return items;
   }
 }

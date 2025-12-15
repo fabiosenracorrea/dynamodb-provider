@@ -6,11 +6,13 @@
 
 Fast Develop for DynamoDB with this type-safe & single-table awareness library!
 
+> Min Node version: 16
+
 ## Introduction
 
 The DynamoDB SDK (both v2 and v3) lacks type safety and requires significant boilerplate. Building expressions, avoiding attribute name collisions, and managing code repetition typically results in verbose, hard-to-maintain abstractions.
 
-This library wraps DynamoDB operations with type-safe methods that work for both table-per-entity and single-table designs. Apart from `uuid` and `ksuid` for ID generation, it has zero dependencies.
+This library wraps DynamoDB operations with type-safe methods that work for both table-per-entity and single-table designs. Apart from the `ksuid` for ID generation, it has zero dependencies.
 
 ## Architecture
 
@@ -157,7 +159,7 @@ const user = await provider.get<User>({
 Creates an item in the table. DynamoDB's PutItem overwrites existing items—use `conditions` to prevent this.
 
 ```ts
-create<Entity>(params: CreateItemParams<Entity>): Promise<Entity>
+create<Entity>(params: CreateParams<Entity>): Promise<Entity>
 ```
 
 **Parameters:**
@@ -248,7 +250,7 @@ conditions: [
 Deletes an item by primary key.
 
 ```ts
-delete<Entity>(params: DeleteItemParams<Entity>): Promise<void>
+delete<Entity>(params: DeleteParams<Entity>): Promise<void>
 ```
 
 **Parameters:**
@@ -408,7 +410,7 @@ list<Entity>(table: string, options?: ListOptions<Entity>): Promise<ListTableRes
 **Parameters:**
 
 - `table` - Table name
-- `propertiesToGet` - Attributes to return
+- `propertiesToRetrieve` - Attributes to return
 - `filters` - Filter conditions (value, array, or filter config)
 - `limit` - Max items to return
 - `consistentRead` - Use strongly consistent reads (default: false)
@@ -448,7 +450,7 @@ listAll<Entity>(table: string, options?: ListAllOptions<Entity>): Promise<Entity
 ```ts
 const products = await provider.listAll('Products', {
   filters: { category: 'electronics' },
-  propertiesToGet: ['productId', 'name', 'price']
+  propertiesToRetrieve: ['productId', 'name', 'price']
 });
 ```
 
@@ -468,9 +470,10 @@ query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>
 - `index` - Index name to query
 - `retrieveOrder` - `ASC` or `DESC` (default: ASC)
 - `limit` - Max items to return
-- `fullRetrieval` - Auto-paginate until all items retrieved (default: true)
+- `fullRetrieval` - Auto-paginate until all items retrieved (default: false)
 - `paginationToken` - Continue from previous query
 - `filters` - Additional filter expressions
+- `propertiesToRetrieve` - Specific attributes to return (root-level only)
 
 Returns `{ items, paginationToken? }`
 
@@ -487,8 +490,70 @@ const { items } = await provider.query({
   },
   retrieveOrder: 'DESC',
   limit: 10,
-  filters: { status: 'shipped' }
+  filters: { status: 'shipped' },
+  propertiesToRetrieve: ['orderId', 'totalAmount', 'createdAt']
 });
+```
+
+### queryOne
+
+Queries for the first item matching the criteria. Returns the item directly or undefined if no match found.
+
+```ts
+queryOne<Entity>(params: QueryOneParams<Entity>): Promise<Entity | undefined>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `limit` - always queries for 1 item
+- No `paginationToken` - returns first match only
+- No `fullRetrieval` - automatically set to false
+
+**Example:**
+
+```ts
+const user = await provider.queryOne({
+  table: 'Users',
+  partitionKey: { name: 'email', value: 'user@example.com' }
+});
+
+if (user) {
+  console.log(`Found user: ${user.name}`);
+}
+```
+
+### queryAll
+
+Queries for all items matching the criteria. Auto-paginates through all results and returns items directly as an array. Same behavior as `query` with `fullRetrieval: true`. Can't be paginated over like that case, however.
+
+```ts
+queryAll<Entity>(params: QueryAllParams<Entity>): Promise<Entity[]>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `paginationToken` - automatically handles pagination
+- No `fullRetrieval` - always set to true internally
+- `limit` (optional) - maximum total items to return (stops pagination when limit reached)
+
+**Example:**
+
+```ts
+const allOrders = await provider.queryAll({
+  table: 'Orders',
+  partitionKey: { name: 'customerId', value: '12345' },
+  rangeKey: {
+    name: 'createdAt',
+    operation: 'bigger_or_equal_than',
+    value: '2024-01-01'
+  },
+  filters: { status: 'completed' },
+  limit: 100 // Optional: max total items
+});
+
+console.log(`Found ${allOrders.length} completed orders`);
 ```
 
 ### transaction
@@ -496,15 +561,13 @@ const { items } = await provider.query({
 Executes multiple operations atomically. All operations succeed or all fail. Wraps TransactWrite (max 100 items or 4MB).
 
 ```ts
-transaction(configs: (TransactionConfig | null)[]): Promise<void>
+transaction(configs: (TransactionParams | null)[]): Promise<void>
 ```
 
-**Note:** `executeTransaction` is deprecated. Use `transaction` instead.
-
 **Transaction types:**
-- `{ create: CreateItemParams }` - Put item
+- `{ create: CreateParams }` - Put item
 - `{ update: UpdateParams }` - Update item
-- `{ erase: DeleteItemParams }` - Delete item
+- `{ erase: DeleteParams }` - Delete item
 - `{ validate: ValidateTransactParams }` - Condition check
 
 **Example:**
@@ -556,13 +619,13 @@ await provider.create({
 });
 ```
 
-**generateTransactionConfigList** - Maps items to transaction configs:
+**toTransactionParams** - Maps items to transaction configs:
 
 ```ts
-generateTransactionConfigList<Item>(
+toTransactionParams<Item>(
   items: Item[],
-  generator: (item: Item) => (TransactionConfig | null)[]
-): TransactionConfig[]
+  generator: (item: Item) => (TransactionParams | null)[]
+): TransactionParams[]
 ```
 
 ---
@@ -571,94 +634,160 @@ If you're not using single-table design, the provider is all you need
 
 ## Single table
 
-If you are familiar with single table design, you know there's quite a bit of boiler plate setup to be done. If you are not organized with it, it can quickly become a hassle, compromising your code readability and increasing maintenance time.
+SingleTable provides table configuration and reduces boilerplate for single-table designs. Create one instance per table.
 
-To enforce a pattern, you can create a single table instance to configure your table and execute your actions on it. For each table you might have, you can create an instance.
+Requires a `DynamoDbProvider` instance.
 
-The `SingleTable` instance requires a `DynamoDbProvider` to be created.
-
-#### Parameters
+### Configuration Parameters
 
 #### `dynamodbProvider`
 
 - **Type**: `IDynamodbProvider`
-- **Description**: An instance of `DynamodbProvider`, configured with the appropriate settings and required to interact with DynamoDB.
+- **Required**: Yes
+- An instance of `DynamodbProvider`.
+
+#### `table`
+
+- **Type**: `string`
+- **Required**: Yes
+- The DynamoDB table name.
+
+#### `partitionKey`
+
+- **Type**: `string`
+- **Required**: Yes
+- The partition key column name.
+
+#### `rangeKey`
+
+- **Type**: `string`
+- **Required**: Yes
+- The range key column name.
 
 #### `keySeparator`
 
 - **Type**: `string`
 - **Default**: `#`
-- **Description**: The logical separator used to join key paths. For example, if the item key is `['USER', id]`, the actual DynamoDB key becomes `USER#id`.
-
-#### `table`
-
-- **Type**: `string`
-- **Description**: The name of the DynamoDB table.
-
-#### `partitionKey`
-
-- **Type**: `string`
-- **Description**: The partition (hash) key column used in the single table.
-
-#### `rangeKey`
-
-- **Type**: `string`
-- **Description**: The range (sort) key column used in the single table.
+- Separator used to join key paths. If item key is `['USER', id]`, the DynamoDB key becomes `USER#id`.
 
 #### `typeIndex`
 
 - **Type**: `object`
-- **Description**: A global index that uniquely identifies each entity in the table. The methods `listType` and `findType` rely on this index to work. Future versions will hide these methods if `typeIndex` is not provided.
-  - `partitionKey`: The partition/hash column for this index.
-  - `rangeKey`: Defaults to the item's creation timestamp (ISO format `new Date().toISOString()`).
-  - `name`: The index name.
-  - `rangeKeyGenerator(item, type)`: Generates a range key value for the type index. If you are not actually using the index, you can pass in `() => undefined`, which will not produce the sort property on the item.
+- **Optional**
+- Index configuration for entity type identification. Required for `listType`, `listAllFromType`, `findTableItem`, and `filterTableItens` methods.
+  - `partitionKey` (string): Column name for the type identifier. Its value is the entity `type`.
+  - `rangeKey` (string): Column name for the sort key.
+  - `name` (string): Index name in DynamoDB.
+  - `rangeKeyGenerator` (function, optional): `(item, type) => string | undefined` - Generates range key value. Defaults to `new Date().toISOString()`. Return `undefined` to skip range key creation.
 
-**Important**: You do not need to actually have the index on the table to enforce the type prop on your items. Although recommended, as its the easiest to extract the "tables" inside, you can simply define a type property, and it would only produce it. Not having a `type` like property at all inside your single table entities **is extremely not recommended**
+The index does not need to exist in DynamoDB if only using the type property for filtering. The index must exist for query-based methods like `listType` and `listAllFromType`.
 
 #### `expiresAt`
 
 - **Type**: `string`
-- **Description**: Specifies the TTL column name if Time to Live (TTL) is configured in the DynamoDB table.
+- **Optional**
+- TTL column name if configured in DynamoDB.
 
 #### `indexes`
 
 - **Type**: `Record<string, { partitionKey: string; rangeKey: string; }>`
-- **Description**: Configures additional indexes in the table. Use this to define local or global secondary indexes.
-  - `key`: Index name, as its named on dynamodb
-  - `partitionKey`: The partition/hash column for the index.
-  - `rangeKey`: The range/sort column for the index.
+- **Optional**
+- Secondary index configuration.
+  - Key: Index name as defined in DynamoDB.
+  - Value: Object with `partitionKey` and `rangeKey` column names.
 
 #### `autoRemoveTableProperties`
 
 - **Type**: `boolean`
 - **Default**: `true`
-- **Description**: Automatically removes internal properties from items before they are returned by the methods. Internal properties include partition keys, range keys, TTL attributes, and index keys. This ensures that items have all relevant properties independently, without relying on key extractions. Remember, its the best practice to not rely on these internal properties for your actual data. Even if your PK is `USER#id`, you should have a separate property "id" on the entity.
+- Removes internal properties from returned items:
+  - Main table partition and range keys
+  - Type index partition and range keys
+  - All secondary index partition and range keys
+  - TTL attribute
+
+Items should contain all relevant properties independently without relying on key extraction. For example, if PK is `USER#id`, include an `id` property in the item.
 
 #### `keepTypeProperty`
 
 - **Type**: `boolean`
 - **Default**: `false`
-- **Description**: Keeps the `typeIndex` partition key from removal during item cleanup. Useful when the entity type is needed to distinguish between different query results or use-cases.
+- Retains the `typeIndex` partition key column in returned items. Applies only when `autoRemoveTableProperties` is true.
 
 #### `propertyCleanup`
 
 - **Type**: `(item: AnyObject) => AnyObject`
-- **Description**: A function that processes and returns the item to be exposed by the methods. Overrides the automatic cleanup behavior set by `autoRemoveTableProperties` and `keepTypeProperty`. Useful for customizing how internal properties are removed from items.
+- **Optional**
+- Custom cleanup function for returned items. Overrides `autoRemoveTableProperties` and `keepTypeProperty` when provided.
 
 #### `blockInternalPropUpdate`
 
 - **Type**: `boolean`
 - **Default**: `true`
-- **Description**: Enables a safety check on every update operation inside your single table to block (with a thrown error) any operation that tries to update an internal property of an item. This includes any key, index key, type key or TTL attribute. Useful to prevent indirect code to mess with the internal configuration of your items. You can set this to `false` and use the `badUpdateValidation` to further customize which property should be blocked
+- Blocks updates to internal properties (keys, index keys, type key, TTL). Default behavior throws error if attempted. Set to `false` to disable or use `badUpdateValidation` for custom validation.
 
 #### `badUpdateValidation`
 
 - **Type**: `(propertiesInUpdate: Set<string>) => boolean | string`
-- **Description**: Validates updates by inspecting all properties referenced in an update (in `values`, `remove`, or `atomicOperations`). The default validation ensures that the partition key is not modified, which is a DynamoDB rule. You can use this validation to block internal property updates or throw a custom error message. This has a niche use case and should not see much usage.
+- **Optional**
+- Custom validation for update operations. Receives all properties referenced in `values`, `remove`, or `atomicOperations`.
+- Return values:
+  - `true`: Update is invalid (throws error).
+  - `false`: Update is valid.
+  - `string`: Custom error message to throw.
 
+The partition key check always runs as it violates DynamoDB rules.
 
-### Single Table usage
+#### `autoGenerators`
+
+- **Type**: `Record<string, () => any>`
+- **Optional**
+- Define custom value generators that can be referenced in entity `autoGen` configurations.
+
+Extends or overrides the built-in auto-generation types (`UUID`, `KSUID`, `timestamp`, `count`). Custom generators defined here become available throughout all entities in the table.
+
+**Example:**
+
+```ts
+const table = new SingleTable({
+  dynamodbProvider: provider,
+  table: 'YOUR_TABLE_NAME',
+  partitionKey: 'pk',
+  rangeKey: 'sk',
+
+  autoGenerators: {
+    // Add custom generators
+    tenantId: () => getTenantFromContext(),
+    organizationId: () => getOrgFromContext(),
+
+    // Override built-in generators
+    UUID: () => customUUIDImplementation(),
+    timestamp: () => customTimestamp(),
+  },
+});
+
+// Use in entity definitions
+const User = table.schema.createEntity<UserType>().as({
+  type: 'USER',
+  getPartitionKey: ({ id }) => ['USER', id],
+  getRangeKey: () => '#DATA',
+
+  autoGen: {
+    onCreate: {
+      versionId: 'KSUID'       // Uses builtin implementation
+      id: 'UUID',              // Uses custom UUID implementation
+      tenantId: 'tenantId',    // Uses custom tenantId generator
+      createdAt: 'timestamp',  // Uses custom timestamp implementation
+    },
+    onUpdate: {
+      organizationId: 'organizationId', // Uses custom generator
+      updatedAt: 'timestamp',           // Uses custom timestamp
+    },
+  },
+});
+```
+
+### Usage
 
 ```ts
 import { SingleTable, DynamodbProvider } from 'dynamodb-provider'
@@ -666,7 +795,6 @@ import { SingleTable, DynamodbProvider } from 'dynamodb-provider'
 const provider = new DynamodbProvider({
   // provider params
 });
-
 
 const table = new SingleTable({
   dynamodbProvider: provider,
@@ -680,7 +808,6 @@ const table = new SingleTable({
 
   typeIndex: {
     name: 'TypeIndexName',
-
     partitionKey: '_type',
     rangeKey: '_timestamp',
   },
@@ -698,9 +825,7 @@ const table = new SingleTable({
 
 ### Single Table Methods
 
-With your single table created, you can now use it to execute all the same actions from the provider, but fully aware of the table config.
-
-Available Methods:
+Available methods:
 
 - [get](#single-table-get)
 - [batchGet](#single-table-batch-get)
@@ -708,123 +833,137 @@ Available Methods:
 - [delete](#single-table-delete)
 - [update](#single-table-update)
 - [query](#single-table-query)
-- [transaction](#single-table-execute-transaction)
+- [transaction](#single-table-transaction)
+- [ejectTransactParams](#single-table-eject-transact-params)
+- [toTransactionParams](#single-table-generate-transaction-config-list)
+- [createSet](#single-table-create-set)
 - [listType](#single-table-list-type)
 - [listAllFromType](#single-table-list-all-from-type)
+- [findTableItem](#single-table-find-table-item)
+- [filterTableItens](#single-table-filter-table-itens)
 
 
 ### single table get
 
-#### Parameters:
-
-- `partitionKey`: The partition key of the item you want to retrieve.
-- `rangeKey`: The range key of the item you want to retrieve.
-- `consistentRead` (optional): If set to `true`, the operation uses strongly consistent reads; otherwise, it uses eventually consistent reads. Default is `false`.
-- `propertiesToRetrieve` (optional): Specifies which properties to retrieve from the item. This is helpful when you only need specific fields instead of the entire item.
-
-#### Valid Keys
+Retrieves a single item by partition and range keys.
 
 ```ts
-type Key = null | string | Array<string | number | null>;
+get<Entity>(params: SingleTableGetParams<Entity>): Promise<Entity | undefined>
 ```
 
-Note: `null` is mainly useful if you want to block an index update to happen due to lack of params. We'll see an example later on.
+**Parameters:**
 
-#### Example
+- `partitionKey` - Partition key value. Type: `null | string | Array<string | number | null>`
+- `rangeKey` - Range key value. Type: `null | string | Array<string | number | null>`
+- `consistentRead` (optional) - Use strongly consistent reads. Default: `false`
+- `propertiesToRetrieve` (optional) - Root-level attributes to return
+
+Returns the item or `undefined` if not found.
+
+**Key Types:**
 
 ```ts
-import { SingleTable } from 'dynamodb-provider'
+type KeyValue = null | string | Array<string | number | null>;
+```
 
-const table = new SingleTable({
-  // ...config
-})
+Array keys are joined with the configured `keySeparator`. `null` values are primarily for index updates where parameters may be incomplete.
 
+**Example:**
+
+```ts
 const user = await table.get({
   partitionKey: ['USER', id],
-
   rangeKey: '#DATA',
-
   consistentRead: true,
 })
 ```
 
-The call above correctly matches your table actual keys under the hood, joins any array key with the configured separator for you.
-
-You can use these methods as they are, create your own entity x repository like extraction methods out of it or use our own entity abstraction to fully utilize the best out of the single table design.
-
 
 ### single table batch get
 
-#### Parameters:
-
-- `keys`: An array of objects, where each object contains:
-  - `partitionKey`: The partition key of the item.
-  - `rangeKey`: The range key
-- `consistentRead` (optional): If set to `true`, the operation uses strongly consistent reads; otherwise, it uses eventually consistent reads. Default is `false`.
-- `propertiesToRetrieve` (optional): Specifies which properties to retrieve for each item.
-- `throwOnUnprocessed` (optional): By default, this call will try up to 8 times to resolve any `UnprocessedItems` result from the `batchGet` call. If any items are still left unprocessed, the method will return them. If set to `true`, the method will throw an error if there are unprocessed items.
-
-#### Example:
+Retrieves multiple items by keys. Handles batches >100 items and retries unprocessed items automatically.
 
 ```ts
-  const items = await singleTable.batchGet({
-    keys: [
-      { partitionKey: 'USER#123', rangeKey: 'INFO#456' },
-      { partitionKey: 'USER#789', rangeKey: 'INFO#012' },
-    ],
+batchGet<Entity>(params: SingleTableBatchGetParams<Entity>): Promise<Entity[]>
+```
 
-    propertiesToRetrieve: ['name', 'email'],
+**Parameters:**
 
-    throwOnUnprocessed: true,
-  });
+- `keys` - Array of key objects, each containing:
+  - `partitionKey` - Partition key value
+  - `rangeKey` - Range key value
+- `consistentRead` (optional) - Use strongly consistent reads. Default: `false`
+- `propertiesToRetrieve` (optional) - Root-level attributes to return
+- `throwOnUnprocessed` (optional) - Throw error if items remain unprocessed after retries. Default: `false`
+- `maxRetries` (optional) - Maximum retry attempts for unprocessed items. Default: `8`
+
+**Example:**
+
+```ts
+const items = await table.batchGet({
+  keys: [
+    { partitionKey: 'USER#123', rangeKey: 'INFO#456' },
+    { partitionKey: 'USER#789', rangeKey: 'INFO#012' },
+  ],
+  propertiesToRetrieve: ['name', 'email'],
+  throwOnUnprocessed: true,
+});
 ```
 
 ### single table create
 
-#### Parameters:
-
-- `item`: The object representing the item you want to create. The object should contain all the fields of the entity.
-- `key`: An object containing:
-  - `partitionKey`: The partition key for the new item.
-  - `rangeKey`: The range key (if applicable) for the new item.
-- `indexes` (optional): If applicable, provides the index key information for other indexes the item will be added to.
-  Structure: `Record<IndexName, { partitionKey, rangeKey }>`
-- `expiresAt` (optional): A UNIX timestamp for setting a TTL on the item. Only acceptable if `expiresAt` is configured on table.
-- `type` (optional): Defines the entity type for a single table design setup. Only acceptable if `typeIndex` is configured on table.
-
-#### Example:
+Creates an item in the table.
 
 ```ts
-const user = await singleTable.create({
+create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
+```
+
+**Parameters:**
+
+- `item` - The item to create
+- `key` - Object containing:
+  - `partitionKey` - Partition key value
+  - `rangeKey` - Range key value
+- `indexes` (optional) - Index key values. Structure: `Record<IndexName, { partitionKey, rangeKey }>`. Only available if table has `indexes` configured.
+- `expiresAt` (optional) - UNIX timestamp for TTL. Only available if table has `expiresAt` configured.
+- `type` (optional) - Entity type identifier. Only available if table has `typeIndex` configured.
+
+**Example:**
+
+```ts
+const user = await table.create({
   key: {
     partitionKey: 'USER#123',
     rangeKey: '#DATA',
   },
-
   item: {
     id: '123',
     name: 'John Doe',
     email: 'john.doe@example.com',
   },
-
   type: 'USER',
-
-  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days TTL
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days
 });
 ```
 
 ### single table delete
 
-#### Parameters:
-
-- `partitionKey`: The partition key of the item you want to delete.
-- `rangeKey`: The range key of your item.
-- `conditions` (optional): A set of conditions that must be met before the deletion is executed.
-
-#### Example:
+Deletes an item by partition and range keys.
 
 ```ts
-await singleTable.delete({
+delete<Entity>(params: SingleTableDeleteParams<Entity>): Promise<void>
+```
+
+**Parameters:**
+
+- `partitionKey` - Partition key value
+- `rangeKey` - Range key value
+- `conditions` (optional) - Conditions that must be met before deletion
+
+**Example:**
+
+```ts
+await table.delete({
   partitionKey: 'USER#123',
   rangeKey: '#DATA',
 });
@@ -832,951 +971,1031 @@ await singleTable.delete({
 
 ### single table update
 
-We'll show just the params that differ from [update](#update)
-
-#### Parameters:
-
-- `partitionKey`: The primary partition key of the item to update.
-- `rangeKey`: The range key of the item to update
-- `indexes` (optional): Allows updating associated secondary indexes. You can specify which indexes to update by providing partial or full values for the index's partition and/or range keys.
-- `expiresAt` (optional): The UNIX timestamp defining when the item should expire (for tables configured with TTL).
-- `values` (optional): An object containing key-value pairs representing the properties to update. These values will be merged into the existing item.
-- `remove` (optional): An array of properties to be removed from the item.
-- `atomicOperations` (optional): A list of operations to perform on numeric or set properties. Supported operations:
-  - `sum`: Add a value to an existing numeric property.
-  - `subtract`: Subtract a value from an existing numeric property.
-  - `add_to_set`: Add values to a set property.
-  - `remove_from_set`: Remove values from a set property.
-  - `set_if_not_exists`: Set a property value only if it does not already exist.
-- `conditions` (optional): A set of conditions that must be satisfied for the update to succeed. The update will be aborted if the conditions are not met.
-- `returnUpdatedProperties` (optional): If `true`, the updated properties are returned. This is useful if you're performing atomic operations and want to retrieve the result.
-
-#### Example:
+Updates an item with support for value updates, property removal, and atomic operations.
 
 ```ts
-const result = await singleTable.update({
+update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity> | undefined>
+```
+
+**Parameters:**
+
+- `partitionKey` - Partition key value
+- `rangeKey` - Range key value
+- `values` (optional) - Properties to update
+- `remove` (optional) - Root-level properties to remove
+- `atomicOperations` (optional) - Atomic operations (see [update](#update) for operations)
+- `conditions` (optional) - Conditions that must be met
+- `returnUpdatedProperties` (optional) - Return updated values
+- `indexes` (optional) - Update index keys. Structure: `Record<IndexName, Partial<{ partitionKey, rangeKey }>>`. Only available if table has `indexes` configured.
+- `expiresAt` (optional) - UNIX timestamp for TTL. Only available if table has `expiresAt` configured.
+- `type` (optional) - Entity type value. Updates the `typeIndex.partitionKey` property. Only available if table has `typeIndex` configured.
+
+**Example:**
+
+```ts
+const result = await table.update({
   partitionKey: ['USER', 'some-id'],
-
   rangeKey: '#DATA',
-
   values: {
     email: 'newemail@example.com',
     status: 'active'
   },
-
   remove: ['someProperty'],
-
-  atomicOperations: [{ operation: 'sum', prop: 'loginCount', value: 1 }],
-
-  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // Expires in 30 days
-
+  atomicOperations: [{ operation: 'sum', property: 'loginCount', value: 1 }],
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
   indexes: {
     SomeIndex: { partitionKey: 'NEW_PARTITION' },
   },
-
-  conditions: [{ key: 'status', value: 'pending', operation: 'equal' }],
-
+  conditions: [{ property: 'status', operation: 'equal', value: 'pending' }],
   returnUpdatedProperties: true,
 });
 ```
 
 ### single table query
 
-Most of the params are the same from the [query](#query) method from provider
-
-#### Different Parameters:
-
-- `partition`: Simply the Key, as we know the column name
-- `range`: Here you can build your key condition exactly as before, but also wi
-
-#### Example:
-
-Retrieving the last 10 user logs:
+Queries items by partition key with optional range key conditions.
 
 ```ts
-const results = await singleTable.query({
-  partition: ['USER', 'your-id'],
+query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entity>>
+```
 
+**Parameters:**
+
+- `partition` - Partition key value. Type: `KeyValue`
+- `range` (optional) - Range key condition with operations: `equal`, `lower_than`, `lower_or_equal_than`, `bigger_than`, `bigger_or_equal_than`, `begins_with`, `between`
+- `index` (optional) - Index name to query. Only available if table has `indexes` configured.
+- `retrieveOrder` (optional) - `ASC` or `DESC`. Default: `ASC`
+- `limit` (optional) - Maximum items to return
+- `fullRetrieval` (optional) - Auto-paginate until all items retrieved. Default: `false`
+- `paginationToken` (optional) - Continue from previous query
+- `filters` (optional) - Filter expressions
+- `propertiesToRetrieve` (optional) - Specific attributes to return (root-level only)
+
+Returns `{ items, paginationToken? }`
+
+**Example:**
+
+```ts
+const { items, paginationToken } = await table.query({
+  partition: ['USER', 'your-id'],
   range: {
     value: 'LOG#',
     operation: 'begins_with',
   },
-
   retrieveOrder: 'DESC',
-
   limit: 10,
+  propertiesToRetrieve: ['id', 'timestamp', 'message']
 });
 ```
 
-### single table execute transaction
+### single table queryOne
 
-Works the logic same as [transaction](#execute-transaction) from the provider, the params for the create/update/delete methods can be used here to build the transaction, as well as using `validate` calls to ensure the rules of your action are being respected
+Queries for the first item matching the criteria. Returns the item directly or undefined if no match found.
 
-#### Parameters reminder:
+```ts
+queryOne<Entity>(params: SingleTableQueryOneParams<Entity>): Promise<Entity | undefined>
+```
 
-- `configs`: An array of transaction configurations. Each transaction can be one of the following:
-  - `update`: An update operation (see the `update` method for more details).
-  - `create`: A create operation (see the `create` method for more details).
-  - `erase`: A delete operation (see the `delete` method for more details).
-  - `validate`: A condition check (ensures certain conditions are met before applying other operations).
+**Parameters:**
+
+Same as `query`, except:
+- No `limit` - always queries for 1 item
+- No `paginationToken` - returns first match only
+- No `fullRetrieval` - automatically set to false
+
+**Example:**
+
+```ts
+const user = await table.queryOne({
+  partition: ['USER', 'user@example.com']
+});
+
+if (user) {
+  console.log(`Found user: ${user.name}`);
+}
+```
+
+### single table queryAll
+
+Queries for all items matching the criteria. Auto-paginates through all results and returns items directly as an array.
+
+```ts
+queryAll<Entity>(params: SingleTableQueryAllParams<Entity>): Promise<Entity[]>
+```
+
+**Parameters:**
+
+Same as `query`, except:
+- No `paginationToken` - automatically handles pagination
+- No `fullRetrieval` - always set to true internally
+- `limit` (optional) - maximum total items to return (stops pagination when limit reached)
+
+**Example:**
+
+```ts
+const allLogs = await table.queryAll({
+  partition: ['USER', 'your-id'],
+  range: {
+    value: 'LOG#',
+    operation: 'begins_with',
+  },
+  retrieveOrder: 'DESC',
+  filters: { level: 'ERROR' },
+  limit: 50 // Optional: max total items
+});
+
+console.log(`Found ${allLogs.length} error logs`);
+```
+
+### single table transaction
+
+Executes multiple operations atomically. All operations succeed or all fail.
+
+```ts
+transaction(configs: (SingleTableTransactionParams | null)[]): Promise<void>
+```
+
+**Parameters:**
+
+- `configs` - Array of transaction configurations (max 100 items or 4MB total):
+  - `{ create: SingleTableCreateParams }` - Put item
+  - `{ update: SingleTableUpdateParams }` - Update item
+  - `{ erase: SingleTableDeleteParams }` - Delete item
+  - `{ validate: SingleTableValidateTransactParams }` - Condition check
+
+Transaction parameters match the corresponding single table method parameters. `null` values in the array are filtered out.
+
+**Example:**
+
+```ts
+await table.transaction([
+  {
+    update: {
+      partitionKey: 'ORDER#A100',
+      rangeKey: '#DATA',
+      values: { status: 'completed' },
+      conditions: [{ property: 'status', operation: 'equal', value: 'pending' }]
+    }
+  },
+  {
+    erase: {
+      partitionKey: 'CART#C100',
+      rangeKey: '#DATA'
+    }
+  },
+  {
+    create: {
+      key: { partitionKey: 'COMPLETED#A100', rangeKey: '#DATA' },
+      item: { orderId: 'A100', customerId: '12345', totalAmount: 100 }
+    }
+  },
+  {
+    validate: {
+      partitionKey: 'CUSTOMER#12345',
+      rangeKey: '#DATA',
+      conditions: [{ operation: 'exists', property: 'id' }]
+    }
+  }
+]);
+```
+
+### single table eject transact params
+
+Converts single table transaction configs to provider transaction configs for merging with transactions from other tables.
+
+```ts
+ejectTransactParams(configs: (SingleTableTransactionParams | null)[]): TransactionParams[]
+```
+
+**Parameters:**
+
+- `configs` - Array of single table transaction configurations
+
+Returns array of provider-compatible transaction configurations.
+
+**Example:**
+
+```ts
+const singleTableTransacts = table.ejectTransactParams([
+  { create: { key: { partitionKey: 'A', rangeKey: 'B' }, item: { name: 'test' } } }
+]);
+
+await otherProvider.transaction([
+  { create: { table: 'OtherTable', item: { id: '1' } } },
+  ...singleTableTransacts,
+]);
+```
+
+### single table generate transaction config list
+
+Maps items to transaction configurations.
+
+```ts
+toTransactionParams<Item>(
+  items: Item[],
+  generator: (item: Item) => SingleTableTransactionParams | (SingleTableTransactionParams | null)[] | null
+): SingleTableTransactionParams[]
+```
+
+**Parameters:**
+
+- `items` - Array of items to process
+- `generator` - Function that returns transaction config(s) for each item
+
+**Example:**
+
+```ts
+const configs = table.toTransactionParams(users, (user) => ({
+  update: {
+    partitionKey: ['USER', user.id],
+    rangeKey: '#DATA',
+    values: { lastSync: new Date().toISOString() }
+  }
+}));
+
+await table.transaction(configs);
+```
+
+### single table create set
+
+Creates a DynamoDB Set. Normalizes Set creation across SDK v2 and v3.
+
+```ts
+createSet<T>(items: T[]): DBSet<T[number]>
+```
+
+**Parameters:**
+
+- `items` - Array of strings or numbers
+
+**Example:**
+
+```ts
+await table.create({
+  key: { partitionKey: 'ITEM#1', rangeKey: '#DATA' },
+  item: {
+    id: '1',
+    tags: table.createSet(['tag1', 'tag2', 'tag3']),
+    counts: table.createSet([1, 2, 3])
+  }
+});
+```
 
 ### single table list all from type
 
-**Important**: This method only works if you have a proper defined `typeIndex` that matches an existing index on the table.
-
-This method retrieves all items of a specified type from the table. It is a wrapper around the query function that simplifies the retrieval of all items associated with a particular type.
-
-#### Parameters:
-
-- `type`: string - The entity type to retrieve from the table, based on the typeIndex partition key.
-
-#### Example Usage:
+Retrieves all items of a specified type. Requires `typeIndex` with an existing DynamoDB index.
 
 ```ts
-const items = await table.listAllFromType('USER');
+listAllFromType<Entity>(type: string): Promise<Entity[]>
+```
+
+**Parameters:**
+
+- `type` - Entity type value matching the `typeIndex` partition key
+
+Automatically paginates until all items are retrieved.
+
+**Example:**
+
+```ts
+const users = await table.listAllFromType('USER');
 ```
 
 ### single table list type
 
-**Important**: This method only works if you have a proper defined `typeIndex` that matches an existing index on the table.
-
-This method performs a paginated query to retrieve items of a specific type, supporting range key filtering, pagination, and other query parameters.
-
-#### Parameters:
-- params: ListItemTypeParams - An object with the following properties:
-  - `type`: string - The entity type to retrieve from the table, based on the typeIndex partition key.
-  - `range`?: BasicRangeConfig | BetweenRangeConfig - Optional range key filter. This can either be a single comparison operation (e.g., greater than) or a between operation.
-  - `limit`?: number - Limits the number of items returned in a single call.
-  - `paginationToken`?: string - Token to continue retrieving paginated results.
-  - `retrieveOrder`?: 'ASC' | 'DESC' - The order in which items should be retrieved, either ascending (ASC) or descending (DESC).
-  - `fullRetrieval`?: boolean - If set to true, retrieves all items until no more pagination tokens are returned.
-  - `filters`?: FilterConfig - Additional filters to apply on the query.
-
-#### Returns:
-
-An object containing:
-
-- `items`: Entity[] - The list of items retrieved.
-- `paginationToken`?: string - If applicable, a token for retrieving the next set of paginated results.
-
-#### Example Usage:
+Retrieves items of a specific type with pagination support. Requires `typeIndex` with an existing DynamoDB index.
 
 ```ts
-const result = await table.listType({
-  type: 'USER',
+listType<Entity>(params: ListItemTypeParams): Promise<ListItemTypeResult<Entity>>
+```
 
+**Parameters:**
+
+- `type` - Entity type value matching the `typeIndex` partition key
+- `range` (optional) - Range key filter with operations: `equal`, `lower_than`, `lower_or_equal_than`, `bigger_than`, `bigger_or_equal_than`, `begins_with`, `between`
+- `limit` (optional) - Maximum items to return
+- `paginationToken` (optional) - Continue from previous query
+- `retrieveOrder` (optional) - `ASC` or `DESC`
+- `fullRetrieval` (optional) - Auto-paginate until all items retrieved. Default: `false`
+- `filters` (optional) - Filter expressions
+
+Returns `{ items, paginationToken? }`
+
+**Example:**
+
+```ts
+const { items, paginationToken } = await table.listType({
+  type: 'USER',
   range: {
     operation: 'begins_with',
     value: 'john',
   },
-
   limit: 10,
 });
 ```
 
-Because type match is such a common use case, we also provide 2 helper methods for handling item lists:
+### single table find table item
+
+Finds the first item matching a type. Requires `typeIndex` configured.
 
 ```ts
-interface TypeHelperMethods {
-  findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined
+findTableItem<Entity>(items: AnyObject[], type: string): Entity | undefined
+```
 
-  filterTableItens<Entity>(items: AnyObject[], type: string): Entity[]
-}
+**Parameters:**
+
+- `items` - Array of items to search
+- `type` - Entity type value
+
+Returns first matching item or `undefined`.
+
+**Example:**
+
+```ts
+const items = await table.query({ partition: ['USER', id] });
+const userData = table.findTableItem<User>(items.items, 'USER');
+```
+
+### single table filter table itens
+
+Filters items by type. Requires `typeIndex` configured.
+
+```ts
+filterTableItens<Entity>(items: AnyObject[], type: string): Entity[]
+```
+
+**Parameters:**
+
+- `items` - Array of items to filter
+- `type` - Entity type value
+
+Returns array of matching items.
+
+**Example:**
+
+```ts
+const items = await table.query({ partition: ['USER', id] });
+const logs = table.filterTableItens<Log>(items.items, 'USER_LOG');
 ```
 
 ## Single Table Schema
 
-Now that every direct single table method is covered, it time to talk about the last part of the library: `schema` abilities.
-
-With your single table instance, you can define partitions, entities and even collections to be easily acted upon. Lets explore this with the most basic type of DB piece you may need: `entity`
+The schema system provides entity definitions, partition management, and collection joins. Access via `table.schema`.
 
 ### Single Table Schema: Entity
 
-Entities are the representation of a data type inside your table. There can be made a parallel between an SQL table and a single table entity
+Entities represent data types within the table.
 
-#### Creating entity syntax
-
-```ts
-type tUser = {
-  id: string;
-  name: string;
-  createdAr: string;
-  // ... more props
-}
-
-const User = table.schema.createEntity<User>().as({
-  // create entity params
-})
-```
-
-We have a double invocation here to properly forward the entities type in conjunction with the params inferred from the creation. This is done as you'll see the entity type is solely reliant on TS' types as of now, there's not in code schema definition atm.
-
-Lets explore the params allowed:
-
-#### Create entity params
-
-- `getPartitionKey`: A partition resolver for your entity
-- `getRangeKey`: A range resolver for your entity
-
-Both key resolvers have the same key getter structure as before, but **restricted** to the actual entity properties:
-
-```ts
-type EntityKeyResolvers<Entity> = {
-  getPartitionKey: (params: EntityParamsOnly<Entity>) => KeyValue;
-
-  getRangeKey: (params: EntityParamsOnly<Entity>) => KeyValue;
-};
-```
-
-This means you can't pass in a getter that uses params not found in its type:
+**Syntax:**
 
 ```ts
 type tUser = {
   id: string;
   name: string;
-  createdAr: string;
-  // ... more props
+  createdAt: string;
 }
 
-const BadUser = table.schema.createEntity<User>().as({
-  // create entity params
-  getPartitionKey: ({userId}: {userId: string}) => ['USER', userId] // TYPE ERROR!
+const User = table.schema.createEntity<tUser>().as({
+  // entity parameters
 })
+```
+
+The two-step invocation (`createEntity<Type>().as()`) enables proper type inference. Entity types rely on TypeScript types without runtime schema validation.
+
+**Entity Parameters:**
+
+- **`type`** (string, required) - Unique identifier for the entity type within the table. Throws error if duplicate types are registered.
+
+- **`getPartitionKey`** (function or array, required) - Generates partition key from entity properties.
+  - Function: `(params: Partial<Entity>) => KeyValue`
+  - Array: Supports dot notation for property references (see below)
+  - Type: `KeyValue = null | string | Array<string | number | null>`
+  - Parameters restricted to entity properties only
+
+- **`getRangeKey`** (function or array, required) - Generates range key from entity properties. Same structure as `getPartitionKey`.
+
+**Key Resolver Example:**
+
+```ts
+type User = {
+  id: string;
+  name: string;
+  createdAt: string;
+}
 
 const User = table.schema.createEntity<User>().as({
-  // create entity params
-  getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id] // ok!
+  type: 'USER',
+  getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+  getRangeKey: () => '#DATA',
 })
 ```
 
-As a reminder, the allowed values:
+Parameters must exist in the entity type. Using non-existent properties causes type errors.
 
-```ts
-type KeyValue = null | string | Array<string | number | null>;
-```
+**Dot Notation Shorthand:**
 
-Just remember `null` is useful if you want to indicate that you generated a bad key that shouldn't be updated. That means its relevant on index key getters, but no actual partition/range context
-
-##### Dotted property references
-
-Most of the time, your partition/range keys will be simple combination of constants and property values. Because of how the getter requirement is constructed, a lot of times you are writing a lot of the same boiler plate code:
+Key resolvers can use array syntax with dot notation for property references:
 
 ```ts
 type Event = {
   id: string;
   timestamp: string;
-  type: string;
   userId: string;
-  // ...more props
 }
 
-export const eEvent = schema.createEntity<Event>().as({
+const Event = table.schema.createEntity<Event>().as({
   type: 'USER_EVENT',
-
-  getPartitionKey: () => 'USER_EVENT',
-
-  // destructure + pick (or inline type def) + array
-  getRangeKey: ({ id }: Pick<Event, 'id'>) => [id],
-
-  indexes: {
-    byUser: {
-      // destructure + pick (or inline type def) + array
-      getPartitionKey: ({ userId }: Pick<Event, 'userId'>) => ['SOME_ENTITY_KEY', userId],
-
-     // destructure + pick (or inline type def) + array
-      getRangeKey: ({ timestamp }: Pick<Event, 'timestamp'>) => ['SOME_ENTITY_KEY', timestamp],
-
-      index: 'IndexOne',
-    },
-  },
-
-  autoGen: {
-    onCreate: {
-      id: 'KSUID',
-      timestamp: 'timestamp',
-    },
-  },
-});
-```
-
-This is mostly fine, as its clear and demonstrates the relation clearly. But it does get repetitive. We provide a way to reference this logic with a dot notation:
-
-```ts
-type Event = {
-  id: string;
-  timestamp: string;
-  type: string;
-  userId: string;
-  // ...more props
-}
-
-export const eEvent = schema.createEntity<Event>().as({
-  type: 'USER_EVENT',
-
   getPartitionKey: ['USER_EVENT'],
-
-  getRangeKey: ['.id']
-
+  getRangeKey: ['.id'],  // References Event.id
   indexes: {
     byUser: {
-      getPartitionKey:  ['SOME_ENTITY_KEY', '.userId'],
-
-      getRangeKey:  ['SOME_ENTITY_KEY', '.timestamp'],
-
+      getPartitionKey: ['EVENT_BY_USER', '.userId'],
+      getRangeKey: ['.timestamp'],
       index: 'IndexOne',
-    },
-  },
-
-  autoGen: {
-    onCreate: {
-      id: 'KSUID',
-      timestamp: 'timestamp',
     },
   },
 });
 ```
 
-**IMPORTANT!** This brings some opinions on how it works. It provides QOL on most entity creations, but be aware of:
+**Dot Notation Behavior:**
 
-- You have IDE assistance to auto complete any `.[prop]` you may way to reference, **but EVERY string is accepted**. Meaning typos can lead to bad key resolvers.
-- Every entry will have the initial `.` automatically removed `[.CONSTANT, .prop]` becomes `[CONSTANT, ${prop}]`
-- The `getPartitionKey` and `getRangeKey` generated will look and inject every `.prop` from the params received into the key generation, so typos can lead to `undefined` getting into the key and ultimately invalidating it.
+- Strings starting with `.` reference entity properties
+- Leading `.` is removed before property lookup (`'.id'` becomes `id`)
+- IDE provides autocomplete for property names
+- Typos cause `undefined` values in keys
+- Constants without `.` remain unchanged (`'USER_EVENT'` stays `'USER_EVENT'`)
 
-If you need complex login on your key generation, you need to pass in as a function. We do not pretend to extend this functionality to handle dynamic references. Thats the clear cut use case of a function.
+Use functions for complex key generation logic. Dot notation handles simple property references only.
 
-- `type` (string): An **unique** describer of an entity inside your single table. Think of it as the "table name". If you try to create 2 entities with the same type, an error is thrown.
-
-- `autoGen` (object, optional): Defined properties that should be auto generated `onCreation` or `onUpdate`:
+- **`autoGen`** (object, optional) - Auto-generate property values on create or update.
   ```ts
-  type AutoGenFieldConfig<Entity> = {
-    [Key in keyof Entity]?: AutoGenOption;
-  };
-
-  export type AutoGenParams<Entity> = {
-    onCreate?: AutoGenFieldConfig<Entity>;
-
-    onUpdate?: AutoGenFieldConfig<Entity>;
+  type AutoGenParams<Entity> = {
+    onCreate?: { [Key in keyof Entity]?: AutoGenOption };
+    onUpdate?: { [Key in keyof Entity]?: AutoGenOption };
   };
   ```
 
-  `AutoGenOption` are as follows:
+  **Built-in Generator Types:**
+  - `'UUID'` - Generates v4 UUID
+  - `'KSUID'` - Generates K-Sortable Unique ID
+  - `'count'` - Assigns `0`
+  - `'timestamp'` - Generates ISO timestamp via `new Date().toISOString()`
+  - `() => any` - Inline custom generator function
+  - Custom generator keys from table's `autoGenerators` config (see [autoGenerators](#autogenerators))
 
-  * `UUID`: generates a `v4` uuid
-  * `KSUID`: generates a *K-Sortable Globally Unique IDs (KSUID)*
-  * `count`: automatically assigns `0`
-  * `timestamp`: generates the current timestamp with `new Date().toISOString()`
-  * `() => any`: Pass in a function if you need a custom auto-generation strategy
+  **Example:**
+  ```ts
+  // With custom table generators
+  const table = new SingleTable({
+    // ...config
+    autoGenerators: {
+      tenantId: () => getCurrentTenant(),
+    }
+  });
+
+  const Entity = table.schema.createEntity<EntityType>().as({
+    type: 'ENTITY',
+    getPartitionKey: ({ id }) => ['ENTITY', id],
+    getRangeKey: () => '#DATA',
+
+    autoGen: {
+      onCreate: {
+        id: 'UUID',              // Built-in generator
+        tenantId: 'tenantId',    // Custom generator from table config
+        createdAt: 'timestamp',  // Built-in generator
+        status: () => 'active',  // Inline function
+      },
+      onUpdate: {
+        updatedAt: 'timestamp',
+      },
+    },
+  });
+  ```
+
+  Properties with `autoGen` configured become optional in creation parameters. User-provided values always override generated ones.
 
 
-- `rangeQueries` (object, optional): Configure possible queries to be easily referenced when using the entity. Here you can easily define query configuration to be used to retrieve the entity
-
-  Pass in an object in which:
-  * Key: query name
-  * Value: query config, which operation will be performed, and value getter
+- **`rangeQueries`** (object, optional) - Predefined range key queries for the entity.
+  - Key: Query method name
+  - Value: Query configuration with `operation` and `getValues`
 
   ```ts
-  type tLogs = {
-    type: string;
+  type Log = {
     timestamp: string;
-    // ...props
   }
 
-  const Logs = table.schema.createEntity<tLogs>().as({
+  const Logs = table.schema.createEntity<Log>().as({
     type: 'APP_LOGS',
-
     getPartitionKey: () => ['APP_LOG'],
-
-    getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
-
+    getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
     rangeQueries: {
       dateSlice: {
         operation: 'between',
-        getValues: ({ start, end }: { start: string, end: string }) => ({
-          start,
-          end,
-        })
+        getValues: ({ start, end }: { start: string, end: string }) => ({ start, end })
       }
     }
   })
   ```
 
-  When the time comes to use the entity, this will produce a `dateSlice` method, which will require `start` and `end` params to work (as our partition key does not require any addition params), properly typed. the method will build the underlying dynamodb query need to perform the retrieval. You can further configure the `dateSlice` methods with the `query` params we have.
+  Generates typed query methods accessible via `table.schema.from(Logs).query.dateSlice({ start, end })`.
 
-
-- `index` (object, optional): Only available if table configured with indexes. A record mapping of your entity indexes definition:
-
-  Format: `Record<string, IndexConfig>`
-  * key: a custom index name to describe it
-  * value: `IndexConfig`
-    - `getPartitionKey` - same logic as the root entity getPartitionKey
-    - `getRangeKey` - same logic as the root entity getRangeKey
-    - `index` - the actual table index name related, as is on the dynamodb table
-    - `rangeQueries?` - same logic as the root entity rangeQueries
-
-  Example:
+- **`indexes`** (object, optional) - Secondary index definitions. Only available if table has `indexes` configured.
+  - Key: Custom index identifier
+  - Value: Index configuration
+    - `getPartitionKey` - Partition key resolver (function or array)
+    - `getRangeKey` - Range key resolver (function or array)
+    - `index` - Table index name matching `indexes` configuration
+    - `rangeQueries` (optional) - Predefined queries for this index
 
   ```ts
-  type tLogs = {
+  type Log = {
     type: string;
     timestamp: string;
-    // ...props
   }
 
-  const table = new SingleTable({
-    // ... other params
-
-    indexes: {
-      DynamoIndex1: {
-        partitionKey: 'gsipk1',
-        rangeKey: 'gsipsk1',
-      },
-
-      OtherTableIndex: {
-        partitionKey: 'gsipk2',
-        rangeKey: 'gsipsk2',
-      },
-    }
-  })
-
-  const Logs = table.schema.createEntity<tLogs>().as({
+  const Logs = table.schema.createEntity<Log>().as({
     type: 'APP_LOGS',
-
     getPartitionKey: () => ['APP_LOG'],
-
-    getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
-
+    getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
     indexes: {
-      MY_CUSTOM_INDEX_NAME: {
-        getPartitionKey: ({ type }: Pick<tLogs, 'type'>) => ['APP_LOG_BY_TYPE', type],
-
-        getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
-
-        index: 'DynamoIndex1' // could be DynamoIndex1 or OtherTableIndex as per config
+      byType: {
+        getPartitionKey: ({ type }: Pick<Log, 'type'>) => ['APP_LOG_BY_TYPE', type],
+        getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
+        index: 'DynamoIndex1'
       }
     }
   })
   ```
 
-- `extend`: A function you can use to add/modify properties from the entity automatically upon retrieval on `from(xxx)` calls
+- **`extend`** (function, optional) - Adds or modifies properties on retrieved items.
+  - Signature: `(item: Entity) => AnyObject`
+  - Applied automatically to all retrieval operations via `from()`
 
   ```ts
-    type tUser = {
-      id: string;
-      name: string;
-      dob: string;
-      // ... more props
-    }
+  type User = {
+    id: string;
+    name: string;
+    dob: string;
+  }
 
-    const User = table.schema.createEntity<User>().as({
-      // ...other props
-
-      extend: ({ dob }) => ({
-        age: calculateAge(dob)
-      })
-    })
+  const User = table.schema.createEntity<User>().as({
+    type: 'USER',
+    getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+    getRangeKey: () => '#DATA',
+    extend: ({ dob }) => ({ age: calculateAge(dob) })
+  })
   ```
 
-  The example above represent a property addition, the user calculate `age`. It will be present automatically after every retrieval call from `from(xxx)`. Be it for entities or collections
+  Retrieved items include the extended properties automatically.
 
-### Single table entity usage
+- **`includeTypeOnEveryUpdate`** (boolean, optional) - Automatically includes the entity's `type` value on every update operation. Only available if table has `typeIndex` configured. Default: `false`.
 
-The generated entity has properties that you can leverage to interact with the single table methods, such as:
+  This is useful when using update operations as upserts or when you need to ensure the type is always set on items.
 
-#### Relevant entity properties
+  ```ts
+  const User = table.schema.createEntity<User>().as({
+    type: 'USER',
+    getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
+    getRangeKey: () => '#DATA',
+  })
 
-- `getKey` - A complete key getter that accepts the exact params required in `getPartitionKey` and `getRangeKey` to generate the entity key reference `{ partitionKey: KevValue, rangeKey: KeyValue }`
+  // Pass explicitly on each update call
+  await table.schema.from(User).update({
+    id: 'user-123',
+    values: { name: 'John' },
+    includeTypeOnEveryUpdate: true,  // Type will be included
+  });
 
-- `getCreationParams(item: Entity, { expiresAt?: number }?)` - as the name implies, generates the [single table create](#single-table-create) params. If `expiresAt` is defined in your table, a second optional param with allowed if that configuration
+  // Or use getUpdateParams to generate params with type
+  const params = User.getUpdateParams({
+    id: 'user-123',
+    values: { name: 'John' },
+    includeTypeOnEveryUpdate: true,
+  });
+  // params.type === 'USER'
+  ```
 
-- `getUpdateParams(params: UpdateParams)` - same logic as the getCreationParams, but produces the params for [single table update](#single-table-update) instead. Here all the key params are required, plus the updates such as `values`, `atomicOperations` and etc
+  Note: This only populates the `typeIndex.partitionKey` column. The `typeIndex.rangeKey` is not affected.
 
-- `transact param builders` - You can easily generate any of the `create`, `update`, `erase` and/or `validate` transact params with:
-  * **transactCreateParams** - results in `{ create: {...} }`
-  * **transactUpdateParams** - results in `{ update: {...} }`
-  * **transactDeleteParams** - results in `{ erase: {...} }`
-  * **transactValidateParams** - results in `{ validate: {...} }`
+### Using Entities
 
-#### Using entity directly on schema
+Entities expose helper methods and integration with `schema.from()`.
 
-You can also leverage the `schema.from` method to create a "repository-like" instance to perform actions on your entity:
+**Entity Helper Methods:**
+
+- `getKey(params)` - Generates key reference from parameters required by `getPartitionKey` and `getRangeKey`. Returns `{ partitionKey: KeyValue, rangeKey: KeyValue }`.
+
+- `getCreationParams(item, options?)` - Generates parameters for [single table create](#single-table-create). Optional `expiresAt` parameter available if table has TTL configured.
+
+- `getUpdateParams(params)` - Generates parameters for [single table update](#single-table-update). Requires key parameters plus update operations (`values`, `atomicOperations`, etc.).
+
+- **Transaction Builders:**
+  - `transactCreateParams` - Returns `{ create: {...} }`
+  - `transactUpdateParams` - Returns `{ update: {...} }`
+  - `transactDeleteParams` - Returns `{ erase: {...} }`
+  - `transactValidateParams` - Returns `{ validate: {...} }`
+
+**Using `schema.from()`:**
+
+Creates a repository interface for entity operations:
 
 ```ts
-type tUser = {
+type User = {
   id: string;
   name: string;
-  createdAr: string;
-  // ... more props
+  createdAt: string;
 }
 
 const User = table.schema.createEntity<User>().as({
   type: 'USER',
-
   getPartitionKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
-
   getRangeKey: () => ['#DATA'],
 })
 
-const userActions = table.schema.from(User)
-```
+const userRepo = table.schema.from(User)
 
-This will expose all the methods we are used to, but fully specified to meet the user needs/type. For example:
-
-```ts
-const userActions = table.schema.from(User)
-
-await userActions.create({
-  // all user props that are required on the User type
+await userRepo.create({
+  id: 'user-id',
+  name: 'John',
+  createdAt: new Date().toISOString()
 })
 
-await userActions.update({
-  id: 'user-id', // because its a key param
-
-  values: {
-    status: 'new-status'
-  }
-
-  // other update specific params
+await userRepo.update({
+  id: 'user-id',
+  values: { name: 'Jane' }
 })
 ```
 
-Here's a list of all available methods:
+**Available Methods:**
 
-- get
-- batchGet
-- create
-- update
-- delete
-- listAll - *only if typeIndex is present*
-- list - *only if typeIndex is present*
-- query
-- queryIndex - *only if entity has index defined*
+- `get`
+- `batchGet`
+- `create`
+- `update`
+- `delete`
+- `listAll` - Requires `typeIndex`
+- `list` - Requires `typeIndex`
+- `query`
+- `queryIndex` - Requires entity `indexes` definition
 
-Out of these methods, `query` and `queryIndex` are in a different format. As you can execute custom queries and/or have pre-defined queries on `rangeQueries`:
+**Query Methods:**
 
-- `query` exposes a `custom` method to execute any query on the entity partition plus each range query defined
-- `queryIndex` while `queryIndex` exposes a similar structure as `query`, but for each individual index defined
+`query` and `queryIndex` expose `custom` method plus any defined `rangeQueries`. Each range query method supports three invocation styles:
 
-Example:
+- **Default call** - Returns `QueryResult<Entity>` with pagination support
+- **`.one()`** - Returns first matching item or `undefined`
+- **`.all()`** - Returns all matching items as array
 
 ```ts
-type tLogs = {
+type Log = {
   type: string;
   timestamp: string;
-  // ...props
 }
 
-const Logs = table.schema.createEntity<tLogs>().as({
+const Logs = table.schema.createEntity<Log>().as({
   type: 'APP_LOGS',
-
   getPartitionKey: () => ['APP_LOG'],
-
-  getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
-
+  getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
+  rangeQueries: {
+    recent: {
+      operation: 'bigger_than',
+      getValues: ({ since }: { since: string }) => ({ value: since })
+    }
+  },
   indexes: {
-    logsByType: {
-      getPartitionKey: ({ type }: Pick<tLogs, 'type'>) => ['APP_LOG_BY_TYPE', type],
-
-      getRangeKey: ({ timestamp }: Pick<tLogs, 'timestamp'>) => timestamp,
-
+    byType: {
+      getPartitionKey: ({ type }: Pick<Log, 'type'>) => ['APP_LOG_BY_TYPE', type],
+      getRangeKey: ({ timestamp }: Pick<Log, 'timestamp'>) => timestamp,
       index: 'DynamoIndex1',
-
-      dateSlice: {
-        operation: 'between',
-        getValues: ({ start, end }: { start: string, end: string }) => ({
-          start,
-          end,
-        })
+      rangeQueries: {
+        dateSlice: {
+          operation: 'between',
+          getValues: ({ start, end }: { start: string, end: string }) => ({ start, end })
+        }
       }
     }
   }
 })
 
-// all valid queries:
+// Query main partition
+const { items, paginationToken } = await table.schema.from(Logs).query.custom()
+const { items: page } = await table.schema.from(Logs).query.custom({ limit: 10, retrieveOrder: 'DESC' })
 
-await table.from(Logs).query.custom() // valid call, as getPartitionKey does not have params, it will simply execute a query against its partition
+// Get first matching log
+const firstLog = await table.schema.from(Logs).query.one()
+// Returns: Log | undefined
 
-await table.from(Logs).query.custom({
-  limit: 10,
-  retrieveOrder: 'DESC'
+// Get all logs (auto-paginated)
+const allLogs = await table.schema.from(Logs).query.all()
+// Returns: Log[]
+
+const recentLog = await table.schema.from(Logs).query.recent({ since: '2025-01-01' })
+
+// Range queries with one/all
+const recentLog = await table.schema.from(Logs).query.recent.one({ since: '2024-01-01' })
+// Returns: Log | undefined
+
+const allRecent = await table.schema.from(Logs).query.recent.all({ since: '2024-01-01' })
+// Returns: Log[]
+
+// Query index with one/all
+const errorLog = await table.schema.from(Logs).queryIndex.byType.one({ type: 'ERROR' })
+// Returns: Log | undefined
+
+const allErrors = await table.schema.from(Logs).queryIndex.byType.all({ type: 'ERROR' })
+// Returns: Log[]
+
+// Index range queries with one/all
+const firstError = await table.schema.from(Logs).queryIndex.byType.dateSlice.one({
+  type: 'ERROR',
+  start: '2024-01-01',
+  end: '2024-01-31'
 })
 
-await table.from(Logs).queryIndex.logsByType.custom({
-  type: 'LOG-TYPE-1', // required as logsByType getPartitionKey expects it
-})
-
-await table.from(Logs).queryIndex.logsByType.dateSlice({
-  type: 'LOG-TYPE-2',
-  start: 'some-ts',
-  end: 'some-ts',
-  limit: 20,
+const allJanErrors = await table.schema.from(Logs).queryIndex.byType.dateSlice.all({
+  type: 'ERROR',
+  start: '2024-01-01',
+  end: '2024-01-31',
+  limit: 100  // Optional: max total items to return
 })
 ```
 
-> Note: Any retrieval method will apply the `extend` action if available
+**Query Method Parameters:**
 
-With the `from` you can strongly enforce the data access patterns you have within you table, simplifying the process of handling the underlying table properties that should be excluded from app logic.
+- **Default call** - Accepts `limit`, `paginationToken`, `retrieveOrder`, `filters`, `propertiesToRetrieve`, `range`
+- **`.one(params?)`** - Accepts all params except `limit` and `paginationToken`
+- **`.all(params?)`** - Accepts all params except `paginationToken` (limit sets max total items)
+
+All retrieval methods apply `extend` function if defined.
 
 ### Single Table Schema: Partition
 
-As you might be familiar while using the single table design, it's all about **partitions**. If you are new to it, partitions are all the data under a certain partitionKey logic. It could have one type of entity or many.
+Partitions group entities sharing the same partition key. Centralizes key generation for related entities.
 
-Lets use the user example, in which the partitionKey is in the `USER#userId` format. Under it, we have entities for the main user data, permissions, login logs and purchase history. To closely keep that information together with the partition/range key, it is recommended to create a partition before its relative entities.
+**Parameters:**
+
+- **`name`** (string, required) - Unique partition identifier. Throws error if duplicated.
+- **`getPartitionKey`** (function, required) - Partition key generator. Function form only (dot notation not supported).
+- **`index`** (string, optional) - Table index name. Creates index partition when specified.
+- **`entries`** (object, required) - Range key generators mapped by name. Each entry can be used once to create an entity or index definition.
+
+**Example:**
 
 ```ts
 const userPartition = table.schema.createPartition({
   name: 'USER_PARTITION',
-
   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
   entries: {
     mainData: () => ['#DATA'],
-
     permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
-
     loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
-
-    orders: ({ orderId }: { { orderId: string } }) => ['ORDER', orderId],
+    orders: ({ orderId }: { orderId: string }) => ['ORDER', orderId],
   },
 })
 ```
 
-Its recommended to give the partition params the most descriptive names possible, why we chose `userId` and not `id`
+Use descriptive parameter names (`userId` instead of `id`) for clarity.
 
-With your created partition, you can now use it to create its relative entities. **If you need to adjust the key getter params, you can do it here too:**
+**Creating Entities from Partitions:**
+
+Use `partition.use(entry).create<Type>().entity()` for main table or `.index()` for index partitions:
 
 ```ts
-type tUser = {
+type User = {
   id: string;
   name: string;
   createdAt: string;
   email: string;
-  updatedAt?: string;
 }
 
-type tUserLoginAttempt = {
+type UserLoginAttempt = {
   userId: string;
   timestamp: string;
   success: boolean;
   ip: string;
 }
 
-const User = userPartition.use('mainData').create<tUser>().entity({
+const User = userPartition.use('mainData').create<User>().entity({
   type: 'USER',
-
-  // You **must** match any partition param that is not
-  // found inside the entity (tUser) you are creating
-  // Optionally, you can match same name params if they mean different things
-  // If all params are found inside the entity, it will be an optional param
   paramMatch: {
-    userId: 'id'
+    userId: 'id'  // Maps partition param 'userId' to entity property 'id'
   },
-
-  // every other create entity param...
+  // Other entity parameters...
 })
 
-const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttempt>().entity({
   type: 'USER_LOGIN_ATTEMPT',
-
-  // since all key params from partition+loginAttempt are already present on tUserLoginAttempt,
-  // we do not need to match params
+  // No paramMatch needed - all partition params exist in entity type
 })
 ```
 
-**Important** You can only *use* each entry once.
+**Parameter Matching:**
 
-#### Index Partition
+- **`paramMatch`** - Maps partition parameters to entity properties when names differ. **Required when partition parameters are not present in entity type**. Optional when all parameters exist in entity.
 
-Its also common to have partitions localized to certain table's index instead of the main pk+sk combo. You can create an `index partition` easily as well. So let's repeat the above example with an Index based logic:
+Each partition entry can be used only once.
+
+**Index Partitions:**
+
+Partitions can target secondary indexes by specifying the `index` parameter:
 
 ```ts
-type tUser = {
+type User = {
   id: string;
   name: string;
-  createdAt: string;
-  email: string;
-  updatedAt?: string;
-}
-
-type tUserLoginAttempt = {
-  userId: string;
-  timestamp: string;
-  success: boolean;
-  ip: string;
 }
 
 const userIndexPartition = table.schema.createPartition({
-  name: 'USER_PARTITION',
-
-  index: 'YourIndexNameFromConfig',
-
+  name: 'USER_INDEX_PARTITION',
+  index: 'DynamoIndex1',  // Must match table indexes configuration
   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
   entries: {
     mainData: () => ['#DATA'],
-
-    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
-
     loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
-
-    // other entries...
   },
 })
 
-const User = table.schema.createEntity<tUser>().as({
+// Use index partition in entity definition
+const User = table.schema.createEntity<User>().as({
   type: 'USER',
-
   getPartitionKey: () => ['APP_USERS'],
-
-  getRangeKey: ({ id }: Pick<tUser, 'id'>) => ['USER', id],
-
+  getRangeKey: ({ id }: Pick<User, 'id'>) => ['USER', id],
   indexes: {
-    userData: userIndexPartition.use('mainData').create<tUser>().index({
-      paramMatch: {
-        userId: 'id'
-      },
-
-      // rangeQueries? ... other index params
+    userData: userIndexPartition.use('mainData').create<User>().index({
+      paramMatch: { userId: 'id' },
+      // rangeQueries and other index parameters
     }),
   }
 })
-
-const UserLoginAttempt = table.schema.createEntity<tUserLoginAttempt>().as({
-  type: 'USER_LOGIN_ATTEMPT',
-
-  getPartitionKey: () => ['APP_LOGINS'],
-
-  getRangeKey: ({ id, timestamp }: Pick<tUserLoginAttempt, 'id' | 'timestamp'>) => ['USER_LOGIN', timestamp, id],
-
-    indexes: {
-      // no param to match or other index params? no need to provide params
-      userData: userIndexPartition.use('loginAttempt').create<tUser>().index(),
-    }
-})
 ```
 
-As you have noticed, the `use('entry').create<EntryType>()` call can either provide you with an `entity` OR an `index`, based on if your partition is default or index based.
+Index partitions return `.index()` method instead of `.entity()` when used.
 
-#### Partition Creation Params
-
-All params have been covered on the example above, but here's them aggregated:
-
-- **name**: An **UNIQUE** name to your partition
-- **getPartitionKey**: The partition getter (only as fn form!)
-- **index?**: The table index this partition might be from
-- **entries**: An object mapping a partition entity to its `getRangeKey` resolver
+Another great usage of partition is to facilitate your **collections** creation. Let's explore what a collection is:
 
 ## Single Table Schema: Collection
 
-Now that we know how to create and use entities, be it solo or partition types, we need a way to define precisely which complex structures we can retrieve. In the user example above, we could want to retrieve the entire `User` type, including permissions, login attempts, etc. This is a common pattern on single table design, as ofter our data is spread across multiple entries on the table.
-
-To help you define these complex structures that live inside your table, you can create a `Collection`.
+Collections define joined entity structures for retrieval. Data in single-table designs often spans multiple entries that need to be retrieved and joined together.
 
 ### Collection Parameters
 
-- `ref`: The root entity of the collection. It can be `null` if the base entry will be an empty object with the `join` keys.
+- **`ref`** (entity or null, required) - Root entity of the collection. Use `null` for collections with only joined entities.
 
-- `type`: Specifies the join type, either `'SINGLE'` or `'MULTIPLE'`.
+- **`type`** (`'SINGLE'` or `'MULTIPLE'`, required) - Collection cardinality. `'SINGLE'` returns one result, `'MULTIPLE'` returns an array.
 
-- `getPartitionKey`: Function or reference for retrieving the partition key for the collection.
-  If this is provided, `partition` is not accepted
+- **`getPartitionKey`** (function, optional) - Partition key generator for the collection. Mutually exclusive with `partition`.
 
-- `index?`: Which table index this collection is relevant. Only acceptable if you provide `getPartitionKey` instead of a partition.
+- **`index`** (string, optional) - Table index name. Only valid with `getPartitionKey`.
 
-- `partition`: An existing partition for your collection. **It can be either entity or index partition**. The collection will properly infer the index/non-index state to perform the query
-  If this is provided, `getPartitionKey` and `index` are not accepted
+- **`partition`** (Partition, optional) - Existing partition (entity or index partition). Mutually exclusive with `getPartitionKey` and `index`. The collection infers index usage automatically.
 
-- `narrowBy`: Optional filter to narrow down the range key search for the collection, either by a range key prefix or a custom function.
-  Accepted values:
-  * `RANGE_KEY`: will narrow the query starting with the `getRangeKey` of the ref entity. Only works if `ref` is an entity
-  * `(params?: AnyObject) => RangeQueryConfig`: A custom handler that returns the range query to be passed down to the collection query
+- **`narrowBy`** (optional) - Range key filter for collection query:
+  - `'RANGE_KEY'` - Uses ref entity's range key as query prefix. Requires `ref` to be an entity.
+  - `(params?: AnyObject) => RangeQueryConfig` - Custom range query function.
 
+- **`join`** (object, required) - Entity join configuration. Structure: `Record<string, JoinConfig>`. Each key becomes a property in the result type.
 
-- `join`: Configuration for how entities should be joined together. Each key will represent an entity relationship in the collection.
-  Structure: `Record<string, JoinConfig>`. Each key referenced here will be the resulting key on the extracted result
+**Join Configuration:**
 
-  Each entry in the `join` object should follow the structure:
+```ts
+type JoinConfig = {
+  entity: RefEntity;
+  type: 'SINGLE' | 'MULTIPLE';
+  extractor?: (item: AnyObject) => any;
+  sorter?: (a: any, b: any) => number;
+  joinBy?: 'POSITION' | 'TYPE' | ((parent: any, child: any) => boolean);
+  join?: Record<string, JoinConfig>;
+}
+```
 
-  ```ts
-  type JoinConfig = {
-    entity: RefEntity;
+**Join Parameters:**
 
-    type: 'SINGLE' | 'MULTIPLE';
+- **`entity`** (required) - Entity to join.
 
-    extractor?: (item: AnyObject) => any;
+- **`type`** (required) - `'SINGLE'` for single item, `'MULTIPLE'` for array.
 
-    sorter?: Sorter;
+- **`extractor`** (optional) - Transforms joined entity before inclusion. Signature: `(item) => any`.
 
-    joinBy?: 'POSITION' | 'TYPE' | JoinResolver;
+- **`sorter`** (optional) - Sorts `'MULTIPLE'` type joins. Ignored for `'SINGLE'`. Signature: `(a, b) => number`.
 
-    join?: Record<string, JoinConfig>;
-  }
-  ```
+- **`joinBy`** (optional) - Join strategy. Default: `'POSITION'`.
+  - `'POSITION'` - Sequential join based on query order. Requires table `typeIndex` with existing DynamoDB index.
+  - `'TYPE'` - Join by entity type property. Requires `typeIndex.partitionKey` defined (index need not exist in DynamoDB).
+  - `(parent, child) => boolean` - Custom join function. Returns `true` to join.
 
-  Lets explore each param:
+- **`join`** (optional) - Nested join configuration. Same structure as root `join`. Enables multi-level joins.
 
-  * **`entity`** (Required):
-    The reference to the entity you want to join with.
+Returns a collection object for type extraction and query execution.
 
-  * **`type`** (Required):
-    Specifies whether the join will result in a single reference (`'SINGLE'`) or multiple references (`'MULTIPLE'`).
+### Collection Type Extraction
 
-  * **`extractor`** (Optional):
-    A function to extract and return specific data from the joined entity before adding it to the parent entity.
-    **Example**: Extracting only a subset of the fields like `permission` from the `UserPermission` entity.
+Use `GetCollectionType` to infer the collection's TypeScript type:
 
-  * **`sorter`** (Optional):
-    A function to custom sort the list of entities when `type` is `'MULTIPLE'`. This is ignored for `'SINGLE'` joins.
-    **Example**: Sorting the user login attempts by a timestamp or a custom logic
+```ts
+type YourType = GetCollectionType<typeof yourCollection>
+```
 
-  * **`joinBy`** (Optional):
-    Defines how the join is performed. It defaults to `'POSITION'` but supports the following options:
-    - **`POSITION`**: Joins entities based on their sequential extraction from the query. **Requires a `typeIndex` to exist in the table.**
-    - **`TYPE`**: Joins entities by their type. Required **at least** your entities to have the `typeIndex.partitionKey` defined. The index does not need to actually exist in the table
-    - **Custom Resolver**: A function to define custom join logic, with the signature `(parent, child) => boolean`. It returns `true` if the entities should be joined.
+### Collection Examples
 
-  * **`join`** (Optional):
-    A nested configuration for joining other entities that are related to the current entity. You can create complex join chains by adding more entities within this property. The structure of each nested join follows the same format as the root-level `join`.
-
-
-### Returns
-
-A `Collection` to be used both for **type definition** and table extraction.
-
-### Extracting Collection Type
-
-A `GetCollectionType` is exposed for you to infer correctly its type using `type YourType = GetCollectionType<typeof yourCollection>`
-
-### Example Usage
+**Collection with Root Entity:**
 
 ```ts
 const userPartition = table.schema.createPartition({
   name: 'USER_PARTITION',
-
   getPartitionKey: ({ userId }: { userId: string }) => ['USER', userId],
-
   entries: {
     mainData: () => ['#DATA'],
-
-    permissions: ({ permissionId }: { permissionId: string }) => ['PERMISSION', permissionId],
-
     loginAttempt: ({ timestamp }: { timestamp: string }) => ['LOGIN_ATTEMPT', timestamp],
-
-    orders: ({ orderId }: { { orderId: string } }) => ['ORDER', orderId],
   },
 })
 
-type tUser = {
+type User = {
   id: string;
   name: string;
-  createdAt: string;
   email: string;
-  updatedAt?: string;
 }
 
-type tUserLoginAttempt = {
+type UserLoginAttempt = {
   userId: string;
   timestamp: string;
   success: boolean;
   ip: string;
 }
 
-const User = userPartition.use('mainData').create<tUser>().entity({
+const User = userPartition.use('mainData').create<User>().entity({
   type: 'USER',
-
-  paramMatch: {
-    userId: 'id'
-  },
+  paramMatch: { userId: 'id' },
 })
 
-const UserLoginAttempt = userPartition.use('loginAttempt').create<tUserLoginAttempt>().entity({
+const UserLoginAttempt = userPartition.use('loginAttempt').create<UserLoginAttempt>().entity({
   type: 'USER_LOGIN_ATTEMPT',
 })
 
-const userWithLoginAttemptsCollection = createCollection({
+// This will correctly need the userId param to retrieve when doing schema.from(userWithLogins).get
+const userWithLogins = userPartition.collection({
   ref: User,
-
+  type: 'SINGLE',
   join: {
     logins: {
       entity: UserLoginAttempt,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
     },
   },
-
-  type: 'SINGLE',
-
-  partition: userPartition,
 });
 
-/*
-  UserWithLoginAttempts = tUser & { logins: tUserLoginAttempt[] }
-*/
-type UserWithLoginAttempts = GetCollectionType<typeof userWithLoginAttemptsCollection>
+// Type: User & { logins: UserLoginAttempt[] }
+type UserWithLogins = GetCollectionType<typeof userWithLogins>
 ```
 
-Or, creating simply the user's attempts and permissions:
+**Collection without Root Entity:**
 
 ```ts
-type tUserPermission = {
+type UserPermission = {
   permissionId: string;
   timestamp: string;
   addedBy: string;
 }
 
-const UserPermission = userPartition.use('permissions').create<tUserPermission>().entity({
+const UserPermission = userPartition.use('permissions').create<UserPermission>().entity({
   type: 'USER_PERMISSION',
 })
 
-const someCollection = createCollection({
-  ref: null, // this!
-
+const userDataCollection = userPartition.collection({
+  ref: null,
+  type: 'SINGLE',
   join: {
     logins: {
       entity: UserLoginAttempt,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
     },
-
     permissions: {
       entity: UserPermission,
-
       type: 'MULTIPLE',
-
       joinBy: 'TYPE',
-
-      extractor: ({ permissionId }: tUserPermission) => permissionId,
+      extractor: ({ permissionId }: UserPermission) => permissionId,
     }
   },
-
-  type: 'SINGLE',
-
-  partition: userPartition,
 });
 
-/*
-  YourCollection = { logins: tUserLoginAttempt[], permissions: string[] }
-*/
-type YourCollection = GetCollectionType<typeof someCollection>
+// Type: { logins: UserLoginAttempt[], permissions: string[] }
+type UserData = GetCollectionType<typeof userDataCollection>
 ```
 
-### Using your collection
+You can also call `table.schema.createCollection` if you need to pass in partitions/partition-getters inline
 
-Same as with the entity, you can now leverage the schema to execute actions on your collection.
+### Using Collections
 
-For now, only the `get` method is exposed:
+Collections expose a `get` method via `schema.from()`:
 
 ```ts
-const userWithAttempts = await table.schema.from(userWithLoginAttemptsCollection).get({
-  // its the partition param passed to the collection!
+const result = await table.schema.from(userWithLogins).get({
   userId: 'user-id-12',
 })
 ```
 
-And thats it! The result will be of the expected type (or undefined if not found, since its a `SINGLE` collection)
+Returns the collection type for `'SINGLE'` collections or `undefined` if not found. Returns array for `'MULTIPLE'` collections.
 
 
 

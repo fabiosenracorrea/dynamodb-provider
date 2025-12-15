@@ -13,7 +13,7 @@ export interface ListOptions<Entity> {
   /**
    * Which properties to return from each entity
    */
-  propertiesToGet?: (keyof Entity)[];
+  propertiesToRetrieve?: (keyof Entity)[];
 
   /**
    * Filter for conditions to match for each entity
@@ -80,7 +80,10 @@ export interface ListOptions<Entity> {
   paginationToken?: string;
 }
 
-export type ListAllOptions<Entity> = Omit<ListOptions<Entity>, 'paginationToken' | 'limit'>;
+export type ListAllOptions<Entity> = Omit<
+  ListOptions<Entity>,
+  'paginationToken' | 'limit'
+>;
 
 type GetScanParams<Entity> = ListOptions<Entity> & {
   table: string;
@@ -105,7 +108,7 @@ export class ItemLister extends DynamodbExecutor {
     limit,
     paginationToken,
     parallelRetrieval,
-    propertiesToGet,
+    propertiesToRetrieve,
     _internalStartKey,
   }: GetScanParams<Entity>): DBScanParams<Entity>['input'] {
     const filterParams = getFilterParams(filters);
@@ -117,7 +120,7 @@ export class ItemLister extends DynamodbExecutor {
 
       ConsistentRead: consistentRead,
 
-      ProjectionExpression: getProjectionExpression(propertiesToGet as string[]),
+      ProjectionExpression: getProjectionExpression(propertiesToRetrieve as string[]),
 
       ExclusiveStartKey: isPaginated
         ? _internalStartKey || fromPaginationToken(paginationToken!)
@@ -133,10 +136,10 @@ export class ItemLister extends DynamodbExecutor {
       ...filterParams,
 
       ExpressionAttributeNames:
-        filterParams.ExpressionAttributeNames || propertiesToGet?.length
+        filterParams.ExpressionAttributeNames || propertiesToRetrieve?.length
           ? {
               ...filterParams.ExpressionAttributeNames,
-              ...getProjectionExpressionNames(propertiesToGet as string[]),
+              ...getProjectionExpressionNames(propertiesToRetrieve as string[]),
             }
           : undefined,
     });
@@ -178,7 +181,10 @@ export class ItemLister extends DynamodbExecutor {
     });
   }
 
-  async listAll<Entity>(table: string, options = {} as ListAllOptions<Entity>): Promise<Entity[]> {
+  async listAll<Entity>(
+    table: string,
+    options = {} as ListAllOptions<Entity>,
+  ): Promise<Entity[]> {
     const items = await this.recursivelyGetAllItems({
       table,
       ...options,

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { TransactionConfig, ValidateTransactParams } from 'provider/utils';
+import { TransactionParams, ValidateTransactParams } from 'provider/utils';
 
 import { BaseSingleTableOperator, SingleTableOperatorParams } from '../../executor';
 import { SingleTableCreator, SingleTableRemover, SingleTableUpdater } from '../crud';
 
-import { SingleTableTransactionConfig, SingleTableValidateTransactParams } from './types';
+import { SingleTableTransactionParams, SingleTableValidateTransactParams } from './types';
 import { getPrimaryKey } from '../../key';
 
 interface SingleTableTransactorParams extends SingleTableOperatorParams {
@@ -53,8 +53,10 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
     };
   }
 
-  ejectTransactParams(configs: (SingleTableTransactionConfig | null)[]): TransactionConfig[] {
-    return (configs.filter(Boolean) as SingleTableTransactionConfig[]).map(
+  ejectTransactParams(
+    configs: (SingleTableTransactionParams | null)[],
+  ): TransactionParams[] {
+    return (configs.filter(Boolean) as SingleTableTransactionParams[]).map(
       ({ create, erase, update, validate }) => {
         if (erase) return { erase: { ...this.remover.getDeleteParams(erase) } };
 
@@ -66,25 +68,25 @@ export class SingleTableTransactionWriter extends BaseSingleTableOperator {
 
         throw new Error('Invalid transaction type');
       },
-    ) as TransactionConfig[];
+    ) as TransactionParams[];
   }
 
-  async transaction(configs: (SingleTableTransactionConfig | null)[]): Promise<void> {
+  async transaction(configs: (SingleTableTransactionParams | null)[]): Promise<void> {
     await this.db.transaction(
       this.ejectTransactParams(configs),
       //
     );
   }
 
-  generateTransactionConfigList<Item>(
+  toTransactionParams<Item>(
     items: Item[],
     generator: (
       item: Item,
-    ) => (SingleTableTransactionConfig | null)[] | SingleTableTransactionConfig | null,
-  ): SingleTableTransactionConfig[] {
+    ) => (SingleTableTransactionParams | null)[] | SingleTableTransactionParams | null,
+  ): SingleTableTransactionParams[] {
     return items
       .map((item) => generator(item))
       .flat()
-      .filter(Boolean) as SingleTableTransactionConfig[];
+      .filter(Boolean) as SingleTableTransactionParams[];
   }
 }

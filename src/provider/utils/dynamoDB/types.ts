@@ -47,7 +47,10 @@ export type DynamoDBConfig =
         UpdateCommand: CommandConstructor<UpdateCommand, UpdateCommandInput>;
         ScanCommand: CommandConstructor<ScanCommand>;
         QueryCommand: CommandConstructor<QueryCommand, QueryCommandInput>;
-        TransactWriteCommand: CommandConstructor<TransactWriteCommand, TransactWriteCommandInput>;
+        TransactWriteCommand: CommandConstructor<
+          TransactWriteCommand,
+          TransactWriteCommandInput
+        >;
       };
     };
 
@@ -55,11 +58,13 @@ interface ScanOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.ScanOutput, 
   Items: Entity[];
 }
 
-interface QueryOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.QueryOutput, 'Items'> {
+interface QueryOutput<Entity>
+  extends Omit<DynamoDBv2.DocumentClient.QueryOutput, 'Items'> {
   Items?: Entity[];
 }
 
-interface GetItemOutput<Entity> extends Omit<DynamoDBv2.DocumentClient.GetItemOutput, 'Item'> {
+interface GetItemOutput<Entity>
+  extends Omit<DynamoDBv2.DocumentClient.GetItemOutput, 'Item'> {
   Item?: Entity;
 }
 
@@ -78,17 +83,17 @@ export type DBQueryParams<Entity> = {
   output: QueryOutput<Entity>;
 };
 
-export type DBDeleteItemParams = {
+export type DBDeleteParams = {
   input: DynamoDBv2.DocumentClient.DeleteItemInput;
   output: DynamoDBv2.DocumentClient.DeleteItemOutput;
 };
 
-export type DBCreateItemParams = {
+export type DBCreateParams = {
   input: DynamoDBv2.DocumentClient.PutItemInput;
   output: DynamoDBv2.DocumentClient.PutItemOutput;
 };
 
-export type DBUpdateItemParams = {
+export type DBUpdateParams = {
   input: DynamoDBv2.DocumentClient.UpdateItemInput;
   output: DynamoDBv2.DocumentClient.UpdateItemOutput;
 };
@@ -133,8 +138,15 @@ export type DBV2Set<T extends string | number> = T extends number
       values: string[];
     };
 
-export type DBV3Set<T extends string | number> = T extends number ? Set<number> : Set<string>;
+export type DBV3Set<T extends string | number> = T extends number
+  ? Set<number>
+  : Set<string>;
 
+/**
+ * The type your set items will be retrieved as.
+ *
+ * **WARNING** It varies depending on aws sdk version you choose
+ */
 export type DBSet<
   T extends string | number,
   DbSDKVersion extends DynamoDBConfig['target'],

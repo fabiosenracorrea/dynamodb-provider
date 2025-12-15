@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   SingleTableConditionCheckTransaction,
-  SingleTableCreateItemParams,
+  SingleTableCreateParams,
   SingleTableCreateTransaction,
   SingleTableDeleteTransaction,
   SingleTableUpdateParams,
@@ -12,7 +12,7 @@ import { SingleTableConfig } from 'singleTable/adaptor';
 import { AnyObject, MakePartial } from 'types';
 
 import { omitUndefined } from 'utils/object';
-import { DeleteItemParams, ValidateTransactParams } from 'provider/utils';
+import { DeleteParams, ValidateTransactParams } from 'provider/utils';
 import { EntityKeyParams, KeyResolvers } from '../key';
 
 import { addAutoGenParams, AutoGenParams } from './autoGen';
@@ -26,15 +26,38 @@ type UnixExpiresAtProps = {
   expiresAt?: number;
 };
 
-type UpdateCallProps<TableConfig extends SingleTableConfig, Entity extends AnyObject> = Pick<
+export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
+  TableConfig['typeIndex'] extends { partitionKey: string }
+    ? {
+        /**
+         * By setting this to `true`, **EVERY UPDATE** from an entity will include the `type` value
+         *
+         * Useful if you use any logic that exclusively rely on `update` to create/mutate an item
+         *
+         * This is opt-in as will require more write capacity for every update operation
+         *
+         * **IMPORTANT** Only the `partitionKey` here will be populated
+         */
+        includeTypeOnEveryUpdate?: boolean;
+      }
+    : unknown;
+
+type UpdateCallProps<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+> = Pick<
   SingleTableUpdateParams<Entity, TableConfig>,
   'atomicOperations' | 'conditions' | 'remove' | 'values' | 'returnUpdatedProperties'
 > &
-  (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown);
+  (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown) &
+  EntityCRUConfigParams<TableConfig>;
 
-type OnCreateConfig = Required<AutoGenParams<any>>['onCreate'];
+type OnCreateConfig = Required<AutoGenParams<any, SingleTableConfig>>['onCreate'];
 
-type WithOptionalCreationProps<CreationProps, CreateConfig extends OnCreateConfig> = MakePartial<{
+type WithOptionalCreationProps<
+  CreationProps,
+  CreateConfig extends OnCreateConfig,
+> = MakePartial<{
   [K in keyof CreationProps]: K extends keyof CreateConfig
     ? CreationProps[K] | undefined
     : CreationProps[K];
@@ -44,10 +67,8 @@ type WithOptionalCreationProps<CreationProps, CreateConfig extends OnCreateConfi
 type MakeGenPropsPartial<
   CreationProps,
   GenConfig extends RegisterEntityParams<any, any>['autoGen'],
-> = GenConfig extends AutoGenParams<any>
-  ? GenConfig['onCreate'] extends OnCreateConfig
-    ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
-    : CreationProps
+> = GenConfig extends { onCreate: any }
+  ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
   : CreationProps;
 
 type BaseCRUDProps<
@@ -56,17 +77,23 @@ type BaseCRUDProps<
   Params extends RegisterEntityParams<any, any>,
 > = {
   getCreationParams: (
-    item: MakeGenPropsPartial<Entity & EntityKeyParams<Entity, Params>, Params['autoGen']>,
+    item: MakeGenPropsPartial<
+      Entity & EntityKeyParams<Entity, Params>,
+      Params['autoGen']
+    >,
 
     ...config: TableConfig extends { expiresAt: string } ? [UnixExpiresAtProps?] : []
-  ) => SingleTableCreateItemParams<Entity, TableConfig>;
+  ) => SingleTableCreateParams<Entity, TableConfig>;
 
   getUpdateParams: (
     params: EntityKeyParams<Entity, Params> & UpdateCallProps<TableConfig, Entity>,
   ) => SingleTableUpdateParams<Entity>;
 };
 
-type TransactParamResult<TableConfig extends SingleTableConfig, Entity extends AnyObject> = {
+type TransactParamResult<
+  TableConfig extends SingleTableConfig,
+  Entity extends AnyObject,
+> = {
   crete: Pick<SingleTableCreateTransaction<TableConfig, Entity>, 'create'>;
   update: Pick<SingleTableUpdateTransaction<TableConfig, Entity>, 'update'>;
   erase: Pick<SingleTableDeleteTransaction<Entity>, 'erase'>;
@@ -79,7 +106,8 @@ type TransactCRUDProps<
   Params extends RegisterEntityParams<any, any>,
 > = {
   getValidationParams: (
-    params: EntityKeyParams<Entity, Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> &
+      Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['validate']['validate'];
 
   transactCreateParams: (
@@ -91,25 +119,32 @@ type TransactCRUDProps<
   ) => TransactParamResult<TableConfig, Entity>['update'];
 
   transactDeleteParams: (
-    params: EntityKeyParams<Entity, Params> & Omit<DeleteItemParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> & Omit<DeleteParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['erase'];
 
   transactValidateParams: (
-    params: EntityKeyParams<Entity, Params> & Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
+    params: EntityKeyParams<Entity, Params> &
+      Omit<ValidateTransactParams<Entity>, 'key' | 'table'>,
   ) => TransactParamResult<TableConfig, Entity>['validate'];
 };
 
 // fromEntity was acting up
 export type ExtendableCRUDProps = {
-  getCreationParams: (...params: any[]) => SingleTableCreateItemParams<any, any>;
+  getCreationParams: (...params: any[]) => SingleTableCreateParams<any, any>;
   getUpdateParams: (params: any) => SingleTableUpdateParams<any>;
   getValidationParams: (
     ...param: any[]
   ) => Pick<SingleTableConditionCheckTransaction<any>, 'validate'>['validate'];
 
-  transactCreateParams: (...param: any[]) => Pick<SingleTableCreateTransaction<any, any>, 'create'>;
-  transactUpdateParams: (...param: any[]) => Pick<SingleTableUpdateTransaction<any, any>, 'update'>;
-  transactDeleteParams: (...param: any[]) => Pick<SingleTableDeleteTransaction<any>, 'erase'>;
+  transactCreateParams: (
+    ...param: any[]
+  ) => Pick<SingleTableCreateTransaction<any, any>, 'create'>;
+  transactUpdateParams: (
+    ...param: any[]
+  ) => Pick<SingleTableUpdateTransaction<any, any>, 'update'>;
+  transactDeleteParams: (
+    ...param: any[]
+  ) => Pick<SingleTableDeleteTransaction<any>, 'erase'>;
   transactValidateParams: (
     ...param: any[]
   ) => Pick<SingleTableConditionCheckTransaction<any>, 'validate'>;
@@ -119,13 +154,16 @@ export type EntityCRUDProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<any, any>,
-> = BaseCRUDProps<TableConfig, Entity, Params> & TransactCRUDProps<TableConfig, Entity, Params>;
+> = BaseCRUDProps<TableConfig, Entity, Params> &
+  TransactCRUDProps<TableConfig, Entity, Params>;
 
 type CrudParamsGenerator<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
-> = Pick<Params, 'type' | 'autoGen'> & KeyResolvers<Params> & Partial<GenericIndexMappingFns>;
+> = Pick<Params, 'type' | 'autoGen'> &
+  KeyResolvers<Params> &
+  Partial<GenericIndexMappingFns>;
 
 type GenericGetKey = KeyResolvers<any>['getKey'];
 
@@ -148,8 +186,12 @@ export function getCRUDParamGetters<
   const getCreationParams = (
     item: any,
     config = {},
-  ): SingleTableCreateItemParams<Entity, TableConfig> => {
-    const actualItem = addAutoGenParams(item, autoGen?.onCreate);
+  ): SingleTableCreateParams<Entity, TableConfig> => {
+    const actualItem = addAutoGenParams({
+      values: item,
+      genConfig: autoGen?.onCreate,
+      tableConfig,
+    });
 
     return {
       ...config,
@@ -166,10 +208,21 @@ export function getCRUDParamGetters<
   };
 
   const getUpdateParams = (updateParams: any): SingleTableUpdateParams<AnyObject> => {
-    const { atomicOperations, conditions, remove, values, returnUpdatedProperties, expiresAt } =
-      updateParams;
+    const {
+      atomicOperations,
+      conditions,
+      remove,
+      values,
+      returnUpdatedProperties,
+      expiresAt,
+      includeTypeOnEveryUpdate,
+    } = updateParams;
 
-    const resolvedValues = addAutoGenParams(values ?? {}, autoGen?.onUpdate);
+    const resolvedValues = addAutoGenParams({
+      values: values ?? {},
+      genConfig: autoGen?.onUpdate,
+      tableConfig,
+    });
 
     return omitUndefined({
       atomicOperations,
@@ -181,6 +234,8 @@ export function getCRUDParamGetters<
       ...getKey(updateParams),
 
       values: resolvedValues,
+
+      type: tableConfig.typeIndex && includeTypeOnEveryUpdate ? type : undefined,
 
       indexes: getUpdatedIndexMapping?.({
         ...updateParams,

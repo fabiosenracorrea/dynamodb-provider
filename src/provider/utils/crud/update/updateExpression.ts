@@ -37,7 +37,11 @@ function addAtomicSetUpdates(
 
   const withSet = operationsThatUseSet.reduce(
     (acc, next) =>
-      mergeSameOperationExpressions('SET', acc, atomicExpressionBuilders[next.type](next)),
+      mergeSameOperationExpressions(
+        'SET',
+        acc,
+        atomicExpressionBuilders[next.type](next),
+      ),
     currentExpression,
   );
 
@@ -48,13 +52,19 @@ function addAtomicAddUpdates(
   atomic: Exclude<UpdateParams<any>['atomicOperations'], undefined>,
   currentExpression: string,
 ): string {
-  const addOperations = atomic.filter(({ type }) => type === 'add' || type === 'add_to_set');
+  const addOperations = atomic.filter(
+    ({ type }) => type === 'add' || type === 'add_to_set',
+  );
 
   if (!addOperations.length) return currentExpression;
 
   const addExpression = addOperations.reduce(
     (acc, next) =>
-      mergeSameOperationExpressions('ADD', acc, atomicExpressionBuilders[next.type](next)),
+      mergeSameOperationExpressions(
+        'ADD',
+        acc,
+        atomicExpressionBuilders[next.type](next),
+      ),
     '' as string, // ts compiler was wrongly complaining,
   );
 
@@ -71,7 +81,11 @@ function addAtomicRemoveUpdates(
 
   const addExpression = addOperations.reduce(
     (acc, next) =>
-      mergeSameOperationExpressions('DELETE', acc, atomicExpressionBuilders[next.type](next)),
+      mergeSameOperationExpressions(
+        'DELETE',
+        acc,
+        atomicExpressionBuilders[next.type](next),
+      ),
     '' as string, // ts compiler was wrongly complaining,
   );
 
