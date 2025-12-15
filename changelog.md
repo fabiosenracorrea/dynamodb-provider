@@ -4,7 +4,7 @@
 
 Our biggest update yet! Lots of QOLs, 300+ more tests and more!
 
-New documentation website [here](fabiosenracorrea.github.io/dynamodb-provider)
+New documentation website [here](https://fabiosenracorrea.github.io/dynamodb-provider)
 
 ### Breaking Changes
 

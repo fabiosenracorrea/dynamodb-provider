@@ -8,6 +8,8 @@ Fast Develop for DynamoDB with this type-safe & single-table awareness library!
 
 > Min Node version: 16
 
+New documentation website [here](https://fabiosenracorrea.github.io/dynamodb-provider)
+
 ## Introduction
 
 The DynamoDB SDK (both v2 and v3) lacks type safety and requires significant boilerplate. Building expressions, avoiding attribute name collisions, and managing code repetition typically results in verbose, hard-to-maintain abstractions.
