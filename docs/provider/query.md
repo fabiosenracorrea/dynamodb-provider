@@ -41,7 +41,7 @@ query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>
 
 #### `fullRetrieval` (optional)
 - **Type**: `boolean`
-- **Default**: `true`
+- **Default**: `false`
 - Auto-paginate until all items retrieved
 
 #### `paginationToken` (optional)
@@ -63,7 +63,7 @@ Returns `{ items: Entity[], paginationToken?: string }`
 ### Basic Example
 
 ```typescript
-const { items } = await provider.query({
+const { items } = await provider.query<Order>({
   table: 'Orders',
   partitionKey: { name: 'customerId', value: '12345' },
   rangeKey: {
@@ -91,7 +91,7 @@ queryOne<Entity>(params: QueryOneParams<Entity>): Promise<Entity | undefined>
 Same as `query`, except:
 - No `limit` - always queries for 1 item
 - No `paginationToken` - returns first match only
-- No `fullRetrieval` - automatically set to false
+- No `fullRetrieval`
 
 ### Return Value
 
@@ -255,42 +255,6 @@ const { items } = await provider.query({
 
 ## Pagination
 
-### Auto-Pagination (Default)
-
-By default, `fullRetrieval: true` fetches all items:
-
-```typescript
-const { items } = await provider.query({
-  table: 'Orders',
-  partitionKey: { name: 'customerId', value: '12345' }
-});
-// items contains ALL orders for customer (auto-paginated)
-```
-
-### Manual Pagination
-
-Disable auto-pagination for manual control:
-
-```typescript
-let paginationToken: string | undefined;
-const allItems: Order[] = [];
-
-do {
-  const result = await provider.query<Order>({
-    table: 'Orders',
-    partitionKey: { name: 'customerId', value: '12345' },
-    fullRetrieval: false,  // Disable auto-pagination
-    limit: 100,
-    paginationToken
-  });
-
-  allItems.push(...result.items);
-  paginationToken = result.paginationToken;
-} while (paginationToken);
-```
-
-### Page-by-Page
-
 Get one page at a time:
 
 ```typescript
@@ -348,6 +312,7 @@ rangeKey: {
 ```
 
 **Filters** apply after query (less efficient):
+
 ```typescript
 // ❌ Less efficient - retrieves all, then filters
 filters: {
@@ -356,14 +321,6 @@ filters: {
 ```
 
 Use range keys when possible for better performance.
-
-## When to Use Each Method
-
-| Method | Use Case |
-|--------|----------|
-| `query` | Need pagination control |
-| `queryOne` | Only need first/single result |
-| `queryAll` | Need all results, no pagination handling |
 
 ## Common Patterns
 
@@ -381,7 +338,7 @@ const latestOrders = await provider.query({
 ### Date Range Query
 
 ```typescript
-const januaryOrders = await provider.queryAll({
+const janOrders = await provider.queryAll({
   table: 'Orders',
   partitionKey: { name: 'customerId', value: '12345' },
   rangeKey: {

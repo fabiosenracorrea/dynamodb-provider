@@ -218,37 +218,21 @@ await provider.transaction([
 
 ## Null Values
 
-`null` values in the array are filtered out:
+`null` values in the array are filtered out automatically:
 
 ```typescript
 await provider.transaction([
   { create: { table: 'Users', item: {...} } },
+
   someCondition ? { update: {...} } : null,  // Included conditionally
+
   { erase: { table: 'Temp', key: {...} } }
-].filter(Boolean));  // Or just use null, it's handled automatically
+]);
 ```
 
 ## Error Handling
 
-When any operation fails, the entire transaction is rolled back:
-
-```typescript
-try {
-  await provider.transaction([
-    { create: {...} },
-    { update: {...} },
-    { erase: {...} }
-  ]);
-  console.log('All operations succeeded');
-} catch (error) {
-  console.log('Transaction failed, all operations rolled back');
-
-  if (error.name === 'TransactionCanceledException') {
-    // One of the conditions failed
-    console.log(error.CancellationReasons);
-  }
-}
-```
+At the moment, any error is directly from the DynamoDB SDK. The most common check you'd do is for Cancelation reasons:
 
 ### Cancellation Reasons
 
@@ -274,6 +258,7 @@ DynamoDB limits transactions to 100 items:
 
 ```typescript
 // ❌ Will fail - too many items
+
 await provider.transaction(
   Array.from({ length: 101 }, (_, i) => ({
     create: { table: 'Items', item: { id: i } }
@@ -302,97 +287,6 @@ Transactions can't read items - use `validate` to check conditions only.
 ### Single Table Limit
 
 Each operation can only affect one item (no multi-item updates within a single operation).
-
-## Best Practices
-
-### 1. Always Use Conditions
-
-Add conditions to prevent race conditions:
-
-```typescript
-{
-  update: {
-    table: 'Inventory',
-    key: { sku: 'A123' },
-    atomicOperations: [
-      { operation: 'subtract', property: 'stock', value: 1 }
-    ],
-    conditions: [
-      { operation: 'bigger_than', property: 'stock', value: 0 }
-    ]
-  }
-}
-```
-
-### 2. Validate Before Modifying
-
-Use `validate` operations first:
-
-```typescript
-await provider.transaction([
-  // First, validate
-  { validate: { table: 'Users', key: {...}, conditions: [...] } },
-
-  // Then, modify
-  { update: { table: 'Users', key: {...}, values: {...} } }
-]);
-```
-
-### 3. Keep Transactions Small
-
-Smaller transactions are faster and less likely to conflict:
-
-```typescript
-// ✅ Good - small, focused transaction
-await provider.transaction([
-  { update: { table: 'Orders', key: {...}, values: {...} } },
-  { create: { table: 'OrderHistory', item: {...} } }
-]);
-
-// ❌ Avoid - large transaction with many items
-await provider.transaction([...100 operations]);
-```
-
-### 4. Handle Failures Gracefully
-
-```typescript
-async function transferBalance(from: string, to: string, amount: number) {
-  const maxRetries = 3;
-
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      await provider.transaction([
-        {
-          update: {
-            table: 'Accounts',
-            key: { accountId: from },
-            atomicOperations: [
-              { operation: 'subtract', property: 'balance', value: amount }
-            ],
-            conditions: [
-              { operation: 'bigger_or_equal_than', property: 'balance', value: amount }
-            ]
-          }
-        },
-        {
-          update: {
-            table: 'Accounts',
-            key: { accountId: to },
-            atomicOperations: [
-              { operation: 'add', property: 'balance', value: amount }
-            ]
-          }
-        }
-      ]);
-
-      return; // Success
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
-    }
-  }
-}
-```
 
 ## See Also
 

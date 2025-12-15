@@ -470,7 +470,7 @@ query<Entity>(params: QueryParams<Entity>): Promise<QueryResult<Entity>>
 - `index` - Index name to query
 - `retrieveOrder` - `ASC` or `DESC` (default: ASC)
 - `limit` - Max items to return
-- `fullRetrieval` - Auto-paginate until all items retrieved (default: true)
+- `fullRetrieval` - Auto-paginate until all items retrieved (default: false)
 - `paginationToken` - Continue from previous query
 - `filters` - Additional filter expressions
 - `propertiesToRetrieve` - Specific attributes to return (root-level only)
@@ -1026,7 +1026,7 @@ query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entit
 - `index` (optional) - Index name to query. Only available if table has `indexes` configured.
 - `retrieveOrder` (optional) - `ASC` or `DESC`. Default: `ASC`
 - `limit` (optional) - Maximum items to return
-- `fullRetrieval` (optional) - Auto-paginate until all items retrieved. Default: `true`
+- `fullRetrieval` (optional) - Auto-paginate until all items retrieved. Default: `false`
 - `paginationToken` (optional) - Continue from previous query
 - `filters` (optional) - Filter expressions
 - `propertiesToRetrieve` (optional) - Specific attributes to return (root-level only)

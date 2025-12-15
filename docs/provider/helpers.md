@@ -33,34 +33,6 @@ await provider.create({
 });
 ```
 
-### Number Sets
-
-```typescript
-const numberSet = provider.createSet([1, 2, 3, 4, 5]);
-
-await provider.create({
-  table: 'Products',
-  item: {
-    productId: 'P123',
-    availableSizes: numberSet
-  }
-});
-```
-
-### String Sets
-
-```typescript
-const stringSet = provider.createSet(['tag1', 'tag2', 'tag3']);
-
-await provider.create({
-  table: 'Posts',
-  item: {
-    postId: 'POST123',
-    tags: stringSet
-  }
-});
-```
-
 ### Update with Sets
 
 Use with atomic `add_to_set` and `remove_from_set` operations:
@@ -272,59 +244,6 @@ const configs = provider.toTransactionParams(orders, (order) => [
     }
   }
 ]);
-```
-
-### Batch Processing
-
-Helper to process large arrays:
-
-```typescript
-function chunkArray<T>(array: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
-// Process 500 items in batches of 100
-const allConfigs = provider.toTransactionParams(items, (item) => ({
-  create: { table: 'Items', item }
-}));
-
-const batches = chunkArray(allConfigs, 100);
-
-for (const batch of batches) {
-  await provider.transaction(batch);
-}
-```
-
-### Type Safety
-
-The generator function is type-safe:
-
-```typescript
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-const users: User[] = [...];
-
-const configs = provider.toTransactionParams(users, (user: User) => ({
-  create: {
-    table: 'Users',
-    item: {
-      id: user.id,
-      name: user.name,
-      email: user.email
-    }
-  }
-}));
-
-// TypeScript ensures user parameter has User type
-// and item matches User structure
 ```
 
 ## See Also

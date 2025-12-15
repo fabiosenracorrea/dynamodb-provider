@@ -13,17 +13,6 @@ SingleTable is the second layer that adds:
 - **TTL Support**: Built-in expiration handling
 - **Index Support**: Simplified secondary index operations
 
-## When to Use
-
-Use SingleTable for **single-table designs** where multiple entity types share one DynamoDB table:
-
-- ✅ Multiple entities in one table (Users, Orders, Products in `AppData`)
-- ✅ You want automatic key management
-- ✅ You use partition key + sort key patterns
-- ✅ You want cleaner returned items (no internal keys)
-
-If you're using **table-per-entity design**, use [Provider](/provider/) instead.
-
 For **complex entity relationships**, consider the [Schema](/schema/) layer.
 
 ## Requirements
