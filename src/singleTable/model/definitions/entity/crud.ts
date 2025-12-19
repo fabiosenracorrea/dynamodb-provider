@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  NumericIndex,
   SingleTableConditionCheckTransaction,
   SingleTableCreateParams,
   SingleTableCreateTransaction,
@@ -9,15 +10,16 @@ import {
 } from 'singleTable/adaptor/definitions';
 import { SingleTableConfig } from 'singleTable/adaptor';
 
-import { AnyObject, MakePartial } from 'types';
+import { AnyObject, IsNever, MakePartial } from 'types';
 
 import { omitUndefined } from 'utils/object';
-import { DeleteParams, ValidateTransactParams } from 'provider/utils';
-import { EntityKeyParams, KeyResolvers } from '../key';
+import type { DeleteParams, ValidateTransactParams } from 'provider/utils';
+import { BaseAtomicIndexUpdate } from 'singleTable/adaptor/definitions/operations/crud/types';
+import type { EntityKeyParams, KeyResolvers } from '../key';
 
-import { addAutoGenParams, AutoGenParams } from './autoGen';
+import { addAutoGenParams, type AutoGenParams } from './autoGen';
 import type { RegisterEntityParams } from './params';
-import { GenericIndexMappingFns } from './indexParams';
+import type { GenericIndexMappingFns } from './indexParams';
 
 type UnixExpiresAtProps = {
   /**
@@ -41,6 +43,19 @@ export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
         includeTypeOnEveryUpdate?: boolean;
       }
     : unknown;
+
+type AtomicIndexParams<
+  TableConfig extends SingleTableConfig,
+  Params extends RegisterEntityParams<any, any>,
+  //
+  // SYSTEM:
+  //
+  __NUMERIC_INDEXES__ = NumericIndex<NonNullable<TableConfig['indexes']>>,
+> = IsNever<__NUMERIC_INDEXES__> extends true
+  ? unknown
+  : Params extends { indexes: Record<string, { index: string }> }
+  ? { atomicIndexes?: BaseAtomicIndexUpdate<keyof Params['indexes']>[] }
+  : unknown;
 
 type UpdateCallProps<
   TableConfig extends SingleTableConfig,
@@ -86,7 +101,9 @@ type BaseCRUDProps<
   ) => SingleTableCreateParams<Entity, TableConfig>;
 
   getUpdateParams: (
-    params: EntityKeyParams<Entity, Params> & UpdateCallProps<TableConfig, Entity>,
+    params: EntityKeyParams<Entity, Params> &
+      UpdateCallProps<TableConfig, Entity> &
+      AtomicIndexParams<TableConfig, Params>,
   ) => SingleTableUpdateParams<Entity>;
 };
 
@@ -163,7 +180,7 @@ type CrudParamsGenerator<
   Params extends RegisterEntityParams<TableConfig, Entity>,
 > = Pick<Params, 'type' | 'autoGen'> &
   KeyResolvers<Params> &
-  Partial<GenericIndexMappingFns>;
+  Partial<GenericIndexMappingFns> & { indexes?: Record<string, { index: string }> };
 
 type GenericGetKey = KeyResolvers<any>['getKey'];
 
@@ -179,6 +196,7 @@ export function getCRUDParamGetters<
     getCreationIndexMapping,
     getUpdatedIndexMapping,
     autoGen,
+    indexes,
   }: CrudParamsGenerator<TableConfig, Entity, Params>,
 ): EntityCRUDProps<TableConfig, Entity, Params> {
   const getKey = entityGetKey as GenericGetKey;
@@ -216,6 +234,7 @@ export function getCRUDParamGetters<
       returnUpdatedProperties,
       expiresAt,
       includeTypeOnEveryUpdate,
+      atomicIndexes = [],
     } = updateParams;
 
     const resolvedValues = addAutoGenParams({
@@ -236,6 +255,17 @@ export function getCRUDParamGetters<
       values: resolvedValues,
 
       type: tableConfig.typeIndex && includeTypeOnEveryUpdate ? type : undefined,
+
+      atomicIndexes: atomicIndexes?.length
+        ? (atomicIndexes as BaseAtomicIndexUpdate<string>[]).map(
+            ({ index, ...rest }) => ({
+              ...rest,
+              // converts entity named index like "rank"
+              // to the actual table name index that update params uses
+              index: indexes?.[index].index,
+            }),
+          )
+        : undefined,
 
       indexes: getUpdatedIndexMapping?.({
         ...updateParams,

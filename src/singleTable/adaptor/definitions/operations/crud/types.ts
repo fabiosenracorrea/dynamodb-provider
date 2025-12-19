@@ -17,10 +17,15 @@ type IndexParamsForCreate<TableConfig extends SingleTableConfig> =
         };
       };
 
+export type BaseAtomicIndexUpdate<Indexes extends PropertyKey> = StableOmit<
+  AtomicMath<Record<Indexes, string>>,
+  'property'
+> & {
+  index: Indexes;
+};
+
 export type AtomicIndexUpdate<Indexes extends NonNullable<SingleTableConfig['indexes']>> =
-  StableOmit<AtomicMath<Record<NumericIndex<Indexes>, string>>, 'property'> & {
-    index: NumericIndex<Indexes>;
-  };
+  BaseAtomicIndexUpdate<NumericIndex<Indexes>>;
 
 type AtomicIndexParams<Indexes extends NonNullable<SingleTableConfig['indexes']>> =
   IsNever<NumericIndex<Indexes>> extends true
