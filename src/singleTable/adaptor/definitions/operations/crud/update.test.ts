@@ -677,5 +677,563 @@ describe('single table adaptor - update', () => {
         expect(onAtomic).toThrow();
       });
     });
+
+    it('should allow atomic operations on numeric index range keys via atomicIndexes', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            LeaderboardIndex: {
+              partitionKey: '_lbPK',
+              rangeKey: '_score',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'PLAYER#123',
+        rangeKey: '#DATA',
+
+        // @ts-expect-error SingleTableUpdater is not generic for config
+        atomicIndexes: [
+          {
+            index: 'LeaderboardIndex',
+            type: 'add',
+            value: 50,
+          },
+        ],
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'PLAYER#123',
+          _sk: '#DATA',
+        },
+
+        atomicOperations: [
+          {
+            type: 'add',
+            value: 50,
+            property: '_score',
+          },
+        ],
+      });
+    });
+
+    it('should merge atomicIndexes with regular atomicOperations', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            ScoreIndex: {
+              partitionKey: '_scorePK',
+              rangeKey: '_score',
+              numeric: true,
+            },
+            RankIndex: {
+              partitionKey: '_rankPK',
+              rangeKey: '_rank',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'USER#456',
+        rangeKey: '#PROFILE',
+
+        values: {
+          name: 'John',
+        },
+
+        atomicOperations: [
+          {
+            type: 'add',
+            property: 'loginCount',
+            value: 1,
+          },
+        ],
+
+        // @ts-expect-error SingleTableUpdater is not generic for config
+        atomicIndexes: [
+          {
+            index: 'ScoreIndex',
+            type: 'add',
+            value: 100,
+          },
+          {
+            index: 'RankIndex',
+            type: 'subtract',
+            value: 1,
+          },
+        ],
+      });
+
+      expect(params.atomicOperations).toHaveLength(3);
+      expect(params.atomicOperations).toContainEqual({
+        type: 'add',
+        property: 'loginCount',
+        value: 1,
+      });
+      expect(params.atomicOperations).toContainEqual({
+        type: 'add',
+        value: 100,
+        property: '_score',
+      });
+      expect(params.atomicOperations).toContainEqual({
+        type: 'subtract',
+        value: 1,
+        property: '_rank',
+      });
+    });
+
+    it('should throw error for atomic index on non-numeric index', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            RegularIndex: {
+              partitionKey: '_regPK',
+              rangeKey: '_regSK',
+              numeric: false,
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#1',
+          rangeKey: '#DATA',
+
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [
+            {
+              index: 'RegularIndex',
+              type: 'add',
+              value: 5,
+            },
+          ],
+        });
+      };
+
+      expect(attempt).toThrow('Invalid atomic index reference detected');
+    });
+
+    it('should throw error for atomic index on undefined numeric flag', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            DefaultIndex: {
+              partitionKey: '_defPK',
+              rangeKey: '_defSK',
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#2',
+          rangeKey: '#DATA',
+
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [
+            {
+              index: 'DefaultIndex',
+              type: 'sum',
+              value: 10,
+            },
+          ],
+        });
+      };
+
+      expect(attempt).toThrow('Invalid atomic index reference detected');
+    });
+
+    it('should throw error for atomic index on non-existent index', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            ExistingIndex: {
+              partitionKey: '_exPK',
+              rangeKey: '_exSK',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#3',
+          rangeKey: '#DATA',
+
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [
+            {
+              index: 'NonExistentIndex',
+              type: 'add',
+              value: 7,
+            },
+          ],
+        });
+      };
+
+      expect(attempt).toThrow('Invalid atomic index reference detected');
+    });
+
+    it('should not throw for atomicIndexes when blockInternalPropUpdate is true', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          blockInternalPropUpdate: true,
+          indexes: {
+            NumericIndex: {
+              partitionKey: '_numPK',
+              rangeKey: '_numSK',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      // This should NOT throw even though blockInternalPropUpdate is true
+      // because atomicIndexes are validated separately and converted to atomic operations
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#4',
+          rangeKey: '#DATA',
+
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [
+            {
+              index: 'NumericIndex',
+              type: 'add',
+              value: 15,
+            },
+          ],
+        });
+      };
+
+      expect(attempt).not.toThrow();
+    });
+
+    it('should handle atomicIndexes with conditional operations', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            CounterIndex: {
+              partitionKey: '_counterPK',
+              rangeKey: '_count',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'COUNTER#1',
+        rangeKey: '#DATA',
+
+        // @ts-expect-error SingleTableUpdater is not generic for config
+        atomicIndexes: [
+          {
+            index: 'CounterIndex',
+            type: 'subtract',
+            value: 1,
+            if: {
+              operation: 'bigger_than',
+              value: 0,
+            },
+          },
+        ],
+      });
+
+      expect(params.atomicOperations).toHaveLength(1);
+      expect(params.atomicOperations![0]).toMatchObject({
+        type: 'subtract',
+        value: 1,
+        property: '_count',
+        if: {
+          operation: 'bigger_than',
+          value: 0,
+        },
+      });
+    });
+
+    it('should handle multiple atomicIndexes on different indexes', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            Index1: {
+              partitionKey: '_i1pk',
+              rangeKey: '_i1rk',
+              numeric: true,
+            },
+            Index2: {
+              partitionKey: '_i2pk',
+              rangeKey: '_i2rk',
+              numeric: true,
+            },
+            Index3: {
+              partitionKey: '_i3pk',
+              rangeKey: '_i3rk',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'MULTI#1',
+        rangeKey: '#DATA',
+
+        // @ts-expect-error SingleTableUpdater is not generic for config
+        atomicIndexes: [
+          { index: 'Index1', type: 'add', value: 10 },
+          { index: 'Index2', type: 'sum', value: 20 },
+          { index: 'Index3', type: 'subtract', value: 5 },
+        ],
+      });
+
+      expect(params.atomicOperations).toHaveLength(3);
+      expect(params.atomicOperations![0].property).toBe('_i1rk');
+      expect(params.atomicOperations![1].property).toBe('_i2rk');
+      expect(params.atomicOperations![2].property).toBe('_i3rk');
+    });
+
+    it('should validate all atomicIndexes and fail if any is invalid', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            ValidIndex: {
+              partitionKey: '_vpk',
+              rangeKey: '_vrk',
+              numeric: true,
+            },
+            InvalidIndex: {
+              partitionKey: '_ipk',
+              rangeKey: '_irk',
+              numeric: false,
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#5',
+          rangeKey: '#DATA',
+
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [
+            { index: 'ValidIndex', type: 'add', value: 1 },
+            { index: 'InvalidIndex', type: 'add', value: 2 },
+          ],
+        });
+      };
+
+      expect(attempt).toThrow('Invalid atomic index reference detected');
+    });
+
+    it('should not throw when atomicIndexes is empty array', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            SomeIndex: {
+              partitionKey: '_spk',
+              rangeKey: '_srk',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#6',
+          rangeKey: '#DATA',
+          values: { name: 'test' },
+          // @ts-expect-error SingleTableUpdater is not generic for config
+          atomicIndexes: [],
+        });
+      };
+
+      expect(attempt).not.toThrow();
+    });
+
+    it('should not throw when atomicIndexes is undefined', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          indexes: {
+            SomeIndex: {
+              partitionKey: '_spk',
+              rangeKey: '_srk',
+              numeric: true,
+            },
+          },
+        },
+      });
+
+      const attempt = () => {
+        updater.getUpdateParams({
+          partitionKey: 'ITEM#7',
+          rangeKey: '#DATA',
+          values: { name: 'test' },
+        });
+      };
+
+      expect(attempt).not.toThrow();
+    });
+
+    it('should combine atomicIndexes with other table config params', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          typeIndex: {
+            name: 'TypeIndexName',
+            partitionKey: '_type',
+            rangeKey: '_ts',
+          },
+          expiresAt: '_expires',
+          indexes: {
+            ScoreIndex: {
+              partitionKey: '_scorePK',
+              rangeKey: '_score',
+              numeric: true,
+            },
+            CategoryIndex: {
+              partitionKey: '_catPK',
+              rangeKey: '_catSK',
+            },
+          },
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'GAME#1',
+        rangeKey: '#PLAYER#123',
+
+        values: {
+          playerName: 'Alice',
+        },
+
+        type: 'GAME_RECORD',
+        expiresAt: 1234567890,
+
+        indexes: {
+          CategoryIndex: {
+            partitionKey: 'CATEGORY#ACTION',
+          },
+        },
+
+        // @ts-expect-error SingleTableUpdater is not generic for config
+        atomicIndexes: [
+          {
+            index: 'ScoreIndex',
+            type: 'add',
+            value: 500,
+          },
+        ],
+
+        atomicOperations: [
+          {
+            type: 'add',
+            property: 'playCount',
+            value: 1,
+          },
+        ],
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'GAME#1',
+          _sk: '#PLAYER#123',
+        },
+
+        values: {
+          playerName: 'Alice',
+          _type: 'GAME_RECORD',
+          _expires: 1234567890,
+          _catPK: 'CATEGORY#ACTION',
+        },
+
+        atomicOperations: [
+          {
+            type: 'add',
+            property: 'playCount',
+            value: 1,
+          },
+          {
+            type: 'add',
+            value: 500,
+            property: '_score',
+          },
+        ],
+      });
+    });
   });
 });

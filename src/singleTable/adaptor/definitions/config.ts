@@ -105,6 +105,16 @@ export interface SingleTableConfig {
        * The range/sort column of the index
        */
       rangeKey: string;
+
+      /**
+       * Defines if this particular index is of number type:
+       *
+       * This unlocks you to safely perform atomic update operations (add/subtract)
+       * need for leaderboards or the likes without worry for typos or blocked
+       * operations. Using the provided helper is safe from any `blockInternalPropUpdate`
+       * configuration
+       */
+      numeric?: boolean;
     }
   >;
 

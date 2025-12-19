@@ -101,6 +101,22 @@ function validateDoubleReference(
     throw new Error(`Duplicate index reference on entity ${type}`);
 }
 
+function validateNumericIndexValue(
+  tableConfig: SingleTableConfig,
+  index: string,
+  value: KeyValue | undefined,
+) {
+  const isNumeric = tableConfig.indexes![index].numeric;
+
+  if (!isNumeric || value == null) return;
+
+  const [valueList, ...rest] = ensureArray(value);
+
+  const invalid = !!rest.length || (valueList != null && typeof valueList !== 'number');
+
+  if (invalid) throw new Error(`Invalid numeric index op on ${index}`);
+}
+
 export function getEntityIndexParams<
   TableConfig extends SingleTableConfig,
   IParams extends EntityIndexInputParams<TableConfig, any>,
@@ -144,6 +160,8 @@ export function getEntityIndexParams<
 
             if (!partitionKey && !rangeKey) return [];
 
+            validateNumericIndexValue(tableConfig, index, rangeKey);
+
             return [
               index,
 
@@ -165,6 +183,8 @@ export function getEntityIndexParams<
             const rangeKey = validateIndexKeyReturn(getRangeKey(indexParams));
 
             if (!partitionKey && !rangeKey) return [];
+
+            validateNumericIndexValue(tableConfig, index, rangeKey);
 
             return [
               index,

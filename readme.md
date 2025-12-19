@@ -692,11 +692,11 @@ The index does not need to exist in DynamoDB if only using the type property for
 
 #### `indexes`
 
-- **Type**: `Record<string, { partitionKey: string; rangeKey: string; }>`
+- **Type**: `Record<string, { partitionKey: string; rangeKey: string; numeric?: boolean; }>`
 - **Optional**
 - Secondary index configuration.
   - Key: Index name as defined in DynamoDB.
-  - Value: Object with `partitionKey` and `rangeKey` column names.
+  - Value: Object with `partitionKey` and `rangeKey` column names, optional `numeric` flag for atomic operations support.
 
 #### `autoRemoveTableProperties`
 
@@ -986,6 +986,7 @@ update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity>
 - `values` (optional) - Properties to update
 - `remove` (optional) - Root-level properties to remove
 - `atomicOperations` (optional) - Atomic operations (see [update](#update) for operations)
+- `atomicIndexes` (optional) - Atomic operations on numeric index range keys. Only available for indexes configured with `numeric: true`.
 - `conditions` (optional) - Conditions that must be met
 - `returnUpdatedProperties` (optional) - Return updated values
 - `indexes` (optional) - Update index keys. Structure: `Record<IndexName, Partial<{ partitionKey, rangeKey }>>`. Only available if table has `indexes` configured.
@@ -1012,6 +1013,61 @@ const result = await table.update({
   returnUpdatedProperties: true,
 });
 ```
+
+**Atomic Numeric Index Updates:**
+
+Perform atomic operations on numeric index range keys without worrying about `blockInternalPropUpdate` restrictions or referencing internal column names.
+
+```ts
+const table = new SingleTable({
+  // ...config
+  indexes: {
+    LeaderboardIndex: {
+      partitionKey: 'lbPK',
+      rangeKey: 'score',
+      numeric: true,  // Enable atomic operations
+    },
+    RankIndex: {
+      partitionKey: 'rankPK',
+      rangeKey: 'rank',
+      numeric: true,
+    },
+  },
+});
+
+await table.update({
+  partitionKey: ['PLAYER', 'player-123'],
+  rangeKey: '#DATA',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [
+    {
+      index: 'LeaderboardIndex',
+      type: 'add',
+      value: 500,
+    },
+    {
+      index: 'RankIndex',
+      type: 'subtract',
+      value: 1,
+      if: {
+        operation: 'bigger_than',
+        value: 0,
+      },
+    },
+  ],
+});
+```
+
+**Atomic Index Operation Types:**
+- `add` - Add to value, auto-initializes to 0 if missing
+- `subtract` - Subtract from value (fails if property doesn't exist)
+- `sum` - Add to value (fails if property doesn't exist)
+
+**Optional `if` Condition:**
+- `operation` - Condition operation (`bigger_than`, `lower_than`, etc.)
+- `value` - Comparison value
+- `property` (optional) - Different property to check (defaults to the index range key being updated)
 
 ### single table query
 

@@ -30,6 +30,10 @@ update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity>
 - **Type**: `AtomicOperation[]`
 - Atomic operations
 
+### `atomicIndexes` (optional)
+- **Type**: `AtomicIndexOperation[]`
+- Atomic operations on numeric index range keys (only for indexes configured with `numeric: true`)
+
 ### `conditions` (optional)
 - **Type**: `ItemExpression[]`
 - Conditions that must be met
@@ -118,6 +122,61 @@ await table.update({
 ```
 
 **Note:** This only updates the `typeIndex.partitionKey` column. The `typeIndex.rangeKey` is not affected.
+
+## Atomic Index Updates
+
+Perform atomic operations on numeric index range keys. Requires indexes configured with `numeric: true`.
+
+```typescript
+const table = new SingleTable({
+  // ...config
+  indexes: {
+    LeaderboardIndex: {
+      partitionKey: 'lbPK',
+      rangeKey: 'score',
+      numeric: true,  // Enable atomic operations
+    },
+    RankIndex: {
+      partitionKey: 'rankPK',
+      rangeKey: 'rank',
+      numeric: true,
+    },
+  },
+});
+
+await table.update({
+  partitionKey: ['PLAYER', 'player-123'],
+  rangeKey: '#DATA',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [
+    {
+      index: 'LeaderboardIndex',
+      type: 'add',
+      value: 500,
+    },
+    {
+      index: 'RankIndex',
+      type: 'subtract',
+      value: 1,
+      if: {
+        operation: 'bigger_than',
+        value: 0,
+      },
+    },
+  ],
+});
+```
+
+**Operation Types:**
+- `add` - Add to value, auto-initializes to 0 if missing
+- `subtract` - Subtract from value (fails if property doesn't exist)
+- `sum` - Add to value (fails if property doesn't exist)
+
+**Optional `if` Condition:**
+- `operation` - Condition operation (`bigger_than`, `lower_than`, etc.)
+- `value` - Comparison value
+- `property` (optional) - Different property to check (defaults to the index range key)
 
 ## Complete Example
 

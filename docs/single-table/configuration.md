@@ -195,7 +195,7 @@ await table.create({
 ```
 
 ### `indexes`
-- **Type**: `Record<string, { partitionKey: string; rangeKey: string; }>`
+- **Type**: `Record<string, { partitionKey: string; rangeKey: string; numeric?: boolean; }>`
 - **Optional**
 
 Secondary index configuration.
@@ -215,6 +215,11 @@ const table = new SingleTable({
     StatusIndex: {
       partitionKey: 'gsih2',
       rangeKey: 'gsir2'
+    },
+    LeaderboardIndex: {
+      partitionKey: 'gsih3',
+      rangeKey: 'gsir3',
+      numeric: true           // Enable atomic operations on this index's range key
     }
   }
 });
@@ -230,6 +235,54 @@ await table.create({
       rangeKey: new Date().toISOString()
     }
   }
+});
+```
+
+**Numeric Indexes:**
+
+Set `numeric: true` on an index to enable atomic operations on its range key. This allows safe atomic updates (add, subtract, sum) on numeric index range keys without worrying about `blockInternalPropUpdate` restrictions or knowing internal column names.
+
+```typescript
+const table = new SingleTable({
+  dynamodbProvider: provider,
+  table: 'AppData',
+  partitionKey: 'pk',
+  rangeKey: 'sk',
+  indexes: {
+    LeaderboardIndex: {
+      partitionKey: 'lbPK',
+      rangeKey: 'score',    // Numeric range key
+      numeric: true,         // Enable atomic operations
+    },
+    RankIndex: {
+      partitionKey: 'rankPK',
+      rangeKey: 'rank',
+      numeric: true,
+    },
+  },
+});
+
+await table.update({
+  partitionKey: ['PLAYER', 'player-123'],
+  rangeKey: '#DATA',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [
+    {
+      index: 'LeaderboardIndex',
+      type: 'add',
+      value: 500,
+    },
+    {
+      index: 'RankIndex',
+      type: 'subtract',
+      value: 1,
+      if: {
+        operation: 'bigger_than',
+        value: 0,
+      },
+    },
+  ],
 });
 ```
 

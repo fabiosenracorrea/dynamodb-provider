@@ -141,6 +141,212 @@ describe('getCRUDParamGetters', () => {
     });
   });
 
+  describe('atomicIndexes handling', () => {
+    const mockIndexes = {
+      scoreIndex: { index: 'LeaderboardIndex' },
+      rankIndex: { index: 'RankIndex' },
+    };
+
+    const crudWithIndexes = getCRUDParamGetters(tableConfig, {
+      ...crudParamsGenerator,
+      indexes: mockIndexes,
+    });
+
+    it('should convert entity index names to table index names', () => {
+      const mockUpdateParams = {
+        values: { name: 'Jane Doe' },
+        atomicIndexes: [
+          {
+            index: 'scoreIndex',
+            type: 'add' as const,
+            value: 100,
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      const result = crudWithIndexes.getUpdateParams(mockUpdateParams as never);
+
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toEqual([
+        {
+          type: 'add',
+          value: 100,
+          index: 'LeaderboardIndex', // Converted from 'scoreIndex'
+        },
+      ]);
+    });
+
+    it('should handle multiple atomicIndexes', () => {
+      const mockUpdateParams = {
+        values: { name: 'Alice' },
+        atomicIndexes: [
+          {
+            index: 'scoreIndex',
+            type: 'add' as const,
+            value: 500,
+          },
+          {
+            index: 'rankIndex',
+            type: 'subtract' as const,
+            value: 1,
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#456', sortKey: 'sort#456' });
+
+      const result = crudWithIndexes.getUpdateParams(mockUpdateParams as never);
+
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toHaveLength(2);
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toContainEqual({
+        type: 'add',
+        value: 500,
+        index: 'LeaderboardIndex',
+      });
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toContainEqual({
+        type: 'subtract',
+        value: 1,
+        index: 'RankIndex',
+      });
+    });
+
+    it('should handle atomicIndexes with conditional operations', () => {
+      const mockUpdateParams = {
+        values: { name: 'Bob' },
+        atomicIndexes: [
+          {
+            index: 'rankIndex',
+            type: 'subtract' as const,
+            value: 1,
+            if: {
+              operation: 'bigger_than' as const,
+              value: 0,
+            },
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#789', sortKey: 'sort#789' });
+
+      const result = crudWithIndexes.getUpdateParams(mockUpdateParams as never);
+
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toEqual([
+        {
+          type: 'subtract',
+          value: 1,
+          index: 'RankIndex',
+          if: {
+            operation: 'bigger_than',
+            value: 0,
+          },
+        },
+      ]);
+    });
+
+    it('should merge atomicIndexes with regular atomicOperations', () => {
+      const mockUpdateParams = {
+        values: { name: 'Charlie' },
+        atomicOperations: [
+          {
+            type: 'add' as const,
+            property: 'playCount',
+            value: 1,
+          },
+        ],
+        atomicIndexes: [
+          {
+            index: 'scoreIndex',
+            type: 'add' as const,
+            value: 250,
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#111', sortKey: 'sort#111' });
+
+      const result = crudWithIndexes.getUpdateParams(mockUpdateParams as never);
+
+      expect(result.atomicOperations).toEqual([
+        {
+          type: 'add',
+          property: 'playCount',
+          value: 1,
+        },
+      ]);
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes).toEqual([
+        {
+          type: 'add',
+          value: 250,
+          index: 'LeaderboardIndex',
+        },
+      ]);
+    });
+
+    it('should preserve all atomic operation properties during conversion', () => {
+      const mockUpdateParams = {
+        values: { name: 'Frank' },
+        atomicIndexes: [
+          {
+            index: 'scoreIndex',
+            type: 'sum' as const,
+            value: 1000,
+            if: {
+              operation: 'exists' as const,
+              property: 'score',
+            },
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#444', sortKey: 'sort#444' });
+
+      const result = crudWithIndexes.getUpdateParams(mockUpdateParams as never);
+
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(result.atomicIndexes![0]).toEqual({
+        type: 'sum',
+        value: 1000,
+        index: 'LeaderboardIndex',
+        if: {
+          operation: 'exists',
+          property: 'score',
+        },
+      });
+    });
+  });
+
   describe('transaction param generation', () => {
     it('create: should generate params with getCreationParams', () => {
       const mockItem = { id: '123', name: 'John Doe' };
@@ -190,6 +396,48 @@ describe('getCRUDParamGetters', () => {
       expect(transactResult).toStrictEqual({
         update: updateParamsResult,
       });
+    });
+
+    it('update: should handle atomicIndexes in transaction params', () => {
+      const mockIndexes = {
+        scoreIndex: { index: 'LeaderboardIndex' },
+      };
+
+      const crudWithIndexes = getCRUDParamGetters(tableConfig, {
+        ...crudParamsGenerator,
+        indexes: mockIndexes,
+      });
+
+      const mockUpdateParams = {
+        values: { name: 'Transaction Test' },
+        atomicIndexes: [
+          {
+            index: 'scoreIndex',
+            type: 'add' as const,
+            value: 750,
+          },
+        ],
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#999', sortKey: 'sort#999' });
+
+      const transactResult = crudWithIndexes.transactUpdateParams(
+        mockUpdateParams as never,
+      );
+
+      // @ts-expect-error Testing atomicIndexes which is added at runtime
+      expect(transactResult.update.atomicIndexes).toEqual([
+        {
+          type: 'add',
+          value: 750,
+          index: 'LeaderboardIndex',
+        },
+      ]);
     });
 
     it('delete: should generate params with getKey + forward conditions', () => {

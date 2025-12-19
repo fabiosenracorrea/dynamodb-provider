@@ -83,7 +83,7 @@ interface CommonAtomicProps<Entity> {
 }
 
 // uses "SET" or "ADD" keyword
-interface AtomicMath<Entity> extends CommonAtomicProps<Entity> {
+export interface AtomicMath<Entity> extends CommonAtomicProps<Entity> {
   /**
    * Important differences:
    *

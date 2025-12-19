@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { AtomicMath } from 'provider/utils/crud/update/atomic';
+import { IsNever, StableOmit } from 'types';
 import { SingleTableConfig } from '../../config';
 import { SingleTableKeyReference } from '../../key';
+import { NumericIndex } from '../../tableIndex';
 
 type IndexParamsForCreate<TableConfig extends SingleTableConfig> =
   undefined extends TableConfig['indexes']
@@ -13,18 +17,34 @@ type IndexParamsForCreate<TableConfig extends SingleTableConfig> =
         };
       };
 
-type IndexParamsForUpdate<TableConfig extends SingleTableConfig> =
-  undefined extends TableConfig['indexes']
+export type BaseAtomicIndexUpdate<Indexes extends PropertyKey> = StableOmit<
+  AtomicMath<Record<Indexes, string>>,
+  'property'
+> & {
+  index: Indexes;
+};
+
+export type AtomicIndexUpdate<Indexes extends NonNullable<SingleTableConfig['indexes']>> =
+  BaseAtomicIndexUpdate<NumericIndex<Indexes>>;
+
+type AtomicIndexParams<Indexes extends NonNullable<SingleTableConfig['indexes']>> =
+  IsNever<NumericIndex<Indexes>> extends true
     ? unknown
-    : {
-        /**
-         * Explicity describe each relevant index value to update
-         * You can chose to update just a partition/range
-         */
-        indexes?: {
-          [key in keyof TableConfig['indexes']]?: Partial<SingleTableKeyReference>;
-        };
+    : { atomicIndexes?: AtomicIndexUpdate<Indexes>[] };
+
+type IndexParamsForUpdate<TableConfig extends SingleTableConfig> = TableConfig extends {
+  indexes: any;
+}
+  ? {
+      /**
+       * Explicity describe each relevant index value to update
+       * You can chose to update just a partition/range
+       */
+      indexes?: {
+        [key in keyof TableConfig['indexes']]?: Partial<SingleTableKeyReference>;
       };
+    } & AtomicIndexParams<TableConfig['indexes']>
+  : unknown;
 
 type ExpiresAtParams<TableConfig extends SingleTableConfig> =
   undefined extends TableConfig['expiresAt']

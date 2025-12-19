@@ -458,4 +458,225 @@ describe('single table entity model: getEntityIndexParams', () => {
       expect(updatedMapping).toEqual({});
     });
   });
+
+  describe('numeric index validation', () => {
+    const numericTableConfig = {
+      partitionKey: 'pk',
+      rangeKey: 'sk',
+      table: 'TestTable',
+      indexes: {
+        scoreIndex: {
+          partitionKey: 'scorePK',
+          rangeKey: 'score',
+          numeric: true,
+        },
+        regularIndex: {
+          partitionKey: 'regPK',
+          rangeKey: 'regSK',
+        },
+      },
+    };
+
+    type NumericTableConfig = typeof numericTableConfig;
+
+    it('should accept valid numeric values for numeric indexes', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#123',
+            getRangeKey: () => [1000], // Single number in array
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      const creationMapping = result.getCreationIndexMapping({});
+
+      expect(creationMapping).toEqual({
+        scoreIndex: {
+          partitionKey: 'PLAYER#123',
+          rangeKey: [1000],
+        },
+      });
+    });
+
+    it('should throw for array values on numeric indexes', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#123',
+            getRangeKey: () => ['SCORE', 1000], // Array not allowed for numeric
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      expect(() => {
+        result.getCreationIndexMapping({});
+      }).toThrow('Invalid numeric index op on scoreIndex');
+    });
+
+    it('should throw for string values on numeric indexes', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#123',
+            getRangeKey: () => 'not-a-number', // String not allowed
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      expect(() => {
+        result.getCreationIndexMapping({});
+      }).toThrow('Invalid numeric index op on scoreIndex');
+    });
+
+    it('should allow null/undefined for numeric indexes (optional values)', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#123',
+            getRangeKey: () => null, // Null is acceptable
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      const creationMapping = result.getCreationIndexMapping({});
+
+      expect(creationMapping).toEqual({
+        scoreIndex: {
+          partitionKey: 'PLAYER#123',
+        },
+      });
+    });
+
+    it('should not validate non-numeric indexes', () => {
+      const params = {
+        type: 'REGULAR_ENTITY',
+        indexes: {
+          regularIndex: {
+            getPartitionKey: () => 'SOME#KEY',
+            getRangeKey: () => ['COMPOSITE', 'KEY'], // Arrays OK for non-numeric
+            index: 'regularIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      const creationMapping = result.getCreationIndexMapping({});
+
+      expect(creationMapping).toEqual({
+        regularIndex: {
+          partitionKey: 'SOME#KEY',
+          rangeKey: ['COMPOSITE', 'KEY'],
+        },
+      });
+    });
+
+    it('should validate numeric indexes in getUpdatedIndexMapping', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#456',
+            getRangeKey: () => ['INVALID', 'ARRAY'], // Invalid for numeric
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      expect(() => {
+        result.getUpdatedIndexMapping({});
+      }).toThrow('Invalid numeric index op on scoreIndex');
+    });
+
+    it('should accept zero as valid numeric value', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#789',
+            getRangeKey: () => [0], // Zero is valid
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      const creationMapping = result.getCreationIndexMapping({});
+
+      expect(creationMapping).toEqual({
+        scoreIndex: {
+          partitionKey: 'PLAYER#789',
+          rangeKey: [0],
+        },
+      });
+    });
+
+    it('should accept negative numbers as valid numeric value', () => {
+      const params = {
+        type: 'SCORE_ENTITY',
+        indexes: {
+          scoreIndex: {
+            getPartitionKey: () => 'PLAYER#999',
+            getRangeKey: () => [-500], // Negative is valid
+            index: 'scoreIndex' as const,
+          },
+        },
+      };
+
+      const result = getEntityIndexParams<NumericTableConfig, typeof params>(
+        numericTableConfig,
+        params,
+      );
+
+      const creationMapping = result.getCreationIndexMapping({});
+
+      expect(creationMapping).toEqual({
+        scoreIndex: {
+          partitionKey: 'PLAYER#999',
+          rangeKey: [-500],
+        },
+      });
+    });
+  });
 });

@@ -333,6 +333,85 @@ const errorLogs = await table.schema.from(Logs).queryIndex.byType.dateRange({
 - `index` - Table index name matching `indexes` configuration
 - `rangeQueries` (optional) - Predefined queries for this index
 
+### Atomic Index Updates
+
+Entity indexes can be used with atomic operations when the table index is configured with `numeric: true`. Use entity-specific index names instead of table index names.
+
+```typescript
+const table = new SingleTable({
+  // ...config
+  indexes: {
+    LeaderboardIndex: {
+      partitionKey: 'lbPK',
+      rangeKey: 'score',
+      numeric: true,  // Enable atomic operations
+    },
+    RankIndex: {
+      partitionKey: 'rankPK',
+      rangeKey: 'rank',
+      numeric: true,
+    },
+  },
+});
+
+type Player = {
+  id: string;
+  name: string;
+  score: number;
+  rank: number;
+};
+
+const Player = table.schema.createEntity<Player>().as({
+  type: 'PLAYER',
+  getPartitionKey: ['.id'],
+  getRangeKey: ['#DATA'],
+
+  indexes: {
+    // Entity index names (developer-friendly)
+    score: {
+      index: 'LeaderboardIndex',
+      getPartitionKey: ['LEADERBOARD'],
+      getRangeKey: ['.score'],
+    },
+    rank: {
+      index: 'RankIndex',
+      getPartitionKey: ['RANKING'],
+      getRangeKey: ['.rank'],
+    },
+  },
+});
+
+await table.schema.from(Player).update({
+  id: 'player-123',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [
+    {
+      index: 'score',  // Use entity index name
+      type: 'add',
+      value: 500,
+    },
+    {
+      index: 'rank',
+      type: 'subtract',
+      value: 1,
+      if: {
+        operation: 'bigger_than',
+        value: 0,
+      },
+    },
+  ],
+});
+
+// Or use getUpdateParams
+const params = Player.getUpdateParams({
+  id: 'player-123',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [{ index: 'score', type: 'add', value: 1 }],
+});
+```
+
 ## Extend
 
 Adds or modifies properties on retrieved items.

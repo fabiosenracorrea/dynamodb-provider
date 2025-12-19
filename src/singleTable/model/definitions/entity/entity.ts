@@ -13,6 +13,7 @@ import { EntityIndexResultProps, ExtendibleIndexProps } from './indexParams';
 import { EntityParseProps, ResolvedEntity } from './parsers';
 
 type RawEntity<
+  TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<any, any>,
 > = Pick<Params, 'type'> &
@@ -20,7 +21,7 @@ type RawEntity<
     /**
      * This is a helper property used solely internally for ease-of-map types
      *
-     * Do not access
+     * **TYPE ONLY**
      */
     __entity: ResolvedEntity<Entity, Params>;
 
@@ -28,13 +29,20 @@ type RawEntity<
      * Specifies which DB instance this is
      */
     __dbType: 'ENTITY';
+
+    /**
+     * Table config used to generate this entity
+     *
+     * **TYPE ONLY**
+     */
+    __tableConfig: TableConfig;
   };
 
 export type SingleTableEntity<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
   Params extends RegisterEntityParams<TableConfig, Entity>,
-> = RawEntity<Entity, Params> &
+> = RawEntity<TableConfig, Entity, Params> &
   EntityParseProps<Entity, Params> &
   EntityCRUDProps<TableConfig, Entity, Params> &
   EntityIndexResultProps<TableConfig, Entity, Params> &
