@@ -44,17 +44,18 @@ export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
       }
     : unknown;
 
-type AtomicIndexParams<
+export type AtomicIndexParams<
   TableConfig extends SingleTableConfig,
-  Params extends RegisterEntityParams<any, any>,
+  // It could be the register params or the entity, we only care from the keyname
+  IndexReference,
   //
   // SYSTEM:
   //
   __NUMERIC_INDEXES__ = NumericIndex<NonNullable<TableConfig['indexes']>>,
 > = IsNever<__NUMERIC_INDEXES__> extends true
   ? unknown
-  : Params extends { indexes: Record<string, { index: string }> }
-  ? { atomicIndexes?: BaseAtomicIndexUpdate<keyof Params['indexes']>[] }
+  : IndexReference extends { indexes: Record<string, { index: string }> }
+  ? { atomicIndexes?: BaseAtomicIndexUpdate<keyof IndexReference['indexes']>[] }
   : unknown;
 
 type UpdateCallProps<

@@ -107,6 +107,8 @@ await playerRepo.update({
 });
 ```
 
+- **Internal** Entity type now has a type reference to the single configuration `__tableConfig`; Type only property.
+
 # v3.0.0
 
 Our biggest update yet! Lots of QOLs, 300+ more tests and more!

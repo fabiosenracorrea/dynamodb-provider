@@ -1,4 +1,4 @@
-import type { KeyParams, AnyEntity } from 'singleTable/model';
+import type { KeyParams, AnyEntity, AtomicIndexParams } from 'singleTable/model';
 import type {
   BatchListItemsArgs,
   GetItemParams,
@@ -44,7 +44,8 @@ export type UpdateEntityParams<Registered extends AnyEntity> = Omit<
   UpdateParams<Registered['__entity']>,
   'table' | 'key'
 > &
-  KeyParams<Registered>;
+  KeyParams<Registered> &
+  AtomicIndexParams<Registered['__tableConfig'], Registered>;
 
 export type UpdateReturn<
   Entity extends AnyEntity,
