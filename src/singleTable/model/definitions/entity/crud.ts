@@ -16,7 +16,7 @@ import { DeleteParams, ValidateTransactParams } from 'provider/utils';
 import { EntityKeyParams, KeyResolvers } from '../key';
 
 import { addAutoGenParams, AutoGenParams } from './autoGen';
-import { RegisterEntityParams } from './params';
+import type { RegisterEntityParams } from './params';
 import { GenericIndexMappingFns } from './indexParams';
 
 type UnixExpiresAtProps = {

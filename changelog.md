@@ -1,5 +1,55 @@
 # DynamoDB Provider Changelog
 
+# v3.1.0
+
+- **Feature**: **Atomic Numeric Index Updates** - Safely perform atomic operations (add, subtract, sum) on numeric index range keys without worrying about `blockInternalPropUpdate` restrictions or knowing the internal column names.
+
+Configure indexes as numeric by setting `numeric: true` in your table configuration:
+
+```ts
+const table = new SingleTable({
+  // ...config
+  indexes: {
+    LeaderboardIndex: {
+      partitionKey: 'lbPK',
+      rangeKey: 'score',    // Numeric range key for leaderboard scores
+      numeric: true,         // Mark as numeric for atomic operations
+    },
+    RankIndex: {
+      partitionKey: 'rankPK',
+      rangeKey: 'rank',      // Numeric range key for ranking
+      numeric: true,
+    },
+    CategoryIndex: {
+      partitionKey: 'catPK',
+      rangeKey: 'category',  // Regular string index
+      // numeric not set - can't use atomic operations
+    },
+  },
+});
+
+await table.update({
+  ...updateParams,
+
+  atomicIndexes: [
+    {
+      index: 'LeaderboardIndex',
+      type: 'add',
+      value: 500,
+    },
+    {
+      index: 'RankIndex',
+      type: 'subtract',
+      value: 1,
+      if: {
+        operation: 'bigger_than',
+        value: 0,
+      },
+    },
+  ],
+});
+```
+
 # v3.0.0
 
 Our biggest update yet! Lots of QOLs, 300+ more tests and more!

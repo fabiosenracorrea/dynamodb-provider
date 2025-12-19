@@ -11,9 +11,9 @@ import { UpdateParams } from 'provider';
 import { SingleTableConfig } from '../../config';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { BaseSingleTableOperator } from '../../executor';
-import { transformIndexReferences } from '../../tableIndex';
+import { isValidNumericIndexRef, transformIndexReferences } from '../../tableIndex';
 import { resolveProps } from '../../parsers';
-import { ParamsByTableConfigForUpdate } from './types';
+import { AtomicIndexUpdate, ParamsByTableConfigForUpdate } from './types';
 
 export type SingleTableUpdateParams<
   Entity,
@@ -55,12 +55,25 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     );
   }
 
+  private validateAtomicIndexes(references?: AtomicIndexUpdate<any>[]) {
+    if (!references?.length) return;
+
+    const ok = references.every(({ index }) =>
+      isValidNumericIndexRef(index, this.config),
+    );
+
+    if (!ok) throw new Error('Invalid atomic index reference detected');
+  }
+
   private validateUpdateProps({
     values,
     atomicOperations,
     remove,
+    atomicIndexes,
   }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SingleTableUpdateParams<any>) {
+  SingleTableUpdateParams<any> & {
+    atomicIndexes?: AtomicIndexUpdate<any>[];
+  }) {
     const allPropertiesMentioned = new Set([
       ...Object.keys(values || []),
       ...(remove || []),
@@ -74,6 +87,8 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     if (includesPK)
       throw new Error(`Update contained references to ${this.config.table}'s PKs`);
 
+    this.validateAtomicIndexes(atomicIndexes);
+
     this.validateInternalRef(allPropertiesMentioned);
 
     const badUpdate = this.config.badUpdateValidation?.(allPropertiesMentioned);
@@ -82,6 +97,30 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       throw new Error(
         typeof badUpdate === 'string' ? badUpdate : 'Custom update validation failed',
       );
+  }
+
+  private resolveAtomic(
+    params: SingleTableUpdateParams<any, RefConfig>,
+  ): SingleTableUpdateParams<any, RefConfig>['atomicOperations'] {
+    const {
+      atomicOperations = [],
+
+      atomicIndexes = [],
+    } = params as SingleTableUpdateParams<any, RefConfig> & {
+      atomicIndexes?: AtomicIndexUpdate<any>[];
+    };
+
+    const mixed = [
+      ...atomicOperations,
+      ...atomicIndexes.map(({ index, ...rest }) => ({
+        ...rest,
+        property: this.config.indexes![index].rangeKey as any,
+      })),
+    ];
+
+    if (!mixed.length) return;
+
+    return mixed;
   }
 
   getUpdateParams<Entity = AnyObject>(
@@ -93,7 +132,6 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       conditions,
       expiresAt,
       indexes,
-      atomicOperations,
       remove,
       values,
       returnUpdatedProperties,
@@ -111,7 +149,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
 
       key: getPrimaryKey(params, this.config),
 
-      atomicOperations,
+      atomicOperations: this.resolveAtomic(params),
       conditions,
       remove,
       returnUpdatedProperties,
