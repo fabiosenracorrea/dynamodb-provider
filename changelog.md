@@ -50,6 +50,63 @@ await table.update({
 });
 ```
 
+### Entity-Level Support
+
+You can also use these on entities:
+
+```ts
+type Player = {
+  id: string;
+  name: string;
+  score: number;
+  rank: number;
+};
+
+const Player = table.schema.createEntity<Player>().as({
+  type: 'PLAYER',
+  getPartitionKey: ['.id'],
+  getRangeKey: ['#DATA'],
+
+  indexes: {
+    // Entity-level index names (developer-friendly)
+    scoreIndex: {
+      index: 'LeaderboardIndex',
+      getPartitionKey: ['LEADERBOARD'],
+      getRangeKey: ['.score'],
+    },
+    rankIndex: {
+      index: 'RankIndex',
+      getPartitionKey: ['RANKING'],
+      getRangeKey: ['.rank'],
+    },
+  },
+});
+
+Player.getUpdateParams({
+  ...config,
+
+  // reference the entity-specific index
+  atomicIndexes: [{ index: 'scoreIndex', type: 'add', value: 1 }],
+})
+
+const playerRepo = table.schema.from(Player);
+
+// Update using entity index names
+await playerRepo.update({
+  id: 'player-123',
+  values: { name: 'Updated Name' },
+
+  atomicIndexes: [
+    {
+      // Use entity index name, not table index name
+      index: 'scoreIndex',
+      type: 'add',
+      value: 500,
+    },
+  ],
+});
+```
+
 # v3.0.0
 
 Our biggest update yet! Lots of QOLs, 300+ more tests and more!
