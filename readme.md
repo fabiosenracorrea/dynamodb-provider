@@ -26,6 +26,8 @@ The library has three parts:
 
 Each part builds on the previous. Use only what you need—the provider works standalone, and SingleTable works without schemas.
 
+If you want to instruct your agents/LLMs, take a look at the [ai](./ai/) folder.
+
 ## 1. DynamoDB Provider
 
 The provider wraps AWS SDK clients (v2 or v3) with type-safe methods. Only DocumentClient instances are supported.
