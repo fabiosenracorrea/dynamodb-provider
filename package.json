@@ -26,7 +26,10 @@
     "build-publish": "yarn build-both && npm publish",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "playground:dev": "cd packages/playground && yarn dev",
+    "playground:build": "cd packages/playground && yarn build",
+    "playground:install": "cd packages/playground && yarn install"
   },
   "license": "MIT",
   "devDependencies": {

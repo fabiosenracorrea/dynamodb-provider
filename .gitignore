@@ -1,6 +1,8 @@
 node_modules
 lib
 **/**.js
+!packages/playground/bin/*.js
+!packages/playground/*.config.js
 test.ts
 example.ts
 
@@ -19,3 +21,7 @@ docs/.vitepress/cache
 
 PLAYGROUND_IMPLEMENTATION_PLAN.md
 .npmrc
+
+# Playground local config
+playground.config.ts
+playground.config.js
