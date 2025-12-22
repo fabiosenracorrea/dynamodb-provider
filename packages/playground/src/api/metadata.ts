@@ -4,33 +4,10 @@ import type {
   EntityMetadata,
   CollectionMetadata,
   TableMetadata,
-  EntityInstance,
-  CollectionInstance,
-} from '../types.js';
-
-export function extractMetadata(config: PlaygroundConfig): MetadataResponse {
-  return {
-    table: extractTableMetadata(config),
-    entities: extractEntitiesMetadata(config),
-    collections: extractCollectionsMetadata(config),
-  };
-}
+} from '../types';
 
 function extractTableMetadata(config: PlaygroundConfig): TableMetadata {
-  // Access config property - SingleTable exposes this publicly
-  const table = config.table as unknown as { config?: Record<string, unknown> };
-  const tableConfig = table.config;
-
-  return {
-    name: (tableConfig?.table as string) || 'Unknown',
-    partitionKey: (tableConfig?.partitionKey as string) || 'pk',
-    rangeKey: (tableConfig?.rangeKey as string) || 'sk',
-    indexes:
-      (tableConfig?.indexes as Record<
-        string,
-        { partitionKey: string; rangeKey: string }
-      >) || {},
-  };
+  return config.table.config;
 }
 
 function extractEntitiesMetadata(
@@ -96,5 +73,13 @@ function extractCollectionMetadata(
     type: collection.type,
     originEntityType,
     joins,
+  };
+}
+
+export function extractMetadata(config: PlaygroundConfig): MetadataResponse {
+  return {
+    table: extractTableMetadata(config),
+    entities: extractEntitiesMetadata(config),
+    collections: extractCollectionsMetadata(config),
   };
 }

@@ -33,8 +33,17 @@ export type TableMetadata = SingleTableConfig;
 
 interface KeyPice {
   type: 'CONSTANT' | 'VARIABLE';
-  value: string; // constant value or the variable name
   numeric?: boolean;
+
+  /**
+   * Constant value or variable name
+   *
+   * Eg:
+   *
+   * () => ['USERS'] = 'USERS'
+   * ({ id }) => [id] = 'id'
+   */
+  value: string;
 }
 
 interface RangeQuery {
