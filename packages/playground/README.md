@@ -38,8 +38,8 @@ npx dynamodb-playground
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `table` | `SingleTable` | Yes | Your SingleTable instance |
-| `entities` | `Record<string, Entity>` | Yes | Named exports of your entities |
-| `collections` | `Record<string, Collection>` | No | Named exports of your collections |
+| `entities` | `Entity[]` | Yes | Named exports of your entities |
+| `collections` | `Collection[]` | No | Named exports of your collections |
 | `port` | `number` | No | Server port (default: 3030) |
 
 ## Features
@@ -113,7 +113,7 @@ const Order = table.schema.createEntity({
 
 export default {
   table,
-  entities: { User, Order },
+  entities: [User, Order],
 }
 ```
 

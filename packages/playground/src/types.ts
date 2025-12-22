@@ -55,6 +55,7 @@ interface RangeQuery {
 export interface EntityMetadata {
   name: string;
   type: string;
+  index: number;
 
   partitionKey: KeyPice[];
   rangeKey: KeyPice[];
@@ -70,6 +71,7 @@ export interface EntityMetadata {
 }
 
 export interface CollectionMetadata {
+  index: number;
   name: string;
   type: 'SINGLE' | 'MULTIPLE';
   partitionKey: KeyPice[];

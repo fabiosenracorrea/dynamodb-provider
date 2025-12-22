@@ -1,4 +1,4 @@
-import type { PlaygroundConfig, ExecuteRequest, ExecuteResponse } from '../types.js';
+import type { PlaygroundConfig, ExecuteRequest, ExecuteResponse } from '../types';
 
 export async function executeOperation(
   config: PlaygroundConfig,
@@ -41,7 +41,7 @@ async function executeEntityOperation(
     return { success: false, error: `Entity not found: ${entityName}` };
   }
 
-  const schema = config.table.schema.from(entity) as Record<string, unknown>;
+  const schema = config.table.schema.from(entity);
 
   // Handle index operations
   if (index) {
@@ -72,42 +72,33 @@ async function executeEntityOperation(
   // Regular entity operations
   switch (operation) {
     case 'get': {
-      const result = await (schema.get as (params: unknown) => Promise<unknown>)(params);
+      const result = await schema.get(params);
       return { success: true, data: result };
     }
 
     case 'create': {
-      const result = await (schema.create as (params: unknown) => Promise<unknown>)(
-        params,
-      );
+      const result = await schema.create(params);
       return { success: true, data: result };
     }
 
     case 'update': {
-      const result = await (schema.update as (params: unknown) => Promise<unknown>)(
-        params,
-      );
+      const result = await schema.update(params);
       return { success: true, data: result };
     }
 
     case 'delete': {
-      await (schema.delete as (params: unknown) => Promise<void>)(params);
+      await schema.delete(params);
       return { success: true, data: { deleted: true } };
     }
 
     case 'listAll': {
-      const result = await (schema.listAll as (params?: unknown) => Promise<unknown>)(
-        params,
-      );
+      const result = await schema.listAll(params);
       return { success: true, data: result };
     }
 
     case 'query':
     case 'custom': {
-      const query = schema.query as Record<string, unknown>;
-      const result = await (query.custom as (params: unknown) => Promise<unknown>)(
-        params,
-      );
+      const result = await schema.query.custom(params);
       return { success: true, data: result };
     }
 
@@ -115,9 +106,7 @@ async function executeEntityOperation(
       // Try as a named range query
       const query = schema.query as Record<string, unknown> | undefined;
       if (query && typeof query[operation] === 'function') {
-        const result = await (query[operation] as (params: unknown) => Promise<unknown>)(
-          params,
-        );
+        const result = await query[operation](params);
         return { success: true, data: result };
       }
       return { success: false, error: `Unknown operation: ${operation}` };
