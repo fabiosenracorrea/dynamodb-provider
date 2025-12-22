@@ -156,6 +156,6 @@ await table.transaction([
           - Other configs available: `fullRetrieval`, `paginationToken`, `limit`, `retrieveOrder`, `filter` - same rules as before
         - one/all sub methods for custom queries: Your custom queries have `one(params?)` and `all(params?)` available for them, same rules as their global versions, but applied to this range.
           Example: `schema.from(ENTITY).query.myQuery({...params})` OR `schema.from(ENTITY).query.myQuery.one({...params})`
-          WATCH OUT! Theres NO `custom` methods for these queries. Call the `myQuery` directly for it.\
+          WATCH OUT! Theres NO `custom` methods for these queries. Call the `myQuery` directly for it.
     - `queryIndex` - same rules as `query`, but applied to every index defined inside the entity definition
       Usage: `schema.from(ENTITY).queryIndex.INDEX_NAME.XXXX` where XXX are the exact behavior found on `query` - custom/all/one + range queries
