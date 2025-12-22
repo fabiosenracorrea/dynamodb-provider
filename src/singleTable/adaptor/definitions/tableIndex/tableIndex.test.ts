@@ -387,4 +387,369 @@ describe('single table adaptor - index helpers', () => {
       _indexRange3: 'range',
     });
   });
+
+  describe('numeric index support', () => {
+    it('transformIndexReferences: should preserve numeric range key for numeric indexes', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          RankingIndex: {
+            partitionKey: '_indexHash1',
+            rangeKey: '_indexRange1',
+            numeric: true,
+          },
+          StringIndex: {
+            partitionKey: '_indexHash2',
+            rangeKey: '_indexRange2',
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          RankingIndex: {
+            partitionKey: 'LEADERBOARD',
+            rangeKey: [1500],
+          },
+          StringIndex: {
+            partitionKey: 'USER',
+            rangeKey: 'some-string',
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _indexHash1: 'LEADERBOARD',
+        _indexRange1: 1500,
+        _indexHash2: 'USER',
+        _indexRange2: 'some-string',
+      });
+    });
+
+    it('transformIndexReferences: should handle zero as valid numeric range key', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          CountIndex: {
+            partitionKey: '_countPk',
+            rangeKey: '_count',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          CountIndex: {
+            partitionKey: 'COUNTER',
+            rangeKey: [0],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _countPk: 'COUNTER',
+        _count: 0,
+      });
+    });
+
+    it('transformIndexReferences: should handle negative numbers as valid numeric range key', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          BalanceIndex: {
+            partitionKey: '_balancePk',
+            rangeKey: '_balance',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          BalanceIndex: {
+            partitionKey: 'ACCOUNT',
+            rangeKey: [-500],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _balancePk: 'ACCOUNT',
+        _balance: -500,
+      });
+    });
+
+    it('transformIndexReferences: should ignore non-number values for numeric index range key', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: 'TEST',
+            rangeKey: ['not-a-number'],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'TEST',
+      });
+    });
+
+    it('transformIndexReferences: should ignore array with multiple values for numeric index range key', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: 'TEST',
+            rangeKey: [100, 200],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'TEST',
+      });
+    });
+
+    it('transformIndexReferences: should still convert partition key to string for numeric indexes', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: ['PREFIX', 'value'],
+            rangeKey: [100],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'PREFIX#value',
+        _numRange: 100,
+      });
+    });
+
+    it('transformIndexReferences: should handle mixed numeric and string indexes correctly', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          RankingIndex: {
+            partitionKey: '_rankPk',
+            rangeKey: '_rankScore',
+            numeric: true,
+          },
+          DateIndex: {
+            partitionKey: '_datePk',
+            rangeKey: '_dateRange',
+          },
+          CounterIndex: {
+            partitionKey: '_counterPk',
+            rangeKey: '_counterValue',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          RankingIndex: {
+            partitionKey: 'LEADERBOARD',
+            rangeKey: [2500],
+          },
+          DateIndex: {
+            partitionKey: 'LOGS',
+            rangeKey: ['2024', '01', '15'],
+          },
+          CounterIndex: {
+            partitionKey: 'VIEWS',
+            rangeKey: [0],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _rankPk: 'LEADERBOARD',
+        _rankScore: 2500,
+        _datePk: 'LOGS',
+        _dateRange: '2024#01#15',
+        _counterPk: 'VIEWS',
+        _counterValue: 0,
+      });
+
+      // Verify types
+      expect(typeof result._rankScore).toBe('number');
+      expect(typeof result._dateRange).toBe('string');
+      expect(typeof result._counterValue).toBe('number');
+    });
+
+    it('transformIndexReferences: should ignore empty/undefined range key for numeric indexes', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: 'TEST',
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'TEST',
+      });
+    });
+
+    it('transformIndexReferences: should ignore null range key for numeric indexes', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: 'TEST',
+            rangeKey: null,
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'TEST',
+      });
+    });
+
+    it('transformIndexReferences: should ignore empty array range key for numeric indexes', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          NumericIndex: {
+            partitionKey: '_numPk',
+            rangeKey: '_numRange',
+            numeric: true,
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          NumericIndex: {
+            partitionKey: 'TEST',
+            rangeKey: [],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _numPk: 'TEST',
+      });
+    });
+
+    it('transformIndexReferences: non-numeric indexes should still convert numbers to strings', () => {
+      const config = {
+        table: 'db-table',
+        partitionKey: '_pk',
+        rangeKey: '_sk',
+        indexes: {
+          StringIndex: {
+            partitionKey: '_indexPk',
+            rangeKey: '_indexRange',
+            // numeric: false (default)
+          },
+        },
+      };
+
+      const result = transformIndexReferences(
+        {
+          StringIndex: {
+            partitionKey: 'TEST',
+            rangeKey: [42],
+          },
+        },
+        config,
+      );
+
+      expect(result).toStrictEqual({
+        _indexPk: 'TEST',
+        _indexRange: '42',
+      });
+
+      // Verify it's a string, not a number
+      expect(typeof result._indexRange).toBe('string');
+    });
+  });
 });

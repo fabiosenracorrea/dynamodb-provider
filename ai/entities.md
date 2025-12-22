@@ -43,7 +43,7 @@ Define as: `const ENTITY = schema.createEntity<ENTITY_TYPE>().as({...params})`
   - same key rules as above
   - `index` is one of the `tableConfig.indexes` names
   - `rangeQueries` optional custom query definitions. Same rules entities' above.
-  - NOTE! If you want a numeric index, define its getRangeKey to `() => [null]` - lib currently autoconverts index values to string on creation/update
+  - NOTE! If you want a numeric index, ensure the `getRangeKey` result is always a single number array or `[null]` if you want to block the update or solely modify it via atomic operations
 
 - `autoGen?` - Automatic property generations. Format: `{ onCreate?: RefObj; onUpdate?: RefObj }` where `RefObj` = `{ [Key in keyof ENTITY_TYPE]?: GENERATOR }`
   - `GENERATOR` can be: `'UUID'`, `'KSUID'`, `'timestamp'` (uses new Date().toISOString()), `'count'` (sets to 0) or inline function call `() => any`
