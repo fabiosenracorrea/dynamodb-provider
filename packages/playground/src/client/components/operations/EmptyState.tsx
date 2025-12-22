@@ -1,4 +1,4 @@
-import { MousePointerClick } from 'lucide-react'
+import { MousePointerClick } from 'lucide-react';
 
 export function EmptyState() {
   return (
@@ -8,8 +8,9 @@ export function EmptyState() {
       </div>
       <h2 className="text-lg font-semibold mb-2">No Selection</h2>
       <p className="text-muted-foreground max-w-sm">
-        Select an entity, collection, or partition from the sidebar to view and execute operations.
+        Select an entity, collection, or partition from the sidebar to view and execute
+        operations.
       </p>
     </div>
-  )
+  );
 }

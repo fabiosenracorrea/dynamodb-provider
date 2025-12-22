@@ -1,32 +1,36 @@
-import { useEffect, useState, useMemo } from 'react'
-import { fetchMetadata, type Metadata } from '@/lib/api'
-import { Sidebar, type Selection, type SelectionType } from '@/components/sidebar'
+import { useEffect, useState, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
+import { fetchMetadata, type Metadata } from '@/lib/api';
+import {
+  Sidebar,
+  type Selection,
+  type SelectionType,
+  PartitionInfo,
+} from '@/components/sidebar';
 import {
   EntityOperations,
   CollectionOperations,
   PartitionOperations,
   EmptyState,
-} from '@/components/operations'
-import type { PartitionInfo } from '@/components/sidebar'
-import { Loader2 } from 'lucide-react'
+} from '@/components/operations';
 
 export function App() {
-  const [metadata, setMetadata] = useState<Metadata | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [selection, setSelection] = useState<Selection | null>(null)
-  const [activeTab, setActiveTab] = useState<SelectionType>('entity')
+  const [metadata, setMetadata] = useState<Metadata | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [activeTab, setActiveTab] = useState<SelectionType>('entity');
 
   useEffect(() => {
     fetchMetadata()
       .then(setMetadata)
-      .catch((err) => setError(err.message))
-  }, [])
+      .catch((err) => setError(err.message));
+  }, []);
 
   // Build partition info for selected partition
   const partitionInfo = useMemo<PartitionInfo | null>(() => {
-    if (!metadata || selection?.type !== 'partition') return null
+    if (!metadata || selection?.type !== 'partition') return null;
 
-    const partitionId = selection.name
+    const partitionId = selection.name;
 
     if (partitionId === 'main') {
       return {
@@ -35,10 +39,10 @@ export function App() {
         type: 'main',
         partitionKey: metadata.table.partitionKey,
         rangeKey: metadata.table.rangeKey,
-      }
+      };
     }
 
-    const indexConfig = metadata.table.indexes[partitionId]
+    const indexConfig = metadata.table.indexes[partitionId];
     if (indexConfig) {
       return {
         id: partitionId,
@@ -46,24 +50,24 @@ export function App() {
         type: 'index',
         partitionKey: indexConfig.partitionKey,
         rangeKey: indexConfig.rangeKey,
-      }
+      };
     }
 
-    return null
-  }, [metadata, selection])
+    return null;
+  }, [metadata, selection]);
 
   // Handle tab change - clear selection when switching tabs
   const handleTabChange = (tab: SelectionType) => {
-    setActiveTab(tab)
-    setSelection(null)
-  }
+    setActiveTab(tab);
+    setSelection(null);
+  };
 
   if (error) {
-    return <ErrorScreen error={error} />
+    return <ErrorScreen error={error} />;
   }
 
   if (!metadata) {
-    return <LoadingScreen />
+    return <LoadingScreen />;
   }
 
   return (
@@ -84,40 +88,40 @@ export function App() {
         />
       </main>
     </div>
-  )
+  );
 }
 
 interface OperationsPanelProps {
-  selection: Selection | null
-  metadata: Metadata
-  partitionInfo: PartitionInfo | null
+  selection: Selection | null;
+  metadata: Metadata;
+  partitionInfo: PartitionInfo | null;
 }
 
 function OperationsPanel({ selection, metadata, partitionInfo }: OperationsPanelProps) {
   if (!selection) {
-    return <EmptyState />
+    return <EmptyState />;
   }
 
   switch (selection.type) {
     case 'entity': {
-      const entity = metadata.entities[selection.name]
-      if (!entity) return <EmptyState />
-      return <EntityOperations name={selection.name} entity={entity} />
+      const entity = metadata.entities[selection.name];
+      if (!entity) return <EmptyState />;
+      return <EntityOperations name={selection.name} entity={entity} />;
     }
 
     case 'collection': {
-      const collection = metadata.collections[selection.name]
-      if (!collection) return <EmptyState />
-      return <CollectionOperations name={selection.name} collection={collection} />
+      const collection = metadata.collections[selection.name];
+      if (!collection) return <EmptyState />;
+      return <CollectionOperations name={selection.name} collection={collection} />;
     }
 
     case 'partition': {
-      if (!partitionInfo) return <EmptyState />
-      return <PartitionOperations partition={partitionInfo} />
+      if (!partitionInfo) return <EmptyState />;
+      return <PartitionOperations partition={partitionInfo} />;
     }
 
     default:
-      return <EmptyState />
+      return <EmptyState />;
   }
 }
 
@@ -129,7 +133,7 @@ function LoadingScreen() {
         <span>Loading playground...</span>
       </div>
     </div>
-  )
+  );
 }
 
 function ErrorScreen({ error }: { error: string }) {
@@ -140,5 +144,5 @@ function ErrorScreen({ error }: { error: string }) {
         <p className="text-destructive/80 text-sm">{error}</p>
       </div>
     </div>
-  )
+  );
 }

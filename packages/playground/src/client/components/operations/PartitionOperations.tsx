@@ -1,13 +1,19 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { OperationForm } from './OperationForm'
-import type { PartitionInfo } from '@/components/sidebar'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { OperationForm } from './OperationForm';
+import type { PartitionInfo } from '@/components/sidebar';
 
 interface PartitionOperationsProps {
-  partition: PartitionInfo
+  partition: PartitionInfo;
 }
 
 export function PartitionOperations({ partition }: PartitionOperationsProps) {
-  const isMainTable = partition.type === 'main'
+  const isMainTable = partition.type === 'main';
 
   return (
     <Card>
@@ -46,5 +52,5 @@ export function PartitionOperations({ partition }: PartitionOperationsProps) {
         />
       </CardContent>
     </Card>
-  )
+  );
 }

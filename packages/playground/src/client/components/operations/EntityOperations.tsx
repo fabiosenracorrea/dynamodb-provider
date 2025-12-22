@@ -1,11 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { OperationTabs, type OperationTab } from './OperationTabs'
-import { OperationForm } from './OperationForm'
-import type { EntityMetadata } from '@/lib/api'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { OperationTabs, type OperationTab } from './OperationTabs';
+import { OperationForm } from './OperationForm';
+import type { EntityMetadata } from '@/lib/api';
 
 interface EntityOperationsProps {
-  name: string
-  entity: EntityMetadata
+  name: string;
+  entity: EntityMetadata;
 }
 
 export function EntityOperations({ name, entity }: EntityOperationsProps) {
@@ -94,7 +100,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
         />
       ),
     },
-  ]
+  ];
 
   return (
     <Card>
@@ -111,7 +117,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
         <OperationTabs tabs={tabs} defaultTab="get" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function EntityBadges({ entity }: { entity: EntityMetadata }) {
@@ -128,5 +134,5 @@ function EntityBadges({ entity }: { entity: EntityMetadata }) {
         </span>
       )}
     </div>
-  )
+  );
 }

@@ -1,10 +1,16 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { OperationForm } from './OperationForm'
-import type { CollectionMetadata } from '@/lib/api'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { OperationForm } from './OperationForm';
+import type { CollectionMetadata } from '@/lib/api';
 
 interface CollectionOperationsProps {
-  name: string
-  collection: CollectionMetadata
+  name: string;
+  collection: CollectionMetadata;
 }
 
 export function CollectionOperations({ name, collection }: CollectionOperationsProps) {
@@ -33,7 +39,7 @@ export function CollectionOperations({ name, collection }: CollectionOperationsP
         />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function CollectionBadges({ collection }: { collection: CollectionMetadata }) {
@@ -46,5 +52,5 @@ function CollectionBadges({ collection }: { collection: CollectionMetadata }) {
         </span>
       )}
     </div>
-  )
+  );
 }

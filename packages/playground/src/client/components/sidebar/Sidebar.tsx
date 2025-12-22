@@ -1,39 +1,45 @@
-import { Database } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { EntityList } from './EntityList'
-import { CollectionList } from './CollectionList'
-import { PartitionList } from './PartitionList'
-import type { Metadata } from '@/lib/api'
+import { Database } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EntityList } from './EntityList';
+import { CollectionList } from './CollectionList';
+import { PartitionList } from './PartitionList';
+import type { Metadata } from '@/lib/api';
 
-export type SelectionType = 'entity' | 'collection' | 'partition'
+export type SelectionType = 'entity' | 'collection' | 'partition';
 
 export interface Selection {
-  type: SelectionType
-  name: string
+  type: SelectionType;
+  name: string;
 }
 
 interface SidebarProps {
-  metadata: Metadata
-  selection: Selection | null
-  onSelect: (selection: Selection | null) => void
-  activeTab: SelectionType
-  onTabChange: (tab: SelectionType) => void
+  metadata: Metadata;
+  selection: Selection | null;
+  onSelect: (selection: Selection | null) => void;
+  activeTab: SelectionType;
+  onTabChange: (tab: SelectionType) => void;
 }
 
-export function Sidebar({ metadata, selection, onSelect, activeTab, onTabChange }: SidebarProps) {
-  const hasCollections = Object.keys(metadata.collections).length > 0
+export function Sidebar({
+  metadata,
+  selection,
+  onSelect,
+  activeTab,
+  onTabChange,
+}: SidebarProps) {
+  const hasCollections = Object.keys(metadata.collections).length > 0;
 
   const handleEntitySelect = (name: string) => {
-    onSelect({ type: 'entity', name })
-  }
+    onSelect({ type: 'entity', name });
+  };
 
   const handleCollectionSelect = (name: string) => {
-    onSelect({ type: 'collection', name })
-  }
+    onSelect({ type: 'collection', name });
+  };
 
   const handlePartitionSelect = (name: string) => {
-    onSelect({ type: 'partition', name })
-  }
+    onSelect({ type: 'partition', name });
+  };
 
   return (
     <aside className="w-72 border-r bg-muted/30 flex flex-col h-screen">
@@ -101,5 +107,5 @@ export function Sidebar({ metadata, selection, onSelect, activeTab, onTabChange 
         </p>
       </div>
     </aside>
-  )
+  );
 }

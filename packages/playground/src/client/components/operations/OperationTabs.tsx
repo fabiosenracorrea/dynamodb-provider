@@ -1,14 +1,14 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export interface OperationTab {
-  id: string
-  label: string
-  content: React.ReactNode
+  id: string;
+  label: string;
+  content: React.ReactNode;
 }
 
 interface OperationTabsProps {
-  tabs: OperationTab[]
-  defaultTab?: string
+  tabs: OperationTab[];
+  defaultTab?: string;
 }
 
 export function OperationTabs({ tabs, defaultTab }: OperationTabsProps) {
@@ -28,5 +28,5 @@ export function OperationTabs({ tabs, defaultTab }: OperationTabsProps) {
         </TabsContent>
       ))}
     </Tabs>
-  )
+  );
 }

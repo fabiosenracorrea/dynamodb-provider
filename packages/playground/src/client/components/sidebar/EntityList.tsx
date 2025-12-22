@@ -1,33 +1,37 @@
-import { useState, useMemo } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { SearchInput } from './SearchInput'
-import { SidebarItem } from './SidebarItem'
-import type { EntityMetadata } from '@/lib/api'
+import { useState, useMemo } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { SearchInput } from './SearchInput';
+import { SidebarItem } from './SidebarItem';
+import type { EntityMetadata } from '@/lib/api';
 
 interface EntityListProps {
-  entities: Record<string, EntityMetadata>
-  selectedEntity: string | null
-  onSelect: (name: string) => void
+  entities: Record<string, EntityMetadata>;
+  selectedEntity: string | null;
+  onSelect: (name: string) => void;
 }
 
 export function EntityList({ entities, selectedEntity, onSelect }: EntityListProps) {
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState('');
 
   const filteredEntities = useMemo(() => {
-    const entries = Object.entries(entities)
-    if (!search) return entries
+    const entries = Object.entries(entities);
+    if (!search) return entries;
 
-    const lower = search.toLowerCase()
+    const lower = search.toLowerCase();
     return entries.filter(
       ([name, entity]) =>
-        name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower)
-    )
-  }, [entities, search])
+        name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower),
+    );
+  }, [entities, search]);
 
   return (
     <div className="flex flex-col h-full">
       <div className="p-2">
-        <SearchInput value={search} onChange={setSearch} placeholder="Search entities..." />
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search entities..."
+        />
       </div>
 
       <ScrollArea className="flex-1">
@@ -37,17 +41,21 @@ export function EntityList({ entities, selectedEntity, onSelect }: EntityListPro
               key={name}
               name={name}
               type={entity.type}
-              subtitle={entity.indexes.length > 0 ? `${entity.indexes.length} indexes` : undefined}
+              subtitle={
+                entity.indexes.length > 0 ? `${entity.indexes.length} indexes` : undefined
+              }
               isSelected={selectedEntity === name}
               onClick={() => onSelect(name)}
             />
           ))}
 
           {filteredEntities.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">No entities found</p>
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No entities found
+            </p>
           )}
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }
