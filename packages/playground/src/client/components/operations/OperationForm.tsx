@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { JsonEditor } from './JsonEditor';
 import { ResultsView } from './ResultsView';
-import { execute, type ExecuteRequest } from '@/lib/api';
+import { execute, type ExecuteRequest } from '@/utils/api';
 
 interface OperationFormProps {
   target: ExecuteRequest['target'];

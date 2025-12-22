@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EntityList } from './EntityList';
 import { CollectionList } from './CollectionList';
 import { PartitionList } from './PartitionList';
-import type { Metadata } from '@/lib/api';
+import type { Metadata } from '@/utils/api';
 
 export type SelectionType = 'entity' | 'collection' | 'partition';
 

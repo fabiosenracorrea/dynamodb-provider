@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { OperationForm } from './OperationForm';
-import type { CollectionMetadata } from '@/lib/api';
+import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionOperationsProps {
   name: string;

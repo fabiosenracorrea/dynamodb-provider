@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { fetchMetadata, type Metadata } from '@/lib/api';
+import { fetchMetadata, type Metadata } from '@/utils/api';
 import {
   Sidebar,
   type Selection,

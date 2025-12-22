@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMetadata, execute, type ExecuteRequest, type Metadata } from '@/lib/api';
+import { fetchMetadata, execute, type ExecuteRequest, type Metadata } from '@/utils/api';
 
 // Query keys
 export const queryKeys = {

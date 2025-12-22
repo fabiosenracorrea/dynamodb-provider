@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/card';
 import { OperationTabs, type OperationTab } from './OperationTabs';
 import { OperationForm } from './OperationForm';
-import type { EntityMetadata } from '@/lib/api';
+import type { EntityMetadata } from '@/utils/api';
 
 interface EntityOperationsProps {
   name: string;

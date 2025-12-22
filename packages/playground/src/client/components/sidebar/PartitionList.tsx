@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
-import type { TableMetadata } from '@/lib/api';
+import type { TableMetadata } from '@/utils/api';
 
 export interface PartitionInfo {
   id: string;

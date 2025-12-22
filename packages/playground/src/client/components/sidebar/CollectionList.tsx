@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
-import type { CollectionMetadata } from '@/lib/api';
+import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionListProps {
   collections: Record<string, CollectionMetadata>;
