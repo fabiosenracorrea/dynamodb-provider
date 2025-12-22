@@ -1,18 +1,18 @@
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { JsonEditor } from './JsonEditor'
-import { ResultsView } from './ResultsView'
-import { execute, type ExecuteRequest } from '@/lib/api'
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { JsonEditor } from './JsonEditor';
+import { ResultsView } from './ResultsView';
+import { execute, type ExecuteRequest } from '@/lib/api';
 
 interface OperationFormProps {
-  target: ExecuteRequest['target']
-  name: string
-  operation: string
-  index?: string
-  description?: string
-  placeholder?: string
-  buttonLabel?: string
+  target: ExecuteRequest['target'];
+  name: string;
+  operation: string;
+  index?: string;
+  description?: string;
+  placeholder?: string;
+  buttonLabel?: string;
 }
 
 export function OperationForm({
@@ -24,37 +24,37 @@ export function OperationForm({
   placeholder = '{\n  \n}',
   buttonLabel = 'Execute',
 }: OperationFormProps) {
-  const [params, setParams] = useState(placeholder)
-  const [result, setResult] = useState<unknown>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [params, setParams] = useState(placeholder);
+  const [result, setResult] = useState<unknown>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleExecute = async () => {
-    setError(null)
-    setResult(null)
-    setLoading(true)
+    setError(null);
+    setResult(null);
+    setLoading(true);
 
     try {
-      const parsedParams = JSON.parse(params)
+      const parsedParams = JSON.parse(params);
       const response = await execute({
         target,
         name,
         operation,
         index,
         params: parsedParams,
-      })
+      });
 
       if (response.success) {
-        setResult(response.data)
+        setResult(response.data);
       } else {
-        setError(response.error || 'Unknown error')
+        setError(response.error || 'Unknown error');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid JSON')
+      setError(err instanceof Error ? err.message : 'Invalid JSON');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -77,5 +77,5 @@ export function OperationForm({
         </div>
       )}
     </div>
-  )
+  );
 }

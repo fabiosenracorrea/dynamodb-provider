@@ -109,7 +109,9 @@ async function main() {
     css: {
       postcss: {
         plugins: [
-          (await import('tailwindcss')).default({
+          (
+            await import('tailwindcss')
+          ).default({
             config: {
               darkMode: ['class'],
               content: [resolve(clientRoot, '**/*.{html,js,ts,jsx,tsx}')],
