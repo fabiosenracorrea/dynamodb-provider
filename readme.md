@@ -698,7 +698,9 @@ The index does not need to exist in DynamoDB if only using the type property for
 - **Optional**
 - Secondary index configuration.
   - Key: Index name as defined in DynamoDB.
-  - Value: Object with `partitionKey` and `rangeKey` column names, optional `numeric` flag for atomic operations support.
+  - Value: Object with `partitionKey` and `rangeKey` column names, optional `numeric` to indicate its range value should be a number (unlocks atomic updates for it too)
+
+> Important! SingleTable patterns rely on string keys almost exclusively, with the exception of rank-type range keys. That's why we auto convert any valid key/index-key to string, **unless marked here with the `numeric: true` flag**. This in turn makes it a requirement to only accept numbers/single numbers arrays are possible valid values for it.
 
 #### `autoRemoveTableProperties`
 

@@ -2,6 +2,7 @@ import { ensureArray } from 'utils/array';
 import { isNonNullable } from 'utils/checkers';
 import { omitUndefined } from 'utils/object';
 
+import { StableOmit } from 'types';
 import { SingleTableConfig } from '../config';
 import { convertKey, KeyValue, SingleTableKeyReference } from '../key';
 
@@ -30,6 +31,28 @@ function isInvalidKey(key?: KeyValue): boolean {
   return asArray.some((x) => !isNonNullable(x));
 }
 
+function getRangeKey({
+  config,
+  index,
+  rangeKey,
+}: StableOmit<IndexGenParams, 'partitionKey'>) {
+  const { numeric } = config.indexes![index];
+
+  // Same behavior as partitionKey
+  if (!numeric) return isInvalidKey(rangeKey) ? undefined : convertKey(rangeKey!, config);
+
+  if (!rangeKey || !rangeKey.length) return;
+
+  const [value, ...rest] = ensureArray(rangeKey);
+
+  const invalid = typeof value !== 'number' || !!rest.length;
+
+  // add a config to throw here?
+  if (invalid) return;
+
+  return value;
+}
+
 function getIndexRecord({
   index,
   partitionKey,
@@ -40,11 +63,11 @@ function getIndexRecord({
     cb(index, config),
   );
 
-  const [hashValue, rangeValue] = [partitionKey, rangeKey].map((key) => {
-    if (isInvalidKey(key)) return;
+  const hashValue = isInvalidKey(partitionKey)
+    ? undefined
+    : convertKey(partitionKey!, config);
 
-    return convertKey(key!, config);
-  });
+  const rangeValue = getRangeKey({ rangeKey, index, config });
 
   return omitUndefined({
     [hashName]: hashValue,

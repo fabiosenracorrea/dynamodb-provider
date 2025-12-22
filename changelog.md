@@ -1,5 +1,17 @@
 # DynamoDB Provider Changelog
 
+# v3.1.1
+
+### Warning! Possible behavior change
+
+- **Fix**: Index values were being automatically converted to *strings*, ignoring the `numeric: true` configuration. That meant you would have to define entities like `getRangeKey: () => [null]` and solely rely on the atomic updates to properly set the numeric value to your range key. Now the behavior is consistent with the expectation:
+
+  - Partition Keys always get converted to strings (as per SingleTable patterns)
+  - Range Keys are converted to strings **by default**; Se `numeric: true` to their configuration to have them allow numeric value only
+  - If `numeric: true`, range key updates are only ever valid **if the value is a number or an array with a single number inside of it**
+  - You can safely reference numeric properties from your entities to ensure it gets generated properly eg `getRangeKey: ['.score']` or `getRangeKey: ({ score }: Pick<MyEntity, 'score'>) => [score]`
+
+
 # v3.1.0
 
 - **Feature**: **Atomic Numeric Index Updates** - Safely perform atomic operations (add, subtract, sum) on numeric index range keys without worrying about `blockInternalPropUpdate` restrictions or knowing the internal column names.
