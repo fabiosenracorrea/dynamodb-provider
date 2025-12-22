@@ -1,42 +1,25 @@
 // Types for the playground
+import type {
+  AnyEntity,
+  AnyCollection,
+  SingleTable,
+  SingleTableConfig,
+  DynamodbProvider,
+} from 'dynamodb-provider';
+
+export type { AnyEntity, AnyCollection };
 
 export interface PlaygroundConfig {
-  table: SingleTableInstance;
-  entities: Record<string, EntityInstance>;
-  collections?: Record<string, CollectionInstance>;
+  table: SingleTable<
+    SingleTableConfig & {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dynamodbProvider: DynamodbProvider<any>;
+    }
+  >;
+
+  entities: AnyEntity[];
+  collections?: AnyCollection[];
   port?: number;
-}
-
-// These are loose types since we're accepting user's instances
-export interface SingleTableInstance {
-  schema: {
-    from: (entityOrCollection: unknown) => unknown;
-  };
-  query: (params: unknown) => Promise<unknown>;
-  // Internal config access
-  _config?: {
-    table?: string;
-    partitionKey?: string;
-    rangeKey?: string;
-    indexes?: Record<string, { partitionKey: string; rangeKey: string }>;
-  };
-}
-
-export interface EntityInstance {
-  type: string;
-  __dbType: 'ENTITY';
-  getPartitionKey: (...args: unknown[]) => unknown;
-  getRangeKey: (...args: unknown[]) => unknown;
-  indexes?: Record<string, IndexInstance>;
-  rangeQueries?: Record<string, (...args: unknown[]) => unknown>;
-}
-
-export interface CollectionInstance {
-  type: 'SINGLE' | 'MULTIPLE';
-  __dbType: 'COLLECTION';
-  originEntity?: EntityInstance | null;
-  startRef?: string | null;
-  join?: Record<string, JoinConfig>;
 }
 
 export interface IndexInstance {
@@ -46,37 +29,41 @@ export interface IndexInstance {
   rangeQueries?: Record<string, (...args: unknown[]) => unknown>;
 }
 
-export interface JoinConfig {
-  ref: string;
-  entity: EntityInstance;
-  type: 'SINGLE' | 'MULTIPLE';
+export type TableMetadata = SingleTableConfig;
+
+interface KeyPice {
+  type: 'CONSTANT' | 'VARIABLE';
+  value: string; // constant value or the variable name
+  numeric?: boolean;
 }
 
-// API Response types
-export interface MetadataResponse {
-  table: TableMetadata;
-  entities: Record<string, EntityMetadata>;
-  collections: Record<string, CollectionMetadata>;
-}
-
-export interface TableMetadata {
+interface RangeQuery {
   name: string;
-  partitionKey: string;
-  rangeKey: string;
-  indexes: Record<string, { partitionKey: string; rangeKey: string }>;
+  operation: string;
+  params: string[]; // named params from `getValues` if empty = no param necessary
 }
 
 export interface EntityMetadata {
   name: string;
   type: string;
-  indexes: string[];
-  rangeQueries: string[];
-  indexRangeQueries: Record<string, string[]>;
+
+  partitionKey: KeyPice[];
+  rangeKey: KeyPice[];
+  rangeQueries: RangeQuery[];
+
+  indexes: Array<{
+    name: string;
+    index: string;
+    partitionKey: KeyPice[];
+    rangeKey: KeyPice[];
+    rangeQueries: RangeQuery[];
+  }>;
 }
 
 export interface CollectionMetadata {
   name: string;
   type: 'SINGLE' | 'MULTIPLE';
+  partitionKey: KeyPice[];
   originEntityType: string | null;
   joins: string[];
 }
@@ -93,4 +80,10 @@ export interface ExecuteResponse {
   success: boolean;
   data?: unknown;
   error?: string;
+}
+
+export interface MetadataResponse {
+  table: TableMetadata;
+  entities: AnyEntity[];
+  collections: AnyCollection[];
 }

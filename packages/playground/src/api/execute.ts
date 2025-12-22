@@ -36,6 +36,7 @@ async function executeEntityOperation(
   params: Record<string, unknown>,
 ): Promise<ExecuteResponse> {
   const entity = config.entities[entityName];
+
   if (!entity) {
     return { success: false, error: `Entity not found: ${entityName}` };
   }

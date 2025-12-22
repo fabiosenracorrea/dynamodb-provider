@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createServer } from 'vite';
 import { resolve, dirname } from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
