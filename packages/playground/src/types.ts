@@ -31,7 +31,7 @@ export interface IndexInstance {
 
 export type TableMetadata = SingleTableConfig;
 
-interface KeyPice {
+export interface KeyPiece {
   type: 'CONSTANT' | 'VARIABLE';
   numeric?: boolean;
 
@@ -46,7 +46,7 @@ interface KeyPice {
   value: string;
 }
 
-interface RangeQuery {
+export interface RangeQuery {
   name: string;
   operation: string;
   params: string[]; // named params from `getValues` if empty = no param necessary
@@ -57,15 +57,15 @@ export interface EntityMetadata {
   type: string;
   index: number;
 
-  partitionKey: KeyPice[];
-  rangeKey: KeyPice[];
+  partitionKey: KeyPiece[];
+  rangeKey: KeyPiece[];
   rangeQueries: RangeQuery[];
 
   indexes: Array<{
     name: string;
     index: string;
-    partitionKey: KeyPice[];
-    rangeKey: KeyPice[];
+    partitionKey: KeyPiece[];
+    rangeKey: KeyPiece[];
     rangeQueries: RangeQuery[];
   }>;
 }
@@ -74,7 +74,7 @@ export interface CollectionMetadata {
   index: number;
   name: string;
   type: 'SINGLE' | 'MULTIPLE';
-  partitionKey: KeyPice[];
+  partitionKey: KeyPiece[];
   originEntityType: string | null;
   joins: string[];
 }
@@ -95,6 +95,6 @@ export interface ExecuteResponse {
 
 export interface MetadataResponse {
   table: TableMetadata;
-  entities: AnyEntity[];
-  collections: AnyCollection[];
+  entities: EntityMetadata[];
+  collections: CollectionMetadata[];
 }
