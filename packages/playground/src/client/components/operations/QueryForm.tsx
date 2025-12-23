@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ResultsView } from './ResultsView';
+import { FiltersSheet, buildFiltersParam, type FilterRow } from './FiltersSheet';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest, KeyPiece, RangeQuery, EntityIndex } from '@/utils/api';
 
@@ -97,6 +98,7 @@ export function QueryForm({
   const [limit, setLimit] = useState('25');
   const [retrieveOrder, setRetrieveOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [fullRetrieval, setFullRetrieval] = useState(false);
+  const [filters, setFilters] = useState<FilterRow[]>([]);
 
   const mutation = useExecute();
 
@@ -173,6 +175,12 @@ export function QueryForm({
         }
       });
       params.range = range;
+    }
+
+    // Add filters
+    const filtersParam = buildFiltersParam(filters);
+    if (filtersParam) {
+      params.filters = filtersParam;
     }
 
     mutation.mutate({
@@ -261,18 +269,17 @@ export function QueryForm({
 
       {/* Range Section */}
       <section className="space-y-3">
-        <h4 className="text-sm font-medium flex items-center gap-2">
-          Range Filtering
-          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
-            {currentConfig.rangeKey
-              .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
-              .join(' | ')}
-          </span>
-        </h4>
         <div className="flex flex-wrap gap-3 items-end">
           {/* Range Mode Selector - now includes predefined queries directly */}
           <div className={rangeMode === 'none' ? 'flex-1' : ' flex-1 min-w-[160px]'}>
-            <label className="text-sm font-medium mb-1.5 block">Filter Type</label>
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              Range Filtering
+              <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+                {currentConfig.rangeKey
+                  .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
+                  .join(' | ')}
+              </span>
+            </h4>
             <Select value={rangeMode} onValueChange={handleRangeModeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select..." />
@@ -347,9 +354,11 @@ export function QueryForm({
         </div>
       </section>
 
+      {/* Filters */}
+      <FiltersSheet filters={filters} onChange={setFilters} />
+
       {/* Options */}
       <section className="space-y-3">
-        <h4 className="text-sm font-medium">Options</h4>
         <div className="flex flex-wrap gap-3 items-end">
           <div className="min-w-[100px] flex-1">
             <label className="text-sm font-medium mb-1.5 block">Limit</label>
@@ -387,7 +396,7 @@ export function QueryForm({
           Query
         </Button>
 
-        <div className="flex items-center gap-2 min-w-[200px]">
+        <div className="flex items-center gap-2">
           <input
             type="checkbox"
             id="fullRetrieval"
