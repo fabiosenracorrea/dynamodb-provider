@@ -27,9 +27,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useEntity, useMetadataContext } from '@/context';
-import { OperationTabs, type OperationTab } from './OperationTabs';
-import { OperationForm } from './OperationForm';
+import {
+  OperationTabs,
+  OperationTabsList,
+  OperationTabsContent,
+  type OperationTab,
+} from './OperationTabs';
 import { KeyParamsForm } from './KeyParamsForm';
+import { ListForm } from './ListForm';
 import { QueryForm } from './QueryForm';
 import type { KeyPiece, RangeQuery } from '@/utils/api';
 
@@ -64,16 +69,7 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
     {
       id: 'list',
       label: 'List',
-      content: (
-        <OperationForm
-          target="entity"
-          name={entity.type}
-          operation="list"
-          description="List all items of this entity type using the type index."
-          placeholder={`{\n  "limit": 25\n}`}
-          buttonLabel="List Items"
-        />
-      ),
+      content: <ListForm target="entity" name={entity.type} />,
     },
     {
       id: 'query',
@@ -234,14 +230,19 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Operations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <OperationTabs tabs={tabs} defaultTab="get" />
-        </CardContent>
-      </Card>
+      <OperationTabs tabs={tabs} defaultTab="query">
+        <Card>
+          <CardHeader className="py-3">
+            <div className="flex items-center gap-4">
+              <CardTitle className="text-base">Operations</CardTitle>
+              <OperationTabsList tabs={tabs} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <OperationTabsContent tabs={tabs} />
+          </CardContent>
+        </Card>
+      </OperationTabs>
     </div>
   );
 }
