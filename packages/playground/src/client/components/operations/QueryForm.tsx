@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,7 +17,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { ResultsView } from './ResultsView';
 import { useExecute } from '@/utils/hooks';
-import type { ExecuteRequest, KeyPiece, RangeQuery } from '@/utils/api';
+import type { ExecuteRequest, KeyPiece, RangeQuery, EntityIndex } from '@/utils/api';
 
 const RANGE_OPERATIONS = [
   { value: 'equal', label: 'Equal', params: ['value'] },
@@ -33,29 +33,59 @@ interface QueryFormProps {
   target: ExecuteRequest['target'];
   name: string;
   operation?: string;
-  index?: string;
   description?: string;
   partitionKey: KeyPiece[];
   rangeKey: KeyPiece[];
   rangeQueries: RangeQuery[];
+  indexes?: EntityIndex[];
 }
 
 export function QueryForm({
   target,
   name,
   operation = 'query',
-  index,
   description,
   partitionKey,
   rangeKey,
   rangeQueries,
+  indexes = [],
 }: QueryFormProps) {
-  // Extract partition key variables
+  // Target selection state (main or index name)
+  const [queryTarget, setQueryTarget] = useState<string>('main');
+
+  // Get current configuration based on selected target
+  const currentConfig = useMemo(() => {
+    if (queryTarget === 'main') {
+      return {
+        partitionKey,
+        rangeKey,
+        rangeQueries,
+        indexName: undefined,
+      };
+    }
+    const selectedIndex = indexes.find((idx) => idx.name === queryTarget);
+    if (selectedIndex) {
+      return {
+        partitionKey: selectedIndex.partitionKey,
+        rangeKey: selectedIndex.rangeKey,
+        rangeQueries: selectedIndex.rangeQueries,
+        indexName: selectedIndex.name,
+      };
+    }
+    return {
+      partitionKey,
+      rangeKey,
+      rangeQueries,
+      indexName: undefined,
+    };
+  }, [queryTarget, partitionKey, rangeKey, rangeQueries, indexes]);
+
+  // Extract partition key variables from current config
   const partitionVars = useMemo(() => {
-    return partitionKey
+    return currentConfig.partitionKey
       .filter((p) => p.type === 'VARIABLE')
       .map((p) => ({ name: p.value, numeric: p.numeric ?? false }));
-  }, [partitionKey]);
+  }, [currentConfig.partitionKey]);
 
   // State
   const [partitionValues, setPartitionValues] = useState<Record<string, string>>(() =>
@@ -77,8 +107,8 @@ export function QueryForm({
 
   const mutation = useExecute();
 
-  // Get selected range query config
-  const selectedRangeQuery = rangeQueries.find((rq) => rq.name === rangeQuery);
+  // Get selected range query config from current target's range queries
+  const selectedRangeQuery = currentConfig.rangeQueries.find((rq) => rq.name === rangeQuery);
   const selectedCustomOp = RANGE_OPERATIONS.find((op) => op.value === customOperation);
 
   const handlePartitionChange = (varName: string, value: string) => {
@@ -91,15 +121,25 @@ export function QueryForm({
 
   const handleRangeModeChange = (mode: 'none' | 'predefined' | 'custom') => {
     setRangeMode(mode);
-    if (mode === 'predefined' && rangeQueries.length > 0 && !rangeQuery) {
-      setRangeQuery(rangeQueries[0].name);
-      setRangeParams(Object.fromEntries(rangeQueries[0].params.map((p) => [p, ''])));
+    if (mode === 'predefined' && currentConfig.rangeQueries.length > 0 && !rangeQuery) {
+      setRangeQuery(currentConfig.rangeQueries[0].name);
+      setRangeParams(Object.fromEntries(currentConfig.rangeQueries[0].params.map((p) => [p, ''])));
     }
+  };
+
+  const handleTargetChange = (newTarget: string) => {
+    setQueryTarget(newTarget);
+    // Reset range-related state when target changes
+    setRangeMode('none');
+    setRangeQuery('');
+    setRangeParams({});
+    // Reset partition values - they will be reinitialized
+    setPartitionValues({});
   };
 
   const handleRangeQueryChange = (value: string) => {
     setRangeQuery(value);
-    const newQuery = rangeQueries.find((rq) => rq.name === value);
+    const newQuery = currentConfig.rangeQueries.find((rq) => rq.name === value);
     if (newQuery) {
       setRangeParams(Object.fromEntries(newQuery.params.map((p) => [p, ''])));
     } else {
@@ -150,7 +190,7 @@ export function QueryForm({
       target,
       name,
       operation,
-      index,
+      index: currentConfig.indexName,
       params,
     });
   };
@@ -175,6 +215,31 @@ export function QueryForm({
     <div className="space-y-6">
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
 
+      {/* Target Selection */}
+      {indexes.length > 0 && (
+        <section className="space-y-3">
+          <h4 className="text-sm font-medium">Query Target</h4>
+          <Select value={queryTarget} onValueChange={handleTargetChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="main">Main Table</SelectItem>
+              {indexes.map((idx) => (
+                <SelectItem key={idx.name} value={idx.name}>
+                  <span className="flex items-center gap-2">
+                    <span>{idx.name}</span>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      ({idx.index})
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </section>
+      )}
+
       {/* Partition Key Section */}
       <section className="space-y-3">
         <h4 className="text-sm font-medium">Partition Key</h4>
@@ -183,20 +248,20 @@ export function QueryForm({
             No parameters required - partition key uses only constant values
           </p>
         ) : (
-          <div className="grid gap-3">
+          <div className="flex flex-wrap gap-3 items-end">
             {partitionVars.map((variable) => (
-              <div key={variable.name}>
+              <div key={variable.name} className="flex-1 min-w-[140px]">
                 <label className="text-sm mb-1.5 flex items-center gap-2">
                   <span className="font-medium">{variable.name}</span>
                   {variable.numeric && (
-                    <span className="text-xs text-muted-foreground">(numeric)</span>
+                    <span className="text-xs text-muted-foreground">(n)</span>
                   )}
                 </label>
                 <Input
                   type={variable.numeric ? 'number' : 'text'}
                   value={partitionValues[variable.name]}
                   onChange={(e) => handlePartitionChange(variable.name, e.target.value)}
-                  placeholder={`Enter ${variable.name}...`}
+                  placeholder={variable.name}
                   className="font-mono"
                 />
               </div>
@@ -208,104 +273,101 @@ export function QueryForm({
       {/* Range Section */}
       <section className="space-y-3">
         <h4 className="text-sm font-medium">Range Filtering</h4>
-        <Select
-          value={rangeMode}
-          onValueChange={(v) => handleRangeModeChange(v as typeof rangeMode)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select range filter type..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No range filter</SelectItem>
-            {rangeQueries.length > 0 && (
-              <SelectItem value="predefined">Predefined query</SelectItem>
-            )}
-            <SelectItem value="custom">Custom range</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Predefined Range Query */}
-        {rangeMode === 'predefined' && rangeQueries.length > 0 && (
-          <div className="space-y-3 pl-4 border-l-2 border-muted">
-            <Select value={rangeQuery} onValueChange={handleRangeQueryChange}>
+        <div className="flex flex-wrap gap-3 items-end">
+          {/* Range Mode Selector */}
+          <div className={rangeMode === 'none' ? 'flex-1' : 'min-w-[160px]'}>
+            <label className="text-sm font-medium mb-1.5 block">Filter Type</label>
+            <Select
+              value={rangeMode}
+              onValueChange={(v) => handleRangeModeChange(v as typeof rangeMode)}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select query..." />
+                <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
-                {rangeQueries.map((rq) => (
-                  <SelectItem key={rq.name} value={rq.name}>
-                    <span className="flex items-center gap-2">
-                      <span>{rq.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({rq.operation})
-                      </span>
-                    </span>
-                  </SelectItem>
-                ))}
+                <SelectItem value="none">No filter</SelectItem>
+                {currentConfig.rangeQueries.length > 0 && (
+                  <SelectItem value="predefined">Predefined</SelectItem>
+                )}
+                <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-
-            {selectedRangeQuery && selectedRangeQuery.params.length > 0 && (
-              <div className="grid gap-3">
-                {selectedRangeQuery.params.map((paramName) => (
-                  <div key={paramName}>
-                    <label className="text-sm font-medium mb-1.5 block">
-                      {paramName}
-                    </label>
-                    <Input
-                      value={rangeParams[paramName] || ''}
-                      onChange={(e) => handleRangeParamChange(paramName, e.target.value)}
-                      placeholder={`Enter ${paramName}...`}
-                      className="font-mono"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-        )}
 
-        {/* Custom Range */}
-        {rangeMode === 'custom' && (
-          <div className="space-y-3 pl-4 border-l-2 border-muted">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Operation</label>
-              <Select value={customOperation} onValueChange={setCustomOperation}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RANGE_OPERATIONS.map((op) => (
-                    <SelectItem key={op.value} value={op.value}>
-                      {op.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedCustomOp && (
-              <div className="grid gap-3">
-                {selectedCustomOp.params.map((param) => (
-                  <div key={param}>
-                    <label className="text-sm font-medium mb-1.5 block">{param}</label>
-                    <Input
-                      value={customRangeParams[param] || ''}
-                      onChange={(e) =>
-                        setCustomRangeParams((prev) => ({
-                          ...prev,
-                          [param]: e.target.value,
-                        }))
-                      }
-                      placeholder={`Enter ${param}...`}
-                      className="font-mono"
-                    />
-                  </div>
-                ))}
+          {/* Predefined Range Query - Inline */}
+          {rangeMode === 'predefined' && currentConfig.rangeQueries.length > 0 && (
+            <>
+              <div className="min-w-[160px]">
+                <label className="text-sm font-medium mb-1.5 block">Query</label>
+                <Select value={rangeQuery} onValueChange={handleRangeQueryChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentConfig.rangeQueries.map((rq) => (
+                      <SelectItem key={rq.name} value={rq.name}>
+                        <span className="flex items-center gap-2">
+                          <span>{rq.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({rq.operation})
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-          </div>
-        )}
+              {selectedRangeQuery?.params.map((paramName) => (
+                <div key={paramName} className="flex-1 min-w-[120px]">
+                  <label className="text-sm font-medium mb-1.5 block">{paramName}</label>
+                  <Input
+                    value={rangeParams[paramName] || ''}
+                    onChange={(e) => handleRangeParamChange(paramName, e.target.value)}
+                    placeholder={paramName}
+                    className="font-mono"
+                  />
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Custom Range - Inline */}
+          {rangeMode === 'custom' && (
+            <>
+              <div className="min-w-[160px]">
+                <label className="text-sm font-medium mb-1.5 block">Operation</label>
+                <Select value={customOperation} onValueChange={setCustomOperation}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RANGE_OPERATIONS.map((op) => (
+                      <SelectItem key={op.value} value={op.value}>
+                        {op.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedCustomOp?.params.map((param) => (
+                <div key={param} className="flex-1 min-w-[120px]">
+                  <label className="text-sm font-medium mb-1.5 block">{param}</label>
+                  <Input
+                    value={customRangeParams[param] || ''}
+                    onChange={(e) =>
+                      setCustomRangeParams((prev) => ({
+                        ...prev,
+                        [param]: e.target.value,
+                      }))
+                    }
+                    placeholder={param}
+                    className="font-mono"
+                  />
+                </div>
+              ))}
+            </>
+          )}
+        </div>
       </section>
 
       {/* Options */}
@@ -349,18 +411,19 @@ export function QueryForm({
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">Order</label>
-                    <Select
-                      value={retrieveOrder}
-                      onValueChange={(v) => setRetrieveOrder(v as 'ASC' | 'DESC')}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-between"
+                      onClick={() => setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ASC">Ascending</SelectItem>
-                        <SelectItem value="DESC">Descending</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
+                      {retrieveOrder === 'ASC' ? (
+                        <ArrowUp className="h-4 w-4 ml-2" />
+                      ) : (
+                        <ArrowDown className="h-4 w-4 ml-2" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               </>

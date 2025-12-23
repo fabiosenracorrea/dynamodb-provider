@@ -87,6 +87,7 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
           partitionKey={entity.partitionKey}
           rangeKey={entity.rangeKey}
           rangeQueries={entity.rangeQueries}
+          indexes={entity.indexes}
         />
       ),
     },
