@@ -1,9 +1,9 @@
 import { Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useMetadataContext } from '@/context';
 import { EntityList } from './EntityList';
 import { CollectionList } from './CollectionList';
 import { PartitionList } from './PartitionList';
-import type { Metadata } from '@/utils/api';
 
 export type SelectionType = 'entity' | 'collection' | 'partition';
 
@@ -13,7 +13,6 @@ export interface Selection {
 }
 
 interface SidebarProps {
-  metadata: Metadata;
   selection: Selection | null;
   onSelect: (selection: Selection | null) => void;
   activeTab: SelectionType;
@@ -21,13 +20,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({
-  metadata,
   selection,
   onSelect,
   activeTab,
   onTabChange,
 }: SidebarProps) {
-  const hasCollections = metadata.collections.length > 0;
+  const { table, collections } = useMetadataContext();
+  const hasCollections = collections.length > 0;
 
   const handleEntitySelect = (name: string) => {
     onSelect({ type: 'entity', name });
@@ -49,7 +48,7 @@ export function Sidebar({
           <Database className="h-5 w-5" />
           <div>
             <h1 className="font-semibold">Playground</h1>
-            <p className="text-xs text-muted-foreground">{metadata.table.name}</p>
+            <p className="text-xs text-muted-foreground">{table?.name}</p>
           </div>
         </div>
       </div>
@@ -74,7 +73,6 @@ export function Sidebar({
 
         <TabsContent value="entity" className="flex-1 m-0">
           <EntityList
-            entities={metadata.entities}
             selectedEntity={selection?.type === 'entity' ? selection.name : null}
             onSelect={handleEntitySelect}
           />
@@ -82,7 +80,6 @@ export function Sidebar({
 
         <TabsContent value="collection" className="flex-1 m-0">
           <CollectionList
-            collections={metadata.collections}
             selectedCollection={selection?.type === 'collection' ? selection.name : null}
             onSelect={handleCollectionSelect}
           />
@@ -90,7 +87,6 @@ export function Sidebar({
 
         <TabsContent value="partition" className="flex-1 m-0">
           <PartitionList
-            table={metadata.table}
             selectedPartition={selection?.type === 'partition' ? selection.name : null}
             onSelect={handlePartitionSelect}
           />
@@ -100,10 +96,10 @@ export function Sidebar({
       {/* Table Info Footer */}
       <div className="p-3 border-t bg-muted/50 text-xs text-muted-foreground">
         <p>
-          PK: <span className="font-mono">{metadata.table.partitionKey}</span>
+          PK: <span className="font-mono">{table?.partitionKey}</span>
         </p>
         <p>
-          SK: <span className="font-mono">{metadata.table.rangeKey}</span>
+          SK: <span className="font-mono">{table?.rangeKey}</span>
         </p>
       </div>
     </aside>

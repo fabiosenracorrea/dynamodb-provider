@@ -1,31 +1,21 @@
 import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTable, type PartitionInfo } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
-import type { TableMetadata } from '@/utils/api';
-
-export interface PartitionInfo {
-  id: string;
-  name: string;
-  type: 'main' | 'index';
-  partitionKey: string;
-  rangeKey: string;
-}
 
 interface PartitionListProps {
-  table: TableMetadata;
   selectedPartition: string | null;
   onSelect: (id: string) => void;
 }
 
-export function PartitionList({
-  table,
-  selectedPartition,
-  onSelect,
-}: PartitionListProps) {
+export function PartitionList({ selectedPartition, onSelect }: PartitionListProps) {
+  const table = useTable();
   const [search, setSearch] = useState('');
 
   const partitions = useMemo<PartitionInfo[]>(() => {
+    if (!table) return [];
+
     const result: PartitionInfo[] = [
       {
         id: 'main',

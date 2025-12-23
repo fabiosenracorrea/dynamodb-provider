@@ -5,14 +5,20 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { usePartitionInfo } from '@/context';
 import { OperationForm } from './OperationForm';
-import type { PartitionInfo } from '@/components/sidebar';
 
 interface PartitionOperationsProps {
-  partition: PartitionInfo;
+  partitionId: string;
 }
 
-export function PartitionOperations({ partition }: PartitionOperationsProps) {
+export function PartitionOperations({ partitionId }: PartitionOperationsProps) {
+  const partition = usePartitionInfo(partitionId);
+
+  if (!partition) {
+    return null;
+  }
+
   const isMainTable = partition.type === 'main';
 
   return (

@@ -1,55 +1,16 @@
-export interface TableMetadata {
-  name: string;
-  partitionKey: string;
-  rangeKey: string;
-  indexes: Record<string, { partitionKey: string; rangeKey: string; numeric?: boolean }>;
-  typeIndex?: { name: string; partitionKey: string };
-  expiresAt?: string;
-}
+import { EntityMetadata, MetadataResponse } from '../../types';
 
-export interface KeyPiece {
-  type: 'CONSTANT' | 'VARIABLE';
-  numeric?: boolean;
-  value: string;
-}
+export type {
+  RangeQuery,
+  TableMetadata,
+  KeyPiece,
+  EntityMetadata,
+  CollectionMetadata,
+} from '../../types';
 
-export interface RangeQuery {
-  name: string;
-  operation: string;
-  params: string[];
-}
+export type EntityIndex = EntityMetadata['indexes'][number];
 
-export interface EntityIndex {
-  name: string;
-  index: string;
-  partitionKey: KeyPiece[];
-  rangeKey: KeyPiece[];
-  rangeQueries: RangeQuery[];
-}
-
-export interface EntityMetadata {
-  name: string;
-  type: string;
-  index: number;
-  partitionKey: KeyPiece[];
-  rangeKey: KeyPiece[];
-  rangeQueries: RangeQuery[];
-  indexes: EntityIndex[];
-}
-
-export interface CollectionMetadata {
-  index: number;
-  name: string;
-  partitionKey: KeyPiece[];
-  originEntityType: string | null;
-  joins: string[];
-}
-
-export interface Metadata {
-  table: TableMetadata;
-  entities: EntityMetadata[];
-  collections: CollectionMetadata[];
-}
+export type Metadata = MetadataResponse;
 
 export interface ExecuteRequest {
   target: 'entity' | 'collection' | 'table';

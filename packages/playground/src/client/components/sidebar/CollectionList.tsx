@@ -1,20 +1,16 @@
 import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCollections } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
-import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionListProps {
-  collections: CollectionMetadata[];
   selectedCollection: string | null;
   onSelect: (name: string) => void;
 }
 
-export function CollectionList({
-  collections,
-  selectedCollection,
-  onSelect,
-}: CollectionListProps) {
+export function CollectionList({ selectedCollection, onSelect }: CollectionListProps) {
+  const collections = useCollections();
   const [search, setSearch] = useState('');
 
   const filteredCollections = useMemo(() => {

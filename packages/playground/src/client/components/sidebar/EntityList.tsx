@@ -1,16 +1,16 @@
 import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEntities } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
-import type { EntityMetadata } from '@/utils/api';
 
 interface EntityListProps {
-  entities: EntityMetadata[];
   selectedEntity: string | null;
   onSelect: (name: string) => void;
 }
 
-export function EntityList({ entities, selectedEntity, onSelect }: EntityListProps) {
+export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
+  const entities = useEntities();
   const [search, setSearch] = useState('');
 
   const filteredEntities = useMemo(() => {

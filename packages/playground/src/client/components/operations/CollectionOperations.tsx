@@ -5,14 +5,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useCollection } from '@/context';
 import { OperationForm } from './OperationForm';
 import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionOperationsProps {
-  collection: CollectionMetadata;
+  collectionName: string;
 }
 
-export function CollectionOperations({ collection }: CollectionOperationsProps) {
+export function CollectionOperations({ collectionName }: CollectionOperationsProps) {
+  const collection = useCollection(collectionName);
+
+  if (!collection) {
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader>

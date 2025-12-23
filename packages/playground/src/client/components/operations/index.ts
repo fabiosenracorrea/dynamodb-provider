@@ -5,4 +5,6 @@ export { EmptyState } from './EmptyState';
 export { JsonEditor } from './JsonEditor';
 export { ResultsView } from './ResultsView';
 export { OperationForm } from './OperationForm';
+export { KeyParamsForm } from './KeyParamsForm';
+export { QueryForm } from './QueryForm';
 export { OperationTabs, type OperationTab } from './OperationTabs';
