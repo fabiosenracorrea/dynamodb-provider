@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Loader2, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,12 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Separator } from '@/components/ui/separator';
 import { ResultsView } from './ResultsView';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest, KeyPiece, RangeQuery, EntityIndex } from '@/utils/api';
@@ -103,7 +97,6 @@ export function QueryForm({
   const [limit, setLimit] = useState('25');
   const [retrieveOrder, setRetrieveOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [fullRetrieval, setFullRetrieval] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const mutation = useExecute();
 
@@ -355,73 +348,58 @@ export function QueryForm({
       </section>
 
       {/* Options */}
-      <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
-          />
-          <span>Options</span>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="space-y-4 pt-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="fullRetrieval"
-                checked={fullRetrieval}
-                onChange={(e) => setFullRetrieval(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
-              />
-              <label htmlFor="fullRetrieval" className="text-sm">
-                Full retrieval{' '}
-                <span className="text-muted-foreground">(auto-paginate all results)</span>
-              </label>
-            </div>
-
-            {!fullRetrieval && (
-              <>
-                <Separator />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Limit</label>
-                    <Input
-                      type="number"
-                      value={limit}
-                      onChange={(e) => setLimit(e.target.value)}
-                      placeholder="25"
-                      min={1}
-                      max={1000}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Order</label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-between"
-                      onClick={() =>
-                        setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')
-                      }
-                    >
-                      <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
-                      {retrieveOrder === 'ASC' ? (
-                        <ArrowUp className="h-4 w-4 ml-2" />
-                      ) : (
-                        <ArrowDown className="h-4 w-4 ml-2" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
+      <section className="space-y-3">
+        <h4 className="text-sm font-medium">Options</h4>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="min-w-[100px] flex-1">
+            <label className="text-sm font-medium mb-1.5 block">Limit</label>
+            <Input
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+              placeholder="25"
+              min={1}
+              max={1000}
+            />
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+          <div className="min-w-[140px] flex-1">
+            <label className="text-sm font-medium mb-1.5 block">Order</label>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between"
+              onClick={() => setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')}
+            >
+              <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
+              {retrieveOrder === 'ASC' ? (
+                <ArrowUp className="h-4 w-4 ml-2" />
+              ) : (
+                <ArrowDown className="h-4 w-4 ml-2" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </section>
 
-      <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-        {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Execute Query
-      </Button>
+      <div className="flex items-center gap-4">
+        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Query
+        </Button>
+
+        <div className="flex items-center gap-2 min-w-[200px]">
+          <input
+            type="checkbox"
+            id="fullRetrieval"
+            checked={fullRetrieval}
+            onChange={(e) => setFullRetrieval(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          <label htmlFor="fullRetrieval" className="text-sm">
+            Full retrieval
+          </label>
+        </div>
+      </div>
 
       {(result !== null || error) && (
         <div className="pt-4 border-t">
