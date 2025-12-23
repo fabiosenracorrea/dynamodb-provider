@@ -19,12 +19,7 @@ interface SidebarProps {
   onTabChange: (tab: SelectionType) => void;
 }
 
-export function Sidebar({
-  selection,
-  onSelect,
-  activeTab,
-  onTabChange,
-}: SidebarProps) {
+export function Sidebar({ selection, onSelect, activeTab, onTabChange }: SidebarProps) {
   const { table, collections } = useMetadataContext();
   const hasCollections = collections.length > 0;
 

@@ -19,6 +19,11 @@ export function App() {
     setSelection(null);
   };
 
+  const handleSelectEntity = (entityType: string) => {
+    setActiveTab('entity');
+    setSelection({ type: 'entity', name: entityType });
+  };
+
   if (error) {
     return (
       <ErrorScreen error={error instanceof Error ? error.message : 'Unknown error'} />
@@ -39,14 +44,19 @@ export function App() {
       />
 
       <main className="flex-1 overflow-auto p-6">
-        <OperationsPanel selection={selection} />
+        <OperationsPanel selection={selection} onSelectEntity={handleSelectEntity} />
       </main>
     </div>
   );
 }
 
-function OperationsPanel({ selection }: { selection: Selection | null }) {
-  const { getEntity, getCollection, getPartitionInfo } = useMetadataContext();
+interface OperationsPanelProps {
+  selection: Selection | null;
+  onSelectEntity: (entityType: string) => void;
+}
+
+function OperationsPanel({ selection, onSelectEntity }: OperationsPanelProps) {
+  const { getEntity, getCollection, getPartitionGroup } = useMetadataContext();
 
   if (!selection) {
     return <EmptyState />;
@@ -66,9 +76,14 @@ function OperationsPanel({ selection }: { selection: Selection | null }) {
     }
 
     case 'partition': {
-      const partitionInfo = getPartitionInfo(selection.name);
-      if (!partitionInfo) return <EmptyState />;
-      return <PartitionOperations partitionId={partitionInfo.id} />;
+      const partition = getPartitionGroup(selection.name);
+      if (!partition) return <EmptyState />;
+      return (
+        <PartitionOperations
+          partitionId={partition.id}
+          onSelectEntity={onSelectEntity}
+        />
+      );
     }
 
     default:

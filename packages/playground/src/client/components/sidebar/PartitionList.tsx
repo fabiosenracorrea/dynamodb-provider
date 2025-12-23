@@ -1,6 +1,13 @@
 import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useTable, type PartitionInfo } from '@/context';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { usePartitionGroups, useTable } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
 
@@ -10,55 +17,66 @@ interface PartitionListProps {
 }
 
 export function PartitionList({ selectedPartition, onSelect }: PartitionListProps) {
+  const partitionGroups = usePartitionGroups();
   const table = useTable();
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
 
-  const partitions = useMemo<PartitionInfo[]>(() => {
+  // Get all available index names from table config
+  const indexNames = useMemo(() => {
     if (!table) return [];
-
-    const result: PartitionInfo[] = [
-      {
-        id: 'main',
-        name: 'Main Table',
-        type: 'main',
-        partitionKey: table.partitionKey,
-        rangeKey: table.rangeKey,
-      },
-    ];
-
-    Object.entries(table.indexes).forEach(([indexName, indexConfig]) => {
-      result.push({
-        id: indexName,
-        name: indexName,
-        type: 'index',
-        partitionKey: indexConfig.partitionKey,
-        rangeKey: indexConfig.rangeKey,
-      });
-    });
-
-    return result;
+    return Object.keys(table.indexes);
   }, [table]);
 
   const filteredPartitions = useMemo(() => {
-    if (!search) return partitions;
+    let result = partitionGroups;
 
-    const lower = search.toLowerCase();
-    return partitions.filter(
-      (p) =>
-        p.name.toLowerCase().includes(lower) ||
-        p.partitionKey.toLowerCase().includes(lower) ||
-        p.rangeKey.toLowerCase().includes(lower),
-    );
-  }, [partitions, search]);
+    // Apply source filter
+    if (filter === 'table') {
+      result = result.filter((p) => p.sourceType === 'main');
+    } else if (filter !== 'all') {
+      // Filter by specific index name
+      result = result.filter((p) => p.source === filter);
+    }
+
+    // Apply search filter
+    if (search) {
+      const lower = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.pattern.toLowerCase().includes(lower) ||
+          p.source.toLowerCase().includes(lower) ||
+          p.entities.some((e) => e.toLowerCase().includes(lower)),
+      );
+    }
+
+    return result;
+  }, [partitionGroups, filter, search]);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-2">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Search partitions..."
-        />
+      <div className="p-2 flex gap-2">
+        <div className="flex-1">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search partitions..."
+          />
+        </div>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-[100px] h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="table">Table</SelectItem>
+            {indexNames.map((indexName) => (
+              <SelectItem key={indexName} value={indexName}>
+                {indexName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <ScrollArea className="flex-1">
@@ -66,9 +84,9 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
           {filteredPartitions.map((partition) => (
             <SidebarItem
               key={partition.id}
-              name={partition.name}
-              type={partition.type === 'main' ? 'TABLE' : 'GSI'}
-              subtitle={`${partition.partitionKey} / ${partition.rangeKey}`}
+              name={partition.pattern}
+              type={partition.source}
+              subtitle={`${partition.entities.length} entities`}
               isSelected={selectedPartition === partition.id}
               onClick={() => onSelect(partition.id)}
             />
@@ -76,7 +94,9 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
 
           {filteredPartitions.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No partitions found
+              {partitionGroups.length === 0
+                ? 'No shared partitions found'
+                : 'No partitions match your search'}
             </p>
           )}
         </div>

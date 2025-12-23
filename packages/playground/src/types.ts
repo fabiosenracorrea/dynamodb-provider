@@ -79,6 +79,14 @@ export interface CollectionMetadata {
   joins: string[];
 }
 
+export interface PartitionGroup {
+  id: string;
+  pattern: string;
+  source: string; // 'TABLE' or index name
+  sourceType: 'main' | 'index';
+  entities: string[]; // entity types that share this partition
+}
+
 export interface ExecuteRequest {
   target: 'entity' | 'collection' | 'table';
   name: string;

@@ -7,5 +7,7 @@ export {
   useCollections,
   useCollection,
   usePartitionInfo,
+  usePartitionGroups,
+  usePartitionGroup,
   type PartitionInfo,
 } from './MetadataContext';

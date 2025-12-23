@@ -7,6 +7,7 @@ import {
   type CollectionMetadata,
   type TableMetadata,
 } from '@/utils/api';
+import type { KeyPiece, PartitionGroup } from '@/types';
 
 export interface PartitionInfo {
   id: string;
@@ -26,17 +27,81 @@ interface MetadataContextValue {
   entities: EntityMetadata[];
   collections: CollectionMetadata[];
 
+  // Partition groups (entities sharing same partition key pattern)
+  partitionGroups: PartitionGroup[];
+
   // Lookup helpers
   getEntity: (type: string) => EntityMetadata | undefined;
   getCollection: (name: string) => CollectionMetadata | undefined;
   getPartitionInfo: (id: string) => PartitionInfo | null;
+  getPartitionGroup: (id: string) => PartitionGroup | undefined;
 
   // Maps for O(1) lookup
   entityMap: Record<string, EntityMetadata>;
   collectionMap: Record<string, CollectionMetadata>;
+  partitionGroupMap: Record<string, PartitionGroup>;
 }
 
 const MetadataContext = createContext<MetadataContextValue | null>(null);
+
+function buildPattern(pieces: KeyPiece[]): string {
+  return pieces
+    .map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}'))
+    .join('#');
+}
+
+function buildPartitionGroups(entities: EntityMetadata[]): PartitionGroup[] {
+  const groupMap = new Map<string, { source: string; sourceType: 'main' | 'index'; entities: string[] }>();
+
+  for (const entity of entities) {
+    // Main table partition
+    const mainPattern = buildPattern(entity.partitionKey);
+    const mainKey = `TABLE|${mainPattern}`;
+
+    if (!groupMap.has(mainKey)) {
+      groupMap.set(mainKey, { source: 'TABLE', sourceType: 'main', entities: [] });
+    }
+    groupMap.get(mainKey)!.entities.push(entity.type);
+
+    // Index partitions
+    for (const idx of entity.indexes) {
+      const indexPattern = buildPattern(idx.partitionKey);
+      const indexKey = `${idx.index}|${indexPattern}`;
+
+      if (!groupMap.has(indexKey)) {
+        groupMap.set(indexKey, { source: idx.index, sourceType: 'index', entities: [] });
+      }
+      groupMap.get(indexKey)!.entities.push(entity.type);
+    }
+  }
+
+  // Filter to only groups with 2+ entities
+  const groups: PartitionGroup[] = [];
+
+  for (const [key, value] of groupMap) {
+    if (value.entities.length >= 2) {
+      const [, pattern] = key.split('|');
+      groups.push({
+        id: key,
+        pattern,
+        source: value.source,
+        sourceType: value.sourceType,
+        entities: value.entities,
+      });
+    }
+  }
+
+  // Sort: TABLE first, then indexes alphabetically, then by pattern
+  return groups.sort((a, b) => {
+    if (a.sourceType !== b.sourceType) {
+      return a.sourceType === 'main' ? -1 : 1;
+    }
+    if (a.source !== b.source) {
+      return a.source.localeCompare(b.source);
+    }
+    return a.pattern.localeCompare(b.pattern);
+  });
+}
 
 export function MetadataProvider({ children }: { children: ReactNode }) {
   const {
@@ -57,6 +122,15 @@ export function MetadataProvider({ children }: { children: ReactNode }) {
     if (!metadata) return {};
     return Object.fromEntries(metadata.collections.map((c) => [c.name, c]));
   }, [metadata]);
+
+  const partitionGroups = useMemo(() => {
+    if (!metadata) return [];
+    return buildPartitionGroups(metadata.entities);
+  }, [metadata]);
+
+  const partitionGroupMap = useMemo(() => {
+    return Object.fromEntries(partitionGroups.map((g) => [g.id, g]));
+  }, [partitionGroups]);
 
   const getEntity = (type: string) => entityMap[type];
 
@@ -89,6 +163,8 @@ export function MetadataProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  const getPartitionGroup = (id: string) => partitionGroupMap[id];
+
   const value: MetadataContextValue = {
     metadata: metadata ?? null,
     isLoading,
@@ -98,12 +174,16 @@ export function MetadataProvider({ children }: { children: ReactNode }) {
     entities: metadata?.entities ?? [],
     collections: metadata?.collections ?? [],
 
+    partitionGroups,
+
     getEntity,
     getCollection,
     getPartitionInfo,
+    getPartitionGroup,
 
     entityMap,
     collectionMap,
+    partitionGroupMap,
   };
 
   return <MetadataContext.Provider value={value}>{children}</MetadataContext.Provider>;
@@ -146,4 +226,14 @@ export function useCollection(name: string) {
 export function usePartitionInfo(id: string) {
   const { getPartitionInfo } = useMetadataContext();
   return getPartitionInfo(id);
+}
+
+export function usePartitionGroups() {
+  const { partitionGroups } = useMetadataContext();
+  return partitionGroups;
+}
+
+export function usePartitionGroup(id: string) {
+  const { getPartitionGroup } = useMetadataContext();
+  return getPartitionGroup(id);
 }
