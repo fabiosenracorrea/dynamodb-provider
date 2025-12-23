@@ -36,14 +36,22 @@ export function KeyParamsForm({
     partitionKey.forEach((piece) => {
       if (piece.type === 'VARIABLE' && !seen.has(piece.value)) {
         seen.add(piece.value);
-        vars.push({ name: piece.value, source: 'partition', numeric: piece.numeric ?? false });
+        vars.push({
+          name: piece.value,
+          source: 'partition',
+          numeric: piece.numeric ?? false,
+        });
       }
     });
 
     rangeKey.forEach((piece) => {
       if (piece.type === 'VARIABLE' && !seen.has(piece.value)) {
         seen.add(piece.value);
-        vars.push({ name: piece.value, source: 'range', numeric: piece.numeric ?? false });
+        vars.push({
+          name: piece.value,
+          source: 'range',
+          numeric: piece.numeric ?? false,
+        });
       }
     });
 
@@ -52,7 +60,7 @@ export function KeyParamsForm({
 
   // Initialize form values
   const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(variables.map((v) => [v.name, '']))
+    Object.fromEntries(variables.map((v) => [v.name, ''])),
   );
 
   const mutation = useExecute();
