@@ -3,15 +3,21 @@ import type { PlaygroundConfig, ExecuteRequest } from './types.js';
 import { extractMetadata } from './api/metadata.js';
 import { executeOperation } from './api/execute.js';
 
-export function playgroundPlugin(config: PlaygroundConfig): Plugin {
-  const metadata = extractMetadata(config);
-
-  return {
-    name: 'dynamodb-playground',
-    configureServer(server) {
-      server.middlewares.use(apiMiddleware(config, metadata));
-    },
-  };
+function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch {
+        reject(new Error('Invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
 }
 
 function apiMiddleware(
@@ -23,7 +29,6 @@ function apiMiddleware(
       return next();
     }
 
-    // Set JSON response headers
     res.setHeader('Content-Type', 'application/json');
 
     try {
@@ -42,7 +47,6 @@ function apiMiddleware(
         return;
       }
 
-      // 404 for unknown API routes
       res.statusCode = 404;
       res.end(JSON.stringify({ error: 'Not found' }));
     } catch (err) {
@@ -57,19 +61,13 @@ function apiMiddleware(
   };
 }
 
-function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString();
-    });
-    req.on('end', () => {
-      try {
-        resolve(body ? JSON.parse(body) : {});
-      } catch {
-        reject(new Error('Invalid JSON body'));
-      }
-    });
-    req.on('error', reject);
-  });
+export function playgroundPlugin(config: PlaygroundConfig): Plugin {
+  const metadata = extractMetadata(config);
+
+  return {
+    name: 'dynamodb-playground',
+    configureServer(server) {
+      server.middlewares.use(apiMiddleware(config, metadata));
+    },
+  };
 }
