@@ -239,9 +239,16 @@ export function QueryForm({
 
       {/* Partition Key Section */}
       <section className="space-y-3">
-        <h4 className="text-sm font-medium">Partition Key</h4>
+        <h4 className="text-sm font-medium flex items-center gap-2">
+          Partition Key
+          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+            {currentConfig.partitionKey
+              .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
+              .join(' | ')}
+          </span>
+        </h4>
         {partitionVars.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">
+          <p className="text-sm text-muted-foreground italic pl-1">
             No parameters required - partition key uses only constant values
           </p>
         ) : (
@@ -354,12 +361,12 @@ export function QueryForm({
         </div>
       </section>
 
-      {/* Filters */}
-      <FiltersSheet filters={filters} onChange={setFilters} />
-
       {/* Options */}
       <section className="space-y-3">
         <div className="flex flex-wrap gap-3 items-end">
+          {/* Filters */}
+          <FiltersSheet filters={filters} onChange={setFilters} />
+
           <div className="min-w-[100px] flex-1">
             <label className="text-sm font-medium mb-1.5 block">Limit</label>
             <Input

@@ -140,19 +140,22 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <button
-          type="button"
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted/50 transition-colors text-left"
-        >
-          <span className="text-muted-foreground shrink-0">Filters</span>
-          {validFilters.length > 0 ? (
-            <span className="font-mono text-xs truncate">{previewText}</span>
-          ) : (
-            <span className="text-muted-foreground text-xs">None</span>
-          )}
-        </button>
-      </SheetTrigger>
+      <div className="min-w-[100px] flex-1">
+        <label className="text-sm font-medium mb-1.5 block">Filters</label>
+        <SheetTrigger asChild>
+          <button
+            type="button"
+            className="w-full h-10 flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted/50 transition-colors text-left"
+          >
+            {validFilters.length > 0 ? (
+              <span className="font-mono text-xs truncate">{previewText}</span>
+            ) : (
+              <span className="text-muted-foreground text-sm">None</span>
+            )}
+          </button>
+        </SheetTrigger>
+      </div>
+
       <SheetContent className="w-[500px] sm:max-w-[500px] flex flex-col">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
@@ -233,7 +236,9 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                       </label>
                       <Input
                         value={filter.value}
-                        onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
+                        onChange={(e) =>
+                          updateFilter(filter.id, { value: e.target.value })
+                        }
                         placeholder="value"
                         className="font-mono h-9"
                       />
@@ -261,7 +266,9 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                         </label>
                         <Input
                           value={filter.end}
-                          onChange={(e) => updateFilter(filter.id, { end: e.target.value })}
+                          onChange={(e) =>
+                            updateFilter(filter.id, { end: e.target.value })
+                          }
                           placeholder="end"
                           className="font-mono h-9"
                         />
