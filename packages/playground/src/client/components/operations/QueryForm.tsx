@@ -91,8 +91,8 @@ export function QueryForm({
   const [partitionValues, setPartitionValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(partitionVars.map((v) => [v.name, ''])),
   );
-  const [rangeMode, setRangeMode] = useState<'none' | 'predefined' | 'custom'>('none');
-  const [rangeQuery, setRangeQuery] = useState<string>('');
+  // rangeMode: 'none' | 'custom' | <rangeQueryName>
+  const [rangeMode, setRangeMode] = useState<string>('none');
   const [rangeParams, setRangeParams] = useState<Record<string, string>>({});
   const [customOperation, setCustomOperation] = useState<string>('begins_with');
   const [customRangeParams, setCustomRangeParams] = useState<Record<string, string>>({
@@ -108,8 +108,12 @@ export function QueryForm({
   const mutation = useExecute();
 
   // Get selected range query config from current target's range queries
-  const selectedRangeQuery = currentConfig.rangeQueries.find((rq) => rq.name === rangeQuery);
+  const selectedRangeQuery = currentConfig.rangeQueries.find(
+    (rq) => rq.name === rangeMode,
+  );
   const selectedCustomOp = RANGE_OPERATIONS.find((op) => op.value === customOperation);
+  const isCustomMode = rangeMode === 'custom';
+  const isPredefinedMode = rangeMode !== 'none' && rangeMode !== 'custom';
 
   const handlePartitionChange = (varName: string, value: string) => {
     setPartitionValues((prev) => ({ ...prev, [varName]: value }));
@@ -119,11 +123,14 @@ export function QueryForm({
     setRangeParams((prev) => ({ ...prev, [paramName]: value }));
   };
 
-  const handleRangeModeChange = (mode: 'none' | 'predefined' | 'custom') => {
+  const handleRangeModeChange = (mode: string) => {
     setRangeMode(mode);
-    if (mode === 'predefined' && currentConfig.rangeQueries.length > 0 && !rangeQuery) {
-      setRangeQuery(currentConfig.rangeQueries[0].name);
-      setRangeParams(Object.fromEntries(currentConfig.rangeQueries[0].params.map((p) => [p, ''])));
+    // Reset range params when switching modes
+    const newQuery = currentConfig.rangeQueries.find((rq) => rq.name === mode);
+    if (newQuery) {
+      setRangeParams(Object.fromEntries(newQuery.params.map((p) => [p, ''])));
+    } else {
+      setRangeParams({});
     }
   };
 
@@ -131,20 +138,9 @@ export function QueryForm({
     setQueryTarget(newTarget);
     // Reset range-related state when target changes
     setRangeMode('none');
-    setRangeQuery('');
     setRangeParams({});
     // Reset partition values - they will be reinitialized
     setPartitionValues({});
-  };
-
-  const handleRangeQueryChange = (value: string) => {
-    setRangeQuery(value);
-    const newQuery = currentConfig.rangeQueries.find((rq) => rq.name === value);
-    if (newQuery) {
-      setRangeParams(Object.fromEntries(newQuery.params.map((p) => [p, ''])));
-    } else {
-      setRangeParams({});
-    }
   };
 
   const handleExecute = () => {
@@ -169,14 +165,14 @@ export function QueryForm({
     }
 
     // Add range based on mode
-    if (rangeMode === 'predefined' && selectedRangeQuery) {
-      params.rangeQuery = rangeQuery;
+    if (isPredefinedMode && selectedRangeQuery) {
+      params.rangeQuery = rangeMode;
       selectedRangeQuery.params.forEach((paramName) => {
         if (rangeParams[paramName]) {
           params[paramName] = rangeParams[paramName];
         }
       });
-    } else if (rangeMode === 'custom' && selectedCustomOp) {
+    } else if (isCustomMode && selectedCustomOp) {
       const range: Record<string, unknown> = { operation: customOperation };
       selectedCustomOp.params.forEach((param) => {
         if (customRangeParams[param]) {
@@ -199,11 +195,11 @@ export function QueryForm({
     (v) => partitionValues[v.name]?.trim() !== '',
   );
   const isPredefinedRangeValid =
-    rangeMode !== 'predefined' ||
+    !isPredefinedMode ||
     !selectedRangeQuery ||
     selectedRangeQuery.params.every((p) => rangeParams[p]?.trim() !== '');
   const isCustomRangeValid =
-    rangeMode !== 'custom' ||
+    !isCustomMode ||
     !selectedCustomOp ||
     selectedCustomOp.params.every((p) => customRangeParams[p]?.trim() !== '');
   const isValid = isPartitionValid && isPredefinedRangeValid && isCustomRangeValid;
@@ -272,67 +268,55 @@ export function QueryForm({
 
       {/* Range Section */}
       <section className="space-y-3">
-        <h4 className="text-sm font-medium">Range Filtering</h4>
+        <h4 className="text-sm font-medium flex items-center gap-2">
+          Range Filtering
+          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+            {currentConfig.rangeKey
+              .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
+              .join(' | ')}
+          </span>
+        </h4>
         <div className="flex flex-wrap gap-3 items-end">
-          {/* Range Mode Selector */}
-          <div className={rangeMode === 'none' ? 'flex-1' : 'min-w-[160px]'}>
+          {/* Range Mode Selector - now includes predefined queries directly */}
+          <div className={rangeMode === 'none' ? 'flex-1' : ' flex-1 min-w-[160px]'}>
             <label className="text-sm font-medium mb-1.5 block">Filter Type</label>
-            <Select
-              value={rangeMode}
-              onValueChange={(v) => handleRangeModeChange(v as typeof rangeMode)}
-            >
+            <Select value={rangeMode} onValueChange={handleRangeModeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No filter</SelectItem>
-                {currentConfig.rangeQueries.length > 0 && (
-                  <SelectItem value="predefined">Predefined</SelectItem>
-                )}
+                {currentConfig.rangeQueries.map((rq) => (
+                  <SelectItem key={rq.name} value={rq.name}>
+                    <span className="flex items-center gap-2">
+                      <span>{rq.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({rq.operation})
+                      </span>
+                    </span>
+                  </SelectItem>
+                ))}
                 <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Predefined Range Query - Inline */}
-          {rangeMode === 'predefined' && currentConfig.rangeQueries.length > 0 && (
-            <>
-              <div className="min-w-[160px]">
-                <label className="text-sm font-medium mb-1.5 block">Query</label>
-                <Select value={rangeQuery} onValueChange={handleRangeQueryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currentConfig.rangeQueries.map((rq) => (
-                      <SelectItem key={rq.name} value={rq.name}>
-                        <span className="flex items-center gap-2">
-                          <span>{rq.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ({rq.operation})
-                          </span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Predefined Range Query params - shown when a predefined query is selected */}
+          {isPredefinedMode &&
+            selectedRangeQuery?.params.map((paramName) => (
+              <div key={paramName} className="flex-1 min-w-[120px]">
+                <label className="text-sm font-medium mb-1.5 block">{paramName}</label>
+                <Input
+                  value={rangeParams[paramName] || ''}
+                  onChange={(e) => handleRangeParamChange(paramName, e.target.value)}
+                  placeholder={paramName}
+                  className="font-mono"
+                />
               </div>
-              {selectedRangeQuery?.params.map((paramName) => (
-                <div key={paramName} className="flex-1 min-w-[120px]">
-                  <label className="text-sm font-medium mb-1.5 block">{paramName}</label>
-                  <Input
-                    value={rangeParams[paramName] || ''}
-                    onChange={(e) => handleRangeParamChange(paramName, e.target.value)}
-                    placeholder={paramName}
-                    className="font-mono"
-                  />
-                </div>
-              ))}
-            </>
-          )}
+            ))}
 
           {/* Custom Range - Inline */}
-          {rangeMode === 'custom' && (
+          {isCustomMode && (
             <>
               <div className="min-w-[160px]">
                 <label className="text-sm font-medium mb-1.5 block">Operation</label>
@@ -415,7 +399,9 @@ export function QueryForm({
                       type="button"
                       variant="outline"
                       className="w-full justify-between"
-                      onClick={() => setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')}
+                      onClick={() =>
+                        setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')
+                      }
                     >
                       <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
                       {retrieveOrder === 'ASC' ? (
