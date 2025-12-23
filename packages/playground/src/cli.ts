@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
 import { createServer } from 'vite';
 import { resolve, dirname } from 'path';
@@ -16,12 +17,15 @@ const CONFIG_NAMES = [
 
 async function findConfig(): Promise<string | null> {
   const cwd = process.cwd();
+
   for (const name of CONFIG_NAMES) {
     const configPath = resolve(cwd, name);
+
     if (existsSync(configPath)) {
       return configPath;
     }
   }
+
   return null;
 }
 
@@ -92,7 +96,6 @@ async function main() {
   // Start Vite dev server with our plugin
   const port = config.port || 3030;
   const clientRoot = resolve(__dirname, 'client');
-  const packageRoot = resolve(__dirname, '..');
 
   const server = await createServer({
     configFile: false,

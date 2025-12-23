@@ -56,6 +56,31 @@ function stringifyConstant(v: unknown): { value: string; numeric?: boolean } {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type KeyDef = (params: any) => any;
 
+/**
+ * For now if this works the return is detected as a CONSTANT, instead of variables
+ *
+ * We have to figure out how to identify what is actually a constant added
+ * and what is a variable transformation
+ *
+ * eg:
+ *  - ({ email }) => [email.toLowerCase()]
+ *  - ({ timestamp }) => ['DATE', timestamp.slice(0, 10)]
+ * ...etc
+ */
+function retryKeyReturn(getKey: KeyDef, detectedParams: Map<string, VarSentinel>) {
+  try {
+    // try to call it will all params having their keyname as values
+    // eg params = { email: 'email' }
+    const attemptParams = Object.fromEntries(
+      Array.from(detectedParams.keys()).map((param) => [param, param]),
+    );
+
+    return getKey(attemptParams);
+  } catch {
+    // we need to try combinations of different types
+  }
+}
+
 export function inferKeyPieces(getKey: KeyDef): KeyPiece[] {
   const used = new Map<string, VarSentinel>();
 
@@ -78,12 +103,13 @@ export function inferKeyPieces(getKey: KeyDef): KeyPiece[] {
   });
 
   let ret: unknown;
+
   try {
     ret = getKey(paramsProxy);
   } catch {
     // If it throws during probing, we still try to interpret what we got.
-    // (Often access was recorded before throw)
-    ret = undefined;
+    // We try to cast values to usual formats (string, numbers, etc)
+    ret = retryKeyReturn(getKey, used);
   }
 
   const parts = normalizeKeyReturn(ret);
