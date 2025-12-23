@@ -30,18 +30,19 @@ export async function executeOperation(
 
 async function executeEntityOperation(
   config: PlaygroundConfig,
-  entityName: string,
+  entityType: string,
   operation: string,
   index: string | undefined,
   params: Record<string, unknown>,
 ): Promise<ExecuteResponse> {
-  const entity = config.entities[entityName];
+  const entity = config.entities.find((e) => e.type === entityType);
 
   if (!entity) {
-    return { success: false, error: `Entity not found: ${entityName}` };
+    return { success: false, error: `Entity not found: ${entityType}` };
   }
 
-  const schema = config.table.schema.from(entity);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const schema = config.table.schema.from(entity) as any;
 
   // Handle index operations
   if (index) {
@@ -120,11 +121,12 @@ async function executeCollectionOperation(
   operation: string,
   params: Record<string, unknown>,
 ): Promise<ExecuteResponse> {
-  if (!config.collections) {
+  if (!config.collections || config.collections.length === 0) {
     return { success: false, error: 'No collections configured' };
   }
 
-  const collection = config.collections[collectionName];
+  const collectionIndex = parseInt(collectionName, 10);
+  const collection = config.collections[collectionIndex];
   if (!collection) {
     return { success: false, error: `Collection not found: ${collectionName}` };
   }
@@ -149,7 +151,8 @@ async function executeTableOperation(
 ): Promise<ExecuteResponse> {
   switch (operation) {
     case 'query': {
-      const result = await config.table.query(params);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await config.table.query(params as any);
       return { success: true, data: result };
     }
 

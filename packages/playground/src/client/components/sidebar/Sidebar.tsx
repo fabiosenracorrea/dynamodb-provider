@@ -27,7 +27,7 @@ export function Sidebar({
   activeTab,
   onTabChange,
 }: SidebarProps) {
-  const hasCollections = Object.keys(metadata.collections).length > 0;
+  const hasCollections = metadata.collections.length > 0;
 
   const handleEntitySelect = (name: string) => {
     onSelect({ type: 'entity', name });

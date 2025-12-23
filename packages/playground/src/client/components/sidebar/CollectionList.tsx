@@ -5,7 +5,7 @@ import { SidebarItem } from './SidebarItem';
 import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionListProps {
-  collections: Record<string, CollectionMetadata>;
+  collections: CollectionMetadata[];
   selectedCollection: string | null;
   onSelect: (name: string) => void;
 }
@@ -18,19 +18,17 @@ export function CollectionList({
   const [search, setSearch] = useState('');
 
   const filteredCollections = useMemo(() => {
-    const entries = Object.entries(collections);
-    if (!search) return entries;
+    if (!search) return collections;
 
     const lower = search.toLowerCase();
-    return entries.filter(
-      ([name, collection]) =>
-        name.toLowerCase().includes(lower) ||
-        collection.type.toLowerCase().includes(lower) ||
+    return collections.filter(
+      (collection) =>
+        collection.name.toLowerCase().includes(lower) ||
         collection.originEntityType?.toLowerCase().includes(lower),
     );
   }, [collections, search]);
 
-  if (Object.keys(collections).length === 0) {
+  if (collections.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-sm text-muted-foreground">No collections configured</p>
@@ -50,14 +48,14 @@ export function CollectionList({
 
       <ScrollArea className="flex-1">
         <div className="p-2 pt-0 space-y-1">
-          {filteredCollections.map(([name, collection]) => (
+          {filteredCollections.map((collection) => (
             <SidebarItem
-              key={name}
-              name={name}
-              type={collection.type}
+              key={collection.name}
+              name={collection.name}
+              type="Collection"
               subtitle={collection.originEntityType || undefined}
-              isSelected={selectedCollection === name}
-              onClick={() => onSelect(name)}
+              isSelected={selectedCollection === collection.name}
+              onClick={() => onSelect(collection.name)}
             />
           ))}
 

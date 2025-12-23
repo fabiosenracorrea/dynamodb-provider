@@ -10,11 +10,10 @@ import { OperationForm } from './OperationForm';
 import type { EntityMetadata } from '@/utils/api';
 
 interface EntityOperationsProps {
-  name: string;
   entity: EntityMetadata;
 }
 
-export function EntityOperations({ name, entity }: EntityOperationsProps) {
+export function EntityOperations({ entity }: EntityOperationsProps) {
   const tabs: OperationTab[] = [
     {
       id: 'get',
@@ -22,7 +21,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="get"
           description="Retrieve a single item by its primary key."
           placeholder={`{\n  "id": "example-id"\n}`}
@@ -36,7 +35,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="create"
           description="Create a new item. Include all required fields."
           placeholder={`{\n  "id": "new-id",\n  "name": "Example"\n}`}
@@ -50,7 +49,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="update"
           description="Update an existing item. Provide the key and values to update."
           placeholder={`{\n  "id": "example-id",\n  "values": {\n    "name": "Updated Name"\n  }\n}`}
@@ -64,7 +63,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="delete"
           description="Delete an item by its primary key."
           placeholder={`{\n  "id": "example-id"\n}`}
@@ -78,7 +77,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="query"
           description="Query items by partition key. Optionally add range conditions."
           placeholder={`{\n  "partitionId": "example",\n  "limit": 10\n}`}
@@ -92,7 +91,7 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       content: (
         <OperationForm
           target="entity"
-          name={name}
+          name={entity.type}
           operation="listAll"
           description="List all items of this entity type. Use with caution on large tables."
           placeholder={`{\n  "limit": 100\n}`}
@@ -107,8 +106,8 @@ export function EntityOperations({ name, entity }: EntityOperationsProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{name}</CardTitle>
-            <CardDescription className="font-mono">{entity.type}</CardDescription>
+            <CardTitle>{entity.type}</CardTitle>
+            <CardDescription className="font-mono">Entity</CardDescription>
           </div>
           <EntityBadges entity={entity} />
         </div>

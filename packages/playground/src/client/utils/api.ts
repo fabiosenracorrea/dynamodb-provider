@@ -2,28 +2,53 @@ export interface TableMetadata {
   name: string;
   partitionKey: string;
   rangeKey: string;
-  indexes: Record<string, { partitionKey: string; rangeKey: string }>;
+  indexes: Record<string, { partitionKey: string; rangeKey: string; numeric?: boolean }>;
+  typeIndex?: { name: string; partitionKey: string };
+  expiresAt?: string;
+}
+
+export interface KeyPiece {
+  type: 'CONSTANT' | 'VARIABLE';
+  numeric?: boolean;
+  value: string;
+}
+
+export interface RangeQuery {
+  name: string;
+  operation: string;
+  params: string[];
+}
+
+export interface EntityIndex {
+  name: string;
+  index: string;
+  partitionKey: KeyPiece[];
+  rangeKey: KeyPiece[];
+  rangeQueries: RangeQuery[];
 }
 
 export interface EntityMetadata {
   name: string;
   type: string;
-  indexes: string[];
-  rangeQueries: string[];
-  indexRangeQueries: Record<string, string[]>;
+  index: number;
+  partitionKey: KeyPiece[];
+  rangeKey: KeyPiece[];
+  rangeQueries: RangeQuery[];
+  indexes: EntityIndex[];
 }
 
 export interface CollectionMetadata {
+  index: number;
   name: string;
-  type: 'SINGLE' | 'MULTIPLE';
+  partitionKey: KeyPiece[];
   originEntityType: string | null;
   joins: string[];
 }
 
 export interface Metadata {
   table: TableMetadata;
-  entities: Record<string, EntityMetadata>;
-  collections: Record<string, CollectionMetadata>;
+  entities: EntityMetadata[];
+  collections: CollectionMetadata[];
 }
 
 export interface ExecuteRequest {

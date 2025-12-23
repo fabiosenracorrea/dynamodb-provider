@@ -3,7 +3,8 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { JsonEditor } from './JsonEditor';
 import { ResultsView } from './ResultsView';
-import { execute, type ExecuteRequest } from '@/utils/api';
+import { useExecute } from '@/utils/hooks';
+import type { ExecuteRequest } from '@/utils/api';
 
 interface OperationFormProps {
   target: ExecuteRequest['target'];
@@ -25,36 +26,31 @@ export function OperationForm({
   buttonLabel = 'Execute',
 }: OperationFormProps) {
   const [params, setParams] = useState(placeholder);
-  const [result, setResult] = useState<unknown>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const mutation = useExecute();
 
-  const handleExecute = async () => {
-    setError(null);
-    setResult(null);
-    setLoading(true);
+  const handleExecute = () => {
+    setParseError(null);
 
+    let parsedParams: Record<string, unknown>;
     try {
-      const parsedParams = JSON.parse(params);
-      const response = await execute({
-        target,
-        name,
-        operation,
-        index,
-        params: parsedParams,
-      });
-
-      if (response.success) {
-        setResult(response.data);
-      } else {
-        setError(response.error || 'Unknown error');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid JSON');
-    } finally {
-      setLoading(false);
+      parsedParams = JSON.parse(params);
+    } catch {
+      setParseError('Invalid JSON');
+      return;
     }
+
+    mutation.mutate({
+      target,
+      name,
+      operation,
+      index,
+      params: parsedParams,
+    });
   };
+
+  const result = mutation.data?.success ? mutation.data.data : null;
+  const error = parseError ?? (mutation.data?.success === false ? mutation.data.error : null);
 
   return (
     <div className="space-y-4">
@@ -65,15 +61,15 @@ export function OperationForm({
         <JsonEditor value={params} onChange={setParams} placeholder={placeholder} />
       </div>
 
-      <Button onClick={handleExecute} disabled={loading}>
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      <Button onClick={handleExecute} disabled={mutation.isPending}>
+        {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {buttonLabel}
       </Button>
 
       {(result !== null || error) && (
         <div className="pt-4 border-t">
           <h4 className="text-sm font-medium mb-2">Result</h4>
-          <ResultsView data={result} error={error} />
+          <ResultsView data={result} error={error ?? undefined} />
         </div>
       )}
     </div>

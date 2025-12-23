@@ -9,19 +9,18 @@ import { OperationForm } from './OperationForm';
 import type { CollectionMetadata } from '@/utils/api';
 
 interface CollectionOperationsProps {
-  name: string;
   collection: CollectionMetadata;
 }
 
-export function CollectionOperations({ name, collection }: CollectionOperationsProps) {
+export function CollectionOperations({ collection }: CollectionOperationsProps) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{name}</CardTitle>
+            <CardTitle>{collection.name}</CardTitle>
             <CardDescription>
-              {collection.type} collection
+              Collection
               {collection.originEntityType && ` from ${collection.originEntityType}`}
             </CardDescription>
           </div>
@@ -31,7 +30,7 @@ export function CollectionOperations({ name, collection }: CollectionOperationsP
       <CardContent>
         <OperationForm
           target="collection"
-          name={name}
+          name={collection.name}
           operation="get"
           description="Retrieve the collection with all joined entities."
           placeholder={`{\n  "partitionId": "example-id"\n}`}
@@ -45,7 +44,6 @@ export function CollectionOperations({ name, collection }: CollectionOperationsP
 function CollectionBadges({ collection }: { collection: CollectionMetadata }) {
   return (
     <div className="flex gap-2">
-      <span className="text-xs bg-secondary px-2 py-1 rounded">{collection.type}</span>
       {collection.joins.length > 0 && (
         <span className="text-xs bg-secondary px-2 py-1 rounded">
           {collection.joins.length} {collection.joins.length === 1 ? 'join' : 'joins'}

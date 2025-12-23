@@ -5,7 +5,7 @@ import { SidebarItem } from './SidebarItem';
 import type { EntityMetadata } from '@/utils/api';
 
 interface EntityListProps {
-  entities: Record<string, EntityMetadata>;
+  entities: EntityMetadata[];
   selectedEntity: string | null;
   onSelect: (name: string) => void;
 }
@@ -14,13 +14,12 @@ export function EntityList({ entities, selectedEntity, onSelect }: EntityListPro
   const [search, setSearch] = useState('');
 
   const filteredEntities = useMemo(() => {
-    const entries = Object.entries(entities);
-    if (!search) return entries;
+    if (!search) return entities;
 
     const lower = search.toLowerCase();
-    return entries.filter(
-      ([name, entity]) =>
-        name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower),
+    return entities.filter(
+      (entity) =>
+        entity.name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower),
     );
   }, [entities, search]);
 
@@ -36,16 +35,16 @@ export function EntityList({ entities, selectedEntity, onSelect }: EntityListPro
 
       <ScrollArea className="flex-1">
         <div className="p-2 pt-0 space-y-1">
-          {filteredEntities.map(([name, entity]) => (
+          {filteredEntities.map((entity) => (
             <SidebarItem
-              key={name}
-              name={name}
+              key={entity.type}
+              name={entity.type}
               type={entity.type}
               subtitle={
                 entity.indexes.length > 0 ? `${entity.indexes.length} indexes` : undefined
               }
-              isSelected={selectedEntity === name}
-              onClick={() => onSelect(name)}
+              isSelected={selectedEntity === entity.type}
+              onClick={() => onSelect(entity.type)}
             />
           ))}
 

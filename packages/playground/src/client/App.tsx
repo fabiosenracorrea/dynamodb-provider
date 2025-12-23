@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { fetchMetadata, type Metadata } from '@/utils/api';
+import type { Metadata } from '@/utils/api';
+import { useMetadata } from '@/utils/hooks';
 import {
   Sidebar,
   type Selection,
@@ -15,16 +16,9 @@ import {
 } from '@/components/operations';
 
 export function App() {
-  const [metadata, setMetadata] = useState<Metadata | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: metadata, error, isLoading } = useMetadata();
   const [selection, setSelection] = useState<Selection | null>(null);
   const [activeTab, setActiveTab] = useState<SelectionType>('entity');
-
-  useEffect(() => {
-    fetchMetadata()
-      .then(setMetadata)
-      .catch((err) => setError(err.message));
-  }, []);
 
   // Build partition info for selected partition
   const partitionInfo = useMemo<PartitionInfo | null>(() => {
@@ -63,10 +57,10 @@ export function App() {
   };
 
   if (error) {
-    return <ErrorScreen error={error} />;
+    return <ErrorScreen error={error instanceof Error ? error.message : 'Unknown error'} />;
   }
 
-  if (!metadata) {
+  if (isLoading || !metadata) {
     return <LoadingScreen />;
   }
 
@@ -104,15 +98,15 @@ function OperationsPanel({ selection, metadata, partitionInfo }: OperationsPanel
 
   switch (selection.type) {
     case 'entity': {
-      const entity = metadata.entities[selection.name];
+      const entity = metadata.entities.find((e) => e.type === selection.name);
       if (!entity) return <EmptyState />;
-      return <EntityOperations name={selection.name} entity={entity} />;
+      return <EntityOperations entity={entity} />;
     }
 
     case 'collection': {
-      const collection = metadata.collections[selection.name];
+      const collection = metadata.collections.find((c) => c.name === selection.name);
       if (!collection) return <EmptyState />;
-      return <CollectionOperations name={selection.name} collection={collection} />;
+      return <CollectionOperations collection={collection} />;
     }
 
     case 'partition': {
