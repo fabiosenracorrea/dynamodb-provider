@@ -10,6 +10,7 @@ import {
 import { usePartitionGroups, useTable } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
+import { SortPopover, applySortOrder, type SortOrder } from './SortPopover';
 
 interface PartitionListProps {
   selectedPartition: string | null;
@@ -21,6 +22,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
   const table = useTable();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('default');
 
   // Get all available index names from table config
   const indexNames = useMemo(() => {
@@ -28,7 +30,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
     return Object.keys(table.indexes);
   }, [table]);
 
-  const filteredPartitions = useMemo(() => {
+  const filteredAndSortedPartitions = useMemo(() => {
     let result = partitionGroups;
 
     // Apply source filter
@@ -50,8 +52,8 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
       );
     }
 
-    return result;
-  }, [partitionGroups, filter, search]);
+    return applySortOrder(result, sortOrder, (p) => p.pattern);
+  }, [partitionGroups, filter, search, sortOrder]);
 
   return (
     <div className="flex flex-col h-full">
@@ -77,11 +79,12 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
             ))}
           </SelectContent>
         </Select>
+        <SortPopover value={sortOrder} onChange={setSortOrder} />
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-2 pt-0 space-y-1">
-          {filteredPartitions.map((partition) => (
+          {filteredAndSortedPartitions.map((partition) => (
             <SidebarItem
               key={partition.id}
               name={partition.pattern}
@@ -92,7 +95,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
             />
           ))}
 
-          {filteredPartitions.length === 0 && (
+          {filteredAndSortedPartitions.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               {partitionGroups.length === 0
                 ? 'No shared partitions found'

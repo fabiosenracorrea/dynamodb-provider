@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEntities } from '@/context';
 import { SearchInput } from './SearchInput';
 import { SidebarItem } from './SidebarItem';
+import { SortPopover, applySortOrder, type SortOrder } from './SortPopover';
 
 interface EntityListProps {
   selectedEntity: string | null;
@@ -12,30 +13,39 @@ interface EntityListProps {
 export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
   const entities = useEntities();
   const [search, setSearch] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('default');
 
-  const filteredEntities = useMemo(() => {
-    if (!search) return entities;
+  const filteredAndSortedEntities = useMemo(() => {
+    let result = entities;
 
-    const lower = search.toLowerCase();
-    return entities.filter(
-      (entity) =>
-        entity.name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower),
-    );
-  }, [entities, search]);
+    if (search) {
+      const lower = search.toLowerCase();
+      result = result.filter(
+        (entity) =>
+          entity.name.toLowerCase().includes(lower) ||
+          entity.type.toLowerCase().includes(lower),
+      );
+    }
+
+    return applySortOrder(result, sortOrder, (e) => e.name);
+  }, [entities, search, sortOrder]);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-2">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Search entities..."
-        />
+      <div className="p-2 flex gap-2">
+        <div className="flex-1">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search entities..."
+          />
+        </div>
+        <SortPopover value={sortOrder} onChange={setSortOrder} />
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-2 pt-0 space-y-1">
-          {filteredEntities.map((entity) => (
+          {filteredAndSortedEntities.map((entity) => (
             <SidebarItem
               key={entity.type}
               name={entity.type}
@@ -48,7 +58,7 @@ export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
             />
           ))}
 
-          {filteredEntities.length === 0 && (
+          {filteredAndSortedEntities.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               No entities found
             </p>
