@@ -88,91 +88,89 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
   return (
     <div className="space-y-4">
       <Collapsible open={showMetadata} onOpenChange={setShowMetadata}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Database className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl">{entity.name}</CardTitle>
-                    <CardDescription className="font-mono text-xs mt-0.5">
-                      type: {entity.type}
-                    </CardDescription>
-                  </div>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="p-2 cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Database className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex items-center gap-2">
-                  {entity.indexes.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {entity.indexes.length}{' '}
-                      {entity.indexes.length === 1 ? 'index' : 'indexes'}
-                    </Badge>
-                  )}
-                  <Badge variant="secondary" className="font-mono">
-                    Entity
+                <div>
+                  <CardTitle className="text-xl">{entity.name}</CardTitle>
+                  <CardDescription className="font-mono text-xs mt-0.5">
+                    type: {entity.type}
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {entity.indexes.length > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {entity.indexes.length}{' '}
+                    {entity.indexes.length === 1 ? 'index' : 'indexes'}
                   </Badge>
-                  <ChevronDown
-                    className={`h-4 w-4 text-muted-foreground transition-transform ${
-                      showMetadata ? '' : '-rotate-90'
-                    }`}
-                  />
-                </div>
+                )}
+                <Badge variant="secondary" className="font-mono">
+                  Entity
+                </Badge>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${
+                    showMetadata ? '' : '-rotate-90'
+                  }`}
+                />
               </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-
-          <CollapsibleContent>
-            <CardContent className="pt-0 space-y-4">
-              <Separator />
-
-              {/* Primary Key Structure */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium flex items-center gap-2">
-                  <Key className="h-4 w-4" />
-                  Primary Key Structure
-                </h4>
-                <div className="grid gap-2 pl-6">
-                  <KeyDisplay label="Partition Key" pieces={entity.partitionKey} />
-                  <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
-                </div>
-              </div>
-
-              {/* Range Queries */}
-              {entity.rangeQueries.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <Search className="h-4 w-4" />
-                    Range Queries
-                  </h4>
-                  <div className="pl-6 flex flex-wrap gap-2">
-                    {entity.rangeQueries.map((rq) => (
-                      <RangeQueryBadge key={rq.name} query={rq} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Indexes */}
-              {entity.indexes.length > 0 && <IndexesSection indexes={entity.indexes} />}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      <OperationTabs tabs={tabs} defaultTab="query">
-        <Card>
-          <CardHeader className="py-3">
-            <div className="flex items-center gap-4">
-              <CardTitle className="text-base">Operations</CardTitle>
-              <OperationTabsList tabs={tabs} />
             </div>
           </CardHeader>
-          <CardContent>
-            <OperationTabsContent tabs={tabs} />
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <CardContent className="p-2 space-y-4">
+            <Separator />
+
+            {/* Primary Key Structure */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Primary Key Structure
+              </h4>
+              <div className="grid gap-2 pl-6">
+                <KeyDisplay label="Partition Key" pieces={entity.partitionKey} />
+                <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
+              </div>
+            </div>
+
+            {/* Range Queries */}
+            {entity.rangeQueries.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Range Queries
+                </h4>
+                <div className="pl-6 flex flex-wrap gap-2">
+                  {entity.rangeQueries.map((rq) => (
+                    <RangeQueryBadge key={rq.name} query={rq} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Indexes */}
+            {entity.indexes.length > 0 && <IndexesSection indexes={entity.indexes} />}
           </CardContent>
-        </Card>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <Separator />
+
+      <OperationTabs tabs={tabs} defaultTab="query">
+        <CardHeader className="p-2">
+          <div className="flex items-center gap-4">
+            <CardTitle className="text-base">Operations</CardTitle>
+            <OperationTabsList tabs={tabs} />
+          </div>
+        </CardHeader>
+        <CardContent className="p-2">
+          <OperationTabsContent tabs={tabs} />
+        </CardContent>
       </OperationTabs>
     </div>
   );
