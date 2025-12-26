@@ -38,5 +38,4 @@
 
 .json-view {
   @apply font-mono text-sm bg-slate-900 text-green-400 p-4 rounded-lg overflow-auto;
-  max-height: 400px;
 }

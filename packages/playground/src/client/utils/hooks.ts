@@ -20,14 +20,12 @@ export function useExecute() {
 
 // Helper to convert entity array to record for component convenience
 export function entitiesToRecord(metadata: Metadata) {
-  return Object.fromEntries(
-    metadata.entities.map((entity) => [entity.type, entity])
-  );
+  return Object.fromEntries(metadata.entities.map((entity) => [entity.type, entity]));
 }
 
 // Helper to convert collection array to record for component convenience
 export function collectionsToRecord(metadata: Metadata) {
   return Object.fromEntries(
-    metadata.collections.map((collection) => [collection.name, collection])
+    metadata.collections.map((collection) => [collection.name, collection]),
   );
 }

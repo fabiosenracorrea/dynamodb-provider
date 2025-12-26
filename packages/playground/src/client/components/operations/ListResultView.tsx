@@ -141,7 +141,10 @@ export function ListResultView({ data, error }: ListResultViewProps) {
                     className="border-b last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
                   >
                     {columns.map((col) => (
-                      <td key={col} className="px-3 py-2 font-mono text-xs max-w-[200px] truncate">
+                      <td
+                        key={col}
+                        className="px-3 py-2 font-mono text-xs max-w-[200px] truncate"
+                      >
                         {formatCellValue(item[col])}
                       </td>
                     ))}
@@ -201,15 +204,25 @@ export function ListResultView({ data, error }: ListResultViewProps) {
       </div>
 
       {/* Item Detail Sheet */}
-      <Sheet open={selectedItem !== null} onOpenChange={(open) => !open && setSelectedItem(null)}>
+      <Sheet
+        open={selectedItem !== null}
+        onOpenChange={(open) => !open && setSelectedItem(null)}
+      >
         <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Item Details</SheetTitle>
-            <SheetDescription>Full JSON representation of the selected item</SheetDescription>
+            <SheetDescription>
+              Full JSON representation of the selected item
+            </SheetDescription>
           </SheetHeader>
           <div className="mt-4 relative">
             <div className="absolute top-2 right-2 z-10">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleCopy}
+              >
                 {copied ? (
                   <Check className="h-4 w-4 text-green-500" />
                 ) : (
