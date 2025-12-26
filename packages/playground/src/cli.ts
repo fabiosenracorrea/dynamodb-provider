@@ -1,9 +1,9 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
-import { createServer } from 'vite';
+import { createServer, ViteDevServer } from 'vite';
 import { resolve, dirname } from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
-import { existsSync } from 'fs';
+import { existsSync, watch, statSync, readdirSync } from 'fs';
 import { playgroundPlugin } from './vite-plugin.js';
 import type { PlaygroundConfig } from './types.js';
 
@@ -30,9 +30,38 @@ async function findConfig(): Promise<string | null> {
 }
 
 async function loadConfig(configPath: string): Promise<PlaygroundConfig> {
-  const configUrl = pathToFileURL(configPath).href;
+  // Add timestamp to bust ESM cache on reload
+  const configUrl = `${pathToFileURL(configPath).href}?t=${Date.now()}`;
   const module = await import(configUrl);
   return module.default || module;
+}
+
+function getWatchPaths(configPath: string): string[] {
+  const cwd = process.cwd();
+  const paths = [configPath];
+
+  // Watch common source directories that might contain imported files
+  const srcDirs = ['src', 'lib', 'entities', 'db', 'models'];
+  for (const dir of srcDirs) {
+    const dirPath = resolve(cwd, dir);
+    if (existsSync(dirPath) && statSync(dirPath).isDirectory()) {
+      paths.push(dirPath);
+    }
+  }
+
+  // Also watch any .ts/.js files in the project root that might be imported
+  try {
+    const rootFiles = readdirSync(cwd);
+    for (const file of rootFiles) {
+      if (/\.(ts|js|mjs)$/.test(file) && !file.startsWith('.')) {
+        paths.push(resolve(cwd, file));
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  return paths;
 }
 
 function validateConfig(config: unknown): asserts config is PlaygroundConfig {
@@ -56,44 +85,7 @@ function validateConfig(config: unknown): asserts config is PlaygroundConfig {
   }
 }
 
-async function main() {
-  console.log('\n🎮 DynamoDB Provider Playground\n');
-
-  // Find config
-  const configPath = await findConfig();
-  if (!configPath) {
-    console.error('❌ No config file found.');
-    console.error('   Create a playground.config.ts file in your project root:\n');
-    console.error(`   import { table } from './src/db'
-   import { User, Product } from './src/entities'
-
-   export default {
-     table,
-     entities: { User, Product },
-   }`);
-    process.exit(1);
-  }
-
-  console.log(`📁 Config: ${configPath}`);
-
-  // Load and validate config
-  let config: PlaygroundConfig;
-  try {
-    config = await loadConfig(configPath);
-    validateConfig(config);
-  } catch (err) {
-    console.error(`❌ Failed to load config: ${(err as Error).message}`);
-    process.exit(1);
-  }
-
-  const entityNames = Object.keys(config.entities);
-  const collectionNames = Object.keys(config.collections || {});
-  console.log(`📦 Entities: ${entityNames.join(', ')}`);
-  if (collectionNames.length > 0) {
-    console.log(`📚 Collections: ${collectionNames.join(', ')}`);
-  }
-
-  // Start Vite dev server with our plugin
+async function startServer(config: PlaygroundConfig, isRestart = false): Promise<ViteDevServer> {
   const port = config.port || 3030;
   const clientRoot = resolve(__dirname, 'client');
 
@@ -102,7 +94,8 @@ async function main() {
     root: clientRoot,
     server: {
       port,
-      open: (config.autoOpen ?? true) === true,
+      // Only auto-open on first start, not on restarts
+      open: !isRestart && (config.autoOpen ?? true) === true,
     },
     plugins: [(await import('@vitejs/plugin-react')).default(), playgroundPlugin(config)],
     resolve: {
@@ -173,8 +166,124 @@ async function main() {
   });
 
   await server.listen();
+  return server;
+}
 
-  console.log(`\n✨ Playground ready at http://localhost:${port}\n`);
+async function main() {
+  console.log('\n🎮 DynamoDB Provider Playground\n');
+
+  // Find config
+  const configPath = await findConfig();
+  if (!configPath) {
+    console.error('❌ No config file found.');
+    console.error('   Create a playground.config.ts file in your project root:\n');
+    console.error(`   import { table } from './src/db'
+   import { User, Product } from './src/entities'
+
+   export default {
+     table,
+     entities: { User, Product },
+   }`);
+    process.exit(1);
+  }
+
+  console.log(`📁 Config: ${configPath}`);
+
+  // Load and validate config
+  let config: PlaygroundConfig;
+  try {
+    config = await loadConfig(configPath);
+    validateConfig(config);
+  } catch (err) {
+    console.error(`❌ Failed to load config: ${(err as Error).message}`);
+    process.exit(1);
+  }
+
+  const entityNames = Object.keys(config.entities);
+  const collectionNames = Object.keys(config.collections || {});
+  console.log(`📦 Entities: ${entityNames.join(', ')}`);
+  if (collectionNames.length > 0) {
+    console.log(`📚 Collections: ${collectionNames.join(', ')}`);
+  }
+
+  // Start the server
+  const port = config.port || 3030;
+  let server = await startServer(config);
+
+  console.log(`\n✨ Playground ready at http://localhost:${port}`);
+  console.log('👀 Watching for config changes...\n');
+
+  // Set up file watching for hot-reload
+  const watchPaths = getWatchPaths(configPath);
+  const watchers: ReturnType<typeof watch>[] = [];
+  let isRestarting = false;
+  let restartTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const restart = async () => {
+    if (isRestarting) return;
+    isRestarting = true;
+
+    console.log('\n🔄 Config change detected, restarting...\n');
+
+    try {
+      // Close current server
+      await server.close();
+
+      // Reload config
+      const newConfig = await loadConfig(configPath);
+      validateConfig(newConfig);
+
+      const newEntityNames = Object.keys(newConfig.entities);
+      const newCollectionNames = Object.keys(newConfig.collections || {});
+      console.log(`📦 Entities: ${newEntityNames.join(', ')}`);
+      if (newCollectionNames.length > 0) {
+        console.log(`📚 Collections: ${newCollectionNames.join(', ')}`);
+      }
+
+      // Start new server
+      server = await startServer(newConfig, true);
+
+      console.log(`\n✨ Playground restarted at http://localhost:${newConfig.port || 3030}\n`);
+    } catch (err) {
+      console.error(`❌ Failed to restart: ${(err as Error).message}`);
+      console.log('   Fix the error and save again to retry.\n');
+    }
+
+    isRestarting = false;
+  };
+
+  const scheduleRestart = () => {
+    // Debounce restarts
+    if (restartTimeout) {
+      clearTimeout(restartTimeout);
+    }
+    restartTimeout = setTimeout(restart, 300);
+  };
+
+  // Watch config file and directories
+  for (const watchPath of watchPaths) {
+    try {
+      const watcher = watch(watchPath, { recursive: true }, (eventType, filename) => {
+        // Only react to .ts, .js, .mjs files
+        if (filename && /\.(ts|js|mjs)$/.test(filename)) {
+          scheduleRestart();
+        }
+      });
+      watchers.push(watcher);
+    } catch {
+      // Ignore watch errors for individual paths
+    }
+  }
+
+  // Clean up on exit
+  process.on('SIGINT', async () => {
+    console.log('\n\nShutting down...');
+    for (const watcher of watchers) {
+      watcher.close();
+    }
+    await server.close();
+    process.exit(0);
+  });
 }
 
 main().catch((err) => {
