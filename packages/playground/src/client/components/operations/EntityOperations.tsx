@@ -9,12 +9,6 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -93,144 +87,79 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Database className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">{entity.name}</CardTitle>
-                <CardDescription className="font-mono text-xs mt-0.5">
-                  type: {entity.type}
-                </CardDescription>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="font-mono">
-                Entity
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          <Collapsible open={showMetadata} onOpenChange={setShowMetadata}>
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-2">
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  showMetadata ? '' : '-rotate-90'
-                }`}
-              />
-              <span className="font-medium">Schema Details</span>
-              <div className="flex-1" />
-              <div className="flex gap-2">
-                {entity.indexes.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {entity.indexes.length}{' '}
-                    {entity.indexes.length === 1 ? 'index' : 'indexes'}
-                  </Badge>
-                )}
-                {entity.rangeQueries.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {entity.rangeQueries.length} range queries
-                  </Badge>
-                )}
-              </div>
-            </CollapsibleTrigger>
-
-            <CollapsibleContent>
-              <div className="pt-2 space-y-4">
-                <Separator />
-
-                {/* Primary Key Structure */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <Key className="h-4 w-4" />
-                    Primary Key Structure
-                  </h4>
-                  <div className="grid gap-2 pl-6">
-                    <KeyDisplay label="Partition Key" pieces={entity.partitionKey} />
-                    <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
+      <Collapsible open={showMetadata} onOpenChange={setShowMetadata}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Database className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">{entity.name}</CardTitle>
+                    <CardDescription className="font-mono text-xs mt-0.5">
+                      type: {entity.type}
+                    </CardDescription>
                   </div>
                 </div>
-
-                {/* Range Queries */}
-                {entity.rangeQueries.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      <Search className="h-4 w-4" />
-                      Range Queries
-                    </h4>
-                    <div className="pl-6 flex flex-wrap gap-2">
-                      {entity.rangeQueries.map((rq) => (
-                        <RangeQueryBadge key={rq.name} query={rq} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Indexes */}
-                {entity.indexes.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      <Layers className="h-4 w-4" />
-                      Secondary Indexes
-                    </h4>
-                    <Accordion type="multiple" className="pl-6">
-                      {entity.indexes.map((index) => (
-                        <AccordionItem
-                          key={index.name}
-                          value={index.name}
-                          className="border rounded-lg px-3 mb-2"
-                        >
-                          <AccordionTrigger className="hover:no-underline py-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{index.name}</span>
-                              <Badge variant="secondary" className="text-xs font-mono">
-                                {index.index}
-                              </Badge>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="pb-3">
-                            <div className="space-y-3 pt-1">
-                              <div className="grid gap-2">
-                                <KeyDisplay
-                                  label="Partition Key"
-                                  pieces={index.partitionKey}
-                                  compact
-                                />
-                                <KeyDisplay
-                                  label="Range Key"
-                                  pieces={index.rangeKey}
-                                  compact
-                                />
-                              </div>
-                              {index.rangeQueries.length > 0 && (
-                                <div className="space-y-2">
-                                  <span className="text-xs text-muted-foreground">
-                                    Range Queries:
-                                  </span>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {index.rangeQueries.map((rq) => (
-                                      <RangeQueryBadge key={rq.name} query={rq} compact />
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {entity.indexes.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {entity.indexes.length}{' '}
+                      {entity.indexes.length === 1 ? 'index' : 'indexes'}
+                    </Badge>
+                  )}
+                  <Badge variant="secondary" className="font-mono">
+                    Entity
+                  </Badge>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${
+                      showMetadata ? '' : '-rotate-90'
+                    }`}
+                  />
+                </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </CardContent>
-      </Card>
+            </CardHeader>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              <Separator />
+
+              {/* Primary Key Structure */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Primary Key Structure
+                </h4>
+                <div className="grid gap-2 pl-6">
+                  <KeyDisplay label="Partition Key" pieces={entity.partitionKey} />
+                  <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
+                </div>
+              </div>
+
+              {/* Range Queries */}
+              {entity.rangeQueries.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Range Queries
+                  </h4>
+                  <div className="pl-6 flex flex-wrap gap-2">
+                    {entity.rangeQueries.map((rq) => (
+                      <RangeQueryBadge key={rq.name} query={rq} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Indexes */}
+              {entity.indexes.length > 0 && <IndexesSection indexes={entity.indexes} />}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       <OperationTabs tabs={tabs} defaultTab="query">
         <Card>
@@ -299,6 +228,61 @@ function KeyDisplay({
         ))}
       </div>
     </div>
+  );
+}
+
+interface IndexInfo {
+  name: string;
+  index: string;
+  partitionKey: KeyPiece[];
+  rangeKey: KeyPiece[];
+  rangeQueries: RangeQuery[];
+}
+
+function IndexesSection({ indexes }: { indexes: IndexInfo[] }) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+      <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium hover:text-foreground transition-colors">
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${isOpen ? '' : '-rotate-90'}`}
+        />
+        <Layers className="h-4 w-4" />
+        Secondary Indexes
+        <Badge variant="outline" className="text-xs ml-1">
+          {indexes.length}
+        </Badge>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="pl-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {indexes.map((index) => (
+            <div key={index.name} className="border rounded-lg px-3 py-3 space-y-3">
+              <div className="flex items-center gap-2 justify-between">
+                <span className="font-medium">{index.name}</span>
+                <Badge variant="secondary" className="text-xs font-mono">
+                  {index.index}
+                </Badge>
+              </div>
+              <div className="grid gap-2">
+                <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact />
+                <KeyDisplay label="Range Key" pieces={index.rangeKey} compact />
+              </div>
+              {index.rangeQueries.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs text-muted-foreground">Range Queries:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {index.rangeQueries.map((rq) => (
+                      <RangeQueryBadge key={rq.name} query={rq} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
