@@ -12,14 +12,12 @@ export function extractMetadata(config: PlaygroundConfig): MetadataResponse {
 
     entities: config.entities.map(entityToMetadata),
 
-    collections:
-      config.collections?.map((collection, index) => ({
-        ...collection,
-        index,
-        name: `${index}`,
-        partitionKey: inferKeyPieces(collection.getPartitionKey),
-        originEntityType: collection.startRef?.type ?? null,
-        joins: Object.keys(collection.join),
-      })) ?? [],
+    collections: Object.entries(config.collections ?? {})?.map(([name, collection]) => ({
+      ...collection,
+      name,
+      partitionKey: inferKeyPieces(collection.getPartitionKey),
+      originEntityType: collection.startRef?.type ?? null,
+      joins: Object.keys(collection.join),
+    })),
   };
 }

@@ -193,12 +193,12 @@ async function executeCollectionOperation(
   operation: string,
   params: Record<string, unknown>,
 ): Promise<ExecuteResponse> {
-  if (!config.collections || config.collections.length === 0) {
+  if (!config.collections) {
     return { success: false, error: 'No collections configured' };
   }
 
-  const collectionIndex = parseInt(collectionName, 10);
-  const collection = config.collections[collectionIndex];
+  const collection = config.collections[collectionName];
+
   if (!collection) {
     return { success: false, error: `Collection not found: ${collectionName}` };
   }

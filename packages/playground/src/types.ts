@@ -18,7 +18,7 @@ export interface PlaygroundConfig {
   >;
 
   entities: AnyEntity[];
-  collections?: AnyCollection[];
+  collections?: Record<string, AnyCollection>;
   port?: number;
   autoOpen?: boolean;
 }
@@ -72,7 +72,6 @@ export interface EntityMetadata {
 }
 
 export interface CollectionMetadata {
-  index: number;
   name: string;
   type: 'SINGLE' | 'MULTIPLE';
   partitionKey: KeyPiece[];
