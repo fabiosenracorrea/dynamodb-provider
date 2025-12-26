@@ -102,7 +102,7 @@ async function main() {
     root: clientRoot,
     server: {
       port,
-      open: true,
+      open: !!config.autoOpen ?? true,
     },
     plugins: [(await import('@vitejs/plugin-react')).default(), playgroundPlugin(config)],
     resolve: {

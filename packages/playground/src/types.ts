@@ -20,6 +20,7 @@ export interface PlaygroundConfig {
   entities: AnyEntity[];
   collections?: AnyCollection[];
   port?: number;
+  autoOpen?: boolean;
 }
 
 export interface IndexInstance {
