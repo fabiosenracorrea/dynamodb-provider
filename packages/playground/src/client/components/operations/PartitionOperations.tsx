@@ -32,7 +32,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { usePartitionGroup, useMetadataContext } from '@/context';
 import { useExecute } from '@/utils/hooks';
-import { ResultsView } from './ResultsView';
+import { ListResultView } from './ListResultView';
 import type { KeyPiece, PartitionGroup, EntityMetadata } from '@/types';
 
 interface PartitionOperationsProps {
@@ -377,7 +377,7 @@ export function PartitionOperations({
           {(result !== null || error) && (
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-2">Result</h4>
-              <ResultsView data={result} error={error ?? undefined} />
+              <ListResultView data={result} error={error ?? undefined} />
             </div>
           )}
         </CardContent>

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ResultsView } from './ResultsView';
+import { ListResultView } from './ListResultView';
 import { FiltersSheet, buildFiltersParam, type FilterRow } from './FiltersSheet';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest } from '@/utils/api';
@@ -230,7 +230,7 @@ export function ListForm({ target, name }: ListFormProps) {
       {(result !== null || error) && (
         <div className="pt-4 border-t">
           <h4 className="text-sm font-medium mb-2">Result</h4>
-          <ResultsView data={result} error={error ?? undefined} />
+          <ListResultView data={result} error={error ?? undefined} />
         </div>
       )}
     </div>

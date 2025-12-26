@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ResultsView } from './ResultsView';
+import { GetResultView } from './GetResultView';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest, KeyPiece } from '@/utils/api';
 
@@ -132,7 +132,7 @@ export function KeyParamsForm({
       {(result !== null || error) && (
         <div className="pt-4 border-t">
           <h4 className="text-sm font-medium mb-2">Result</h4>
-          <ResultsView data={result} error={error ?? undefined} />
+          <GetResultView data={result} error={error ?? undefined} />
         </div>
       )}
     </div>
