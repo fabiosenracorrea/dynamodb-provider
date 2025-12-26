@@ -66,13 +66,15 @@ function OperationsPanel({ selection, onSelectEntity }: OperationsPanelProps) {
     case 'entity': {
       const entity = getEntity(selection.name);
       if (!entity) return <EmptyState />;
-      return <EntityOperations entityType={entity.type} />;
+      return <EntityOperations key={entity.type} entityType={entity.type} />;
     }
 
     case 'collection': {
       const collection = getCollection(selection.name);
       if (!collection) return <EmptyState />;
-      return <CollectionOperations collectionName={collection.name} />;
+      return (
+        <CollectionOperations key={collection.name} collectionName={collection.name} />
+      );
     }
 
     case 'partition': {
@@ -80,6 +82,7 @@ function OperationsPanel({ selection, onSelectEntity }: OperationsPanelProps) {
       if (!partition) return <EmptyState />;
       return (
         <PartitionOperations
+          key={partition.id}
           partitionId={partition.id}
           onSelectEntity={onSelectEntity}
         />
