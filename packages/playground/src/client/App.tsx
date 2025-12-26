@@ -73,7 +73,11 @@ function OperationsPanel({ selection, onSelectEntity }: OperationsPanelProps) {
       const collection = getCollection(selection.name);
       if (!collection) return <EmptyState />;
       return (
-        <CollectionOperations key={collection.name} collectionName={collection.name} />
+        <CollectionOperations
+          key={collection.name}
+          collectionName={collection.name}
+          onSelectEntity={onSelectEntity}
+        />
       );
     }
 

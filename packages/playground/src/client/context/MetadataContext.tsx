@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -51,7 +52,10 @@ function buildPattern(pieces: KeyPiece[]): string {
 }
 
 function buildPartitionGroups(entities: EntityMetadata[]): PartitionGroup[] {
-  const groupMap = new Map<string, { source: string; sourceType: 'main' | 'index'; entities: string[] }>();
+  const groupMap = new Map<
+    string,
+    { source: string; sourceType: 'main' | 'index'; entities: string[] }
+  >();
 
   for (const entity of entities) {
     // Main table partition

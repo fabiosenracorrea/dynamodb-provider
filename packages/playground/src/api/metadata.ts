@@ -16,7 +16,7 @@ export function extractMetadata(config: PlaygroundConfig): MetadataResponse {
       ...collection,
       name,
       partitionKey: inferKeyPieces(collection.getPartitionKey),
-      originEntityType: collection.startRef?.type ?? null,
+      originEntityType: collection.startRef ?? null,
       joins: Object.keys(collection.join),
     })),
   };
