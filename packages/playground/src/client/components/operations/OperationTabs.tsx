@@ -4,6 +4,7 @@ export interface OperationTab {
   id: string;
   label: string;
   content: React.ReactNode;
+  hide?: boolean;
 }
 
 interface OperationTabsProps {
@@ -23,15 +24,17 @@ export function OperationTabs({ tabs, defaultTab, children }: OperationTabsProps
 export function OperationTabsList({ tabs }: { tabs: OperationTab[] }) {
   return (
     <TabsList className="h-8 p-1 bg-muted/50 rounded-lg">
-      {tabs.map((tab) => (
-        <TabsTrigger
-          key={tab.id}
-          value={tab.id}
-          className="text-xs px-3 h-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-        >
-          {tab.label}
-        </TabsTrigger>
-      ))}
+      {tabs
+        .filter((t) => !t.hide)
+        .map((tab) => (
+          <TabsTrigger
+            key={tab.id}
+            value={tab.id}
+            className="text-xs px-3 h-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            {tab.label}
+          </TabsTrigger>
+        ))}
     </TabsList>
   );
 }

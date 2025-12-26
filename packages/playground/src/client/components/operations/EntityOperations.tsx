@@ -43,6 +43,7 @@ interface EntityOperationsProps {
 }
 
 export function EntityOperations({ entityType }: EntityOperationsProps) {
+  const { table } = useMetadataContext();
   const entity = useEntity(entityType);
   const [showMetadata, setShowMetadata] = useState(true);
 
@@ -70,6 +71,7 @@ export function EntityOperations({ entityType }: EntityOperationsProps) {
       id: 'list',
       label: 'List',
       content: <ListForm target="entity" name={entity.type} />,
+      hide: !table?.typeIndex,
     },
     {
       id: 'query',

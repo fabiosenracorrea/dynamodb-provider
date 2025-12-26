@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -102,6 +102,19 @@ export function ListForm({ target, name }: ListFormProps) {
 
   return (
     <div className="space-y-6">
+      {/* Info Alert */}
+      <div className="flex items-start gap-3 p-3 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200">
+        <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+        <p>
+          This operation requires a{' '}
+          <code className="font-mono bg-blue-100 dark:bg-blue-900 px-1 rounded">
+            typeIndex
+          </code>{' '}
+          GSI configured on the table, and entities must have their type columns properly
+          set.
+        </p>
+      </div>
+
       {/* Range Section */}
       <section className="space-y-3">
         <div className="flex flex-wrap gap-3 items-end">
