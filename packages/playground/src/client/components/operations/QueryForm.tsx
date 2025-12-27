@@ -397,12 +397,7 @@ export function QueryForm({
         </div>
       </section>
 
-      <div className="flex items-center gap-4">
-        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Query
-        </Button>
-
+      <div className="flex items-center gap-4 justify-end">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -415,6 +410,11 @@ export function QueryForm({
             Full retrieval
           </label>
         </div>
+
+        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Query
+        </Button>
       </div>
 
       {(result !== null || error) && (

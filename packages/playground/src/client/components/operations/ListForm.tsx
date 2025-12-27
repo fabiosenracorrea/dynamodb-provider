@@ -207,12 +207,7 @@ export function ListForm({ target, name }: ListFormProps) {
         </div>
       </section>
 
-      <div className="flex items-center gap-4">
-        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          List
-        </Button>
-
+      <div className="flex items-center gap-4 justify-end">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -225,6 +220,11 @@ export function ListForm({ target, name }: ListFormProps) {
             Full retrieval
           </label>
         </div>
+
+        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          List
+        </Button>
       </div>
 
       {(result !== null || error) && (
