@@ -131,10 +131,12 @@ async function executeEntityOperation(
 
       if (USE_MOCK_DATA) {
         // Return mock items for each key, with some randomly missing
-        const results = keys.map((_, idx) => {
-          const found = Math.random() > 0.2;
-          return found ? generateMockItem(idx) : null;
-        }).filter(Boolean);
+        const results = keys
+          .map((_, idx) => {
+            const found = Math.random() > 0.2;
+            return found ? generateMockItem(idx) : null;
+          })
+          .filter(Boolean);
         return { success: true, data: results };
       }
 

@@ -35,19 +35,12 @@ export function resolveKeys(
 
   const separator = config.table.config.keySeparator ?? '#';
 
-  try {
-    const pkParts = normalizeKeyResult(entity.getPartitionKey(data));
-    const skParts = normalizeKeyResult(entity.getRangeKey(data));
+  const pkParts = normalizeKeyResult(entity.getPartitionKey(data));
+  const skParts = normalizeKeyResult(entity.getRangeKey(data));
 
-    return {
-      success: true,
-      partitionKey: joinKeyParts(pkParts, separator),
-      rangeKey: joinKeyParts(skParts, separator),
-    };
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Failed to resolve keys',
-    };
-  }
+  return {
+    success: true,
+    partitionKey: joinKeyParts(pkParts, separator),
+    rangeKey: joinKeyParts(skParts, separator),
+  };
 }
