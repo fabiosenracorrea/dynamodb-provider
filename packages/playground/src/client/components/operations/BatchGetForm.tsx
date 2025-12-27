@@ -28,7 +28,8 @@ export function BatchGetForm({
 }: BatchGetFormProps) {
   // Extract variable names from keys
   const variables = useMemo(() => {
-    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> = [];
+    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> =
+      [];
     const seen = new Set<string>();
 
     partitionKey.forEach((piece) => {
@@ -110,9 +111,7 @@ export function BatchGetForm({
   // Check if all entries have valid values
   const isValid =
     entries.length > 0 &&
-    entries.every((entry) =>
-      variables.every((v) => entry.values[v.name]?.trim() !== ''),
-    );
+    entries.every((entry) => variables.every((v) => entry.values[v.name]?.trim() !== ''));
 
   const result = mutation.data?.success ? mutation.data.data : null;
   const error = mutation.data?.success === false ? mutation.data.error : null;
@@ -173,23 +172,20 @@ export function BatchGetForm({
               )}
             </div>
           ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addEntry}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Key
-          </Button>
         </div>
       )}
 
-      <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-        {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Get {entries.length} Item{entries.length !== 1 ? 's' : ''}
-      </Button>
+      <div className="flex gap-3 items-center justify-end">
+        <Button variant="outline" onClick={addEntry}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Key
+        </Button>
+
+        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Get {entries.length} Item{entries.length !== 1 ? 's' : ''}
+        </Button>
+      </div>
 
       {(result !== null || error) && (
         <div className="pt-4 border-t">

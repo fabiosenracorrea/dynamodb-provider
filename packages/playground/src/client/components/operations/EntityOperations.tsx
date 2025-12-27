@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { ChevronDown, Key, Database, Search, Layers } from 'lucide-react';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -246,49 +251,43 @@ interface IndexInfo {
 }
 
 function IndexesSection({ indexes }: { indexes: IndexInfo[] }) {
-  const [isOpen, setIsOpen] = useState(true);
-
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
-      <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium hover:text-foreground transition-colors">
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${isOpen ? '' : '-rotate-90'}`}
-        />
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 text-sm font-medium hover:text-foreground transition-colors">
         <Layers className="h-4 w-4" />
         Secondary Indexes
         <Badge variant="outline" className="text-xs ml-1">
           {indexes.length}
         </Badge>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="pl-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {indexes.map((index) => (
-            <div key={index.name} className="border rounded-lg px-3 py-3 space-y-3">
-              <div className="flex items-center gap-2 justify-between">
-                <span className="font-medium">{index.name}</span>
-                <Badge variant="secondary" className="text-xs font-mono">
-                  {index.index}
-                </Badge>
-              </div>
-              <div className="grid gap-2">
-                <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact />
-                <KeyDisplay label="Range Key" pieces={index.rangeKey} compact />
-              </div>
-              {index.rangeQueries.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-xs text-muted-foreground">Range Queries:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {index.rangeQueries.map((rq) => (
-                      <RangeQueryBadge key={rq.name} query={rq} compact />
-                    ))}
-                  </div>
-                </div>
-              )}
+      </div>
+
+      <div className="pl-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {indexes.map((index) => (
+          <div key={index.name} className="border rounded-lg px-3 py-3 space-y-3">
+            <div className="flex items-center gap-2 justify-between">
+              <span className="font-medium">{index.name}</span>
+              <Badge variant="secondary" className="text-xs font-mono">
+                {index.index}
+              </Badge>
             </div>
-          ))}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+            <div className="grid gap-2">
+              <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact />
+              <KeyDisplay label="Range Key" pieces={index.rangeKey} compact />
+            </div>
+            {index.rangeQueries.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs text-muted-foreground">Range Queries:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {index.rangeQueries.map((rq) => (
+                    <RangeQueryBadge key={rq.name} query={rq} compact />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

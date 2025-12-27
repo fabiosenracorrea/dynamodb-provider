@@ -95,7 +95,7 @@ export function KeyParamsForm({
   const error = mutation.data?.success === false ? mutation.data.error : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-3 border rounded-lg bg-muted/30">
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
 
       {variables.length === 0 ? (
@@ -103,7 +103,7 @@ export function KeyParamsForm({
           No parameters required - key uses only constant values
         </p>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {variables.map((variable) => (
             <div key={variable.name}>
               <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
@@ -124,7 +124,11 @@ export function KeyParamsForm({
         </div>
       )}
 
-      <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+      <Button
+        className="ml-auto block"
+        onClick={handleExecute}
+        disabled={mutation.isPending || !isValid}
+      >
         {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {buttonLabel}
       </Button>
