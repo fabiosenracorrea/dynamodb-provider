@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown, Database, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -214,26 +214,46 @@ export function QueryForm({
 
       {/* Target Selection */}
       {indexes.length > 0 && (
-        <section className="space-y-3">
-          <h4 className="text-sm font-medium">Query Target</h4>
-          <Select value={queryTarget} onValueChange={handleTargetChange}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="main">Main Table</SelectItem>
-              {indexes.map((idx) => (
-                <SelectItem key={idx.name} value={idx.name}>
-                  <span className="flex items-center gap-2">
-                    <span>{idx.name}</span>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      ({idx.index})
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <section className="rounded-lg border bg-muted/30 p-3 space-y-2">
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Query Target
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => handleTargetChange('main')}
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                ${queryTarget === 'main'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background border hover:bg-accent'
+                }
+              `}
+            >
+              <Database className="h-4 w-4" />
+              Main Table
+            </button>
+            {indexes.map((idx) => (
+              <button
+                key={idx.name}
+                type="button"
+                onClick={() => handleTargetChange(idx.name)}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${queryTarget === idx.name
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background border hover:bg-accent'
+                  }
+                `}
+              >
+                <Layers className="h-4 w-4" />
+                <span>{idx.name}</span>
+                <span className={`text-xs font-mono ${queryTarget === idx.name ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                  {idx.index}
+                </span>
+              </button>
+            ))}
+          </div>
         </section>
       )}
 

@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMetadataContext } from '@/context';
@@ -12,27 +14,40 @@ export interface Selection {
   name: string;
 }
 
-interface SidebarProps {
-  selection: Selection | null;
-  onSelect: (selection: Selection | null) => void;
-  activeTab: SelectionType;
-  onTabChange: (tab: SelectionType) => void;
+function parseSelection(pathname: string): Selection | null {
+  const match = pathname.match(/^\/(entity|collection|partition)\/(.+)$/);
+  if (!match) return null;
+  return { type: match[1] as SelectionType, name: decodeURIComponent(match[2]) };
 }
 
-export function Sidebar({ selection, onSelect, activeTab, onTabChange }: SidebarProps) {
+export function Sidebar() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { table, collections } = useMetadataContext();
   const hasCollections = collections.length > 0;
 
+  const selection = parseSelection(location.pathname);
+
+  // Local state for tab - syncs when selection changes
+  const [activeTab, setActiveTab] = useState<SelectionType>('entity');
+
+  // Sync tab with selection when navigating to an item
+  useEffect(() => {
+    if (selection) {
+      setActiveTab(selection.type);
+    }
+  }, [selection?.type]);
+
   const handleEntitySelect = (name: string) => {
-    onSelect({ type: 'entity', name });
+    navigate(`/entity/${encodeURIComponent(name)}`);
   };
 
   const handleCollectionSelect = (name: string) => {
-    onSelect({ type: 'collection', name });
+    navigate(`/collection/${encodeURIComponent(name)}`);
   };
 
   const handlePartitionSelect = (name: string) => {
-    onSelect({ type: 'partition', name });
+    navigate(`/partition/${encodeURIComponent(name)}`);
   };
 
   return (
@@ -51,7 +66,7 @@ export function Sidebar({ selection, onSelect, activeTab, onTabChange }: Sidebar
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(v) => onTabChange(v as SelectionType)}
+        onValueChange={(v) => setActiveTab(v as SelectionType)}
         className="flex-1 flex flex-col"
       >
         <TabsList className="mx-2 mt-2 grid grid-cols-3">

@@ -23,7 +23,7 @@ export function OperationTabs({ tabs, defaultTab, children }: OperationTabsProps
 
 export function OperationTabsList({ tabs }: { tabs: OperationTab[] }) {
   return (
-    <TabsList className="h-8 p-1 bg-muted/50 rounded-lg">
+    <TabsList className="h-8 p-1 bg-muted/50 rounded-lg justify-start">
       {tabs
         .filter((t) => !t.hide)
         .map((tab) => (

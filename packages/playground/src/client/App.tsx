@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useMetadataContext } from '@/context';
-import { Sidebar, type Selection, type SelectionType } from '@/components/sidebar';
+import { Sidebar } from '@/components/sidebar';
 import {
   EntityOperations,
   CollectionOperations,
@@ -11,18 +11,6 @@ import {
 
 export function App() {
   const { isLoading, error } = useMetadataContext();
-  const [selection, setSelection] = useState<Selection | null>(null);
-  const [activeTab, setActiveTab] = useState<SelectionType>('entity');
-
-  const handleTabChange = (tab: SelectionType) => {
-    setActiveTab(tab);
-    setSelection(null);
-  };
-
-  const handleSelectEntity = (entityType: string) => {
-    setActiveTab('entity');
-    setSelection({ type: 'entity', name: entityType });
-  };
 
   if (error) {
     return (
@@ -36,66 +24,76 @@ export function App() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar
-        selection={selection}
-        onSelect={setSelection}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
+      <Sidebar />
 
       <main className="flex-1 overflow-auto p-6">
-        <OperationsPanel selection={selection} onSelectEntity={handleSelectEntity} />
+        <Routes>
+          <Route path="/" element={<EmptyState />} />
+          <Route path="/entity/:name" element={<EntityRoute />} />
+          <Route path="/collection/:name" element={<CollectionRoute />} />
+          <Route path="/partition/:name" element={<PartitionRoute />} />
+        </Routes>
       </main>
     </div>
   );
 }
 
-interface OperationsPanelProps {
-  selection: Selection | null;
-  onSelectEntity: (entityType: string) => void;
+function EntityRoute() {
+  const { name } = useParams<{ name: string }>();
+  const { getEntity } = useMetadataContext();
+
+  if (!name) return <EmptyState />;
+
+  const entity = getEntity(name);
+  if (!entity) return <EmptyState />;
+
+  return <EntityOperations key={entity.type} entityType={entity.type} />;
 }
 
-function OperationsPanel({ selection, onSelectEntity }: OperationsPanelProps) {
-  const { getEntity, getCollection, getPartitionGroup } = useMetadataContext();
+function CollectionRoute() {
+  const { name } = useParams<{ name: string }>();
+  const navigate = useNavigate();
+  const { getCollection } = useMetadataContext();
 
-  if (!selection) {
-    return <EmptyState />;
-  }
+  if (!name) return <EmptyState />;
 
-  switch (selection.type) {
-    case 'entity': {
-      const entity = getEntity(selection.name);
-      if (!entity) return <EmptyState />;
-      return <EntityOperations key={entity.type} entityType={entity.type} />;
-    }
+  const collection = getCollection(name);
+  if (!collection) return <EmptyState />;
 
-    case 'collection': {
-      const collection = getCollection(selection.name);
-      if (!collection) return <EmptyState />;
-      return (
-        <CollectionOperations
-          key={collection.name}
-          collectionName={collection.name}
-          onSelectEntity={onSelectEntity}
-        />
-      );
-    }
+  const handleSelectEntity = (entityType: string) => {
+    navigate(`/entity/${entityType}`);
+  };
 
-    case 'partition': {
-      const partition = getPartitionGroup(selection.name);
-      if (!partition) return <EmptyState />;
-      return (
-        <PartitionOperations
-          key={partition.id}
-          partitionId={partition.id}
-          onSelectEntity={onSelectEntity}
-        />
-      );
-    }
+  return (
+    <CollectionOperations
+      key={collection.name}
+      collectionName={collection.name}
+      onSelectEntity={handleSelectEntity}
+    />
+  );
+}
 
-    default:
-      return <EmptyState />;
-  }
+function PartitionRoute() {
+  const { name } = useParams<{ name: string }>();
+  const navigate = useNavigate();
+  const { getPartitionGroup } = useMetadataContext();
+
+  if (!name) return <EmptyState />;
+
+  const partition = getPartitionGroup(name);
+  if (!partition) return <EmptyState />;
+
+  const handleSelectEntity = (entityType: string) => {
+    navigate(`/entity/${entityType}`);
+  };
+
+  return (
+    <PartitionOperations
+      key={partition.id}
+      partitionId={partition.id}
+      onSelectEntity={handleSelectEntity}
+    />
+  );
 }
 
 function LoadingScreen() {

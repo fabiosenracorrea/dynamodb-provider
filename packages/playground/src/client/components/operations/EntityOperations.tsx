@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronDown, Key, Database, Search, Layers } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Key, Database, Search, Layers, Users } from 'lucide-react';
 import {
   CardContent,
   CardDescription,
@@ -7,11 +7,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   Tooltip,
   TooltipContent,
@@ -163,7 +158,7 @@ function SchemaTab({ entity }: SchemaTabProps) {
           Primary Key Structure
         </h4>
         <div className="grid gap-2 pl-6">
-          <KeyDisplay label="Partition Key" pieces={entity.partitionKey} />
+          <KeyDisplay label="Partition Key" pieces={entity.partitionKey} source="TABLE" isPartitionKey />
           <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
         </div>
       </div>
@@ -189,16 +184,40 @@ function SchemaTab({ entity }: SchemaTabProps) {
   );
 }
 
+function buildPattern(pieces: KeyPiece[]): string {
+  return pieces
+    .map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}'))
+    .join('#');
+}
+
+interface KeyDisplayProps {
+  label: string;
+  pieces: KeyPiece[];
+  compact?: boolean;
+  source?: string; // 'TABLE' or index name - only for partition keys
+  isPartitionKey?: boolean;
+}
+
 function KeyDisplay({
   label,
   pieces,
   compact = false,
-}: {
-  label: string;
-  pieces: KeyPiece[];
-  compact?: boolean;
-}) {
-  const { table } = useMetadataContext();
+  source,
+  isPartitionKey = false,
+}: KeyDisplayProps) {
+  const navigate = useNavigate();
+  const { table, getPartitionGroup } = useMetadataContext();
+
+  // Look up partition group if this is a partition key
+  const partitionGroup = isPartitionKey && source
+    ? getPartitionGroup(`${source}|${buildPattern(pieces)}`)
+    : undefined;
+
+  const handlePartitionClick = () => {
+    if (partitionGroup) {
+      navigate(`/partition/${encodeURIComponent(partitionGroup.id)}`);
+    }
+  };
 
   return (
     <div className={`flex items-center gap-2 ${compact ? 'text-xs' : 'text-sm'}`}>
@@ -238,6 +257,31 @@ function KeyDisplay({
           </TooltipProvider>
         ))}
       </div>
+      {partitionGroup && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handlePartitionClick}
+                className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Users className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+                <span className={compact ? 'text-[10px]' : 'text-xs'}>
+                  {partitionGroup.entities.length}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="font-medium mb-1">
+                {partitionGroup.entities.length} entities share this partition
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {partitionGroup.entities.join(', ')}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
@@ -271,7 +315,7 @@ function IndexesSection({ indexes }: { indexes: IndexInfo[] }) {
               </Badge>
             </div>
             <div className="grid gap-2">
-              <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact />
+              <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact source={index.index} isPartitionKey />
               <KeyDisplay label="Range Key" pieces={index.rangeKey} compact />
             </div>
             {index.rangeQueries.length > 0 && (
