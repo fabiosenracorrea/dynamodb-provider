@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useMetadataContext } from '@/context';

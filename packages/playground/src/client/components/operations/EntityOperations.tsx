@@ -158,7 +158,12 @@ function SchemaTab({ entity }: SchemaTabProps) {
           Primary Key Structure
         </h4>
         <div className="grid gap-2 pl-6">
-          <KeyDisplay label="Partition Key" pieces={entity.partitionKey} source="TABLE" isPartitionKey />
+          <KeyDisplay
+            label="Partition Key"
+            pieces={entity.partitionKey}
+            source="TABLE"
+            isPartitionKey
+          />
           <KeyDisplay label="Range Key" pieces={entity.rangeKey} />
         </div>
       </div>
@@ -209,9 +214,10 @@ function KeyDisplay({
   const { table, getPartitionGroup } = useMetadataContext();
 
   // Look up partition group if this is a partition key
-  const partitionGroup = isPartitionKey && source
-    ? getPartitionGroup(`${source}|${buildPattern(pieces)}`)
-    : undefined;
+  const partitionGroup =
+    isPartitionKey && source
+      ? getPartitionGroup(`${source}|${buildPattern(pieces)}`)
+      : undefined;
 
   const handlePartitionClick = () => {
     if (partitionGroup) {
@@ -315,7 +321,13 @@ function IndexesSection({ indexes }: { indexes: IndexInfo[] }) {
               </Badge>
             </div>
             <div className="grid gap-2">
-              <KeyDisplay label="Partition Key" pieces={index.partitionKey} compact source={index.index} isPartitionKey />
+              <KeyDisplay
+                label="Partition Key"
+                pieces={index.partitionKey}
+                compact
+                source={index.index}
+                isPartitionKey
+              />
               <KeyDisplay label="Range Key" pieces={index.rangeKey} compact />
             </div>
             {index.rangeQueries.length > 0 && (

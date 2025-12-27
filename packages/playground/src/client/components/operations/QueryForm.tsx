@@ -224,9 +224,10 @@ export function QueryForm({
               onClick={() => handleTargetChange('main')}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                ${queryTarget === 'main'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background border hover:bg-accent'
+                ${
+                  queryTarget === 'main'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background border hover:bg-accent'
                 }
               `}
             >
@@ -240,15 +241,22 @@ export function QueryForm({
                 onClick={() => handleTargetChange(idx.name)}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                  ${queryTarget === idx.name
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-background border hover:bg-accent'
+                  ${
+                    queryTarget === idx.name
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background border hover:bg-accent'
                   }
                 `}
               >
                 <Layers className="h-4 w-4" />
                 <span>{idx.name}</span>
-                <span className={`text-xs font-mono ${queryTarget === idx.name ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                <span
+                  className={`text-xs font-mono ${
+                    queryTarget === idx.name
+                      ? 'text-primary-foreground/70'
+                      : 'text-muted-foreground'
+                  }`}
+                >
                   {idx.index}
                 </span>
               </button>

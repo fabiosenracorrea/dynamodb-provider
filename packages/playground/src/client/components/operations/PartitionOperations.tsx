@@ -247,20 +247,17 @@ export function PartitionOperations({
 
       {/* Query Card */}
       <Card>
-        <CardHeader className="py-3">
+        <div className="p-6 flex items-center gap-3">
           <CardTitle className="text-base">Query Partition</CardTitle>
-        </CardHeader>
+          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+            {partitionKeyPieces
+              .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
+              .join(' | ')}
+          </span>
+        </div>
         <CardContent className="space-y-6">
           {/* Partition Key */}
           <section className="space-y-3">
-            <h4 className="text-sm font-medium flex items-center gap-2">
-              Partition Key
-              <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
-                {partitionKeyPieces
-                  .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
-                  .join(' | ')}
-              </span>
-            </h4>
             {partitionVars.length === 0 ? (
               <p className="text-sm text-muted-foreground italic pl-1">
                 No parameters required - partition key uses only constant values
