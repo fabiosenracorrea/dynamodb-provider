@@ -27,6 +27,7 @@ import { useCollection, useMetadataContext } from '@/context';
 import { useExecute } from '@/utils/hooks';
 import { GetResultView } from './GetResultView';
 import type { KeyPiece } from '@/types';
+import { ListResultView } from './ListResultView';
 
 interface CollectionOperationsProps {
   collectionName: string;
@@ -228,7 +229,12 @@ export function CollectionOperations({
           {(result !== null || error) && (
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-2">Result</h4>
-              <GetResultView data={result} error={error ?? undefined} />
+
+              {Array.isArray(result) ? (
+                <ListResultView data={result} error={error ?? undefined} />
+              ) : (
+                <GetResultView data={result} error={error ?? undefined} />
+              )}
             </div>
           )}
         </CardContent>
