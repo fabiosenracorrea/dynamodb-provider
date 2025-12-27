@@ -72,9 +72,7 @@ export function ItemDetailView({
           </Button>
         </div>
         <ScrollArea style={{ maxHeight }}>
-          <pre className="json-view text-xs">
-            {JSON.stringify(item, null, 2)}
-          </pre>
+          <pre className="json-view text-xs">{JSON.stringify(item, null, 2)}</pre>
         </ScrollArea>
       </div>
     </div>
