@@ -420,7 +420,11 @@ export function QueryForm({
       {(result !== null || error) && (
         <div className="pt-4 border-t">
           <h4 className="text-sm font-medium mb-2">Result</h4>
-          <ListResultView data={result} error={error ?? undefined} />
+          <ListResultView
+            data={result}
+            error={error ?? undefined}
+            entityType={target === 'entity' ? name : undefined}
+          />
         </div>
       )}
     </div>

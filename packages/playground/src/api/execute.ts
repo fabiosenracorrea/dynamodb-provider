@@ -123,6 +123,30 @@ async function executeEntityOperation(
       return { success: true, data: result };
     }
 
+    case 'batchGet': {
+      const keys = params.keys as Record<string, unknown>[];
+      if (!keys || !Array.isArray(keys)) {
+        return { success: false, error: 'batchGet requires a keys array' };
+      }
+
+      if (USE_MOCK_DATA) {
+        // Return mock items for each key, with some randomly missing
+        const results = keys.map((_, idx) => {
+          const found = Math.random() > 0.2;
+          return found ? generateMockItem(idx) : null;
+        }).filter(Boolean);
+        return { success: true, data: results };
+      }
+
+      // Fetch all items in parallel
+      const results = await Promise.all(
+        keys.map((key) => schema.get(key).catch(() => null)),
+      );
+      // Filter out nulls (not found items)
+      const items = results.filter((item) => item !== null);
+      return { success: true, data: items };
+    }
+
     case 'create': {
       if (USE_MOCK_DATA) {
         return { success: true, data: { ...generateMockItem(0), ...params } };
@@ -214,7 +238,7 @@ async function executeCollectionOperation(
 
   switch (operation) {
     case 'get': {
-      const result = await (schema.get as (params: unknown) => Promise<unknown>)(params);
+      const result = await (schema.get as (_: unknown) => Promise<unknown>)(params);
       return { success: true, data: result };
     }
 

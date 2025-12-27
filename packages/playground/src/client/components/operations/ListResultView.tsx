@@ -1,12 +1,5 @@
 import { useState, useMemo } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Copy,
-  Check,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -15,27 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ItemDetailView } from './ItemDetailView';
 
 interface ListResultViewProps {
   data: unknown;
   error?: string | null;
+  entityType?: string;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
-export function ListResultView({ data, error }: ListResultViewProps) {
+export function ListResultView({ data, error, entityType }: ListResultViewProps) {
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedItem, setSelectedItem] = useState<Record<string, unknown> | null>(null);
-  const [copied, setCopied] = useState(false);
 
   // Extract items array from data
   const items = useMemo(() => {
@@ -67,13 +54,6 @@ export function ListResultView({ data, error }: ListResultViewProps) {
   const handlePageSizeChange = (value: string) => {
     setPageSize(Number(value));
     setCurrentPage(0);
-  };
-
-  const handleCopy = async () => {
-    if (!selectedItem) return;
-    await navigator.clipboard.writeText(JSON.stringify(selectedItem, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (error) {
@@ -211,31 +191,16 @@ export function ListResultView({ data, error }: ListResultViewProps) {
         <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Item Details</SheetTitle>
-            <SheetDescription>
-              Full JSON representation of the selected item
-            </SheetDescription>
           </SheetHeader>
-          <div className="mt-4 relative">
-            <div className="absolute top-2 right-2 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleCopy}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
+          {selectedItem && (
+            <div className="mt-4">
+              <ItemDetailView
+                item={selectedItem}
+                entityType={entityType}
+                maxHeight="calc(100vh - 150px)"
+              />
             </div>
-            <ScrollArea className="h-[calc(100vh-150px)]">
-              <pre className="json-view text-xs">
-                {selectedItem ? JSON.stringify(selectedItem, null, 2) : ''}
-              </pre>
-            </ScrollArea>
-          </div>
+          )}
         </SheetContent>
       </Sheet>
     </>

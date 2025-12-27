@@ -2,6 +2,7 @@ import type { Plugin, Connect } from 'vite';
 import type { PlaygroundConfig, ExecuteRequest } from './types.js';
 import { extractMetadata } from './api/metadata.js';
 import { executeOperation } from './api/execute.js';
+import { resolveKeys, type ResolveKeysRequest } from './api/resolve-keys.js';
 
 function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -43,6 +44,15 @@ function apiMiddleware(
         const body = await parseBody(req);
         const request = body as ExecuteRequest;
         const result = await executeOperation(config, request);
+        res.end(JSON.stringify(result));
+        return;
+      }
+
+      // POST /api/resolve-keys
+      if (req.url === '/api/resolve-keys' && req.method === 'POST') {
+        const body = await parseBody(req);
+        const request = body as ResolveKeysRequest;
+        const result = resolveKeys(config, request);
         res.end(JSON.stringify(result));
         return;
       }
