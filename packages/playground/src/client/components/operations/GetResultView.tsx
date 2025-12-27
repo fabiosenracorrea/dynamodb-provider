@@ -28,9 +28,6 @@ export function GetResultView({ data, error, entityType }: GetResultViewProps) {
   }
 
   return (
-    <ItemDetailView
-      item={data as Record<string, unknown>}
-      entityType={entityType}
-    />
+    <ItemDetailView item={data as Record<string, unknown>} entityType={entityType} />
   );
 }

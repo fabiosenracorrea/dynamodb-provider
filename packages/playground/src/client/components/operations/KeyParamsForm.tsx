@@ -129,8 +129,11 @@ export function KeyParamsForm({
         onClick={handleExecute}
         disabled={mutation.isPending || !isValid}
       >
-        {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {buttonLabel}
+        {mutation.isPending ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          buttonLabel
+        )}
       </Button>
 
       {(result !== null || error) && (
