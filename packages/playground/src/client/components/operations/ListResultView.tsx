@@ -188,7 +188,10 @@ export function ListResultView({ data, error, entityType }: ListResultViewProps)
         open={selectedItem !== null}
         onOpenChange={(open) => !open && setSelectedItem(null)}
       >
-        <SheetContent className="sm:max-w-lg">
+        <SheetContent
+          className="sm:max-w-3xl w-full"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <SheetHeader>
             <SheetTitle>Item Details</SheetTitle>
           </SheetHeader>
