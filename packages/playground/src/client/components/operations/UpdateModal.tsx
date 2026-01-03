@@ -341,7 +341,7 @@ function ValuesSection({
                   value={row.value}
                   onChange={(e) => updateRow(row.id, { value: e.target.value })}
                   placeholder='JSON value: "text", 123, true, {...}'
-                  className={`font-mono min-h-[36px] h-9 py-2 resize-y ${
+                  className={`font-mono min-h-[40px] h-9 py-2 resize-y ${
                     row.jsonError ? 'border-destructive' : ''
                   }`}
                 />
@@ -1009,7 +1009,7 @@ export function UpdateModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
