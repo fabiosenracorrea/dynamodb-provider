@@ -27,7 +27,7 @@ export function ListForm({ target, name }: ListFormProps) {
   const mutation = useExecute();
 
   const handleExecute = () => {
-    const params: Record<string, unknown> = {
+    const params = {
       ...omit(queryConfig, ['range']),
       limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       filters: buildFiltersParam(queryConfig.filters),
