@@ -72,6 +72,8 @@ function ChangeIcon({ type }: { type: Change['type'] }) {
       return <Minus className="h-3.5 w-3.5 text-red-500" />;
     case 'modified':
       return <RefreshCw className="h-3.5 w-3.5 text-amber-500" />;
+    default:
+      return null;
   }
 }
 

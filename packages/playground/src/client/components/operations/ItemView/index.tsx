@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, Check, Pencil, Save, X, AlertCircle } from 'lucide-react';
+import { Pencil, Save, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,10 +13,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useExecute } from '@/utils/hooks';
 
 import { ItemViewProvider } from './_context';
-import { SaveChangesDialog } from '../SaveChangesDialog';
+import { SaveChangesDialog } from './SaveChangesDialog';
 import { ItemKey } from './ItemKey';
 import { DeleteItemButton } from './DeleteItemButton';
 import { UpdateItemButton } from './UpdateItemButton';
+import { CopyButton } from './CopyButton';
 
 interface ItemDetailViewProps {
   item: Record<string, unknown>;
@@ -33,7 +34,6 @@ export function ItemDetailView({
   onItemDeleted,
   onItemUpdated,
 }: ItemDetailViewProps) {
-  const [copied, setCopied] = useState(false);
   const [saveChangesDialogOpen, setSaveChangesDialogOpen] = useState(false);
 
   // Editing state
@@ -66,12 +66,6 @@ export function ItemDetailView({
       return null;
     }
   }, [editedJson]);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(formattedJson);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleStartEditing = () => {
     setEditedJson(formattedJson);
@@ -162,7 +156,7 @@ export function ItemDetailView({
   return (
     <ItemViewProvider
       item={item}
-      entityType={entityType}
+      entityType={entityType!}
       onItemDeleted={onItemDeleted}
       onItemUpdated={onItemUpdated}
     >
@@ -192,25 +186,7 @@ export function ItemDetailView({
             {entityType && (
               <div className="flex flex-col gap-1 shrink-0">
                 {/* Copy Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={handleCopy}
-                    >
-                      {copied ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    <p>Copy JSON</p>
-                  </TooltipContent>
-                </Tooltip>
+                <CopyButton />
 
                 {/* Edit JSON Button */}
                 {!isEditing ? (
@@ -303,18 +279,7 @@ export function ItemDetailView({
             {/* Copy button for non-entity view (no side actions) */}
             {!entityType && (
               <div className="absolute top-2 right-2 z-10">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={handleCopy}
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+                <CopyButton variant="ghost" showTooltip={false} />
               </div>
             )}
           </div>
