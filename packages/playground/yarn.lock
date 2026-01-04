@@ -1210,10 +1210,10 @@ dlv@^1.1.3:
   resolved "https://registry.yarnpkg.com/dlv/-/dlv-1.1.3.tgz#5c198a8a11453596e751494d49874bc7732f2e79"
   integrity sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==
 
-dynamodb-provider@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/dynamodb-provider/-/dynamodb-provider-3.1.1.tgz#268f8c28b770e110bf7e2a2c4f2fe82dced567c8"
-  integrity sha512-W1LL03MBTbsB+dZjtrzFO/HAiBcnZy3trRPG4vRTgkexi24VisCSXfO5ppatcSfQ0Fg6osKB2Ntg2H6/km4mMg==
+dynamodb-provider@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/dynamodb-provider/-/dynamodb-provider-3.1.2.tgz#f089271aee5b99aea5bd84bf5aa66d651858f6cd"
+  integrity sha512-qhvQVC9k3Sk+HDaSm9XPHD13ly37/CydAyx8Nmlm8PLjYRnUsEpPzqIZzzy89YukZbWdaUrMUrrodcf925GNzw==
   dependencies:
     ksuid "^3.0.0"
 
