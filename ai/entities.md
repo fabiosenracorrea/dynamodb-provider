@@ -1,6 +1,6 @@
-# dynamodb-provider
+# dynamodb-provider - SCHEMA:entities
 
-Type-safe DynamoDB single-table design library with zero dependencies.
+Single table entity definition/usage
 
 ## Setup
 
