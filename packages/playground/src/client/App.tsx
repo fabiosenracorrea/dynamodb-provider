@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useMetadataContext } from '@/context';
 import { Sidebar } from '@/components/sidebar';
 import {
-  EntityOperations,
+  EntityView,
   PartitionOperations,
   EmptyState,
   CollectionView,
@@ -48,7 +48,7 @@ function EntityRoute() {
   const entity = getEntity(name);
   if (!entity) return <EmptyState />;
 
-  return <EntityOperations key={entity.type} entityType={entity.type} />;
+  return <EntityView key={entity.type} entityType={entity.type} />;
 }
 
 function CollectionRoute() {
