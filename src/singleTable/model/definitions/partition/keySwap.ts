@@ -167,17 +167,25 @@ function swapKeys<
 >(originalGetter: Getter, swapParams: SwapRef): SwapParams<Getter, any, SwapRef> {
   // Overwrites any swap key received, keeping original intact
 
-  const getter = (receivedParams: any = {}): KeyValue =>
-    originalGetter({
-      ...receivedParams,
+  const getter = (receivedParams: any = {}): KeyValue => {
+    const mapped = Object.fromEntries(
+      Object.entries(swapParams).map(([partitionKey, entityKey]) => [
+        partitionKey,
+        receivedParams[entityKey as keyof typeof receivedParams],
+      ]),
+    );
 
-      ...Object.fromEntries(
-        Object.entries(swapParams).map(([partitionKey, entityKey]) => [
-          partitionKey,
-          receivedParams[entityKey as keyof typeof receivedParams],
-        ]),
-      ),
-    });
+    /**
+     * IMPORTANT: We do like this and not by spreading
+     * to ensure our playground proxy is still active on
+     * the both calls (the swap on `mapped` above and on the original getter bellow)
+     *
+     * This is vital for a better key inference
+     */
+    const params = Object.assign(receivedParams, mapped);
+
+    return originalGetter(params);
+  };
 
   return getter as any;
 }
