@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, Check, Pencil, Save, X, Wrench, AlertCircle } from 'lucide-react';
+import { Copy, Check, Pencil, Save, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,11 +12,11 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useExecute } from '@/utils/hooks';
 
-import { UpdateModal, type UpdateParams } from '../UpdateModal';
+import { ItemViewProvider } from './_context';
 import { SaveChangesDialog } from '../SaveChangesDialog';
 import { ItemKey } from './ItemKey';
-import { ItemViewProvider } from './_context';
 import { DeleteItemButton } from './DeleteItemButton';
+import { UpdateItemButton } from './UpdateItemButton';
 
 interface ItemDetailViewProps {
   item: Record<string, unknown>;
@@ -34,7 +34,6 @@ export function ItemDetailView({
   onItemUpdated,
 }: ItemDetailViewProps) {
   const [copied, setCopied] = useState(false);
-  const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [saveChangesDialogOpen, setSaveChangesDialogOpen] = useState(false);
 
   // Editing state
@@ -42,7 +41,6 @@ export function ItemDetailView({
   const [editedJson, setEditedJson] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
 
-  const updateMutation = useExecute();
   const directUpdateMutation = useExecute();
 
   // Format the item JSON
@@ -161,32 +159,6 @@ export function ItemDetailView({
     }
   };
 
-  const handleUpdate = async (updateParams: UpdateParams) => {
-    if (!entityType) return;
-
-    try {
-      const result = await updateMutation.mutateAsync({
-        target: 'entity',
-        name: entityType,
-        operation: 'update',
-        params: {
-          ...item,
-          ...updateParams,
-          returnUpdatedProperties: true,
-        },
-      });
-
-      if (result.success) {
-        setUpdateModalOpen(false);
-        if (result.data && typeof result.data === 'object') {
-          onItemUpdated?.(result.data as Record<string, unknown>);
-        }
-      }
-    } catch (error) {
-      console.error('Update failed:', error);
-    }
-  };
-
   return (
     <ItemViewProvider
       item={item}
@@ -294,22 +266,7 @@ export function ItemDetailView({
                 )}
 
                 {/* Update Modal Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setUpdateModalOpen(true)}
-                      disabled={isEditing}
-                    >
-                      <Wrench className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    <p>Update builder</p>
-                  </TooltipContent>
-                </Tooltip>
+                <UpdateItemButton disabled={isEditing} />
 
                 {/* Spacer */}
                 <div className="flex-1" />
@@ -361,18 +318,6 @@ export function ItemDetailView({
               </div>
             )}
           </div>
-
-          {/* Update Modal */}
-          {entityType && (
-            <UpdateModal
-              open={updateModalOpen}
-              onOpenChange={setUpdateModalOpen}
-              item={item}
-              entityType={entityType}
-              onSubmit={handleUpdate}
-              isLoading={updateMutation.isPending}
-            />
-          )}
 
           {/* Save Changes Dialog */}
           {entityType && parsedEditedItem && (
