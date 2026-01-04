@@ -5,9 +5,9 @@ import { useMetadataContext } from '@/context';
 import { Sidebar } from '@/components/sidebar';
 import {
   EntityOperations,
-  CollectionOperations,
   PartitionOperations,
   EmptyState,
+  CollectionView,
 } from '@/components/operations';
 
 export function App() {
@@ -66,7 +66,7 @@ function CollectionRoute() {
   };
 
   return (
-    <CollectionOperations
+    <CollectionView
       key={collection.name}
       collectionName={collection.name}
       onSelectEntity={handleSelectEntity}

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronDown, Layers, Key, Link2, ArrowRight, Loader2 } from 'lucide-react';
+import { ChevronDown, Layers, Key, Link2, ArrowRight } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -8,38 +8,31 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useCollection, useMetadataContext } from '@/context';
 import { useExecute } from '@/utils/hooks';
-import { GetResultView } from './GetResultView';
-import type { KeyPiece } from '@/types';
-import { ListResultView } from './ListResultView';
+
+import { CollectionLoading } from './LoadingCollection';
+import { CollectionPartition } from './CollectionPartition';
+import { EntityLink } from './EntityLink';
+import { GetCollection } from './GetCollection';
 
 interface CollectionOperationsProps {
   collectionName: string;
   onSelectEntity?: (entityType: string) => void;
 }
 
-export function CollectionOperations({
+export function CollectionView({
   collectionName,
   onSelectEntity,
 }: CollectionOperationsProps) {
   const collection = useCollection(collectionName);
-  const { getEntity, table } = useMetadataContext();
+  const { getEntity } = useMetadataContext();
   const [showMetadata, setShowMetadata] = useState(true);
 
   // Form state
@@ -66,7 +59,7 @@ export function CollectionOperations({
   }, [collection]);
 
   if (!collection) {
-    return <CollectionOperationsSkeleton />;
+    return <CollectionLoading />;
   }
 
   const originEntity = collection.originEntityType
@@ -154,7 +147,7 @@ export function CollectionOperations({
               <div className="space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <Key className="h-4 w-4" />
-                  <KeyDisplay pieces={collection.partitionKey} table={table} />
+                  <CollectionPartition pieces={collection.partitionKey} />
                 </h4>
               </div>
 
@@ -188,125 +181,8 @@ export function CollectionOperations({
       </Collapsible>
 
       {/* Get Collection Form */}
-      <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-base">Get Collection</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {variables.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">
-              No parameters required - partition key uses only constant values
-            </p>
-          ) : (
-            <div className="grid gap-3">
-              {variables.map((variable) => (
-                <div key={variable.name}>
-                  <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
-                    <span>{variable.name}</span>
-                    {variable.numeric && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        (numeric)
-                      </span>
-                    )}
-                  </label>
-                  <Input
-                    type={variable.numeric ? 'number' : 'text'}
-                    value={values[variable.name] ?? ''}
-                    onChange={(e) => handleChange(variable.name, e.target.value)}
-                    placeholder={`Enter ${variable.name}...`}
-                    className="font-mono"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Get Collection
-          </Button>
-
-          {(result !== null || error) && (
-            <div className="pt-4 border-t">
-              <h4 className="text-sm font-medium mb-2">Result</h4>
-
-              {Array.isArray(result) ? (
-                <ListResultView data={result} error={error ?? undefined} />
-              ) : (
-                <GetResultView data={result} error={error ?? undefined} />
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <GetCollection collectionName={collectionName} />
     </div>
-  );
-}
-
-function KeyDisplay({
-  pieces,
-  table,
-}: {
-  pieces: KeyPiece[];
-  table: { keySeparator?: string } | null;
-}) {
-  return (
-    <div className="flex items-center gap-1 font-mono text-sm bg-muted/50 rounded px-2 py-1 w-fit">
-      {pieces.map((piece, idx) => (
-        <TooltipProvider key={idx}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex items-center gap-0.5">
-                {idx > 0 && (
-                  <span className="text-muted-foreground mx-0.5">
-                    {table?.keySeparator ?? '#'}
-                  </span>
-                )}
-                {piece.type === 'CONSTANT' ? (
-                  <span className="text-amber-600 dark:text-amber-400">
-                    {piece.value}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
-                    {piece.value}
-                    {piece.numeric && (
-                      <span className="text-[10px] text-muted-foreground">(n)</span>
-                    )}
-                  </span>
-                )}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {piece.type === 'CONSTANT' ? 'Constant value' : 'Dynamic variable'}
-                {piece.numeric && ' (numeric)'}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ))}
-    </div>
-  );
-}
-
-function EntityLink({
-  entity,
-  onClick,
-}: {
-  entity: { name: string; type: string };
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center justify-between p-2 rounded-md border hover:bg-accent transition-colors text-left group w-full max-w-sm"
-    >
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{entity.name}</span>
-        <span className="text-xs text-muted-foreground font-mono">{entity.type}</span>
-      </div>
-      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-    </button>
   );
 }
 
@@ -358,64 +234,5 @@ function JoinsSection({
         </div>
       </CollapsibleContent>
     </Collapsible>
-  );
-}
-
-function CollectionOperationsSkeleton() {
-  return (
-    <div className="space-y-4">
-      {/* Metadata Card Skeleton */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-lg" />
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-40" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-14 rounded-full" />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0 space-y-4">
-          <Separator />
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-4 w-4" />
-              <Skeleton className="h-6 w-48 rounded" />
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-4 w-4" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <div className="pl-6">
-              <Skeleton className="h-10 w-full max-w-sm rounded-md" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Get Collection Form Skeleton */}
-      <Card>
-        <CardHeader className="py-3">
-          <Skeleton className="h-5 w-28" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3">
-            <div>
-              <Skeleton className="h-4 w-20 mb-1.5" />
-              <Skeleton className="h-10 w-full rounded-md" />
-            </div>
-          </div>
-          <Skeleton className="h-10 w-32 rounded-md" />
-        </CardContent>
-      </Card>
-    </div>
   );
 }
