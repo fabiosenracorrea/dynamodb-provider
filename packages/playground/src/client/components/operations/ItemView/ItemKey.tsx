@@ -1,13 +1,11 @@
 import { Key } from 'lucide-react';
 import { useResolveEntityKeys } from '@/utils/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useItemContext } from './_context';
 
-interface ItemKeyProps {
-  item: Record<string, unknown>;
-  entityType: string;
-}
+export function ItemKey() {
+  const { item, entityType } = useItemContext();
 
-export function ItemKey({ item, entityType }: ItemKeyProps) {
   const [resolvedKeys, { isLoading: isLoadingKeys }] = useResolveEntityKeys(
     entityType,
     item,

@@ -10,24 +10,23 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useResolveEntityKeys } from '@/utils/hooks';
+import { useItemContext } from './_context';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: string;
   onConfirm: () => void;
   isLoading?: boolean;
-  item: Record<string, unknown>;
 }
 
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
-  entityType,
   onConfirm,
   isLoading,
-  item,
 }: DeleteConfirmDialogProps) {
+  const { entityType, item } = useItemContext();
+
   const [resolvedKeys] = useResolveEntityKeys(entityType, item);
 
   const { partitionKey, rangeKey } = resolvedKeys ?? {};

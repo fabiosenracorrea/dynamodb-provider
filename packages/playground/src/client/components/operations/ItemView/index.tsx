@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, Check, Trash2, Pencil, Save, X, Wrench, AlertCircle } from 'lucide-react';
+import { Copy, Check, Pencil, Save, X, Wrench, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useExecute } from '@/utils/hooks';
-import { DeleteConfirmDialog } from '../DeleteConfirmDialog';
+
 import { UpdateModal, type UpdateParams } from '../UpdateModal';
 import { SaveChangesDialog } from '../SaveChangesDialog';
 import { ItemKey } from './ItemKey';
+import { ItemViewProvider } from './_context';
+import { DeleteItemButton } from './DeleteItemButton';
 
 interface ItemDetailViewProps {
   item: Record<string, unknown>;
@@ -32,7 +34,6 @@ export function ItemDetailView({
   onItemUpdated,
 }: ItemDetailViewProps) {
   const [copied, setCopied] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [saveChangesDialogOpen, setSaveChangesDialogOpen] = useState(false);
 
@@ -41,7 +42,6 @@ export function ItemDetailView({
   const [editedJson, setEditedJson] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
 
-  const deleteMutation = useExecute();
   const updateMutation = useExecute();
   const directUpdateMutation = useExecute();
 
@@ -161,26 +161,6 @@ export function ItemDetailView({
     }
   };
 
-  const handleDelete = async () => {
-    if (!entityType) return;
-
-    try {
-      const result = await deleteMutation.mutateAsync({
-        target: 'entity',
-        name: entityType,
-        operation: 'delete',
-        params: item,
-      });
-
-      if (result.success) {
-        setDeleteDialogOpen(false);
-        onItemDeleted?.();
-      }
-    } catch (error) {
-      console.error('Delete failed:', error);
-    }
-  };
-
   const handleUpdate = async (updateParams: UpdateParams) => {
     if (!entityType) return;
 
@@ -208,223 +188,205 @@ export function ItemDetailView({
   };
 
   return (
-    <TooltipProvider>
-      <div className="space-y-4">
-        {/* Resolved Keys Section */}
-        <ItemKey item={item} entityType={entityType!} />
+    <ItemViewProvider
+      item={item}
+      entityType={entityType}
+      onItemDeleted={onItemDeleted}
+      onItemUpdated={onItemUpdated}
+    >
+      <TooltipProvider>
+        <div className="space-y-4">
+          {/* Resolved Keys Section */}
+          <ItemKey />
 
-        {/* SET Type Alert */}
-        {isEditing && (
-          <Alert
-            variant="default"
-            className="border-amber-500/50 flex items-center gap-2 bg-amber-500/10"
-          >
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-sm text-amber-900/90">
-              <strong>Note:</strong> SET data types (String Set, Number Set, Binary Set)
-              are not currently supported in the JSON editor. Only add/remove operations
-              are possible via update builder.
-            </AlertDescription>
-          </Alert>
-        )}
+          {/* SET Type Alert */}
+          {isEditing && (
+            <Alert
+              variant="default"
+              className="border-amber-500/50 flex items-center gap-2 bg-amber-500/10"
+            >
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-sm text-amber-900/90">
+                <strong>Note:</strong> SET data types (String Set, Number Set, Binary Set)
+                are not currently supported in the JSON editor. Only add/remove operations
+                are possible via update builder.
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {/* JSON View with Side Actions */}
-        <div className="flex gap-2">
-          {/* Side Action Buttons */}
-          {entityType && (
-            <div className="flex flex-col gap-1 shrink-0">
-              {/* Copy Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleCopy}
-                  >
-                    {copied ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Copy JSON</p>
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Edit JSON Button */}
-              {!isEditing ? (
+          {/* JSON View with Side Actions */}
+          <div className="flex gap-2">
+            {/* Side Action Buttons */}
+            {entityType && (
+              <div className="flex flex-col gap-1 shrink-0">
+                {/* Copy Button */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={handleStartEditing}
+                      onClick={handleCopy}
                     >
-                      <Pencil className="h-4 w-4" />
+                      {copied ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">
-                    <p>Edit JSON directly</p>
+                    <p>Copy JSON</p>
                   </TooltipContent>
                 </Tooltip>
-              ) : (
-                <>
+
+                {/* Edit JSON Button */}
+                {!isEditing ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 text-green-600 hover:text-green-600 hover:bg-green-500/10"
-                        onClick={handleSaveClick}
-                        disabled={!!jsonError || !parsedEditedItem}
+                        className="h-8 w-8"
+                        onClick={handleStartEditing}
                       >
-                        <Save className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="left">
-                      <p>Save changes</p>
+                      <p>Edit JSON directly</p>
                     </TooltipContent>
                   </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        onClick={handleCancelEditing}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left">
-                      <p>Cancel editing</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 text-green-600 hover:text-green-600 hover:bg-green-500/10"
+                          onClick={handleSaveClick}
+                          disabled={!!jsonError || !parsedEditedItem}
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Save changes</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={handleCancelEditing}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Cancel editing</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </>
+                )}
 
-              {/* Update Modal Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setUpdateModalOpen(true)}
-                    disabled={isEditing}
-                  >
-                    <Wrench className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Update builder</p>
-                </TooltipContent>
-              </Tooltip>
+                {/* Update Modal Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setUpdateModalOpen(true)}
+                      disabled={isEditing}
+                    >
+                      <Wrench className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    <p>Update builder</p>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* Spacer */}
-              <div className="flex-1" />
+                {/* Spacer */}
+                <div className="flex-1" />
 
-              {/* Delete Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    disabled={isEditing}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Delete item</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
-          {/* JSON View / Editor */}
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={editedJson}
-                  onChange={(e) => handleJsonChange(e.target.value)}
-                  className={`font-mono text-xs min-h-[300px] resize-y ${
-                    jsonError ? 'border-destructive focus-visible:ring-destructive' : ''
-                  }`}
-                  style={{ maxHeight }}
-                  placeholder="Enter valid JSON..."
-                />
-                {jsonError && <div className="text-xs text-destructive">{jsonError}</div>}
+                {/* Delete Button */}
+                <DeleteItemButton disabled={isEditing} />
               </div>
-            ) : (
-              <ScrollArea style={{ maxHeight }} className="border rounded-md">
-                <pre className="json-view text-xs p-3">{formattedJson}</pre>
-              </ScrollArea>
+            )}
+
+            {/* JSON View / Editor */}
+            <div className="flex-1 min-w-0">
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Textarea
+                    value={editedJson}
+                    onChange={(e) => handleJsonChange(e.target.value)}
+                    className={`font-mono text-xs min-h-[300px] resize-y ${
+                      jsonError ? 'border-destructive focus-visible:ring-destructive' : ''
+                    }`}
+                    style={{ maxHeight }}
+                    placeholder="Enter valid JSON..."
+                  />
+                  {jsonError && (
+                    <div className="text-xs text-destructive">{jsonError}</div>
+                  )}
+                </div>
+              ) : (
+                <ScrollArea style={{ maxHeight }} className="border rounded-md">
+                  <pre className="json-view text-xs p-3">{formattedJson}</pre>
+                </ScrollArea>
+              )}
+            </div>
+
+            {/* Copy button for non-entity view (no side actions) */}
+            {!entityType && (
+              <div className="absolute top-2 right-2 z-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleCopy}
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             )}
           </div>
 
-          {/* Copy button for non-entity view (no side actions) */}
-          {!entityType && (
-            <div className="absolute top-2 right-2 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleCopy}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+          {/* Update Modal */}
+          {entityType && (
+            <UpdateModal
+              open={updateModalOpen}
+              onOpenChange={setUpdateModalOpen}
+              item={item}
+              entityType={entityType}
+              onSubmit={handleUpdate}
+              isLoading={updateMutation.isPending}
+            />
+          )}
+
+          {/* Save Changes Dialog */}
+          {entityType && parsedEditedItem && (
+            <SaveChangesDialog
+              open={saveChangesDialogOpen}
+              onOpenChange={setSaveChangesDialogOpen}
+              originalItem={item}
+              editedItem={parsedEditedItem}
+              onConfirm={handleConfirmSave}
+              isLoading={directUpdateMutation.isPending}
+            />
           )}
         </div>
-
-        {/* Delete Confirmation Dialog */}
-        {entityType && (
-          <DeleteConfirmDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            entityType={entityType}
-            item={item}
-            onConfirm={handleDelete}
-            isLoading={deleteMutation.isPending}
-          />
-        )}
-
-        {/* Update Modal */}
-        {entityType && (
-          <UpdateModal
-            open={updateModalOpen}
-            onOpenChange={setUpdateModalOpen}
-            item={item}
-            entityType={entityType}
-            onSubmit={handleUpdate}
-            isLoading={updateMutation.isPending}
-          />
-        )}
-
-        {/* Save Changes Dialog */}
-        {entityType && parsedEditedItem && (
-          <SaveChangesDialog
-            open={saveChangesDialogOpen}
-            onOpenChange={setSaveChangesDialogOpen}
-            originalItem={item}
-            editedItem={parsedEditedItem}
-            onConfirm={handleConfirmSave}
-            isLoading={directUpdateMutation.isPending}
-          />
-        )}
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </ItemViewProvider>
   );
 }
