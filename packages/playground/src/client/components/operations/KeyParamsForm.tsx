@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { GetResultView } from './GetResultView';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest, KeyPiece } from '@/utils/api';
+import { cn } from '@/utils/utils';
 
 interface KeyParamsFormProps {
   target: ExecuteRequest['target'];
@@ -103,7 +104,12 @@ export function KeyParamsForm({
           No parameters required - key uses only constant values
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div
+          className={cn(
+            'grid gap-3',
+            variables.length >= 2 ? 'grid-cols-2' : 'grid-cols-1',
+          )}
+        >
           {variables.map((variable) => (
             <div key={variable.name}>
               <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
