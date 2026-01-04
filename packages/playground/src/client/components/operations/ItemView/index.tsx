@@ -259,7 +259,7 @@ export function ItemDetailView({
                   <Textarea
                     value={editedJson}
                     onChange={(e) => handleJsonChange(e.target.value)}
-                    className={`font-mono text-xs min-h-[300px] resize-y ${
+                    className={`font-mono text-xs min-h-[450px] resize-y ${
                       jsonError ? 'border-destructive focus-visible:ring-destructive' : ''
                     }`}
                     style={{ maxHeight }}

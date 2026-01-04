@@ -7,17 +7,20 @@ import { useExecute } from '@/utils/hooks';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { useItemContext } from './_context';
+import { useMetadataContext } from '@/context';
 
 interface DeleteItemButtonProps {
   disabled?: boolean;
 }
 
 export function DeleteItemButton({ disabled }: DeleteItemButtonProps) {
+  const { metadata } = useMetadataContext();
+
   const { item, entityType, onItemDeleted } = useItemContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const deleteMutation = useExecute();
 
-  if (!entityType) {
+  if (!entityType || !metadata?.isDeleteEnabled) {
     return null;
   }
 

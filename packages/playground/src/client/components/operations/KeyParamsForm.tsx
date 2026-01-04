@@ -8,6 +8,7 @@ import type { ExecuteRequest, KeyPiece } from '@/utils/api';
 import { cn } from '@/utils/utils';
 
 import { GetResultView } from './GetResultView';
+import { wrapFormAction } from '@/utils/html';
 
 interface KeyParamsFormProps {
   target: ExecuteRequest['target'];
@@ -98,7 +99,10 @@ export function KeyParamsForm({
   const error = mutation.data?.success === false ? mutation.data.error : null;
 
   return (
-    <div className="space-y-4 p-3 border rounded-lg bg-muted/30">
+    <form
+      onSubmit={wrapFormAction(handleExecute)}
+      className="space-y-4 p-3 border rounded-lg bg-muted/30"
+    >
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
 
       {variables.length === 0 ? (
@@ -132,11 +136,7 @@ export function KeyParamsForm({
         </div>
       )}
 
-      <Button
-        className="ml-auto block"
-        onClick={handleExecute}
-        disabled={mutation.isPending || !isValid}
-      >
+      <Button className="ml-auto block" disabled={mutation.isPending || !isValid}>
         {mutation.isPending ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -154,6 +154,6 @@ export function KeyParamsForm({
           />
         </div>
       )}
-    </div>
+    </form>
   );
 }

@@ -4,6 +4,7 @@ import { Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useExecute } from '@/utils/hooks';
+import { useMetadataContext } from '@/context';
 
 import { UpdateModal, type UpdateParams } from './UpdateModal';
 import { useItemContext } from './_context';
@@ -13,11 +14,13 @@ interface UpdateItemButtonProps {
 }
 
 export function UpdateItemButton({ disabled }: UpdateItemButtonProps) {
+  const { metadata } = useMetadataContext();
+
   const { item, entityType, onItemUpdated } = useItemContext();
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const updateMutation = useExecute();
 
-  if (!entityType) {
+  if (!entityType || !metadata?.isUpdateEnabled) {
     return null;
   }
 
