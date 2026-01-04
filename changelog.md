@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+# v3.1.2
+
+- **Fix**: partition `keySwap` param merger is now resilient to receiving a Proxy inspector object - vital for our upcoming playground to infer the params
+- **Fix**: `**.test.ts` files now properly excluded from build
+
 # v3.1.1
 
 ### Warning! Possible behavior change
