@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, Check, Key, Trash2, Pencil, Save, X, Wrench } from 'lucide-react';
+import { Copy, Check, Trash2, Pencil, Save, X, Wrench, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,10 +9,12 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
-import { useResolveEntityKeys, useExecute } from '@/utils/hooks';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { UpdateModal, type UpdateParams } from './UpdateModal';
-import { SaveChangesDialog } from './SaveChangesDialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useExecute } from '@/utils/hooks';
+import { DeleteConfirmDialog } from '../DeleteConfirmDialog';
+import { UpdateModal, type UpdateParams } from '../UpdateModal';
+import { SaveChangesDialog } from '../SaveChangesDialog';
+import { ItemKey } from './ItemKey';
 
 interface ItemDetailViewProps {
   item: Record<string, unknown>;
@@ -38,11 +40,6 @@ export function ItemDetailView({
   const [isEditing, setIsEditing] = useState(false);
   const [editedJson, setEditedJson] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
-
-  const [resolvedKeys, { isLoading: isLoadingKeys }] = useResolveEntityKeys(
-    entityType,
-    item,
-  );
 
   const deleteMutation = useExecute();
   const updateMutation = useExecute();
@@ -214,35 +211,21 @@ export function ItemDetailView({
     <TooltipProvider>
       <div className="space-y-4">
         {/* Resolved Keys Section */}
-        {entityType && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Key className="h-4 w-4" />
-              <span>Keys</span>
-            </div>
-            {isLoadingKeys ? (
-              <div className="text-xs text-muted-foreground">Loading keys...</div>
-            ) : resolvedKeys?.success ? (
-              <div className="grid gap-1.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground min-w-[80px]">
-                    Partition Key:
-                  </span>
-                  <code className="font-mono bg-muted px-2 py-0.5 rounded">
-                    {resolvedKeys.partitionKey}
-                  </code>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground min-w-[80px]">Range Key:</span>
-                  <code className="font-mono bg-muted px-2 py-0.5 rounded">
-                    {resolvedKeys.rangeKey}
-                  </code>
-                </div>
-              </div>
-            ) : resolvedKeys?.error ? (
-              <div className="text-xs text-destructive">{resolvedKeys.error}</div>
-            ) : null}
-          </div>
+        <ItemKey item={item} entityType={entityType!} />
+
+        {/* SET Type Alert */}
+        {isEditing && (
+          <Alert
+            variant="default"
+            className="border-amber-500/50 flex items-center gap-2 bg-amber-500/10"
+          >
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-sm text-amber-900/90">
+              <strong>Note:</strong> SET data types (String Set, Number Set, Binary Set)
+              are not currently supported in the JSON editor. Only add/remove operations
+              are possible via update builder.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* JSON View with Side Actions */}
@@ -412,8 +395,7 @@ export function ItemDetailView({
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
             entityType={entityType}
-            partitionKey={resolvedKeys?.partitionKey}
-            rangeKey={resolvedKeys?.rangeKey}
+            item={item}
             onConfirm={handleDelete}
             isLoading={deleteMutation.isPending}
           />

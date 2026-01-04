@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ItemDetailView } from './ItemDetailView';
+import { ItemDetailView } from './ItemView';
 
 interface ListResultViewProps {
   data: unknown;

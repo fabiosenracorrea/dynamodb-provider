@@ -1,5 +1,5 @@
 import { SearchX } from 'lucide-react';
-import { ItemDetailView } from './ItemDetailView';
+import { ItemDetailView } from './ItemView';
 
 interface GetResultViewProps {
   data: unknown;

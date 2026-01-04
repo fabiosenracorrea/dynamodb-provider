@@ -9,26 +9,29 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { useResolveEntityKeys } from '@/utils/hooks';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   entityType: string;
-  partitionKey?: string;
-  rangeKey?: string;
   onConfirm: () => void;
   isLoading?: boolean;
+  item: Record<string, unknown>;
 }
 
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
   entityType,
-  partitionKey,
-  rangeKey,
   onConfirm,
   isLoading,
+  item,
 }: DeleteConfirmDialogProps) {
+  const [resolvedKeys] = useResolveEntityKeys(entityType, item);
+
+  const { partitionKey, rangeKey } = resolvedKeys ?? {};
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -70,7 +73,11 @@ export function DeleteConfirmDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
