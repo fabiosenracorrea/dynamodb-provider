@@ -4,8 +4,8 @@ import { createServer, ViteDevServer } from 'vite';
 import { resolve, dirname } from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import { existsSync, watch, statSync, readdirSync } from 'fs';
-import { playgroundPlugin } from './vite-plugin.js';
-import type { PlaygroundConfig } from './types.js';
+import { playgroundPlugin } from './vite-plugin';
+import type { PlaygroundConfig } from './types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -87,7 +87,13 @@ function validateConfig(config: unknown): asserts config is PlaygroundConfig {
 
 async function startServer(config: PlaygroundConfig, isRestart = false): Promise<ViteDevServer> {
   const port = config.port || 3030;
-  const clientRoot = resolve(__dirname, 'client');
+
+  // Check if we have a built client (production mode when installed as package)
+  const builtClientPath = resolve(__dirname, '../dist/client');
+  const devClientPath = resolve(__dirname, 'client');
+
+  const isBuiltClient = existsSync(builtClientPath);
+  const clientRoot = isBuiltClient ? builtClientPath : devClientPath;
 
   const server = await createServer({
     configFile: false,
@@ -97,72 +103,78 @@ async function startServer(config: PlaygroundConfig, isRestart = false): Promise
       // Only auto-open on first start, not on restarts
       open: !isRestart && (config.autoOpen ?? true) === true,
     },
-    plugins: [(await import('@vitejs/plugin-react')).default(), playgroundPlugin(config)],
+    plugins: [
+      // Only add React plugin in dev mode
+      ...(!isBuiltClient ? [(await import('@vitejs/plugin-react')).default()] : []),
+      playgroundPlugin(config),
+    ],
     resolve: {
       alias: {
-        '@': clientRoot,
+        '@': isBuiltClient ? resolve(__dirname, 'client') : clientRoot,
       },
     },
-    css: {
-      postcss: {
-        plugins: [
-          (
-            await import('tailwindcss')
-          ).default({
-            config: {
-              darkMode: ['class'],
-              content: [resolve(clientRoot, '**/*.{html,js,ts,jsx,tsx}')],
-              theme: {
-                extend: {
-                  colors: {
-                    border: 'hsl(var(--border))',
-                    input: 'hsl(var(--input))',
-                    ring: 'hsl(var(--ring))',
-                    background: 'hsl(var(--background))',
-                    foreground: 'hsl(var(--foreground))',
-                    primary: {
-                      DEFAULT: 'hsl(var(--primary))',
-                      foreground: 'hsl(var(--primary-foreground))',
+    ...(!isBuiltClient && {
+      css: {
+        postcss: {
+          plugins: [
+            (
+              await import('tailwindcss')
+            ).default({
+              config: {
+                darkMode: ['class'],
+                content: [resolve(clientRoot, '**/*.{html,js,ts,jsx,tsx}')],
+                theme: {
+                  extend: {
+                    colors: {
+                      border: 'hsl(var(--border))',
+                      input: 'hsl(var(--input))',
+                      ring: 'hsl(var(--ring))',
+                      background: 'hsl(var(--background))',
+                      foreground: 'hsl(var(--foreground))',
+                      primary: {
+                        DEFAULT: 'hsl(var(--primary))',
+                        foreground: 'hsl(var(--primary-foreground))',
+                      },
+                      secondary: {
+                        DEFAULT: 'hsl(var(--secondary))',
+                        foreground: 'hsl(var(--secondary-foreground))',
+                      },
+                      destructive: {
+                        DEFAULT: 'hsl(var(--destructive))',
+                        foreground: 'hsl(var(--destructive-foreground))',
+                      },
+                      muted: {
+                        DEFAULT: 'hsl(var(--muted))',
+                        foreground: 'hsl(var(--muted-foreground))',
+                      },
+                      accent: {
+                        DEFAULT: 'hsl(var(--accent))',
+                        foreground: 'hsl(var(--accent-foreground))',
+                      },
+                      popover: {
+                        DEFAULT: 'hsl(var(--accent))',
+                        foreground: 'hsl(var(--accent-foreground))',
+                      },
+                      card: {
+                        DEFAULT: 'hsl(var(--card))',
+                        foreground: 'hsl(var(--card-foreground))',
+                      },
                     },
-                    secondary: {
-                      DEFAULT: 'hsl(var(--secondary))',
-                      foreground: 'hsl(var(--secondary-foreground))',
+                    borderRadius: {
+                      lg: 'var(--radius)',
+                      md: 'calc(var(--radius) - 2px)',
+                      sm: 'calc(var(--radius) - 4px)',
                     },
-                    destructive: {
-                      DEFAULT: 'hsl(var(--destructive))',
-                      foreground: 'hsl(var(--destructive-foreground))',
-                    },
-                    muted: {
-                      DEFAULT: 'hsl(var(--muted))',
-                      foreground: 'hsl(var(--muted-foreground))',
-                    },
-                    accent: {
-                      DEFAULT: 'hsl(var(--accent))',
-                      foreground: 'hsl(var(--accent-foreground))',
-                    },
-                    popover: {
-                      DEFAULT: 'hsl(var(--accent))',
-                      foreground: 'hsl(var(--accent-foreground))',
-                    },
-                    card: {
-                      DEFAULT: 'hsl(var(--card))',
-                      foreground: 'hsl(var(--card-foreground))',
-                    },
-                  },
-                  borderRadius: {
-                    lg: 'var(--radius)',
-                    md: 'calc(var(--radius) - 2px)',
-                    sm: 'calc(var(--radius) - 4px)',
                   },
                 },
+                plugins: [(await import('tailwindcss-animate')).default],
               },
-              plugins: [(await import('tailwindcss-animate')).default],
-            },
-          }),
-          (await import('autoprefixer')).default(),
-        ],
+            }),
+            (await import('autoprefixer')).default(),
+          ],
+        },
       },
-    },
+    }),
   });
 
   await server.listen();
