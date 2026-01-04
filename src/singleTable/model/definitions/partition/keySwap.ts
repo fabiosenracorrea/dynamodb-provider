@@ -178,7 +178,7 @@ function swapKeys<
     /**
      * IMPORTANT: We do like this and not by spreading
      * to ensure our playground proxy is still active on
-     * the both calls (the swap on `mapped` above and on the original getter bellow)
+     * both calls (the swap on `mapped` above and on the original getter bellow)
      *
      * This is vital for a better key inference
      */
