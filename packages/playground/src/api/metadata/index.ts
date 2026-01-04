@@ -19,5 +19,8 @@ export function extractMetadata(config: PlaygroundConfig): MetadataResponse {
       originEntityType: collection.startRef ?? null,
       joins: Object.keys(collection.join),
     })),
+
+    isUpdateEnabled: !!config.enableMutations?.update,
+    isDeleteEnabled: !!config.enableMutations?.delete,
   };
 }

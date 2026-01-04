@@ -55,7 +55,9 @@ export interface ResolveKeysResponse {
   error?: string;
 }
 
-export async function resolveKeys(request: ResolveKeysRequest): Promise<ResolveKeysResponse> {
+export async function resolveKeys(
+  request: ResolveKeysRequest,
+): Promise<ResolveKeysResponse> {
   const res = await fetch('/api/resolve-keys', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

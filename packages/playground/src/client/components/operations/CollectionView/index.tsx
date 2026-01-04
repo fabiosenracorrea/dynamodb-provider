@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronDown, Layers, Key, Link2, ArrowRight } from 'lucide-react';
 import {
   Card,
@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { useCollection, useMetadataContext } from '@/context';
-import { useExecute } from '@/utils/hooks';
 
 import { CollectionLoading } from './LoadingCollection';
 import { CollectionPartition } from './CollectionPartition';
@@ -35,29 +34,6 @@ export function CollectionView({
   const { getEntity } = useMetadataContext();
   const [showMetadata, setShowMetadata] = useState(true);
 
-  // Form state
-  const [values, setValues] = useState<Record<string, string>>({});
-  const mutation = useExecute();
-
-  // Extract partition key variables
-  const variables = useMemo(() => {
-    if (!collection) return [];
-    const vars: Array<{ name: string; numeric: boolean }> = [];
-    const seen = new Set<string>();
-
-    collection.partitionKey.forEach((piece) => {
-      if (piece.type === 'VARIABLE' && !seen.has(piece.value)) {
-        seen.add(piece.value);
-        vars.push({
-          name: piece.value,
-          numeric: piece.numeric ?? false,
-        });
-      }
-    });
-
-    return vars;
-  }, [collection]);
-
   if (!collection) {
     return <CollectionLoading />;
   }
@@ -65,33 +41,6 @@ export function CollectionView({
   const originEntity = collection.originEntityType
     ? getEntity(collection.originEntityType)
     : null;
-
-  const handleChange = (varName: string, value: string) => {
-    setValues((prev) => ({ ...prev, [varName]: value }));
-  };
-
-  const handleExecute = () => {
-    const params: Record<string, unknown> = {};
-    variables.forEach((v) => {
-      const val = values[v.name];
-      if (v.numeric && val) {
-        params[v.name] = Number(val);
-      } else {
-        params[v.name] = val;
-      }
-    });
-
-    mutation.mutate({
-      target: 'collection',
-      name: collection.name,
-      operation: 'get',
-      params,
-    });
-  };
-
-  const isValid = variables.every((v) => values[v.name]?.trim() !== '');
-  const result = mutation.data?.success ? mutation.data.data : null;
-  const error = mutation.data?.success === false ? mutation.data.error : null;
 
   return (
     <div className="space-y-4">
@@ -168,7 +117,7 @@ export function CollectionView({
               )}
 
               {/* Joins */}
-              {collection.joins.length > 0 && (
+              {!!collection.joins.length && (
                 <JoinsSection
                   joins={collection.joins}
                   getEntity={getEntity}

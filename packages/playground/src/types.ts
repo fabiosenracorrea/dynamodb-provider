@@ -1,26 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Types for the playground
 import type {
   AnyEntity,
   AnyCollection,
   SingleTable,
   SingleTableConfig,
-  DynamodbProvider,
 } from 'dynamodb-provider';
 
 export type { AnyEntity, AnyCollection };
 
 export interface PlaygroundConfig {
-  table: SingleTable<
-    SingleTableConfig & {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dynamodbProvider: DynamodbProvider<any>;
-    }
-  >;
+  table: SingleTable<any>;
 
   entities: AnyEntity[];
   collections?: Record<string, AnyCollection>;
   port?: number;
   autoOpen?: boolean;
+
+  enableMutations?: {
+    update?: boolean;
+    delete?: boolean;
+  };
 }
 
 export interface IndexInstance {
@@ -105,4 +105,6 @@ export interface MetadataResponse {
   table: TableMetadata;
   entities: EntityMetadata[];
   collections: CollectionMetadata[];
+  isUpdateEnabled: boolean;
+  isDeleteEnabled: boolean;
 }
