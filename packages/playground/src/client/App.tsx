@@ -76,7 +76,6 @@ function CollectionRoute() {
 
 function PartitionRoute() {
   const { name } = useParams<{ name: string }>();
-  const navigate = useNavigate();
   const { getPartitionGroup } = useMetadataContext();
 
   if (!name) return <EmptyState />;
@@ -84,17 +83,7 @@ function PartitionRoute() {
   const partition = getPartitionGroup(name);
   if (!partition) return <EmptyState />;
 
-  const handleSelectEntity = (entityType: string) => {
-    navigate(`/entity/${entityType}`);
-  };
-
-  return (
-    <PartitionView
-      key={partition.id}
-      partitionId={partition.id}
-      onSelectEntity={handleSelectEntity}
-    />
-  );
+  return <PartitionView key={partition.id} partitionId={partition.id} />;
 }
 
 function LoadingScreen() {

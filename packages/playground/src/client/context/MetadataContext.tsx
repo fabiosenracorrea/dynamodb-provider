@@ -1,14 +1,16 @@
 /* eslint-disable no-restricted-syntax */
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
+
 import {
   fetchMetadata,
   type Metadata,
   type EntityMetadata,
   type CollectionMetadata,
   type TableMetadata,
+  type KeyPiece,
+  type PartitionGroup,
 } from '@/utils/api';
-import type { KeyPiece, PartitionGroup } from '@/types';
 
 export interface PartitionInfo {
   id: string;
@@ -153,7 +155,8 @@ export function MetadataProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    const indexConfig = metadata.table.indexes[id];
+    const indexConfig = metadata.table.indexes?.[id];
+
     if (indexConfig) {
       return {
         id,

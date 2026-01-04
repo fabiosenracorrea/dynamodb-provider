@@ -1,12 +1,6 @@
 import { EntityMetadata, MetadataResponse } from '../../types';
 
-export type {
-  RangeQuery,
-  TableMetadata,
-  KeyPiece,
-  EntityMetadata,
-  CollectionMetadata,
-} from '../../types';
+export type * from '../../types';
 
 export type EntityIndex = EntityMetadata['indexes'][number];
 
