@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GetResultView } from './GetResultView';
 import { useExecute } from '@/utils/hooks';
 import type { ExecuteRequest, KeyPiece } from '@/utils/api';
 import { cn } from '@/utils/utils';
+
+import { GetResultView } from './GetResultView';
 
 interface KeyParamsFormProps {
   target: ExecuteRequest['target'];
