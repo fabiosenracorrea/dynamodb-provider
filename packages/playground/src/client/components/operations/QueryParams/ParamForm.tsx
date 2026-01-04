@@ -9,11 +9,13 @@ import { RangeFilter, RangeFilterProps } from './RangeFilter';
 interface QueryParamsProps extends Pick<RangeFilterProps, 'customQueries' | 'rangeKey'> {
   params: QueryConfig;
   configHandlers: QueryConfigHandlers;
+  filter?: boolean;
 }
 
 export function QueryParams({
   configHandlers,
   params,
+  filter = true,
   ...rangeConfig
 }: QueryParamsProps) {
   const { filters, retrieveOrder, limit, range } = params;
@@ -29,10 +31,12 @@ export function QueryParams({
       <section className="space-y-3">
         <div className="flex flex-wrap gap-3 items-end">
           {/* Filters */}
-          <FiltersSheet
-            filters={filters}
-            onChange={configHandlers.getSetter('filters')}
-          />
+          {filter && (
+            <FiltersSheet
+              filters={filters}
+              onChange={configHandlers.getSetter('filters')}
+            />
+          )}
 
           <div className="min-w-[100px] flex-1">
             <label className="text-sm font-medium mb-1.5 block">Limit</label>

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ListResultView } from './ListResultView';
@@ -8,6 +7,7 @@ import type { ExecuteRequest } from '@/utils/api';
 
 import {
   buildRangeParams,
+  FullRetrievalCheckbox,
   isRangeQueryValid,
   QueryParams,
   useQueryConfig,
@@ -21,8 +21,6 @@ interface ListFormProps {
 
 export function ListForm({ target, name }: ListFormProps) {
   const [queryConfig, configHandlers] = useQueryConfig();
-
-  const [fullRetrieval, setFullRetrieval] = useState(false);
 
   const mutation = useExecute();
 
@@ -67,18 +65,10 @@ export function ListForm({ target, name }: ListFormProps) {
       <QueryParams params={queryConfig} configHandlers={configHandlers} />
 
       <div className="flex items-center gap-4 justify-end">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="fullRetrieval"
-            checked={fullRetrieval}
-            onChange={(e) => setFullRetrieval(e.target.checked)}
-            className="h-4 w-4 rounded border-input"
-          />
-          <label htmlFor="fullRetrieval" className="text-sm">
-            Full retrieval
-          </label>
-        </div>
+        <FullRetrievalCheckbox
+          selected={queryConfig.fullRetrieval}
+          onChange={configHandlers.getSetter('fullRetrieval')}
+        />
 
         <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

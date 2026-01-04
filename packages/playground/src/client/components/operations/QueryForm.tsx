@@ -9,6 +9,7 @@ import type { ExecuteRequest, KeyPiece, RangeQuery, EntityIndex } from '@/utils/
 
 import {
   buildRangeParams,
+  FullRetrievalCheckbox,
   isRangeQueryValid,
   QueryParams,
   useQueryConfig,
@@ -230,18 +231,10 @@ export function QueryForm({
       />
 
       <div className="flex items-center gap-4 justify-end">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="fullRetrieval"
-            checked={queryConfig.fullRetrieval}
-            onChange={(e) => configHandlers.set('fullRetrieval', e.target.checked)}
-            className="h-4 w-4 rounded border-input"
-          />
-          <label htmlFor="fullRetrieval" className="text-sm">
-            Full retrieval
-          </label>
-        </div>
+        <FullRetrievalCheckbox
+          selected={queryConfig.fullRetrieval}
+          onChange={configHandlers.getSetter('fullRetrieval')}
+        />
 
         <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -1,12 +1,5 @@
 import { useState, useMemo } from 'react';
-import {
-  ChevronDown,
-  Layers,
-  ArrowRight,
-  Loader2,
-  ArrowUp,
-  ArrowDown,
-} from 'lucide-react';
+import { ChevronDown, Layers, ArrowRight, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -17,24 +10,28 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
 import { Separator } from '@/components/ui/separator';
 import { usePartitionGroup, useMetadataContext } from '@/context';
 import { useExecute } from '@/utils/hooks';
-import { ListResultView } from './ListResultView';
-import type { KeyPiece, PartitionGroup, EntityMetadata } from '@/types';
+import { omit } from '@/utils/object';
+
+import type { KeyPiece, PartitionGroup, EntityMetadata } from '../../../../types';
+
+import { ListResultView } from '../ListResultView';
+import { PartitionLoading } from './Loading';
+import {
+  buildRangeParams,
+  FullRetrievalCheckbox,
+  isRangeQueryValid,
+  QueryParams,
+  useQueryConfig,
+} from '../QueryParams';
 
 interface PartitionOperationsProps {
   partitionId: string;
@@ -59,31 +56,15 @@ function getRangeKeyForEntity(
   return idx ? formatKeyPieces(idx.rangeKey) : null;
 }
 
-const RANGE_OPERATIONS = [
-  { value: 'none', label: 'No filter', params: [] },
-  { value: 'begins_with', label: 'Begins with', params: ['value'] },
-  { value: 'equal', label: 'Equal', params: ['value'] },
-  { value: 'lower_than', label: 'Lower than', params: ['value'] },
-  { value: 'lower_or_equal_than', label: 'Lower or equal', params: ['value'] },
-  { value: 'bigger_than', label: 'Bigger than', params: ['value'] },
-  { value: 'bigger_or_equal_than', label: 'Bigger or equal', params: ['value'] },
-  { value: 'between', label: 'Between', params: ['start', 'end'] },
-] as const;
+export function PartitionView({ partitionId, onSelectEntity }: PartitionOperationsProps) {
+  const [queryConfig, configHandlers] = useQueryConfig();
 
-export function PartitionOperations({
-  partitionId,
-  onSelectEntity,
-}: PartitionOperationsProps) {
   const partition = usePartitionGroup(partitionId);
   const { getEntity } = useMetadataContext();
   const [showEntities, setShowEntities] = useState(true);
 
   // Query state
   const [partitionValues, setPartitionValues] = useState<Record<string, string>>({});
-  const [rangeOperation, setRangeOperation] = useState('none');
-  const [rangeParams, setRangeParams] = useState<Record<string, string>>({});
-  const [limit, setLimit] = useState('25');
-  const [retrieveOrder, setRetrieveOrder] = useState<'ASC' | 'DESC'>('ASC');
 
   const mutation = useExecute();
 
@@ -114,10 +95,8 @@ export function PartitionOperations({
   }, [partitionKeyPieces]);
 
   if (!partition) {
-    return <PartitionOperationsSkeleton />;
+    return <PartitionLoading />;
   }
-
-  const selectedOp = RANGE_OPERATIONS.find((op) => op.value === rangeOperation);
 
   const handleExecute = () => {
     // Build partition key array
@@ -131,24 +110,11 @@ export function PartitionOperations({
     });
 
     const params: Record<string, unknown> = {
+      ...omit(queryConfig, ['range', 'filters']),
+      limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       partition: partitionKeyValues,
-      limit: Number(limit),
+      ...buildRangeParams(queryConfig.range),
     };
-
-    if (retrieveOrder !== 'ASC') {
-      params.retrieveOrder = retrieveOrder;
-    }
-
-    // Add range operation if selected
-    if (rangeOperation !== 'none' && selectedOp) {
-      const range: Record<string, unknown> = { operation: rangeOperation };
-      selectedOp.params.forEach((param) => {
-        if (rangeParams[param]) {
-          range[param] = rangeParams[param];
-        }
-      });
-      params.range = range;
-    }
 
     mutation.mutate({
       target: 'table',
@@ -161,10 +127,9 @@ export function PartitionOperations({
   const isPartitionValid = partitionVars.every(
     (v) => partitionValues[v.name]?.trim() !== '',
   );
-  const isRangeValid =
-    rangeOperation === 'none' ||
-    !selectedOp ||
-    selectedOp.params.every((p) => rangeParams[p]?.trim() !== '');
+
+  const isRangeValid = isRangeQueryValid(queryConfig.range);
+
   const isValid = isPartitionValid && isRangeValid;
 
   const result = mutation.data?.success ? mutation.data.data : null;
@@ -291,181 +256,30 @@ export function PartitionOperations({
             )}
           </section>
 
-          {/* Range */}
-          <section className="space-y-3">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div
-                className={rangeOperation === 'none' ? 'flex-1' : 'flex-1 min-w-[160px]'}
-              >
-                <h4 className="text-sm font-medium">Range Filtering</h4>
-                <Select value={rangeOperation} onValueChange={setRangeOperation}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RANGE_OPERATIONS.map((op) => (
-                      <SelectItem key={op.value} value={op.value}>
-                        {op.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <QueryParams
+            params={queryConfig}
+            configHandlers={configHandlers}
+            filter={false}
+          />
 
-              {selectedOp &&
-                selectedOp.params.map((param) => (
-                  <div key={param} className="flex-1 min-w-[120px]">
-                    <label className="text-sm font-medium mb-1.5 block">{param}</label>
-                    <Input
-                      value={rangeParams[param] ?? ''}
-                      onChange={(e) =>
-                        setRangeParams((prev) => ({
-                          ...prev,
-                          [param]: e.target.value,
-                        }))
-                      }
-                      placeholder={param}
-                      className="font-mono"
-                    />
-                  </div>
-                ))}
-            </div>
-          </section>
+          <div className="flex items-center gap-4 justify-end">
+            <FullRetrievalCheckbox
+              selected={queryConfig.fullRetrieval}
+              onChange={configHandlers.getSetter('fullRetrieval')}
+            />
 
-          {/* Options */}
-          <section className="space-y-3">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="min-w-[100px] flex-1">
-                <label className="text-sm font-medium mb-1.5 block">Limit</label>
-                <Input
-                  type="number"
-                  value={limit}
-                  onChange={(e) => setLimit(e.target.value)}
-                  placeholder="25"
-                  min={1}
-                  max={1000}
-                />
-              </div>
-              <div className="min-w-[140px] flex-1">
-                <label className="text-sm font-medium mb-1.5 block">Order</label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full justify-between"
-                  onClick={() =>
-                    setRetrieveOrder(retrieveOrder === 'ASC' ? 'DESC' : 'ASC')
-                  }
-                >
-                  <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
-                  {retrieveOrder === 'ASC' ? (
-                    <ArrowUp className="h-4 w-4 ml-2" />
-                  ) : (
-                    <ArrowDown className="h-4 w-4 ml-2" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </section>
+            <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
+              {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Query
+            </Button>
+          </div>
 
-          <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Query
-          </Button>
-
-          {(result !== null || error) && (
+          {!!mutation.data && (
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-2">Result</h4>
               <ListResultView data={result} error={error ?? undefined} />
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function PartitionOperationsSkeleton() {
-  return (
-    <div className="space-y-4">
-      {/* Header Card Skeleton */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-lg" />
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-3 w-48" />
-              </div>
-            </div>
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="py-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-4 w-4" />
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-5 w-6 rounded-full ml-auto" />
-            </div>
-            <Separator />
-            <div className="space-y-1">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-2">
-                  <div className="space-y-1">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                  <Skeleton className="h-4 w-4" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Query Card Skeleton */}
-      <Card>
-        <div className="p-6 flex items-center gap-3">
-          <Skeleton className="h-5 w-28" />
-          <Skeleton className="h-3 w-32" />
-        </div>
-        <CardContent className="space-y-6">
-          {/* Partition Key */}
-          <section className="space-y-3">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="flex-1 min-w-[140px]">
-                <Skeleton className="h-4 w-16 mb-1.5" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-            </div>
-          </section>
-
-          {/* Range */}
-          <section className="space-y-3">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="flex-1 min-w-[160px]">
-                <Skeleton className="h-4 w-28 mb-1.5" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-            </div>
-          </section>
-
-          {/* Options */}
-          <section className="space-y-3">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="min-w-[100px] flex-1">
-                <Skeleton className="h-4 w-12 mb-1.5" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-              <div className="min-w-[140px] flex-1">
-                <Skeleton className="h-4 w-12 mb-1.5" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-            </div>
-          </section>
-
-          <Skeleton className="h-10 w-20 rounded-md" />
         </CardContent>
       </Card>
     </div>

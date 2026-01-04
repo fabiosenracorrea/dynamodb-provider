@@ -187,7 +187,7 @@ export function BatchGetForm({
         </Button>
       </div>
 
-      {(result !== null || error) && (
+      {!!mutation.data && (
         <div className="pt-4 border-t">
           <h4 className="text-sm font-medium mb-2">Result</h4>
           <ListResultView

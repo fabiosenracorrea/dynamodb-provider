@@ -5,7 +5,7 @@ import { useMetadataContext } from '@/context';
 import { Sidebar } from '@/components/sidebar';
 import {
   EntityView,
-  PartitionOperations,
+  PartitionView,
   EmptyState,
   CollectionView,
 } from '@/components/operations';
@@ -89,7 +89,7 @@ function PartitionRoute() {
   };
 
   return (
-    <PartitionOperations
+    <PartitionView
       key={partition.id}
       partitionId={partition.id}
       onSelectEntity={handleSelectEntity}
