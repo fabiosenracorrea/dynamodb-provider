@@ -144,16 +144,14 @@ export function KeyParamsForm({
         )}
       </Button>
 
-      {(result !== null || error) && (
-        <div className="pt-4 border-t">
-          <h4 className="text-sm font-medium mb-2">Result</h4>
-          <GetResultView
-            data={result}
-            error={error ?? undefined}
-            entityType={target === 'entity' ? name : undefined}
-          />
-        </div>
-      )}
+      <div className="pt-4 border-t">
+        <h4 className="text-sm font-medium mb-2">Result</h4>
+        <GetResultView
+          data={result}
+          error={error ?? undefined}
+          entityType={target === 'entity' ? name : undefined}
+        />
+      </div>
     </form>
   );
 }
