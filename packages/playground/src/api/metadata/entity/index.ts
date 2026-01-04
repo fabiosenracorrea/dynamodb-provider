@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AnyEntity } from 'dynamodb-provider';
-import type { EntityMetadata } from '../../types';
+import type { EntityMetadata } from '../../../types';
 import { inferKeyPieces } from './key';
 import { inferRangeQueries } from './rangeQueries';
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // metadata/inferRangeQueries.ts
-import type { RangeQuery } from '../../types';
+import type { RangeQuery } from '../../../types';
 import { inferParams } from './inferParams';
 
 type RangeQueryFn = (params?: any) => { operation: string; [k: string]: any };

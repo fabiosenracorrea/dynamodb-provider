@@ -56,10 +56,7 @@ export function Sidebar() {
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
           <Database className="h-5 w-5" />
-          <div>
-            <h1 className="font-semibold">Playground</h1>
-            <p className="text-xs text-muted-foreground">{table?.name}</p>
-          </div>
+          <h1 className="font-semibold">Playground</h1>
         </div>
       </div>
 

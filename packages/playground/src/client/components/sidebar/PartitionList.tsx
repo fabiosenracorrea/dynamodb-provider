@@ -27,7 +27,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
   // Get all available index names from table config
   const indexNames = useMemo(() => {
     if (!table) return [];
-    return Object.keys(table.indexes);
+    return Object.keys(table.indexes ?? {});
   }, [table]);
 
   const filteredAndSortedPartitions = useMemo(() => {

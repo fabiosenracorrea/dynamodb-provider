@@ -1,6 +1,6 @@
 import { Dispatch, StateSetter, useCallback, useMemo, useReducer, useRef } from 'react';
-import { AnyFunction, OnlyOptional } from 'types';
 import { omit } from '@/utils/object';
+import { AnyFunction, OnlyOptional } from '@/types';
 
 /*
  **

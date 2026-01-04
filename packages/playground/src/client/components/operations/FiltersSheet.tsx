@@ -1,3 +1,5 @@
+/* eslint-disable no-continue */
+/* eslint-disable no-restricted-syntax */
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,24 @@ const FILTER_OPERATIONS = [
 ] as const;
 
 type FilterOperation = (typeof FILTER_OPERATIONS)[number]['value'];
+
+const getOpConfig = (op: FilterOperation) => {
+  type OpConfig = Omit<(typeof FILTER_OPERATIONS)[number], 'params'> & {
+    params: Array<'value' | 'start' | 'end' | 'values'>;
+  };
+
+  return FILTER_OPERATIONS.find((o) => o.value === op) as OpConfig | undefined;
+};
+
+// Parse string to appropriate type (number, boolean, null, or string)
+function parseValue(str: string): string | number | boolean | null {
+  if (str === 'null') return null;
+  if (str === 'true') return true;
+  if (str === 'false') return false;
+  const num = Number(str);
+  if (!Number.isNaN(num) && str.trim() !== '') return num;
+  return str;
+}
 
 export interface FilterRow {
   id: string;
@@ -82,10 +102,6 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
     onChange([]);
   };
 
-  const getOperationConfig = (op: FilterOperation) => {
-    return FILTER_OPERATIONS.find((o) => o.value === op);
-  };
-
   const getOperationSymbol = (op: FilterOperation): string => {
     const symbols: Record<FilterOperation, string> = {
       equal: '=',
@@ -108,7 +124,7 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
 
   const isValidFilter = (f: FilterRow): boolean => {
     if (!f.property) return false;
-    const config = getOperationConfig(f.operation);
+    const config = getOpConfig(f.operation);
     if (!config) return false;
     if (config.params.includes('value') && !f.value) return false;
     if (config.params.includes('start') && !f.start) return false;
@@ -120,7 +136,7 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
   const validFilters = filters.filter(isValidFilter);
 
   const formatFilterPreview = (f: FilterRow): string => {
-    const config = getOperationConfig(f.operation);
+    const config = getOpConfig(f.operation);
     if (!config) return '';
     const symbol = getOperationSymbol(f.operation);
 
@@ -175,7 +191,7 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
             </p>
           ) : (
             filters.map((filter) => {
-              const config = getOperationConfig(filter.operation);
+              const config = getOpConfig(filter.operation);
               return (
                 <div
                   key={filter.id}
@@ -314,7 +330,7 @@ export function buildFiltersParam(
 ): Record<string, unknown> | undefined {
   const validFilters = filters.filter((f) => {
     if (!f.property) return false;
-    const config = FILTER_OPERATIONS.find((o) => o.value === f.operation);
+    const config = getOpConfig(f.operation);
     if (!config) return false;
     if (config.params.includes('value') && !f.value) return false;
     if (config.params.includes('start') && !f.start) return false;
@@ -328,7 +344,7 @@ export function buildFiltersParam(
   const result: Record<string, unknown> = {};
 
   for (const filter of validFilters) {
-    const config = FILTER_OPERATIONS.find((o) => o.value === filter.operation);
+    const config = getOpConfig(filter.operation);
     if (!config) continue;
 
     let filterValue: unknown;
@@ -359,14 +375,4 @@ export function buildFiltersParam(
   }
 
   return Object.keys(result).length > 0 ? result : undefined;
-}
-
-// Parse string to appropriate type (number, boolean, null, or string)
-function parseValue(str: string): string | number | boolean | null {
-  if (str === 'null') return null;
-  if (str === 'true') return true;
-  if (str === 'false') return false;
-  const num = Number(str);
-  if (!isNaN(num) && str.trim() !== '') return num;
-  return str;
 }

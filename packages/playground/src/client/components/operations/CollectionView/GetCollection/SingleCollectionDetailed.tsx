@@ -23,7 +23,7 @@ export function CollectionJSON({
           </ScrollArea>
         </div>
 
-        <CopyButton variant="ghost" showTooltip={false} />
+        <CopyButton item={item} showTooltip={false} />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { entityToMetadata } from './entity';
 import { inferKeyPieces } from './entity/key';
 
 function extractTableMetadata(config: PlaygroundConfig): TableMetadata {
-  return config.table.config;
+  return config.table.config as TableMetadata;
 }
 
 export function extractMetadata(config: PlaygroundConfig): MetadataResponse {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // metadata/inferKeyPieces.ts
-import type { KeyPiece } from '../../types';
+import type { KeyPiece } from '../../../types';
 
 const VAR_SYMBOL = Symbol('VAR_SYMBOL');
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { useState, useMemo } from 'react';
 import { Plus, Trash2, Key, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,14 @@ const ATOMIC_OPERATIONS = [
 
 type ConditionOperation = (typeof CONDITION_OPERATIONS)[number]['value'];
 type AtomicOperationType = (typeof ATOMIC_OPERATIONS)[number]['value'];
+
+const getOpConfig = (op: ConditionOperation) => {
+  type OpConfig = Omit<(typeof CONDITION_OPERATIONS)[number], 'params'> & {
+    params: Array<'value' | 'start' | 'end' | 'values'>;
+  };
+
+  return CONDITION_OPERATIONS.find((o) => o.value === op) as OpConfig | undefined;
+};
 
 // Row types
 interface ValueRow {
@@ -153,7 +162,7 @@ function parseValue(str: string): unknown {
   if (str === 'true') return true;
   if (str === 'false') return false;
   const num = Number(str);
-  if (!isNaN(num) && str.trim() !== '') return num;
+  if (!Number.isNaN(num) && str.trim() !== '') return num;
   return str;
 }
 
@@ -474,7 +483,7 @@ function AtomicOperationsSection({
     );
   };
 
-  const getOpConfig = (type: AtomicOperationType) => {
+  const getAtomicConfig = (type: AtomicOperationType) => {
     return ATOMIC_OPERATIONS.find((op) => op.value === type);
   };
 
@@ -491,7 +500,7 @@ function AtomicOperationsSection({
       ) : (
         <div className="space-y-2">
           {rows.map((row) => {
-            const opConfig = getOpConfig(row.type);
+            const opConfig = getAtomicConfig(row.type);
             const isSetOperation =
               row.type === 'add_to_set' || row.type === 'remove_from_set';
 
@@ -599,10 +608,6 @@ function ConditionsSection({ rows, properties, onChange }: ConditionsSectionProp
 
   const updateRow = (id: string, updates: Partial<ConditionRow>) => {
     onChange(rows.map((r) => (r.id === id ? { ...r, ...updates } : r)));
-  };
-
-  const getOpConfig = (op: ConditionOperation) => {
-    return CONDITION_OPERATIONS.find((o) => o.value === op);
   };
 
   return (
@@ -745,7 +750,9 @@ function ChangesPreview({
   const validAtomic = atomicRows.filter((r) => r.property && !r.jsonError && r.value);
   const validConditions = conditionRows.filter((r) => {
     if (!r.property) return false;
-    const config = CONDITION_OPERATIONS.find((o) => o.value === r.operation);
+
+    const config = getOpConfig(r.operation);
+
     if (!config) return false;
     if (config.params.includes('value') && !r.value) return false;
     if (config.params.includes('start') && !r.start) return false;
@@ -958,7 +965,7 @@ export function UpdateModal({
     // Build conditions
     const validConditions = conditionRows.filter((r) => {
       if (!r.property) return false;
-      const config = CONDITION_OPERATIONS.find((o) => o.value === r.operation);
+      const config = getOpConfig(r.operation);
       if (!config) return false;
       if (config.params.includes('value') && !r.value) return false;
       if (config.params.includes('start') && !r.start) return false;
@@ -968,8 +975,9 @@ export function UpdateModal({
     });
     if (validConditions.length > 0) {
       params.conditions = validConditions.map((row, idx) => {
-        const config = CONDITION_OPERATIONS.find((o) => o.value === row.operation);
-        const condition: UpdateParams['conditions'][0] = {
+        const config = getOpConfig(row.operation);
+
+        const condition: NonNullable<UpdateParams['conditions']>[number] = {
           operation: row.operation,
           property: row.property,
         };
@@ -996,15 +1004,15 @@ export function UpdateModal({
     onSubmit(params);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
       // Reset state on close
       setValueRows([]);
       setRemoveRows([]);
       setAtomicRows([]);
       setConditionRows([]);
     }
-    onOpenChange(open);
+    onOpenChange(isOpen);
   };
 
   return (
