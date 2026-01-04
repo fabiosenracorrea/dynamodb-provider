@@ -17,8 +17,7 @@ export function GetResultView({ data, error, entityType }: GetResultViewProps) {
     );
   }
 
-  // Handle not found case
-  if (data === null || data === undefined) {
+  if (!data) {
     return (
       <div className="rounded-md border border-muted bg-muted/30 p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground">
         <SearchX className="h-8 w-8" />
