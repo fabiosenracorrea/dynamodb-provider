@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.1.3
+
+- **Fix**: Entity index params resolution would be `never` if you used multiple indexes that had array .notations and getters on different keys - entity would not be recognized on any helpers etc
+
 # v3.1.2
 
 - **Fix**: partition `keySwap` param merger is now resilient to receiving a Proxy inspector object - vital for our upcoming playground to infer the params

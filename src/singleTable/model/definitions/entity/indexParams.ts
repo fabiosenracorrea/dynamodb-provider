@@ -40,7 +40,7 @@ type EntityIndexConfig<
     [key in TableIndex]?: Partial<SingleTableKeyReference>;
   };
 
-  getUpdatedIndexMapping: (params: IndexParams<Entity, IndexConfig>) => {
+  getUpdatedIndexMapping: (params: Partial<IndexParams<Entity, IndexConfig>>) => {
     [key in TableIndex]?: Partial<SingleTableKeyReference>;
   };
 };
