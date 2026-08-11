@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.1.4
+
+- **Fix**: Sending an update with only `remove` clauses now properly omit `ExpressionAttributeValues` from dynamo params
+
 # v3.1.3
 
 - **Fix**: Entity index params resolution would be `never` if you used multiple indexes that had array .notations and getters on different keys - entity would not be recognized on any helpers etc

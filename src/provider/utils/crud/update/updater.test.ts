@@ -1117,6 +1117,90 @@ describe('Updater tests', () => {
       });
     });
 
+    it('should NOT return ExpressionAttributeValues if only remove is passed', () => {
+      const updater = new ItemUpdater({
+        dynamoDB: {} as any,
+      });
+
+      const params = updater.getUpdateParams<any>({
+        table: 'table',
+
+        key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        remove: ['removeProp1', 'removeProp2'],
+      });
+
+      expect(params).toStrictEqual({
+        TableName: 'table',
+
+        Key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        UpdateExpression: 'REMOVE #removeProp1, #removeProp2',
+
+        ExpressionAttributeNames: {
+          '#removeProp1': 'removeProp1',
+          '#removeProp2': 'removeProp2',
+        },
+      });
+
+      expect(params).not.toHaveProperty('ExpressionAttributeValues');
+    });
+
+    it('should return ExpressionAttributeValues if remove is passed alongside conditions', () => {
+      const updater = new ItemUpdater({
+        dynamoDB: {} as any,
+      });
+
+      const conditions = [
+        {
+          operation: 'equal' as const,
+          value: 20,
+          property: 'some',
+        },
+      ];
+
+      const params = updater.getUpdateParams<any>({
+        table: 'table',
+
+        key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        remove: ['removeProp1'],
+
+        conditions,
+      });
+
+      expect(params).toStrictEqual({
+        TableName: 'table',
+
+        Key: {
+          id: '23023',
+          hello: 'lalal',
+        },
+
+        UpdateExpression: 'REMOVE #removeProp1',
+
+        ConditionExpression: buildConditionExpression(conditions),
+
+        ExpressionAttributeNames: {
+          '#removeProp1': 'removeProp1',
+          ...getConditionExpressionNames(conditions),
+        },
+
+        ExpressionAttributeValues: {
+          ...getConditionExpressionValues(conditions),
+        },
+      });
+    });
+
     it('handle a complex scenario', () => {
       const createSet = (v: any) => ({
         value: v,

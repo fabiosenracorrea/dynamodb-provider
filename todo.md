@@ -15,4 +15,3 @@
 
 - "batchWrite"
 
-- update + remove fails = values are being added
