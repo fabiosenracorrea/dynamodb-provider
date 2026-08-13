@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.1.5
+
+- **Fix**: `includeTypeOnEveryUpdate` on entity definitions was ignored due to a mismatch on destructure target
+
 # v3.1.4
 
 - **Fix**: Sending an update with only `remove` clauses now properly omit `ExpressionAttributeValues` from dynamo params
