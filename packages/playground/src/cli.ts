@@ -5,7 +5,10 @@ import { resolve, dirname } from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import { existsSync, watch, statSync, readdirSync } from 'fs';
 import { playgroundPlugin } from './vite-plugin';
-import type { PlaygroundConfig } from './types';
+import { CONFIG_EXAMPLE, ConfigError, resolvePlaygroundConfig } from './config';
+// @ts-expect-error -- plain JS module shared with tailwind.config.js, no types
+import { darkMode, theme } from '../tailwind.theme.js';
+import type { ResolvedPlaygroundConfig } from './types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,11 +32,11 @@ async function findConfig(): Promise<string | null> {
   return null;
 }
 
-async function loadConfig(configPath: string): Promise<PlaygroundConfig> {
+async function loadConfig(configPath: string): Promise<ResolvedPlaygroundConfig> {
   // Add timestamp to bust ESM cache on reload
   const configUrl = `${pathToFileURL(configPath).href}?t=${Date.now()}`;
   const module = await import(configUrl);
-  return module.default || module;
+  return resolvePlaygroundConfig(module.default || module);
 }
 
 function getWatchPaths(configPath: string): string[] {
@@ -64,28 +67,28 @@ function getWatchPaths(configPath: string): string[] {
   return paths;
 }
 
-function validateConfig(config: unknown): asserts config is PlaygroundConfig {
-  if (!config || typeof config !== 'object') {
-    throw new Error('Config must be an object');
-  }
+function reportConfigError(err: unknown): void {
+  console.error(`❌ Failed to load config: ${(err as Error).message}`);
 
-  const cfg = config as Record<string, unknown>;
-
-  if (!cfg.table) {
-    throw new Error('Config must include a "table" property (SingleTable instance)');
-  }
-
-  if (!cfg.entities || typeof cfg.entities !== 'object') {
-    throw new Error('Config must include an "entities" object with named entity exports');
-  }
-
-  const entityCount = Object.keys(cfg.entities as object).length;
-  if (entityCount === 0) {
-    throw new Error('Config must include at least one entity');
+  if (err instanceof ConfigError && err.hint) {
+    console.error(`\n${err.hint}\n`);
   }
 }
 
-async function startServer(config: PlaygroundConfig, isRestart = false): Promise<ViteDevServer> {
+function logConfigSummary({ entities, collections }: ResolvedPlaygroundConfig): void {
+  console.log(`📦 Entities: ${entities.map(({ type }) => type).join(', ')}`);
+
+  const collectionNames = Object.keys(collections);
+
+  if (collectionNames.length) {
+    console.log(`📚 Collections: ${collectionNames.join(', ')}`);
+  }
+}
+
+async function startServer(
+  config: ResolvedPlaygroundConfig,
+  isRestart = false,
+): Promise<ViteDevServer> {
   const port = config.port || 3030;
 
   // Check if we have a built client (production mode when installed as package)
@@ -121,52 +124,9 @@ async function startServer(config: PlaygroundConfig, isRestart = false): Promise
               await import('tailwindcss')
             ).default({
               config: {
-                darkMode: ['class'],
+                darkMode,
+                theme,
                 content: [resolve(clientRoot, '**/*.{html,js,ts,jsx,tsx}')],
-                theme: {
-                  extend: {
-                    colors: {
-                      border: 'hsl(var(--border))',
-                      input: 'hsl(var(--input))',
-                      ring: 'hsl(var(--ring))',
-                      background: 'hsl(var(--background))',
-                      foreground: 'hsl(var(--foreground))',
-                      primary: {
-                        DEFAULT: 'hsl(var(--primary))',
-                        foreground: 'hsl(var(--primary-foreground))',
-                      },
-                      secondary: {
-                        DEFAULT: 'hsl(var(--secondary))',
-                        foreground: 'hsl(var(--secondary-foreground))',
-                      },
-                      destructive: {
-                        DEFAULT: 'hsl(var(--destructive))',
-                        foreground: 'hsl(var(--destructive-foreground))',
-                      },
-                      muted: {
-                        DEFAULT: 'hsl(var(--muted))',
-                        foreground: 'hsl(var(--muted-foreground))',
-                      },
-                      accent: {
-                        DEFAULT: 'hsl(var(--accent))',
-                        foreground: 'hsl(var(--accent-foreground))',
-                      },
-                      popover: {
-                        DEFAULT: 'hsl(var(--accent))',
-                        foreground: 'hsl(var(--accent-foreground))',
-                      },
-                      card: {
-                        DEFAULT: 'hsl(var(--card))',
-                        foreground: 'hsl(var(--card-foreground))',
-                      },
-                    },
-                    borderRadius: {
-                      lg: 'var(--radius)',
-                      md: 'calc(var(--radius) - 2px)',
-                      sm: 'calc(var(--radius) - 4px)',
-                    },
-                  },
-                },
                 plugins: [(await import('tailwindcss-animate')).default],
               },
             }),
@@ -189,34 +149,21 @@ async function main() {
   if (!configPath) {
     console.error('❌ No config file found.');
     console.error('   Create a playground.config.ts file in your project root:\n');
-    console.error(`   import { table } from './src/db'
-   import { User, Product } from './src/entities'
-
-   export default {
-     table,
-     entities: { User, Product },
-   }`);
+    console.error(CONFIG_EXAMPLE);
     process.exit(1);
   }
 
   console.log(`📁 Config: ${configPath}`);
 
-  // Load and validate config
-  let config: PlaygroundConfig;
+  let config: ResolvedPlaygroundConfig;
   try {
     config = await loadConfig(configPath);
-    validateConfig(config);
   } catch (err) {
-    console.error(`❌ Failed to load config: ${(err as Error).message}`);
+    reportConfigError(err);
     process.exit(1);
   }
 
-  const entityNames = Object.keys(config.entities);
-  const collectionNames = Object.keys(config.collections || {});
-  console.log(`📦 Entities: ${entityNames.join(', ')}`);
-  if (collectionNames.length > 0) {
-    console.log(`📚 Collections: ${collectionNames.join(', ')}`);
-  }
+  logConfigSummary(config);
 
   // Start the server
   const port = config.port || 3030;
@@ -238,26 +185,19 @@ async function main() {
     console.log('\n🔄 Config change detected, restarting...\n');
 
     try {
-      // Close current server
       await server.close();
 
-      // Reload config
       const newConfig = await loadConfig(configPath);
-      validateConfig(newConfig);
 
-      const newEntityNames = Object.keys(newConfig.entities);
-      const newCollectionNames = Object.keys(newConfig.collections || {});
-      console.log(`📦 Entities: ${newEntityNames.join(', ')}`);
-      if (newCollectionNames.length > 0) {
-        console.log(`📚 Collections: ${newCollectionNames.join(', ')}`);
-      }
+      logConfigSummary(newConfig);
 
-      // Start new server
       server = await startServer(newConfig, true);
 
-      console.log(`\n✨ Playground restarted at http://localhost:${newConfig.port || 3030}\n`);
+      console.log(
+        `\n✨ Playground restarted at http://localhost:${newConfig.port || 3030}\n`,
+      );
     } catch (err) {
-      console.error(`❌ Failed to restart: ${(err as Error).message}`);
+      reportConfigError(err);
       console.log('   Fix the error and save again to retry.\n');
     }
 

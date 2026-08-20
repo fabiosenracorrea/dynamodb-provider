@@ -1,4 +1,4 @@
-import type { PlaygroundConfig, ExecuteRequest, ExecuteResponse } from '../types';
+import type { ResolvedPlaygroundConfig, ExecuteRequest, ExecuteResponse } from '../types';
 
 // Set to true to use mock data for testing UX
 const USE_MOCK_DATA = true;
@@ -36,7 +36,7 @@ function generateMockList(count: number): Record<string, unknown>[] {
 }
 
 export async function executeOperation(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   request: ExecuteRequest,
 ): Promise<ExecuteResponse> {
   try {
@@ -64,7 +64,7 @@ export async function executeOperation(
 }
 
 async function executeEntityOperation(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   entityType: string,
   operation: string,
   index: string | undefined,
@@ -214,7 +214,7 @@ async function executeEntityOperation(
 }
 
 async function executeCollectionOperation(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   collectionName: string,
   operation: string,
   params: Record<string, unknown>,
@@ -250,7 +250,7 @@ async function executeCollectionOperation(
 }
 
 async function executeTableOperation(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   operation: string,
   params: Record<string, unknown>,
 ): Promise<ExecuteResponse> {

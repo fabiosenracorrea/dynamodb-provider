@@ -1,4 +1,4 @@
-import type { PlaygroundConfig } from '../types';
+import type { ResolvedPlaygroundConfig } from '../types';
 
 export interface ResolveKeysRequest {
   entityType: string;
@@ -22,7 +22,7 @@ function joinKeyParts(parts: unknown[], separator: string): string {
 }
 
 export function resolveKeys(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   request: ResolveKeysRequest,
 ): ResolveKeysResponse {
   const { entityType, data } = request;

@@ -3,24 +3,49 @@
 import type {
   AnyEntity,
   AnyCollection,
+  DynamodbProvider,
   SingleTable,
   SingleTableConfig,
 } from 'dynamodb-provider';
 
 export type { AnyEntity, AnyCollection };
 
+/**
+ * `IDynamodbProvider` is not re-exported from the package root, so the concrete
+ * class stands in for the interface here.
+ */
+export type PlaygroundProvider = DynamodbProvider<any>;
+
 export interface PlaygroundConfig {
   table: SingleTable<any>;
 
-  entities: AnyEntity[];
+  /**
+   * The same provider instance passed to `new SingleTable({ dynamodbProvider })`.
+   *
+   * SingleTable drops it from its public `config`, so it cannot be read back off
+   * the table — it powers the table browser's scan/key lookup and the connection probe.
+   */
+  dynamodbProvider: PlaygroundProvider;
+
+  entities: AnyEntity[] | Record<string, AnyEntity>;
   collections?: Record<string, AnyCollection>;
   port?: number;
   autoOpen?: boolean;
 
   enableMutations?: {
+    create?: boolean;
     update?: boolean;
     delete?: boolean;
   };
+}
+
+/**
+ * `PlaygroundConfig` with the user-facing conveniences resolved: `entities` always
+ * an array, `collections` always present. Everything past config loading uses this.
+ */
+export interface ResolvedPlaygroundConfig extends Omit<PlaygroundConfig, 'entities'> {
+  entities: AnyEntity[];
+  collections: Record<string, AnyCollection>;
 }
 
 export interface IndexInstance {
@@ -105,6 +130,7 @@ export interface MetadataResponse {
   table: TableMetadata;
   entities: EntityMetadata[];
   collections: CollectionMetadata[];
+  isCreateEnabled: boolean;
   isUpdateEnabled: boolean;
   isDeleteEnabled: boolean;
 }

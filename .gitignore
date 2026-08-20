@@ -1,8 +1,6 @@
 node_modules
 lib
 **/**.js
-!packages/playground/bin/*.js
-!packages/playground/*.config.js
 test.ts
 example.ts
 
@@ -19,7 +17,9 @@ notes/**
 docs/.vitepress/dist
 docs/.vitepress/cache
 
-PLAYGROUND_IMPLEMENTATION_PLAN.md
 .npmrc
 playground.config.ts
 yarn.lock
+!tailwind.theme.js
+!packages/playground/bin/*.js
+!packages/playground/*.config.js

@@ -1,5 +1,5 @@
 import type { Plugin, Connect } from 'vite';
-import type { PlaygroundConfig } from './types';
+import type { ResolvedPlaygroundConfig } from './types';
 
 import { extractMetadata } from './api/metadata';
 import { routes } from './api';
@@ -22,7 +22,7 @@ function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
 }
 
 function apiMiddleware(
-  config: PlaygroundConfig,
+  config: ResolvedPlaygroundConfig,
   metadata: ReturnType<typeof extractMetadata>,
 ): Connect.NextHandleFunction {
   return async (req, res, next) => {
@@ -57,7 +57,7 @@ function apiMiddleware(
   };
 }
 
-export function playgroundPlugin(config: PlaygroundConfig): Plugin {
+export function playgroundPlugin(config: ResolvedPlaygroundConfig): Plugin {
   const metadata = extractMetadata(config);
 
   return {

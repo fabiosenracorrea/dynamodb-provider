@@ -3,12 +3,12 @@ import { extractMetadata } from './metadata';
 import { resolveKeys } from './resolve-keys';
 import { executeOperation } from './execute';
 
-import type { PlaygroundConfig } from '../types';
+import type { ResolvedPlaygroundConfig } from '../types';
 
 interface RouteRequest {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;
-  config: PlaygroundConfig;
+  config: ResolvedPlaygroundConfig;
   metadata: ReturnType<typeof extractMetadata>;
 }
 
