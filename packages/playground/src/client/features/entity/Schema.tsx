@@ -1,6 +1,6 @@
 import { Key, Search, Layers } from 'lucide-react';
 
-import { KeyPiece, RangeQuery } from '../../../../types';
+import { KeyPiece, RangeQuery } from '@/utils/api';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,

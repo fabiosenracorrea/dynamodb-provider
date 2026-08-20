@@ -88,8 +88,8 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
             <SidebarItem
               key={partition.id}
               name={partition.pattern}
-              type={partition.source}
-              subtitle={`${partition.entities.length} entities`}
+              meta={partition.source}
+              subtitle={partition.entities.join(', ')}
               isSelected={selectedPartition === partition.id}
               onClick={() => onSelect(partition.id)}
             />

@@ -4,6 +4,7 @@ import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useExecute } from '@/utils/hooks';
+import { reportError, reportResult } from '@/utils/notify';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { useItemContext } from './_context';
@@ -33,12 +34,12 @@ export function DeleteItemButton({ disabled }: DeleteItemButtonProps) {
         params: item,
       });
 
-      if (result.success) {
-        setDeleteDialogOpen(false);
-        onItemDeleted?.();
-      }
+      if (!reportResult('Delete', result)) return;
+
+      setDeleteDialogOpen(false);
+      onItemDeleted?.();
     } catch (error) {
-      console.error('Delete failed:', error);
+      reportError('Delete', error);
     }
   };
 

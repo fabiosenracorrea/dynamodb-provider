@@ -1,7 +1,6 @@
-/* eslint-disable no-continue */
-/* eslint-disable no-restricted-syntax */
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,68 +18,16 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
-const FILTER_OPERATIONS = [
-  { value: 'equal', label: 'Equal', params: ['value'] },
-  { value: 'not_equal', label: 'Not equal', params: ['value'] },
-  { value: 'lower_than', label: 'Lower than', params: ['value'] },
-  { value: 'lower_or_equal_than', label: 'Lower or equal', params: ['value'] },
-  { value: 'bigger_than', label: 'Bigger than', params: ['value'] },
-  { value: 'bigger_or_equal_than', label: 'Bigger or equal', params: ['value'] },
-  { value: 'begins_with', label: 'Begins with', params: ['value'] },
-  { value: 'contains', label: 'Contains', params: ['value'] },
-  { value: 'not_contains', label: 'Not contains', params: ['value'] },
-  { value: 'between', label: 'Between', params: ['start', 'end'] },
-  { value: 'in', label: 'In', params: ['values'] },
-  { value: 'not_in', label: 'Not in', params: ['values'] },
-  { value: 'exists', label: 'Exists', params: [] },
-  { value: 'not_exists', label: 'Not exists', params: [] },
-] as const;
+import type { FilterRow } from './types';
+import { createEmptyFilter } from './types';
+import { FILTER_OPERATIONS, getOpConfig, type FilterOperation } from './constants';
 
-type FilterOperation = (typeof FILTER_OPERATIONS)[number]['value'];
-
-const getOpConfig = (op: FilterOperation) => {
-  type OpConfig = Omit<(typeof FILTER_OPERATIONS)[number], 'params'> & {
-    params: Array<'value' | 'start' | 'end' | 'values'>;
-  };
-
-  return FILTER_OPERATIONS.find((o) => o.value === op) as OpConfig | undefined;
-};
-
-// Parse string to appropriate type (number, boolean, null, or string)
-function parseValue(str: string): string | number | boolean | null {
-  if (str === 'null') return null;
-  if (str === 'true') return true;
-  if (str === 'false') return false;
-  const num = Number(str);
-  if (!Number.isNaN(num) && str.trim() !== '') return num;
-  return str;
-}
-
-export interface FilterRow {
-  id: string;
-  property: string;
-  operation: FilterOperation;
-  value: string;
-  start: string;
-  end: string;
-  values: string;
-}
+export type { FilterRow };
+export * from './buildFiltersParam';
 
 interface FiltersSheetProps {
   filters: FilterRow[];
   onChange: (filters: FilterRow[]) => void;
-}
-
-function createEmptyFilter(): FilterRow {
-  return {
-    id: crypto.randomUUID(),
-    property: '',
-    operation: 'equal',
-    value: '',
-    start: '',
-    end: '',
-    values: '',
-  };
 }
 
 export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
@@ -322,57 +269,4 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
       </SheetContent>
     </Sheet>
   );
-}
-
-// Helper to convert FilterRow[] to the API format
-export function buildFiltersParam(
-  filters: FilterRow[],
-): Record<string, unknown> | undefined {
-  const validFilters = filters.filter((f) => {
-    if (!f.property) return false;
-    const config = getOpConfig(f.operation);
-    if (!config) return false;
-    if (config.params.includes('value') && !f.value) return false;
-    if (config.params.includes('start') && !f.start) return false;
-    if (config.params.includes('end') && !f.end) return false;
-    if (config.params.includes('values') && !f.values) return false;
-    return true;
-  });
-
-  if (validFilters.length === 0) return undefined;
-
-  const result: Record<string, unknown> = {};
-
-  for (const filter of validFilters) {
-    const config = getOpConfig(filter.operation);
-    if (!config) continue;
-
-    let filterValue: unknown;
-
-    // Build the condition object
-    if (config.params.length === 0) {
-      // exists / not_exists
-      filterValue = { operation: filter.operation };
-    } else if (config.params.includes('value')) {
-      filterValue = {
-        operation: filter.operation,
-        value: parseValue(filter.value),
-      };
-    } else if (config.params.includes('start')) {
-      filterValue = {
-        operation: filter.operation,
-        start: parseValue(filter.start),
-        end: parseValue(filter.end),
-      };
-    } else if (config.params.includes('values')) {
-      filterValue = {
-        operation: filter.operation,
-        values: filter.values.split(',').map((v) => parseValue(v.trim())),
-      };
-    }
-
-    result[filter.property] = filterValue;
-  }
-
-  return Object.keys(result).length > 0 ? result : undefined;
 }

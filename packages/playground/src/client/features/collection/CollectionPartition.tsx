@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/tooltip';
 
 import { useMetadataContext } from '@/context';
-import type { KeyPiece } from '../../../../types';
+import type { KeyPiece } from '@/utils/api';
 
 export function CollectionPartition({ pieces }: { pieces: KeyPiece[] }) {
   const { table } = useMetadataContext();

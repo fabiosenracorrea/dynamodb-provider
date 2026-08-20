@@ -10,7 +10,23 @@ export const theme = {
       input: 'hsl(var(--input))',
       ring: 'hsl(var(--ring))',
       background: 'hsl(var(--background))',
+      surface: 'hsl(var(--surface))',
       foreground: 'hsl(var(--foreground))',
+      success: {
+        DEFAULT: 'hsl(var(--success))',
+        foreground: 'hsl(var(--success-foreground))',
+      },
+      warning: {
+        DEFAULT: 'hsl(var(--warning))',
+        foreground: 'hsl(var(--warning-foreground))',
+      },
+      code: {
+        key: 'hsl(var(--code-key))',
+        string: 'hsl(var(--code-string))',
+        number: 'hsl(var(--code-number))',
+        boolean: 'hsl(var(--code-boolean))',
+        null: 'hsl(var(--code-null))',
+      },
       primary: {
         DEFAULT: 'hsl(var(--primary))',
         foreground: 'hsl(var(--primary-foreground))',

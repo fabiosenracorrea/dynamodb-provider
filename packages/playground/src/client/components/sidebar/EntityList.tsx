@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEntities } from '@/context';
 import { SearchInput } from './SearchInput';
+import { EntityDot } from '@/components/shared';
 import { SidebarItem } from './SidebarItem';
 import { SortPopover, applySortOrder, type SortOrder } from './SortPopover';
 
@@ -49,10 +50,8 @@ export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
             <SidebarItem
               key={entity.type}
               name={entity.type}
-              type={entity.type}
-              subtitle={
-                entity.indexes.length > 0 ? `${entity.indexes.length} indexes` : undefined
-              }
+              leading={<EntityDot type={entity.type} />}
+              meta={entity.indexes.length ? `${entity.indexes.length} idx` : undefined}
               isSelected={selectedEntity === entity.type}
               onClick={() => onSelect(entity.type)}
             />

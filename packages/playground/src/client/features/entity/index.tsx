@@ -14,11 +14,11 @@ import {
   OperationTabsList,
   OperationTabsContent,
   type OperationTab,
-} from '../OperationTabs';
-import { KeyParamsForm } from '../KeyParamsForm';
-import { BatchGetForm } from '../BatchGetForm';
-import { ListForm } from '../ListForm';
-import { QueryForm } from '../QueryForm';
+} from '@/components/shared';
+import { KeyParamsForm } from '@/features/query';
+import { BatchGetForm } from '@/features/query';
+import { ListForm } from '@/features/query';
+import { QueryForm } from '@/features/query';
 
 import { LoadingEntities } from './Loading';
 import { EntitySchemaTab } from './Schema';

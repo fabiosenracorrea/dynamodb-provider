@@ -60,10 +60,11 @@ src/api/
 │   ├── collection/           get.ts
 │   └── table/                query.ts listType.ts scan.ts getByKey.ts   (scan/getByKey use the provider)
 ├── metadata/                 (existing key/rangeQuery inference — keep, it's good)
-└── lib/
+└── core/                     NOT `lib/` — the root .gitignore swallows any dir named lib
     ├── callDescriptor.ts     copy-as-code builder (§4D)
     ├── errors.ts             PlaygroundError → typed response envelope
-    └── timing.ts
+    ├── operation.ts          OperationContext + defineXOperation helpers
+    └── validate.ts           zod parse → 400 with issues
 ```
 
 Rules:
@@ -75,7 +76,7 @@ Rules:
 - **Every action file exports one function** with the same signature shape
   (`(ctx: OperationContext, params: TParams) => Promise<TResult>`), where `OperationContext` carries
   `{ table, provider, entities, collections, metadata, enableMutations }` — built once at plugin start.
-  Shared concerns — target resolution, pagination envelope, timing, the call descriptor — live in `lib/` and
+  Shared concerns — target resolution, pagination envelope, timing, the call descriptor — live in `core/` and
   are called once by the router, not repeated per action.
 - **Mutations are gated in one place**, in the router from `ctx.enableMutations`, not re-checked inside each
   of `create.ts` / `update.ts` / `delete.ts`. That also closes bug 10, since the gate stops depending on
@@ -399,6 +400,7 @@ a seed/fixture generator; multi-table or multi-profile switching; virtualised ta
 ## 6. Sequence of work
 
 Phases are ordered so each one leaves the app in a working state.
+**Phases 0 and 1 are done** — see §9 for what shipped and what changed along the way.
 
 **Phase 0 — housekeeping + config shape** *(small)*
 Add `dynamodbProvider` to `PlaygroundConfig` (`src/types.ts`), validate it in `cli.ts`, pass it through
@@ -409,7 +411,7 @@ gitignore the latter. Extract the shared Tailwind theme used by both `tailwind.c
 Rotate the `.npmrc` token.
 
 **Phase 1 — backend restructure + real execution** *(the launch blocker; do this before any UI work)*
-Build out `src/api/` per §0: router with zod validation, schemas, one file per action, shared `lib/`.
+Build out `src/api/` per §0: router with zod validation, schemas, one file per action, shared `core/`.
 Delete `execute.ts` and its mock generators in the process. Fix bugs 1–5 and 9 as part of the rewrite rather
 than patching the old file. Response envelope gains `meta` (duration, count, call) and `paginationToken`;
 `src/types.ts` shrinks to whatever isn't derivable from the zod schemas. Point the repo's own
@@ -418,8 +420,15 @@ than patching the old file. Response envelope gains `meta` (duration, count, cal
 *Done when:* every operation runs against dynamodb-local, named range queries visibly change results, and a
 malformed request returns a 400 with zod issues instead of a 500.
 
-**Phase 2 — correctness pass** *(small, isolated)*
-Bugs 6, 7, 8, 10, 13, 15. Each is a few lines; batch them.
+**Phase 2 — correctness pass + lint** *(small, isolated)*
+Remaining bugs: 8 (hardcoded `#` separator in `MetadataContext`) and 13 (`OperationTabs` renders hidden
+tab content). Bugs 6, 7, 10 and 15 were fixed in Phase 1 — they sat in the files the contract change
+already touched.
+
+Also: give the playground its own **`.eslintrc.json`** (JSON, per preference). The root config doesn't
+resolve the `@/*` alias and has no `react-hooks` plugin, producing 33 errors across files nobody touched.
+Import the React setup Fabio has rather than inventing one. Note `yarn lint` runs with `--fix`, so it
+rewrites files — don't run it to take a "baseline".
 
 **Phase 3 — design system + shell + frontend restructure**
 Move to the `features/` layout from §0 as the shell is rebuilt — the two are the same edit, so don't do them
@@ -527,3 +536,102 @@ Per phase:
 **Regression gate for every phase:** `cd packages/playground && yarn check-ts`, plus `yarn lint` from the repo
 root. There is no test suite in `packages/playground` today; adding one is out of scope for v1, so the
 manual matrix above is the gate.
+
+---
+
+## 9. Progress log
+
+### Phase 0 — housekeeping + config shape ✅ (commit `77c6f3e`)
+
+`dynamodbProvider` added as a required config field; config loading extracted to `src/config.ts`
+(`resolvePlaygroundConfig` + `ConfigError`), normalizing `entities` from array-or-object once so nothing
+downstream re-checks it. `ResolvedPlaygroundConfig` introduced. Tailwind theme extracted to
+`tailwind.theme.js`, shared by `tailwind.config.js` and the inline dev config in `cli.ts`. Fixture wired to
+dynamodb-local. Deleted `hooks/useApi.ts` and the tracked `yarn-error.log`.
+
+Bugs closed early: **9** (collection metadata no longer spreads the join tree), **11** (`bg-popover`
+aliased `--accent`), **12** (`Object.keys` on an entity array logged indices).
+
+Plan corrections: `.npmrc` is **not** committed — the root `.gitignore` covers it, so the "committed
+secret" flag was wrong. `playground.config.ts` is *also* gitignored, so the richest example of the
+library's API is local-only — worth deciding whether to commit it.
+
+### Phase 1 — backend restructure + real execution ✅
+
+`USE_MOCK_DATA` and its generators are gone; every operation runs against DynamoDB. `src/api/` rebuilt to
+the §0 layout: `router.ts`, `routes/`, `operations/` (one file per action), `schemas/`, `core/`. Zod
+validates every route. `OperationContext` is built once at plugin start. Mutations are gated in the router
+off `enableMutations`, which closes bug **10** structurally.
+
+Bugs closed: **1** (mocks), **2** (named range queries never dispatched), **3** (index partition queries hit
+the base table), **4** (`batchGet` was N parallel gets), **5** (`list` mapped to `listAll`, discarding
+params), **6** (`?.trim() !== ''` passed on `undefined` — four sites), **7** (controlled→uncontrolled input),
+**15** (`buildRangeParams` returning `undefined`).
+
+Deviations from the plan, all deliberate:
+- **Connection probe is its own route** (`GET /api/connection`) rather than riding on `/api/metadata`, so
+  metadata stays synchronous and the UI can re-check after you start your database.
+- **Two operations added beyond the plan**: `table.getByKey` (literal pk/sk lookup) and `table.listType`,
+  both needed by §4G and cheap once the provider was in context.
+- **`entity.query` takes a `mode`** of `page | one | all`, mapping to the library's `custom`/`one`/`all`.
+- **`describeCall` models an argument list**, so two-arg calls like `provider.list(table, options)` render
+  correctly.
+- **`scripts/setup-local-table.ts` added** (`yarn setup:local`) — creates the table the fixture expects,
+  with all four GSIs including the numeric one. Verification needs it.
+
+Verified against DynamoDB Local with real data — unfiltered query returns 4 items in the `PROJECT#proj_1`
+partition while `allTasks` correctly narrows to 3; `ByStatus` splits todo/done 2/1; the numeric `ByOrder`
+GSI sorts DESC 3→2→1; the same GSI2 partition returns 2 items with `index` set and 0 without it;
+`list` honours limit and order and round-trips its `paginationToken`; create fills `autoGen` fields;
+update applies values plus atomic ops; the collection joins 3 tasks onto its root. Error paths return
+400 with zod issues, 404 for unknown entity/index/rangeQuery/operation, and 403 for a disabled mutation.
+
+### Phase 3 — design system + shell + frontend restructure ✅
+
+**Tokens.** `index.css` now carries complete light *and* `.dark` palettes (dark is the default, persisted to
+localStorage), plus `--surface`, `--success`/`--warning`, JSON syntax tokens, and `--entity-saturation` /
+`--entity-lightness`. `tailwind.theme.js` exposes them all. The hardcoded `.json-view`
+(`bg-slate-900 text-green-400`, which fought the light theme) is gone.
+
+**Entity identity.** `utils/entityColor.ts` derives a stable hue per entity type on a golden-angle step, so
+neighbouring types stay distinct. Used by the sidebar, command palette and result rows.
+
+**Shared components** (`components/shared/`): `ResultTable` (replaces the near-identical `ListResultView`
+and `CollectionListView` implementations, adds sticky headers, value-typed cell colouring, entity dots and a
+cursor-aware "Fetch next page"), `JsonView` (tokenized highlighting over serialized JSON, so key order and
+indentation survive), `CopyButton` (replaces two near-identical copies), `EntityBadge`/`EntityDot`,
+`ThemeToggle`, plus `OperationTabs` and `EmptyState` moved out of the operations bucket.
+
+**Shell** (`app/`): `Providers` (router → query → theme → tooltip → metadata → toaster), `Shell` with a
+header carrying the table name, live `ConnectionBadge` and theme toggle, and a `CommandPalette` (⌘K,
+arrow/enter navigation, no new dependency — built on the existing Dialog). The sidebar lost its duplicated
+header/footer and its `h-screen`, and now shows entity colour dots with an index count instead of printing
+the entity name twice.
+
+**Toasts.** `sonner` added; `utils/notify.ts` centralizes reporting. Mutations previously only
+`console.error`'d, and — worse — ignored `success: false` entirely, so a rejected update was completely
+silent. No `console.error` remains in the client.
+
+**Splits.** `UpdateModal.tsx` 1,108 lines → 11 files (largest 276); `FiltersSheet.tsx` 378 → 4. Nothing in
+`src/client` now exceeds 330 lines.
+
+**Restructure.** `components/operations/` dissolved into `features/{entity,collection,partition,item,query}`
+with generic pieces promoted to `components/shared/`.
+
+Bug closed: **10** client half — the inline JSON editor now hides behind `isUpdateEnabled` instead of
+offering an edit the server answers with 403.
+
+Deviations, all deliberate:
+- **`table.query` gained a `raw` flag**, and the partition view sets it. `autoRemoveTableProperties` strips
+  `_type`/`_pk`/`_sk` from SingleTable results, so a mixed-entity partition had nothing to colour by — the
+  one view where colour matters most. With `raw`, the query goes through `provider.query` and keeps the real
+  keys, which is what "browse this raw partition" should show anyway. Verified: `PROJECT#proj_1` returns
+  PROJECT + PROJECT_MEMBER + TASK rows with `_pk`/`_sk` intact; the non-raw path still returns clean
+  entities.
+- **Connection status is a live badge** that re-polls every 10s while disconnected and is clickable to retry.
+- The **workbench query-builder unification is not done** — entity/partition/collection keep their tab
+  layout inside the new shell. The Table Map (Phase 4) is what those views collapse into, so rebuilding them
+  twice would be waste.
+
+Note for future phases: the dev server's config watcher only cache-busts `playground.config.ts`. Changes
+under `src/api/**` need a full process restart — the watch-triggered restart keeps tsx's module cache.

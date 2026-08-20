@@ -57,8 +57,8 @@ export function CollectionList({ selectedCollection, onSelect }: CollectionListP
             <SidebarItem
               key={collection.name}
               name={collection.name}
-              type="Collection"
-              subtitle={collection.originEntityType || undefined}
+              meta={collection.type === 'MULTIPLE' ? 'many' : 'one'}
+              subtitle={collection.originEntityType || 'no root entity'}
               isSelected={selectedCollection === collection.name}
               onClick={() => onSelect(collection.name)}
             />

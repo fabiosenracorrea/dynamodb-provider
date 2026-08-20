@@ -15,9 +15,9 @@ import { usePartitionGroup, useMetadataContext } from '@/context';
 import { useExecute } from '@/utils/hooks';
 import { omit } from '@/utils/object';
 
-import type { KeyPiece } from '../../../../types';
+import type { KeyPiece } from '@/utils/api';
 
-import { ListResultView } from '../ListResultView';
+import { ListResultView } from '@/features/query';
 import { PartitionLoading } from './Loading';
 import {
   buildRangeParams,
@@ -25,7 +25,7 @@ import {
   isRangeQueryValid,
   QueryParams,
   useQueryConfig,
-} from '../QueryParams';
+} from '@/features/query';
 import { PartitionEntityList } from './EntityList';
 
 interface PartitionOperationsProps {
@@ -89,6 +89,7 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
       ...omit(queryConfig, ['range', 'filters', 'limit']),
       limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       partition: partitionKeyValues,
+      raw: true,
       ...buildRangeParams(queryConfig.range).params,
     };
 

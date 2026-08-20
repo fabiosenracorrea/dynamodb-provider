@@ -1,23 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Pencil, Save, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useExecute } from '@/utils/hooks';
+import { reportError, reportResult } from '@/utils/notify';
+import { useMetadataContext } from '@/context';
 
 import { ItemViewProvider } from './_context';
 import { SaveChangesDialog } from './SaveChangesDialog';
 import { ItemKey } from './ItemKey';
 import { DeleteItemButton } from './DeleteItemButton';
 import { UpdateItemButton } from './UpdateItemButton';
-import { CopyButton } from './CopyButton';
+import { JsonView, CopyButton } from '@/components/shared';
 
 interface ItemDetailViewProps {
   item: Record<string, unknown>;
@@ -42,6 +38,10 @@ export function ItemDetailView({
   const [jsonError, setJsonError] = useState<string | null>(null);
 
   const directUpdateMutation = useExecute();
+
+  // Server rejects disabled mutations with a 403; don't offer the affordance either.
+  const { metadata } = useMetadataContext();
+  const canEdit = !!metadata?.isUpdateEnabled;
 
   // Format the item JSON
   const formattedJson = useMemo(() => JSON.stringify(item, null, 2), [item]);
@@ -140,16 +140,17 @@ export function ItemDetailView({
         params,
       });
 
-      if (result.success) {
-        setSaveChangesDialogOpen(false);
-        setIsEditing(false);
-        setEditedJson('');
-        if (result.data && typeof result.data === 'object') {
-          onItemUpdated?.(result.data as Record<string, unknown>);
-        }
+      if (!reportResult('Update', result)) return;
+
+      setSaveChangesDialogOpen(false);
+      setIsEditing(false);
+      setEditedJson('');
+
+      if (result.data && typeof result.data === 'object') {
+        onItemUpdated?.(result.data as Record<string, unknown>);
       }
     } catch (error) {
-      console.error('Update failed:', error);
+      reportError('Update', error);
     }
   };
 
@@ -160,7 +161,6 @@ export function ItemDetailView({
       onItemDeleted={onItemDeleted}
       onItemUpdated={onItemUpdated}
     >
-      <TooltipProvider>
         <div className="space-y-4">
           {/* Resolved Keys Section */}
           <ItemKey />
@@ -186,10 +186,10 @@ export function ItemDetailView({
             {entityType && (
               <div className="flex flex-col gap-1 shrink-0">
                 {/* Copy Button */}
-                <CopyButton />
+                <CopyButton value={item} />
 
                 {/* Edit JSON Button */}
-                {!isEditing ? (
+                {!canEdit ? null : !isEditing ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -270,16 +270,14 @@ export function ItemDetailView({
                   )}
                 </div>
               ) : (
-                <ScrollArea style={{ maxHeight }} className="border rounded-md">
-                  <pre className="json-view text-xs p-3">{formattedJson}</pre>
-                </ScrollArea>
+                <JsonView value={item} style={{ maxHeight }} />
               )}
             </div>
 
             {/* Copy button for non-entity view (no side actions) */}
             {!entityType && (
               <div className="absolute top-2 right-2 z-10">
-                <CopyButton variant="ghost" showTooltip={false} />
+                <CopyButton value={item} variant="ghost" showTooltip={false} />
               </div>
             )}
           </div>
@@ -296,7 +294,6 @@ export function ItemDetailView({
             />
           )}
         </div>
-      </TooltipProvider>
     </ItemViewProvider>
   );
 }

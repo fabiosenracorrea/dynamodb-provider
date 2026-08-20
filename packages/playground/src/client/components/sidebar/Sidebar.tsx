@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMetadataContext } from '@/context';
 import { EntityList } from './EntityList';
@@ -23,7 +22,7 @@ function parseSelection(pathname: string): Selection | null {
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { table, collections } = useMetadataContext();
+  const { collections } = useMetadataContext();
   const hasCollections = collections.length > 0;
 
   const selection = parseSelection(location.pathname);
@@ -51,22 +50,13 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-72 border-r bg-muted/30 flex flex-col h-screen">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Database className="h-5 w-5" />
-          <h1 className="font-semibold">Playground</h1>
-        </div>
-      </div>
-
-      {/* Tabs */}
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-surface">
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as SelectionType)}
         className="flex-1 flex flex-col"
       >
-        <TabsList className="mx-2 mt-2 grid grid-cols-3">
+        <TabsList className="mx-2 mt-2 grid h-8 grid-cols-3">
           <TabsTrigger value="entity" className="text-xs">
             Entities
           </TabsTrigger>
@@ -100,15 +90,6 @@ export function Sidebar() {
         </TabsContent>
       </Tabs>
 
-      {/* Table Info Footer */}
-      <div className="p-3 border-t bg-muted/50 text-xs text-muted-foreground">
-        <p>
-          PK: <span className="font-mono">{table?.partitionKey}</span>
-        </p>
-        <p>
-          SK: <span className="font-mono">{table?.rangeKey}</span>
-        </p>
-      </div>
     </aside>
   );
 }

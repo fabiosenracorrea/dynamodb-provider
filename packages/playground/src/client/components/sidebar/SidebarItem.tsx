@@ -1,37 +1,53 @@
+import type { ReactNode } from 'react';
+
 import { cn } from '@/utils/utils';
 
 interface SidebarItemProps {
   name: string;
-  type: string;
+  /** Right-aligned detail — index count, member entities, etc. */
+  meta?: string;
   subtitle?: string;
+  leading?: ReactNode;
   isSelected: boolean;
   onClick: () => void;
 }
 
 export function SidebarItem({
   name,
-  type,
+  meta,
   subtitle,
+  leading,
   isSelected,
   onClick,
 }: SidebarItemProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
-        'w-full text-left px-3 py-2 rounded-md transition-colors',
-        'hover:bg-accent',
-        isSelected && 'bg-accent',
+        'w-full rounded-md px-2 py-1.5 text-left transition-colors',
+        isSelected ? 'bg-accent' : 'hover:bg-accent/60',
       )}
     >
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-sm truncate">{name}</span>
-        <span className="text-xs font-mono text-muted-foreground ml-2 shrink-0">
-          {type}
+      <div className="flex items-center gap-2">
+        {leading}
+
+        <span
+          className={cn(
+            'truncate font-mono text-xs',
+            isSelected ? 'text-foreground' : 'text-foreground/85',
+          )}
+        >
+          {name}
         </span>
+
+        {meta && (
+          <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{meta}</span>
+        )}
       </div>
+
       {subtitle && (
-        <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitle}</p>
+        <p className="mt-0.5 truncate pl-0.5 text-[10px] text-muted-foreground">{subtitle}</p>
       )}
     </button>
   );

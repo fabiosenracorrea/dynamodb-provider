@@ -4,6 +4,7 @@ import { Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useExecute } from '@/utils/hooks';
+import { reportError, reportResult } from '@/utils/notify';
 import { useMetadataContext } from '@/context';
 
 import { UpdateModal, type UpdateParams } from './UpdateModal';
@@ -37,14 +38,15 @@ export function UpdateItemButton({ disabled }: UpdateItemButtonProps) {
         },
       });
 
-      if (result.success) {
-        setUpdateModalOpen(false);
-        if (result.data && typeof result.data === 'object') {
-          onItemUpdated?.(result.data as Record<string, unknown>);
-        }
+      if (!reportResult('Update', result)) return;
+
+      setUpdateModalOpen(false);
+
+      if (result.data && typeof result.data === 'object') {
+        onItemUpdated?.(result.data as Record<string, unknown>);
       }
     } catch (error) {
-      console.error('Update failed:', error);
+      reportError('Update', error);
     }
   };
 
