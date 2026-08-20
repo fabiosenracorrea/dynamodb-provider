@@ -86,23 +86,23 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
     });
 
     const params: Record<string, unknown> = {
-      ...omit(queryConfig, ['range', 'filters']),
+      ...omit(queryConfig, ['range', 'filters', 'limit']),
       limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       partition: partitionKeyValues,
-      ...buildRangeParams(queryConfig.range),
+      ...buildRangeParams(queryConfig.range).params,
     };
 
     mutation.mutate({
       target: 'table',
-      name: partition.sourceType === 'main' ? 'main' : partition.source,
+      name: '',
       operation: 'query',
+      // Partition groups browse raw table partitions, so this is the physical index.
+      index: partition.sourceType === 'main' ? undefined : partition.source,
       params,
     });
   };
 
-  const isPartitionValid = partitionVars.every(
-    (v) => partitionValues[v.name]?.trim() !== '',
-  );
+  const isPartitionValid = partitionVars.every((v) => !!partitionValues[v.name]?.trim());
 
   const isRangeValid = isRangeQueryValid(queryConfig.range);
 

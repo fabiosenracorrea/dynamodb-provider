@@ -26,10 +26,10 @@ export function ListForm({ target, name }: ListFormProps) {
 
   const handleExecute = () => {
     const params = {
-      ...omit(queryConfig, ['range']),
+      ...omit(queryConfig, ['range', 'limit', 'filters']),
       limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       filters: buildFiltersParam(queryConfig.filters),
-      ...buildRangeParams(queryConfig.range),
+      ...buildRangeParams(queryConfig.range).params,
     };
 
     mutation.mutate({

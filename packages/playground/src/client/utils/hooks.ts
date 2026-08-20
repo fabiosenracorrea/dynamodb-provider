@@ -5,7 +5,6 @@ import {
   resolveKeys,
   type ExecuteRequest,
   type Metadata,
-  type ResolveKeysRequest,
 } from './api';
 
 export const queryKeys = {

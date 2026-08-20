@@ -13,13 +13,26 @@ export const RANGE_OPERATIONS = [
   { value: 'between', label: 'Between', params: ['start', 'end'] },
 ] as const;
 
+export interface BuiltRangeParams {
+  /**
+   * Name of the declared range query to invoke. Travels as its own field on the
+   * request — the server dispatches on it, so burying it in `params` meant the
+   * query silently ran unfiltered.
+   */
+  rangeQuery?: string;
+  params: AnyObject;
+}
+
+function pickFilled(source: Record<string, string>, keys: string[]): AnyObject {
+  return Object.fromEntries(
+    keys.filter((key) => source[key]?.trim()).map((key) => [key, source[key]]),
+  );
+}
+
 export function buildRangeParams(
   { mode, operation, params }: QueryConfig['range'],
   rangeQueries: RangeQuery[] = [],
-) {
-  // to do: strictly type
-  const resultParams: AnyObject = {};
-
+): BuiltRangeParams {
   const selectedRangeQuery = rangeQueries.find((rq) => rq.name === mode);
 
   const selectedCustomOp = RANGE_OPERATIONS.find((op) => op.value === operation);
@@ -28,30 +41,21 @@ export function buildRangeParams(
   const isPredefinedMode = mode !== 'none' && mode !== 'custom';
 
   if (isPredefinedMode && selectedRangeQuery) {
-    resultParams.rangeQuery = mode;
-
-    selectedRangeQuery.params.forEach((paramName) => {
-      if (params[paramName]) {
-        resultParams[paramName] = params[paramName];
-      }
-    });
-
-    return resultParams;
+    return {
+      rangeQuery: mode,
+      params: pickFilled(params, selectedRangeQuery.params),
+    };
   }
 
   if (isCustomMode && selectedCustomOp) {
-    const range: Record<string, unknown> = { operation };
-
-    selectedCustomOp.params.forEach((param) => {
-      if (params[param]) {
-        range[param] = params[param];
-      }
-    });
-
-    resultParams.range = range;
-
-    return resultParams;
+    return {
+      params: {
+        range: { operation, ...pickFilled(params, [...selectedCustomOp.params]) },
+      },
+    };
   }
+
+  return { params: {} };
 }
 
 export function isRangeQueryValid(
@@ -63,15 +67,17 @@ export function isRangeQueryValid(
   const isCustomMode = mode === 'custom';
   const isPredefinedMode = mode !== 'none' && mode !== 'custom';
 
+  // `params[p]?.trim() !== ''` passed for missing values: optional chaining yields
+  // undefined, and undefined !== ''. Every required param has to be truthy.
   const isPredefinedRangeValid =
     !isPredefinedMode ||
     !selectedRangeQuery ||
-    selectedRangeQuery.params.every((p) => params[p]?.trim() !== '');
+    selectedRangeQuery.params.every((p) => !!params[p]?.trim());
 
   const isCustomRangeValid =
     !isCustomMode ||
     !selectedCustomOp ||
-    selectedCustomOp.params.every((p) => params[p]?.trim() !== '');
+    selectedCustomOp.params.every((p) => !!params[p]?.trim());
 
   if (isPredefinedMode) return isPredefinedRangeValid;
 

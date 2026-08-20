@@ -111,7 +111,7 @@ export function BatchGetForm({
   // Check if all entries have valid values
   const isValid =
     entries.length > 0 &&
-    entries.every((entry) => variables.every((v) => entry.values[v.name]?.trim() !== ''));
+    entries.every((entry) => variables.every((v) => !!entry.values[v.name]?.trim()));
 
   const result = mutation.data?.success ? mutation.data.data : null;
   const error = mutation.data?.success === false ? mutation.data.error : null;

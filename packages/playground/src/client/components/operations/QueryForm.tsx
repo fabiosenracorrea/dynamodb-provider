@@ -96,14 +96,18 @@ export function QueryForm({
   };
 
   const handleExecute = () => {
+    const { rangeQuery, params: rangeParams } = buildRangeParams(
+      queryConfig.range,
+      currentConfig.rangeQueries,
+    );
+
     const params: Record<string, unknown> = {
-      ...omit(queryConfig, ['range']),
+      ...omit(queryConfig, ['range', 'limit', 'filters']),
       limit: queryConfig.fullRetrieval ? undefined : Number(queryConfig.limit) || 25,
       filters: buildFiltersParam(queryConfig.filters),
-      ...buildRangeParams(queryConfig.range, currentConfig.rangeQueries),
+      ...rangeParams,
     };
 
-    // Add partition key values
     partitionVars.forEach((v) => {
       const val = partitionValues[v.name];
       params[v.name] = v.numeric && val ? Number(val) : val;
@@ -113,14 +117,13 @@ export function QueryForm({
       target,
       name,
       operation,
+      rangeQuery,
       index: currentConfig.indexName,
       params,
     });
   };
 
-  const isPartitionValid = partitionVars.every(
-    (v) => partitionValues[v.name]?.trim() !== '',
-  );
+  const isPartitionValid = partitionVars.every((v) => !!partitionValues[v.name]?.trim());
 
   const isValid =
     isPartitionValid && isRangeQueryValid(queryConfig.range, currentConfig.rangeQueries);
@@ -211,7 +214,7 @@ export function QueryForm({
                 </label>
                 <Input
                   type={variable.numeric ? 'number' : 'text'}
-                  value={partitionValues[variable.name]}
+                  value={partitionValues[variable.name] ?? ''}
                   onChange={(e) => handlePartitionChange(variable.name, e.target.value)}
                   placeholder={variable.name}
                   className="font-mono"

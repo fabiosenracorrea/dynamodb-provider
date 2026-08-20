@@ -94,7 +94,7 @@ export function KeyParamsForm({
     });
   };
 
-  const isValid = variables.every((v) => values[v.name]?.trim() !== '');
+  const isValid = variables.every((v) => !!values[v.name]?.trim());
   const result = mutation.data?.success ? mutation.data.data : null;
   const error = mutation.data?.success === false ? mutation.data.error : null;
 
