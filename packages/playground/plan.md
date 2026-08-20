@@ -635,3 +635,60 @@ Deviations, all deliberate:
 
 Note for future phases: the dev server's config watcher only cache-busts `playground.config.ts`. Changes
 under `src/api/**` need a full process restart — the watch-triggered restart keeps tsx's module cache.
+
+### Phase 2 — lint config ◐ (partial, paused)
+
+Fabio supplied `.eslintrc.json` / `.eslintignore` / `.prettierrc.json` / `.prettierignore` plus the plugin
+set. Two config fixes were needed to make it load and run:
+
+- **`"root": true`** — without it the playground config cascaded into the repo-root airbnb config and ESLint
+  aborted with *"couldn't determine the plugin 'prettier' uniquely"* (the plugin resolved from two
+  node_modules trees).
+- **`env: { browser, node, es2022 }`** — `eslint:recommended` otherwise flags `window`, `document`,
+  `localStorage`, `crypto` and friends as undefined.
+- An **override for `src/client/components/ui/**`** turning off `jsx-a11y/heading-has-content` and
+  `label-has-associated-control`: those are vendored shadcn primitives that forward `{...props}` to Radix,
+  so the rules fire on the wrapper rather than on real usage.
+
+Also: `lint` / `lint:fix` scripts added; `tsconfig.include` widened to `scripts/**/*` and
+`playground.config.ts` (they were outside the project, so ESLint could not parse them — and they now get
+typechecked, which is a bonus); `@vitejs/plugin-react` removed from `devDependencies`, where it collided
+with the `dependencies` entry it needs to stay in (the CLI loads it at runtime).
+
+`--fix` cleared 507 of 536 problems, mostly reformatting to the playground's `printWidth: 100` (the root
+prettier config uses 90). Hand-fixed after that: dead imports left by the Phase 3 splits, and
+`no-use-before-define` by reordering declarations in `app/App.tsx`, `components/ui/scroll-area.tsx` and
+`features/collection/index.tsx` — that rule stays strict, so helpers now precede their use.
+
+**Remaining: 11 errors, 2 warnings.** Mostly `jsx-a11y/label-has-associated-control` in
+`FiltersSheet` / `ParamForm` / `RangeFilter`. A `Field` + `FieldCaption` pair now lives in
+`components/shared/Field.tsx`: `Field` wraps a labelable control so the caption actually associates,
+`FieldCaption` is for captions above a button or Radix trigger. The four non-labelable captions are
+converted; the six `<label>`+`<Input>` pairs still need wrapping in `Field`. Also outstanding:
+two `react/no-unescaped-entities` in FiltersSheet, `jsx-a11y/no-autofocus` in the command palette
+(intentional — wants an inline disable with a reason), an unused `useState` in RangeFilter, and a
+pre-existing `exhaustive-deps` warning in the sidebar.
+
+### Phase 4 — Table Map ✅
+
+`/` is now the Table Map instead of a "No Selection" placeholder. Everything on it derives from metadata
+already on the wire — no new server work.
+
+- **`TableSummary`** — table name, pk/sk column names, key separator, TTL attribute, the `typeIndex`
+  config (or an explicit "no typeIndex" marker), and every configured index with its physical columns and a
+  `numeric` flag.
+- **`EntityRow`** — colour dot, type, `pk / sk` patterns, then an indented row per index showing its
+  physical GSI, its friendly name and its own key patterns. Declared `rangeQueries` render as chips whose
+  tooltip carries the operation and its params. Every row navigates into the entity.
+- **`PartitionsSection` / `CollectionsSection`** — shared partitions with their member entities as colour
+  badges; collections with their root entity and join names.
+- **`ConfigWarnings`** — derived diagnostics: no `typeIndex`, collections that need one, an entity index
+  pointing at an unconfigured GSI, a `numeric: true` index whose range key resolved to a constant, and
+  entities whose partition key has no variables (single-partition/hot-key).
+
+New shared `KeyPattern` renders key pieces chrome-free for dense rows, on new `--key-constant` /
+`--key-variable` tokens (the old `KeyDisplay` kept its label-and-tooltip chrome for detail views).
+
+Verified: the repo fixture renders all 9 entities, 3 GSIs, the typeIndex, TTL, both partition groups and
+`ProjectWithTasks`, and produces zero warnings — correct, since that config is clean. The warning paths were
+exercised separately against synthetic metadata covering all four cases before the harness was removed.

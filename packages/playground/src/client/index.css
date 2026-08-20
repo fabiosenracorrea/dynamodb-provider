@@ -41,6 +41,10 @@
     --code-boolean: 275 55% 45%;
     --code-null: 220 9% 46%;
 
+    /* Key pattern pieces */
+    --key-constant: 32 85% 38%;
+    --key-variable: 210 90% 42%;
+
     /* Entity identity: hue is set per entity, these fix the rest */
     --entity-saturation: 62%;
     --entity-lightness: 40%;
@@ -81,6 +85,9 @@
     --code-number: 32 90% 65%;
     --code-boolean: 280 60% 74%;
     --code-null: 220 10% 52%;
+
+    --key-constant: 38 92% 62%;
+    --key-variable: 205 90% 66%;
 
     --entity-saturation: 65%;
     --entity-lightness: 62%;

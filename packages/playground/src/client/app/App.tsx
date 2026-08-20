@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 import { useMetadataContext } from '@/context';
 import { EmptyState } from '@/components/shared';
-import { EntityView, PartitionView, CollectionView } from '@/features';
+import { TableMap, EntityView, PartitionView, CollectionView } from '@/features';
 
 import { Shell } from './Shell';
 import { CommandPalette } from './CommandPalette';
@@ -85,7 +85,7 @@ export function App() {
 
       <Shell>
         <Routes>
-          <Route path="/" element={<EmptyState />} />
+          <Route path="/" element={<TableMap />} />
           <Route path="/entity/:name" element={<EntityRoute />} />
           <Route path="/collection/:name" element={<CollectionRoute />} />
           <Route path="/partition/:name" element={<PartitionRoute />} />

@@ -6,3 +6,4 @@ export * from './ThemeToggle';
 export * from './OperationTabs';
 export * from './EmptyState';
 export * from './Field';
+export * from './KeyPattern';

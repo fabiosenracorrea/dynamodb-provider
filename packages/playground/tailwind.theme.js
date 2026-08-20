@@ -20,6 +20,10 @@ export const theme = {
         DEFAULT: 'hsl(var(--warning))',
         foreground: 'hsl(var(--warning-foreground))',
       },
+      key: {
+        constant: 'hsl(var(--key-constant))',
+        variable: 'hsl(var(--key-variable))',
+      },
       code: {
         key: 'hsl(var(--code-key))',
         string: 'hsl(var(--code-string))',
