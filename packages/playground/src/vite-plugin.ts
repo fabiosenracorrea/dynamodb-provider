@@ -1,15 +1,18 @@
 import type { Plugin, Connect } from 'vite';
-import type { ResolvedPlaygroundConfig } from './types';
 
+import type { ResolvedPlaygroundConfig } from './types';
 import { extractMetadata } from './api/metadata';
-import { routes } from './api';
+import { buildOperationContext, type OperationContext } from './api/core/operation';
+import { handleRequest } from './api/router';
 
 function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let body = '';
+
     req.on('data', (chunk) => {
       body += chunk.toString();
     });
+
     req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
@@ -17,53 +20,38 @@ function parseBody(req: Connect.IncomingMessage): Promise<unknown> {
         reject(new Error('Invalid JSON body'));
       }
     });
+
     req.on('error', reject);
   });
 }
 
-function apiMiddleware(
-  config: ResolvedPlaygroundConfig,
-  metadata: ReturnType<typeof extractMetadata>,
-): Connect.NextHandleFunction {
+function apiMiddleware(ctx: OperationContext): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    if (!req.url?.startsWith('/api/')) {
-      return next();
-    }
+    const path = req.url?.split('?')[0];
+
+    if (!path?.startsWith('/api/')) return next();
 
     res.setHeader('Content-Type', 'application/json');
 
-    try {
-      const handler = routes[req.method || '']?.[req.url || ''];
+    const { status, body } = await handleRequest(ctx, {
+      method: req.method ?? '',
+      path,
+      body: await parseBody(req).catch(() => ({})),
+    });
 
-      const result = await handler?.({
-        body: await parseBody(req),
-        config,
-        metadata,
-      });
-
-      if (result) return res.end(JSON.stringify(result));
-
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: 'Not found' }));
-    } catch (err) {
-      res.statusCode = 500;
-      res.end(
-        JSON.stringify({
-          success: false,
-          error: err instanceof Error ? err.message : 'Unknown error',
-        }),
-      );
-    }
+    res.statusCode = status;
+    res.end(JSON.stringify(body));
   };
 }
 
 export function playgroundPlugin(config: ResolvedPlaygroundConfig): Plugin {
-  const metadata = extractMetadata(config);
+  const ctx = buildOperationContext(config, extractMetadata(config));
 
   return {
     name: 'dynamodb-playground',
+
     configureServer(server) {
-      server.middlewares.use(apiMiddleware(config, metadata));
+      server.middlewares.use(apiMiddleware(ctx));
     },
   };
 }
