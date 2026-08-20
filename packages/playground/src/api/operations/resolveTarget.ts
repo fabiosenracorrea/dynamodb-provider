@@ -1,6 +1,6 @@
-import { PlaygroundError } from '../lib/errors';
+import { PlaygroundError } from '../core/errors';
 import type { AnyCollection, AnyEntity } from '../../types';
-import type { OperationContext } from '../lib/operation';
+import type { OperationContext } from '../core/operation';
 
 export function resolveEntity(ctx: OperationContext, name: string): AnyEntity {
   const entity = ctx.entitiesByType.get(name);

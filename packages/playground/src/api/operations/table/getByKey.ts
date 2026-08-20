@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { defineTableOperation } from '../../lib/operation';
-import { describeCall } from '../../lib/callDescriptor';
+import { defineTableOperation } from '../../core/operation';
+import { describeCall } from '../../core/callDescriptor';
 
 const paramsSchema = z.object({
   partitionKey: z.string().min(1),

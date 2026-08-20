@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { defineEntityOperation } from '../../lib/operation';
-import { describeCall, entityCallPath } from '../../lib/callDescriptor';
+import { defineEntityOperation } from '../../core/operation';
+import { describeCall, entityCallPath } from '../../core/callDescriptor';
 
 const paramsSchema = z.object({
   item: z.record(z.string(), z.unknown()),

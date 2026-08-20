@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { defineEntityOperation } from '../../lib/operation';
-import { describeCall, entityCallPath } from '../../lib/callDescriptor';
+import { defineEntityOperation } from '../../core/operation';
+import { describeCall, entityCallPath } from '../../core/callDescriptor';
 import { itemConditionsSchema, keyParamsSchema } from '../../schemas/common';
 
 const paramsSchema = keyParamsSchema.and(

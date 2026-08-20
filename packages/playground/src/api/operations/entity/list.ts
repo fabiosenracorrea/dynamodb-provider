@@ -1,6 +1,6 @@
-import { PlaygroundError } from '../../lib/errors';
-import { defineEntityOperation } from '../../lib/operation';
-import { describeCall, entityCallPath } from '../../lib/callDescriptor';
+import { PlaygroundError } from '../../core/errors';
+import { defineEntityOperation } from '../../core/operation';
+import { describeCall, entityCallPath } from '../../core/callDescriptor';
 import { queryOptionsSchema } from '../../schemas/common';
 
 export const entityList = defineEntityOperation({

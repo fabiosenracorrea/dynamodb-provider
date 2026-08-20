@@ -1,5 +1,5 @@
-import { defineCollectionOperation } from '../../lib/operation';
-import { describeCall } from '../../lib/callDescriptor';
+import { defineCollectionOperation } from '../../core/operation';
+import { describeCall } from '../../core/callDescriptor';
 import { keyParamsSchema } from '../../schemas/common';
 
 export const collectionGet = defineCollectionOperation({

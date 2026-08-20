@@ -1,4 +1,4 @@
-import type { Operation, OperationTarget } from '../lib/operation';
+import type { Operation, OperationTarget } from '../core/operation';
 
 import { entityGet } from './entity/get';
 import { entityBatchGet } from './entity/batchGet';
