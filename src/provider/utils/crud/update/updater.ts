@@ -64,6 +64,12 @@ export class ItemUpdater extends DynamodbExecutor {
     return getConditionParams(allConditions);
   }
 
+  private ensureAttributeValues(values: Record<string, unknown>) {
+    if (!Object.keys(values).length) return;
+
+    return values;
+  }
+
   getUpdateParams<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: UpdateParams<Entity, PKs>,
   ): DBUpdateParams['input'] {
@@ -108,13 +114,13 @@ export class ItemUpdater extends DynamodbExecutor {
         ...conditionParams.ExpressionAttributeNames,
       },
 
-      ExpressionAttributeValues: {
+      ExpressionAttributeValues: this.ensureAttributeValues({
         ...buildExpressionAttributeValues(values),
 
         ...this.buildAtomicAttributeValues(atomic),
 
         ...conditionParams.ExpressionAttributeValues,
-      },
+      }),
 
       ReturnValues: returnUpdatedProperties ? 'UPDATED_NEW' : undefined,
     });

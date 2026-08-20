@@ -1,5 +1,22 @@
 # DynamoDB Provider Changelog
 
+# v3.1.5
+
+- **Fix**: `includeTypeOnEveryUpdate` on entity definitions was ignored due to a mismatch on destructure target
+
+# v3.1.4
+
+- **Fix**: Sending an update with only `remove` clauses now properly omit `ExpressionAttributeValues` from dynamo params
+
+# v3.1.3
+
+- **Fix**: Entity index params resolution would be `never` if you used multiple indexes that had array .notations and getters on different keys - entity would not be recognized on any helpers etc
+
+# v3.1.2
+
+- **Fix**: partition `keySwap` param merger is now resilient to receiving a Proxy inspector object - vital for our upcoming playground to infer the params
+- **Fix**: `**.test.ts` files now properly excluded from build
+
 # v3.1.1
 
 ### Warning! Possible behavior change

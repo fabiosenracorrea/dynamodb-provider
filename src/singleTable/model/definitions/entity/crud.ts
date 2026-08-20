@@ -181,7 +181,9 @@ type CrudParamsGenerator<
   Params extends RegisterEntityParams<TableConfig, Entity>,
 > = Pick<Params, 'type' | 'autoGen'> &
   KeyResolvers<Params> &
-  Partial<GenericIndexMappingFns> & { indexes?: Record<string, { index: string }> };
+  Partial<GenericIndexMappingFns> & { indexes?: Record<string, { index: string }> } & {
+    includeTypeOnEveryUpdate?: boolean;
+  };
 
 type GenericGetKey = KeyResolvers<any>['getKey'];
 
@@ -198,6 +200,7 @@ export function getCRUDParamGetters<
     getUpdatedIndexMapping,
     autoGen,
     indexes,
+    includeTypeOnEveryUpdate,
   }: CrudParamsGenerator<TableConfig, Entity, Params>,
 ): EntityCRUDProps<TableConfig, Entity, Params> {
   const getKey = entityGetKey as GenericGetKey;
@@ -234,7 +237,6 @@ export function getCRUDParamGetters<
       values,
       returnUpdatedProperties,
       expiresAt,
-      includeTypeOnEveryUpdate,
       atomicIndexes = [],
     } = updateParams;
 

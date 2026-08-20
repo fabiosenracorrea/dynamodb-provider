@@ -8,3 +8,10 @@
 - add a "safeUpdate" / "safeGetUpdateParams" to entity interactions that blocks any action that results in index keys de-sync (ex: if key if status+date and you provide the status, the index won't be updated correctly)
 
 - add a way to validate if we should carry an index update on create/update ops
+
+- link property to numeric index to automatically add the "add/subtract" operations to it to avoid duplication
+
+- "safeValues" - set a value to X only if its not X (values + conditions)
+
+- "batchWrite"
+

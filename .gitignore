@@ -21,7 +21,5 @@ docs/.vitepress/cache
 
 PLAYGROUND_IMPLEMENTATION_PLAN.md
 .npmrc
-
-# Playground local config
 playground.config.ts
-playground.config.js
+yarn.lock

@@ -109,7 +109,7 @@ describe('single table schema - entity - indexes', () => {
     });
   });
 
-  it('getCreationIndexMapping should allow incomplete references', () => {
+  it('getCreationIndexMapping should NOT allow incomplete references', () => {
     const schema = new SingleTableSchema(tableConfig);
 
     const user = schema.createEntity<User>().as({
@@ -135,11 +135,17 @@ describe('single table schema - entity - indexes', () => {
 
     schema.from(user);
 
-    const indexMapping = user.getCreationIndexMapping({
+    // @ts-expect-error missing name
+    const badMapping = user.getCreationIndexMapping({
       email: 'some@email.com',
     });
 
-    expect(indexMapping).toStrictEqual({
+    const okMapping = user.getCreationIndexMapping({
+      email: 'some@email.com',
+      name: 'My Name',
+    });
+
+    expect(badMapping).toStrictEqual({
       anotherIndex: {
         partitionKey: ['USERS_BY_EMAIL'],
         rangeKey: ['some@email.com'],
@@ -147,6 +153,18 @@ describe('single table schema - entity - indexes', () => {
 
       someIndex: {
         partitionKey: ['USERS_BY_NAME'],
+      },
+    });
+
+    expect(okMapping).toStrictEqual({
+      anotherIndex: {
+        partitionKey: ['USERS_BY_EMAIL'],
+        rangeKey: ['some@email.com'],
+      },
+
+      someIndex: {
+        partitionKey: ['USERS_BY_NAME'],
+        rangeKey: ['_name', 'my name'],
       },
     });
   });
@@ -492,6 +510,110 @@ describe('single table schema - entity - indexes', () => {
           { email: string; createdAt: string }
         >
       >,
+    ];
+  });
+
+  it('should handle multiple indexes: [array, getter] + [array, array]', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    const user = schema.createEntity<User>().as({
+      ...baseEntityParams,
+
+      indexes: {
+        BY_EMAIL: {
+          getPartitionKey: ['BY_EMAIL', '.email'],
+          getRangeKey: ({ createdAt }: { createdAt: string }) => ['DATE', createdAt],
+          index: 'anotherIndex',
+        },
+
+        BY_NAME: {
+          index: 'someIndex',
+
+          getPartitionKey: ['USER_BY_NAME'],
+          getRangeKey: ['.name'],
+        },
+      },
+    });
+
+    schema.from(user);
+
+    // ----------------
+    // BY_EMAIL
+    // ----------------
+
+    expect(
+      user.indexes.BY_EMAIL.getPartitionKey({ email: 'test@test.com' }),
+    ).toStrictEqual(['BY_EMAIL', 'test@test.com']);
+    expect(user.indexes.BY_EMAIL.getRangeKey({ createdAt: '2024-01-01' })).toStrictEqual([
+      'DATE',
+      '2024-01-01',
+    ]);
+
+    expect(
+      user.indexes.BY_EMAIL.getKey({
+        email: 'user@example.com',
+        createdAt: '2024-01-01',
+      }),
+    ).toStrictEqual({
+      partitionKey: ['BY_EMAIL', 'user@example.com'],
+      rangeKey: ['DATE', '2024-01-01'],
+    });
+
+    // ----------------
+    // BY_NAME
+    // ----------------
+
+    expect(user.indexes.BY_NAME.getPartitionKey()).toStrictEqual(['USER_BY_NAME']);
+
+    expect(user.indexes.BY_NAME.getRangeKey({ name: 'John' })).toStrictEqual(['John']);
+
+    expect(
+      user.indexes.BY_NAME.getKey({
+        name: 'John',
+      }),
+    ).toStrictEqual({
+      partitionKey: ['USER_BY_NAME'],
+      rangeKey: ['John'],
+    });
+
+    // -- TYPES --
+
+    type _Tests = [
+      Expect<
+        Equal<
+          FirstParameter<typeof user.getCreationIndexMapping>,
+          { email: string; createdAt: string; name: string }
+        >
+      >,
+
+      // BY_EMAIL
+      Expect<
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getPartitionKey>,
+          { email: string }
+        >
+      >,
+      Expect<
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getRangeKey>,
+          { createdAt: string }
+        >
+      >,
+      Expect<
+        Equal<
+          FirstParameter<typeof user.indexes.BY_EMAIL.getKey>,
+          { email: string; createdAt: string }
+        >
+      >,
+
+      // BY_NAME
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_NAME.getPartitionKey>, undefined>
+      >,
+      Expect<
+        Equal<FirstParameter<typeof user.indexes.BY_NAME.getRangeKey>, { name: string }>
+      >,
+      Expect<Equal<FirstParameter<typeof user.indexes.BY_NAME.getKey>, { name: string }>>,
     ];
   });
 
