@@ -10,6 +10,7 @@ import {
 import type { KeyPiece, RangeQuery } from '@/utils/api';
 import { QueryConfig } from './queryConfig.hook';
 import { RANGE_OPERATIONS } from './utils';
+import { FieldCaption } from '@/components/shared';
 
 export interface RangeFilterProps {
   rangeKey?: KeyPiece[];

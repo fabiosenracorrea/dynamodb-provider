@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { FiltersSheet } from '../FiltersSheet';
 import { QueryConfig, QueryConfigHandlers } from './queryConfig.hook';
 import { RangeFilter, RangeFilterProps } from './RangeFilter';
+import { FieldCaption } from '@/components/shared';
 
 interface QueryParamsProps extends Pick<RangeFilterProps, 'customQueries' | 'rangeKey'> {
   params: QueryConfig;

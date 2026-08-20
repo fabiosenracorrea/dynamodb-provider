@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import type { FilterRow } from './types';
 import { createEmptyFilter } from './types';
 import { FILTER_OPERATIONS, getOpConfig, type FilterOperation } from './constants';
+import { FieldCaption } from '@/components/shared';
 
 export type { FilterRow };
 export * from './buildFiltersParam';
