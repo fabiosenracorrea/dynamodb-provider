@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import type { OperationContext } from '../lib/operation';
-import { parseWith } from '../lib/validate';
+import type { OperationContext } from '../core/operation';
+import { parseWith } from '../core/validate';
 import { keyParamsSchema } from '../schemas/common';
 import { resolveEntity } from '../operations/resolveTarget';
 

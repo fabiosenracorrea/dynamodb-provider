@@ -1,5 +1,5 @@
-import { PlaygroundError, toErrorMessage, toErrorStatus } from './lib/errors';
-import type { OperationContext } from './lib/operation';
+import { PlaygroundError, toErrorMessage, toErrorStatus } from './core/errors';
+import type { OperationContext } from './core/operation';
 import { executeRoute } from './routes/execute';
 import { resolveKeysRoute } from './routes/resolveKeys';
 import { connectionRoute } from './routes/connection';

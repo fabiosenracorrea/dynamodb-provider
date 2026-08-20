@@ -1,6 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFn = (...args: any[]) => any;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}
+
 export function inferParams(fn: AnyFn): string[] {
   const params: string[] = [];
   const seen = new Set<string>();
@@ -18,8 +21,8 @@ export function inferParams(fn: AnyFn): string[] {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     new Proxy(() => {}, {
       get(_t, prop) {
-        if (prop === Symbol.toPrimitive) return () => undefined;
-        if (prop === 'valueOf') return () => undefined;
+        if (prop === Symbol.toPrimitive) return noop;
+        if (prop === 'valueOf') return noop;
         if (prop === 'toString') return () => 'undefined';
         return makeSentinel();
       },

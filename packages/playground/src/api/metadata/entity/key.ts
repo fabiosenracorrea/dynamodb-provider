@@ -18,10 +18,20 @@ function makeVarToken(name: string) {
 function makeSentinel(name: string): VarSentinel {
   const token = makeVarToken(name);
 
+  /**
+   * Probe this later to allow for dynamic support of all common internal
+   * props of strings etc
+   *
+   * This is what allows us to identify email as dynamic on cases like this:
+   * ({ email }) => [email.toLowerCase()]
+   *
+   * Later we should identify which operation is being passed if possible
+   */
   const base: any = {
     [VAR_SYMBOL]: name,
     toString: () => token,
     valueOf: () => token,
+    toLowerCase: () => token,
     [Symbol.toPrimitive]: () => token,
   };
 
@@ -106,7 +116,7 @@ export function inferKeyPieces(getKey: KeyDef): KeyPiece[] {
 
   try {
     ret = getKey(paramsProxy);
-  } catch {
+  } catch (err) {
     // If it throws during probing, we still try to interpret what we got.
     // We try to cast values to usual formats (string, numbers, etc)
     ret = retryKeyReturn(getKey, used);

@@ -1,5 +1,4 @@
-import type { OperationContext } from '../lib/operation';
-import { toErrorMessage } from '../lib/errors';
+import { toErrorMessage, OperationContext } from '../core';
 
 export interface ConnectionStatus {
   connected: boolean;

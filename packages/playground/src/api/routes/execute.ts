@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PlaygroundError } from '../lib/errors';
-import type { OperationContext, OperationResult } from '../lib/operation';
+import { PlaygroundError, parseWith, OperationContext, OperationResult } from '../core';
 import { findOperation, operationsFor } from '../operations';
 import { resolveCollection, resolveEntity } from '../operations/resolveTarget';
 import { executeRequestSchema } from '../schemas/execute';
-import { parseWith } from '../lib/validate';
 
 export interface ExecuteOutcome {
   data: unknown;
