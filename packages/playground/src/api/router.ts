@@ -41,9 +41,7 @@ export async function handleRequest(
       body: {
         success: false,
         error: toErrorMessage(error),
-        ...(error instanceof PlaygroundError && error.details
-          ? { issues: error.details }
-          : {}),
+        ...(error instanceof PlaygroundError && error.details ? { issues: error.details } : {}),
       },
     };
   }

@@ -1,18 +1,8 @@
 import { useState } from 'react';
 import { ChevronDown, Layers, Key, Link2, ArrowRight } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { useCollection, useMetadataContext } from '@/context';
 
@@ -26,10 +16,54 @@ interface CollectionOperationsProps {
   onSelectEntity?: (entityType: string) => void;
 }
 
-export function CollectionView({
-  collectionName,
+function JoinsSection({
+  joins,
+  getEntity,
   onSelectEntity,
-}: CollectionOperationsProps) {
+}: {
+  joins: string[];
+  getEntity: (type: string) => { name: string; type: string } | undefined;
+  onSelectEntity?: (entityType: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+      <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-foreground">
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+        <Link2 className="h-4 w-4" />
+        Joined Entities
+        <Badge variant="outline" className="ml-1 text-xs">
+          {joins.length}
+        </Badge>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="space-y-1 pl-6">
+          {joins.map((joinName) => {
+            const entity = getEntity(joinName);
+            return (
+              <button
+                key={joinName}
+                onClick={() => entity && onSelectEntity?.(entity.type)}
+                className="group flex w-full items-center justify-between rounded-md p-2 text-left transition-colors hover:bg-accent"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{joinName}</span>
+                  {entity && (
+                    <span className="font-mono text-xs text-muted-foreground">{entity.type}</span>
+                  )}
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </button>
+            );
+          })}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+export function CollectionView({ collectionName, onSelectEntity }: CollectionOperationsProps) {
   const collection = useCollection(collectionName);
   const { getEntity } = useMetadataContext();
   const [showMetadata, setShowMetadata] = useState(true);
@@ -38,9 +72,7 @@ export function CollectionView({
     return <CollectionLoading />;
   }
 
-  const originEntity = collection.originEntityType
-    ? getEntity(collection.originEntityType)
-    : null;
+  const originEntity = collection.originEntityType ? getEntity(collection.originEntityType) : null;
 
   return (
     <div className="space-y-4">
@@ -48,10 +80,10 @@ export function CollectionView({
       <Collapsible open={showMetadata} onOpenChange={setShowMetadata}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="cursor-pointer pb-3 transition-colors hover:bg-muted/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
+                  <div className="rounded-lg bg-primary/10 p-2">
                     <Layers className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -74,8 +106,7 @@ export function CollectionView({
                   </Badge>
                   {collection.joins.length > 0 && (
                     <Badge variant="outline" className="text-xs">
-                      {collection.joins.length}{' '}
-                      {collection.joins.length === 1 ? 'join' : 'joins'}
+                      {collection.joins.length} {collection.joins.length === 1 ? 'join' : 'joins'}
                     </Badge>
                   )}
                   <ChevronDown
@@ -89,12 +120,12 @@ export function CollectionView({
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <CardContent className="pt-0 space-y-4">
+            <CardContent className="space-y-4 pt-0">
               <Separator />
 
               {/* Partition Key Structure */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium flex items-center gap-2">
+                <h4 className="flex items-center gap-2 text-sm font-medium">
                   <Key className="h-4 w-4" />
                   <CollectionPartition pieces={collection.partitionKey} />
                 </h4>
@@ -103,7 +134,7 @@ export function CollectionView({
               {/* Origin Entity */}
               {originEntity && (
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
+                  <h4 className="flex items-center gap-2 text-sm font-medium">
                     <Link2 className="h-4 w-4" />
                     Origin Entity
                   </h4>
@@ -132,56 +163,5 @@ export function CollectionView({
       {/* Get Collection Form */}
       <GetCollection collectionName={collectionName} />
     </div>
-  );
-}
-
-function JoinsSection({
-  joins,
-  getEntity,
-  onSelectEntity,
-}: {
-  joins: string[];
-  getEntity: (type: string) => { name: string; type: string } | undefined;
-  onSelectEntity?: (entityType: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
-      <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium hover:text-foreground transition-colors">
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${isOpen ? '' : '-rotate-90'}`}
-        />
-        <Link2 className="h-4 w-4" />
-        Joined Entities
-        <Badge variant="outline" className="text-xs ml-1">
-          {joins.length}
-        </Badge>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="pl-6 space-y-1">
-          {joins.map((joinName) => {
-            const entity = getEntity(joinName);
-            return (
-              <button
-                key={joinName}
-                onClick={() => entity && onSelectEntity?.(entity.type)}
-                className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors text-left group"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{joinName}</span>
-                  {entity && (
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {entity.type}
-                    </span>
-                  )}
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            );
-          })}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
   );
 }

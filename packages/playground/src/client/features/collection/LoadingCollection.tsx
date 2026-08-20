@@ -22,7 +22,7 @@ export function CollectionLoading() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0 space-y-4">
+        <CardContent className="space-y-4 pt-0">
           <Separator />
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export function CollectionLoading() {
         <CardContent className="space-y-4">
           <div className="grid gap-3">
             <div>
-              <Skeleton className="h-4 w-20 mb-1.5" />
+              <Skeleton className="mb-1.5 h-4 w-20" />
               <Skeleton className="h-10 w-full rounded-md" />
             </div>
           </div>

@@ -46,9 +46,7 @@ export const entityQuery = defineEntityOperation({
   params: paramsSchema,
 
   async run({ repo, entity, params, index, rangeQuery }) {
-    const root: QueryNode = index
-      ? resolveIndexNode(repo, index)
-      : (repo.query as QueryNode);
+    const root: QueryNode = index ? resolveIndexNode(repo, index) : (repo.query as QueryNode);
 
     // A named range query IS the callable; only the plain query has `.custom`.
     const target = rangeQuery

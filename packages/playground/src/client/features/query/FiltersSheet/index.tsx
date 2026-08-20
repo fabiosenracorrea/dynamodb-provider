@@ -10,13 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 import type { FilterRow } from './types';
 import { createEmptyFilter } from './types';
@@ -104,22 +98,22 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <div className="min-w-[100px] flex-1">
-        <label className="text-sm font-medium mb-1.5 block">Filters</label>
+        <FieldCaption>Filters</FieldCaption>
         <SheetTrigger asChild>
           <button
             type="button"
-            className="w-full h-10 flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted/50 transition-colors text-left"
+            className="flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors hover:bg-muted/50"
           >
             {validFilters.length > 0 ? (
-              <span className="font-mono text-xs truncate">{previewText}</span>
+              <span className="truncate font-mono text-xs">{previewText}</span>
             ) : (
-              <span className="text-muted-foreground text-sm">None</span>
+              <span className="text-sm text-muted-foreground">None</span>
             )}
           </button>
         </SheetTrigger>
       </div>
 
-      <SheetContent className="w-[500px] sm:max-w-[500px] flex flex-col">
+      <SheetContent className="flex w-[500px] flex-col sm:max-w-[500px]">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span>Filters</span>
@@ -131,38 +125,29 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto py-4">
           {filters.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
+            <p className="py-8 text-center text-sm text-muted-foreground">
               No filters added. Click "Add filter" to start.
             </p>
           ) : (
             filters.map((filter) => {
               const config = getOpConfig(filter.operation);
               return (
-                <div
-                  key={filter.id}
-                  className="border rounded-lg p-3 space-y-3 bg-muted/30"
-                >
+                <div key={filter.id} className="space-y-3 rounded-lg border bg-muted/30 p-3">
                   {/* Property and Operation row */}
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="text-xs text-muted-foreground mb-1 block">
-                        Property
-                      </label>
+                      <label className="mb-1 block text-xs text-muted-foreground">Property</label>
                       <Input
                         value={filter.property}
-                        onChange={(e) =>
-                          updateFilter(filter.id, { property: e.target.value })
-                        }
+                        onChange={(e) => updateFilter(filter.id, { property: e.target.value })}
                         placeholder="propertyName"
-                        className="font-mono h-9"
+                        className="h-9 font-mono"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="text-xs text-muted-foreground mb-1 block">
-                        Operation
-                      </label>
+                      <FieldCaption className="mb-1 text-xs font-normal text-muted-foreground">Operation</FieldCaption>
                       <Select
                         value={filter.operation}
                         onValueChange={(v) =>
@@ -184,7 +169,7 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 mt-5 text-muted-foreground hover:text-destructive"
+                      className="mt-5 h-9 w-9 text-muted-foreground hover:text-destructive"
                       onClick={() => removeFilter(filter.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -194,16 +179,12 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                   {/* Value inputs based on operation */}
                   {config?.params.includes('value') && (
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">
-                        Value
-                      </label>
+                      <label className="mb-1 block text-xs text-muted-foreground">Value</label>
                       <Input
                         value={filter.value}
-                        onChange={(e) =>
-                          updateFilter(filter.id, { value: e.target.value })
-                        }
+                        onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
                         placeholder="value"
-                        className="font-mono h-9"
+                        className="h-9 font-mono"
                       />
                     </div>
                   )}
@@ -211,29 +192,21 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                   {config?.params.includes('start') && config?.params.includes('end') && (
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <label className="text-xs text-muted-foreground mb-1 block">
-                          Start
-                        </label>
+                        <label className="mb-1 block text-xs text-muted-foreground">Start</label>
                         <Input
                           value={filter.start}
-                          onChange={(e) =>
-                            updateFilter(filter.id, { start: e.target.value })
-                          }
+                          onChange={(e) => updateFilter(filter.id, { start: e.target.value })}
                           placeholder="start"
-                          className="font-mono h-9"
+                          className="h-9 font-mono"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="text-xs text-muted-foreground mb-1 block">
-                          End
-                        </label>
+                        <label className="mb-1 block text-xs text-muted-foreground">End</label>
                         <Input
                           value={filter.end}
-                          onChange={(e) =>
-                            updateFilter(filter.id, { end: e.target.value })
-                          }
+                          onChange={(e) => updateFilter(filter.id, { end: e.target.value })}
                           placeholder="end"
-                          className="font-mono h-9"
+                          className="h-9 font-mono"
                         />
                       </div>
                     </div>
@@ -241,16 +214,14 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
 
                   {config?.params.includes('values') && (
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">
+                      <label className="mb-1 block text-xs text-muted-foreground">
                         Values (comma-separated)
                       </label>
                       <Input
                         value={filter.values}
-                        onChange={(e) =>
-                          updateFilter(filter.id, { values: e.target.value })
-                        }
+                        onChange={(e) => updateFilter(filter.id, { values: e.target.value })}
                         placeholder="value1, value2, value3"
-                        className="font-mono h-9"
+                        className="h-9 font-mono"
                       />
                     </div>
                   )}
@@ -262,7 +233,7 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
 
         <div className="border-t pt-4">
           <Button onClick={addFilter} variant="outline" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add filter
           </Button>
         </div>

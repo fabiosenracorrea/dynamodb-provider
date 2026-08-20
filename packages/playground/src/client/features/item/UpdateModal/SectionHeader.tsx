@@ -16,13 +16,13 @@ export function SectionHeader({ title, count, onAdd, addLabel }: SectionHeaderPr
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">{title}</span>
         {count > 0 && (
-          <Badge variant="secondary" className="text-xs h-5">
+          <Badge variant="secondary" className="h-5 text-xs">
             {count}
           </Badge>
         )}
       </div>
       <Button onClick={onAdd} variant="ghost" size="sm" className="h-7 text-xs">
-        <Plus className="h-3 w-3 mr-1" />
+        <Plus className="mr-1 h-3 w-3" />
         {addLabel}
       </Button>
     </div>

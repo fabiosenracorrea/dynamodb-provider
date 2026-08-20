@@ -25,10 +25,7 @@ type UrlConfigValue = {
    * @param urlState all values extracted from the url - they are cross validated, meaning the urlState will be validated on all other keys before
    * @returns The actual value that will be held inside the state and url. If `null`, the current value is invalid and won't be exposed to the application
    */
-  parser?: (
-    value: string,
-    urlState: Record<string, UrlPrimitiveValue>,
-  ) => UrlPrimitiveValue | null;
+  parser?: (value: string, urlState: Record<string, UrlPrimitiveValue>) => UrlPrimitiveValue | null;
 
   /**
    *

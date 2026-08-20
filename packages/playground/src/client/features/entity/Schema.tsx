@@ -2,22 +2,11 @@ import { Key, Search, Layers } from 'lucide-react';
 
 import { KeyPiece, RangeQuery } from '@/utils/api';
 import { Badge } from '@/components/ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { KeyDisplay } from './KeyDisplay';
 
-function RangeQueryBadge({
-  query,
-  compact = false,
-}: {
-  query: RangeQuery;
-  compact?: boolean;
-}) {
+function RangeQueryBadge({ query, compact = false }: { query: RangeQuery; compact?: boolean }) {
   const hasParams = query.params.length > 0;
 
   return (
@@ -26,13 +15,13 @@ function RangeQueryBadge({
         <TooltipTrigger asChild>
           <div
             className={`
-              inline-flex items-center gap-1.5 rounded-md border px-2 py-1
-              bg-background hover:bg-accent transition-colors cursor-help
+              inline-flex cursor-help items-center gap-1.5 rounded-md border bg-background
+              px-2 py-1 transition-colors hover:bg-accent
               ${compact ? 'text-xs' : 'text-sm'}
             `}
           >
             <span className="font-medium">{query.name}</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
               {query.operation}
             </Badge>
           </div>
@@ -48,9 +37,7 @@ function RangeQueryBadge({
                 Params: <span className="font-mono">{query.params.join(', ')}</span>
               </p>
             )}
-            {!hasParams && (
-              <p className="text-xs text-muted-foreground">No parameters required</p>
-            )}
+            {!hasParams && <p className="text-xs text-muted-foreground">No parameters required</p>}
           </div>
         </TooltipContent>
       </Tooltip>
@@ -69,20 +56,20 @@ interface IndexInfo {
 function IndexesSection({ indexes }: { indexes: IndexInfo[] }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium hover:text-foreground transition-colors">
+      <div className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-foreground">
         <Layers className="h-4 w-4" />
         Secondary Indexes
-        <Badge variant="outline" className="text-xs ml-1">
+        <Badge variant="outline" className="ml-1 text-xs">
           {indexes.length}
         </Badge>
       </div>
 
-      <div className="pl-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 pl-6 sm:grid-cols-2">
         {indexes.map((index) => (
-          <div key={index.name} className="border rounded-lg px-3 py-3 space-y-3">
-            <div className="flex items-center gap-2 justify-between">
+          <div key={index.name} className="space-y-3 rounded-lg border px-3 py-3">
+            <div className="flex items-center justify-between gap-2">
               <span className="font-medium">{index.name}</span>
-              <Badge variant="secondary" className="text-xs font-mono">
+              <Badge variant="secondary" className="font-mono text-xs">
                 {index.index}
               </Badge>
             </div>
@@ -127,7 +114,7 @@ export function EntitySchemaTab({ entity }: SchemaTabProps) {
     <div className="space-y-6">
       {/* Primary Key Structure */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium flex items-center gap-2">
+        <h4 className="flex items-center gap-2 text-sm font-medium">
           <Key className="h-4 w-4" />
           Primary Key Structure
         </h4>
@@ -145,11 +132,11 @@ export function EntitySchemaTab({ entity }: SchemaTabProps) {
       {/* Range Queries */}
       {entity.rangeQueries.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium flex items-center gap-2">
+          <h4 className="flex items-center gap-2 text-sm font-medium">
             <Search className="h-4 w-4" />
             Range Queries
           </h4>
-          <div className="pl-6 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 pl-6">
             {entity.rangeQueries.map((rq) => (
               <RangeQueryBadge key={rq.name} query={rq} />
             ))}

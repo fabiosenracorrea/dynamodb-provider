@@ -1,5 +1,9 @@
 export class PlaygroundError extends Error {
-  constructor(message: string, readonly status: number, readonly details?: unknown) {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly details?: unknown,
+  ) {
     super(message);
     this.name = 'PlaygroundError';
   }

@@ -3,10 +3,7 @@ interface FullRetrievalCheckboxProps {
   onChange: (v: boolean) => void;
 }
 
-export function FullRetrievalCheckbox({
-  onChange,
-  selected,
-}: FullRetrievalCheckboxProps) {
+export function FullRetrievalCheckbox({ onChange, selected }: FullRetrievalCheckboxProps) {
   return (
     <div className="flex items-center gap-2">
       <input

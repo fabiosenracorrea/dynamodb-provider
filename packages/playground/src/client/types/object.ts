@@ -57,11 +57,7 @@ export type MakePartial<T> = OmitUndefined<T> & OnlyOptional<T>;
  * - `User | string` => true
  * - `string | number` => never
  */
-export type AnyMemberIsObject<T> = T extends any
-  ? T extends object
-    ? true
-    : never
-  : never;
+export type AnyMemberIsObject<T> = T extends any ? (T extends object ? true : never) : never;
 
 /**
  * Ensures that, given an object type, the ref object has AT LEAST ONE property in common with that object,
@@ -89,10 +85,7 @@ export type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> & U[k
 /**
  * Makes every property on the object optional, except the ones passed in to the second param
  */
-export type PartialExcept<
-  Entity extends object,
-  K extends keyof Entity,
-> = Partial<Entity> & {
+export type PartialExcept<Entity extends object, K extends keyof Entity> = Partial<Entity> & {
   [key in K]: Entity[K];
 };
 

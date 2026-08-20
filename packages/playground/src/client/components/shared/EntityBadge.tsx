@@ -29,11 +29,7 @@ export function EntityBadge({ type, className, muted }: EntityBadgeProps) {
         'inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 font-mono text-[11px] leading-none',
         className,
       )}
-      style={
-        muted
-          ? undefined
-          : { backgroundColor: entityTint(type), color: entityColor(type) }
-      }
+      style={muted ? undefined : { backgroundColor: entityTint(type), color: entityColor(type) }}
     >
       <EntityDot type={type} />
       {type}

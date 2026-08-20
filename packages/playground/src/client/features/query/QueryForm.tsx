@@ -137,8 +137,8 @@ export function QueryForm({
 
       {/* Target Selection */}
       {indexes.length > 0 && (
-        <section className="rounded-lg border bg-muted/30 p-3 space-y-2">
-          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <section className="space-y-2 rounded-lg border bg-muted/30 p-3">
+          <h4 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Query Target
           </h4>
           <div className="flex flex-wrap gap-2">
@@ -146,11 +146,11 @@ export function QueryForm({
               type="button"
               onClick={() => handleTargetChange('main')}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors
                 ${
                   queryTarget === 'main'
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-background border hover:bg-accent'
+                    : 'border bg-background hover:bg-accent'
                 }
               `}
             >
@@ -163,18 +163,18 @@ export function QueryForm({
                 type="button"
                 onClick={() => handleTargetChange(idx.name)}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors
                   ${
                     queryTarget === idx.name
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-background border hover:bg-accent'
+                      : 'border bg-background hover:bg-accent'
                   }
                 `}
               >
                 <Layers className="h-4 w-4" />
                 <span>{idx.name}</span>
                 <span
-                  className={`text-xs font-mono ${
+                  className={`font-mono text-xs ${
                     queryTarget === idx.name
                       ? 'text-primary-foreground/70'
                       : 'text-muted-foreground'
@@ -190,27 +190,25 @@ export function QueryForm({
 
       {/* Partition Key Section */}
       <section className="space-y-3">
-        <h4 className="text-sm font-medium flex items-center gap-2">
+        <h4 className="flex items-center gap-2 text-sm font-medium">
           Partition Key
-          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+          <span className="mt-0.5 font-mono text-[10px] font-normal text-muted-foreground">
             {currentConfig.partitionKey
               .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
               .join(' | ')}
           </span>
         </h4>
         {partitionVars.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic pl-1">
+          <p className="pl-1 text-sm italic text-muted-foreground">
             No parameters required - partition key uses only constant values
           </p>
         ) : (
-          <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex flex-wrap items-end gap-3">
             {partitionVars.map((variable) => (
-              <div key={variable.name} className="flex-1 min-w-[140px]">
-                <label className="text-sm mb-1.5 flex items-center gap-2">
+              <div key={variable.name} className="min-w-[140px] flex-1">
+                <label className="mb-1.5 flex items-center gap-2 text-sm">
                   <span className="font-medium">{variable.name}</span>
-                  {variable.numeric && (
-                    <span className="text-xs text-muted-foreground">(n)</span>
-                  )}
+                  {variable.numeric && <span className="text-xs text-muted-foreground">(n)</span>}
                 </label>
                 <Input
                   type={variable.numeric ? 'number' : 'text'}
@@ -233,7 +231,7 @@ export function QueryForm({
         customQueries={currentConfig.rangeQueries}
       />
 
-      <div className="flex items-center gap-4 justify-end">
+      <div className="flex items-center justify-end gap-4">
         <FullRetrievalCheckbox
           selected={queryConfig.fullRetrieval}
           onChange={configHandlers.getSetter('fullRetrieval')}
@@ -246,8 +244,8 @@ export function QueryForm({
       </div>
 
       {!!mutation.data && (
-        <div className="pt-4 border-t">
-          <h4 className="text-sm font-medium mb-2">Result</h4>
+        <div className="border-t pt-4">
+          <h4 className="mb-2 text-sm font-medium">Result</h4>
           <ListResultView
             data={result}
             error={error ?? undefined}

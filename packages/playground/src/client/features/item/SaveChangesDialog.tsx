@@ -109,10 +109,7 @@ export function SaveChangesDialog({
   onConfirm,
   isLoading,
 }: SaveChangesDialogProps) {
-  const changes = useMemo(
-    () => computeDelta(originalItem, editedItem),
-    [originalItem, editedItem],
-  );
+  const changes = useMemo(() => computeDelta(originalItem, editedItem), [originalItem, editedItem]);
 
   const summary = useMemo(() => {
     const added = changes.filter((c) => c.type === 'added').length;
@@ -123,7 +120,7 @@ export function SaveChangesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Save className="h-5 w-5" />
@@ -138,44 +135,32 @@ export function SaveChangesDialog({
         <div className="flex items-center gap-3 py-2">
           <span className="text-sm text-muted-foreground">Changes:</span>
           {summary.added > 0 && (
-            <Badge
-              variant="outline"
-              className="bg-green-500/10 text-green-600 border-green-500/20"
-            >
+            <Badge variant="outline" className="border-green-500/20 bg-green-500/10 text-green-600">
               +{summary.added} added
             </Badge>
           )}
           {summary.modified > 0 && (
-            <Badge
-              variant="outline"
-              className="bg-amber-500/10 text-amber-600 border-amber-500/20"
-            >
+            <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-amber-600">
               {summary.modified} modified
             </Badge>
           )}
           {summary.removed > 0 && (
-            <Badge
-              variant="outline"
-              className="bg-red-500/10 text-red-600 border-red-500/20"
-            >
+            <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-600">
               -{summary.removed} removed
             </Badge>
           )}
         </div>
 
         {/* Changes List */}
-        <ScrollArea className="flex-1 max-h-[400px]">
+        <ScrollArea className="max-h-[400px] flex-1">
           <div className="space-y-3">
             {changes.length === 0 ? (
-              <div className="text-sm text-muted-foreground text-center py-4">
+              <div className="py-4 text-center text-sm text-muted-foreground">
                 No changes detected
               </div>
             ) : (
               changes.map((change) => (
-                <div
-                  key={change.key}
-                  className="border rounded-md p-3 bg-muted/30 space-y-2"
-                >
+                <div key={change.key} className="space-y-2 rounded-md border bg-muted/30 p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ChangeIcon type={change.type} />
@@ -188,13 +173,13 @@ export function SaveChangesDialog({
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="space-y-1">
                         <span className="text-muted-foreground">Before:</span>
-                        <pre className="font-mono bg-red-500/5 border border-red-500/10 p-2 rounded text-red-600 dark:text-red-400 overflow-x-auto">
+                        <pre className="overflow-x-auto rounded border border-red-500/10 bg-red-500/5 p-2 font-mono text-red-600 dark:text-red-400">
                           {formatValue(change.oldValue)}
                         </pre>
                       </div>
                       <div className="space-y-1">
                         <span className="text-muted-foreground">After:</span>
-                        <pre className="font-mono bg-green-500/5 border border-green-500/10 p-2 rounded text-green-600 dark:text-green-400 overflow-x-auto">
+                        <pre className="overflow-x-auto rounded border border-green-500/10 bg-green-500/5 p-2 font-mono text-green-600 dark:text-green-400">
                           {formatValue(change.newValue)}
                         </pre>
                       </div>
@@ -202,18 +187,18 @@ export function SaveChangesDialog({
                   )}
 
                   {change.type === 'added' && (
-                    <div className="text-xs space-y-1">
+                    <div className="space-y-1 text-xs">
                       <span className="text-muted-foreground">Value:</span>
-                      <pre className="font-mono bg-green-500/5 border border-green-500/10 p-2 rounded text-green-600 dark:text-green-400 overflow-x-auto">
+                      <pre className="overflow-x-auto rounded border border-green-500/10 bg-green-500/5 p-2 font-mono text-green-600 dark:text-green-400">
                         {formatValue(change.newValue)}
                       </pre>
                     </div>
                   )}
 
                   {change.type === 'removed' && (
-                    <div className="text-xs space-y-1">
+                    <div className="space-y-1 text-xs">
                       <span className="text-muted-foreground">Removed value:</span>
-                      <pre className="font-mono bg-red-500/5 border border-red-500/10 p-2 rounded text-red-600 dark:text-red-400 overflow-x-auto line-through">
+                      <pre className="overflow-x-auto rounded border border-red-500/10 bg-red-500/5 p-2 font-mono text-red-600 line-through dark:text-red-400">
                         {formatValue(change.oldValue)}
                       </pre>
                     </div>
@@ -225,11 +210,7 @@ export function SaveChangesDialog({
         </ScrollArea>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={isLoading || changes.length === 0}>

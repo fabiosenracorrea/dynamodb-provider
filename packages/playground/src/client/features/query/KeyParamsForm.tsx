@@ -33,8 +33,7 @@ export function KeyParamsForm({
 }: KeyParamsFormProps) {
   // Extract variable names from keys
   const variables = useMemo(() => {
-    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> =
-      [];
+    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> = [];
     const seen = new Set<string>();
 
     partitionKey.forEach((piece) => {
@@ -101,26 +100,21 @@ export function KeyParamsForm({
   return (
     <form
       onSubmit={wrapFormAction(handleExecute)}
-      className="space-y-4 p-3 border rounded-lg bg-muted/30"
+      className="space-y-4 rounded-lg border bg-muted/30 p-3"
     >
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
 
       {variables.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">
+        <p className="text-sm italic text-muted-foreground">
           No parameters required - key uses only constant values
         </p>
       ) : (
-        <div
-          className={cn(
-            'grid gap-3',
-            variables.length >= 2 ? 'grid-cols-2' : 'grid-cols-1',
-          )}
-        >
+        <div className={cn('grid gap-3', variables.length >= 2 ? 'grid-cols-2' : 'grid-cols-1')}>
           {variables.map((variable) => (
             <div key={variable.name}>
-              <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
                 <span>{variable.name}</span>
-                <span className="text-xs text-muted-foreground font-normal">
+                <span className="text-xs font-normal text-muted-foreground">
                   ({variable.source} key{variable.numeric ? ', numeric' : ''})
                 </span>
               </label>
@@ -137,15 +131,11 @@ export function KeyParamsForm({
       )}
 
       <Button className="ml-auto block" disabled={mutation.isPending || !isValid}>
-        {mutation.isPending ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          buttonLabel
-        )}
+        {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : buttonLabel}
       </Button>
 
-      <div className="pt-4 border-t">
-        <h4 className="text-sm font-medium mb-2">Result</h4>
+      <div className="border-t pt-4">
+        <h4 className="mb-2 text-sm font-medium">Result</h4>
         <GetResultView
           data={result}
           error={error ?? undefined}

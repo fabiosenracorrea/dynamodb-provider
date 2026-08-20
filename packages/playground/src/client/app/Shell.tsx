@@ -39,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="flex min-h-0 flex-1">
         <Sidebar />
 
-        <main className="min-w-0 flex-1 overflow-auto scrollbar-slim p-5">{children}</main>
+        <main className="scrollbar-slim min-w-0 flex-1 overflow-auto p-5">{children}</main>
       </div>
     </div>
   );

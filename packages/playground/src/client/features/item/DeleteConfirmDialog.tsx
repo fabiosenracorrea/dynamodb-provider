@@ -55,7 +55,7 @@ export function DeleteConfirmDialog({
           {partitionKey && (
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Partition Key:</span>
-              <code className="block font-mono text-xs bg-muted px-2 py-1 rounded">
+              <code className="block rounded bg-muted px-2 py-1 font-mono text-xs">
                 {partitionKey}
               </code>
             </div>
@@ -64,19 +64,13 @@ export function DeleteConfirmDialog({
           {rangeKey && (
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Range Key:</span>
-              <code className="block font-mono text-xs bg-muted px-2 py-1 rounded">
-                {rangeKey}
-              </code>
+              <code className="block rounded bg-muted px-2 py-1 font-mono text-xs">{rangeKey}</code>
             </div>
           )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>

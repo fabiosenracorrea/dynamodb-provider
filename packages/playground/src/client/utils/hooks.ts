@@ -1,11 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  fetchMetadata,
-  execute,
-  resolveKeys,
-  type ExecuteRequest,
-  type Metadata,
-} from './api';
+import { fetchMetadata, execute, resolveKeys, type ExecuteRequest, type Metadata } from './api';
 
 export const queryKeys = {
   metadata: ['metadata'] as const,

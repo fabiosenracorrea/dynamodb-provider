@@ -48,9 +48,7 @@ interface MetadataContextValue {
 const MetadataContext = createContext<MetadataContextValue | null>(null);
 
 function buildPattern(pieces: KeyPiece[]): string {
-  return pieces
-    .map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}'))
-    .join('#');
+  return pieces.map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}')).join('#');
 }
 
 function buildPartitionGroups(entities: EntityMetadata[]): PartitionGroup[] {

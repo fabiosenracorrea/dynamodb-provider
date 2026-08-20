@@ -7,9 +7,9 @@ export function resolveEntity(ctx: OperationContext, name: string): AnyEntity {
 
   if (!entity) {
     throw PlaygroundError.notFound(
-      `No entity registered with type "${name}". Known types: ${[
-        ...ctx.entitiesByType.keys(),
-      ].join(', ')}`,
+      `No entity registered with type "${name}". Known types: ${[...ctx.entitiesByType.keys()].join(
+        ', ',
+      )}`,
     );
   }
 

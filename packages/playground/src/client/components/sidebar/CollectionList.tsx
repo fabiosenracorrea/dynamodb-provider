@@ -32,27 +32,23 @@ export function CollectionList({ selectedCollection, onSelect }: CollectionListP
 
   if (collections.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <p className="text-sm text-muted-foreground">No collections configured</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2 flex gap-2">
+    <div className="flex h-full flex-col">
+      <div className="flex gap-2 p-2">
         <div className="flex-1">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Search collections..."
-          />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search collections..." />
         </div>
         <SortPopover value={sortOrder} onChange={setSortOrder} />
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 pt-0 space-y-1">
+        <div className="space-y-1 p-2 pt-0">
           {filteredAndSortedCollections.map((collection) => (
             <SidebarItem
               key={collection.name}
@@ -65,9 +61,7 @@ export function CollectionList({ selectedCollection, onSelect }: CollectionListP
           ))}
 
           {filteredAndSortedCollections.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No collections found
-            </p>
+            <p className="py-4 text-center text-sm text-muted-foreground">No collections found</p>
           )}
         </div>
       </ScrollArea>

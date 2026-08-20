@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -40,7 +38,7 @@ export function PropertySelect({
           value={value}
           onChange={(e) => onValueChange(e.target.value, true)}
           placeholder="Custom property"
-          className="font-mono h-9 flex-1"
+          className="h-9 flex-1 font-mono"
         />
         <Button
           type="button"
@@ -76,11 +74,9 @@ export function PropertySelect({
           </SelectItem>
         ))}
         {availableProperties.length === 0 && (
-          <div className="px-2 py-1.5 text-sm text-muted-foreground">
-            No available properties
-          </div>
+          <div className="px-2 py-1.5 text-sm text-muted-foreground">No available properties</div>
         )}
-        <SelectItem value="__custom__" className="text-muted-foreground italic">
+        <SelectItem value="__custom__" className="italic text-muted-foreground">
           Custom...
         </SelectItem>
       </SelectContent>

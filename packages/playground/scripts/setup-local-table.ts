@@ -20,11 +20,7 @@ const client = new DynamoDBClient({
   credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
 });
 
-function index(
-  name: string,
-  partitionKey: string,
-  rangeKey: string,
-): GlobalSecondaryIndex {
+function index(name: string, partitionKey: string, rangeKey: string): GlobalSecondaryIndex {
   return {
     IndexName: name,
     KeySchema: [

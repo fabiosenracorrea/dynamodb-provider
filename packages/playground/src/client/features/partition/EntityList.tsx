@@ -3,11 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Separator } from '@/components/ui/separator';
 
@@ -50,7 +46,7 @@ export function PartitionEntityList({ partition }: PartitionEntityListProps) {
   return (
     <CardContent className="pt-0">
       <Collapsible open={showEntities} onOpenChange={setShowEntities}>
-        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-2">
+        <CollapsibleTrigger className="flex w-full items-center gap-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
           <ChevronDown
             className={`h-4 w-4 transition-transform ${showEntities ? '' : '-rotate-90'}`}
           />
@@ -72,22 +68,22 @@ export function PartitionEntityList({ partition }: PartitionEntityListProps) {
                   <button
                     key={entityType}
                     onClick={() => goToEntity(entityType)}
-                    className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors text-left group"
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left transition-colors hover:bg-accent"
                   >
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{entity?.name ?? entityType}</span>
-                        <span className="text-xs text-muted-foreground font-mono">
+                        <span className="font-mono text-xs text-muted-foreground">
                           {entityType}
                         </span>
                       </div>
                       {rangeKey && (
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <span className="font-mono text-[10px] text-muted-foreground">
                           {rangeKey}
                         </span>
                       )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 );
               })}

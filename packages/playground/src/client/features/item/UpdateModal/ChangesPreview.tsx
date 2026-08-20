@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 
 import type { AtomicOperationRow, ConditionRow, RemoveRow, ValueRow } from './types';
 import { ATOMIC_OPERATIONS, CONDITION_OPERATIONS, getOpConfig } from './constants';
-import { formatJsonPreview, parseValue, validateJson } from './helpers';
+import { formatJsonPreview } from './helpers';
 
 interface ChangesPreviewProps {
   valueRows: ValueRow[];
@@ -35,24 +35,21 @@ export function ChangesPreview({
     return true;
   });
 
-  const hasChanges =
-    validValues.length > 0 || validRemove.length > 0 || validAtomic.length > 0;
+  const hasChanges = validValues.length > 0 || validRemove.length > 0 || validAtomic.length > 0;
 
   if (!hasChanges && validConditions.length === 0) {
     return null;
   }
 
   return (
-    <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
-      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+    <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+      <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Changes Summary
       </h4>
 
       {validValues.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-green-600 dark:text-green-400">
-            SET
-          </span>
+          <span className="text-xs font-medium text-green-600 dark:text-green-400">SET</span>
           <div className="space-y-0.5">
             {validValues.map((row) => {
               let parsed: unknown;
@@ -62,10 +59,10 @@ export function ChangesPreview({
                 parsed = row.value;
               }
               return (
-                <div key={row.id} className="flex items-center gap-1 text-xs font-mono">
+                <div key={row.id} className="flex items-center gap-1 font-mono text-xs">
                   <span className="text-foreground">{row.property}</span>
                   <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground truncate max-w-[200px]">
+                  <span className="max-w-[200px] truncate text-muted-foreground">
                     {formatJsonPreview(parsed)}
                   </span>
                 </div>
@@ -77,9 +74,7 @@ export function ChangesPreview({
 
       {validRemove.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-red-600 dark:text-red-400">
-            REMOVE
-          </span>
+          <span className="text-xs font-medium text-red-600 dark:text-red-400">REMOVE</span>
           <div className="flex flex-wrap gap-1">
             {validRemove.map((row) => (
               <Badge key={row.id} variant="outline" className="font-mono text-xs">
@@ -92,14 +87,12 @@ export function ChangesPreview({
 
       {validAtomic.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-            ATOMIC
-          </span>
+          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">ATOMIC</span>
           <div className="space-y-0.5">
             {validAtomic.map((row) => {
               const opConfig = ATOMIC_OPERATIONS.find((o) => o.value === row.type);
               return (
-                <div key={row.id} className="flex items-center gap-1 text-xs font-mono">
+                <div key={row.id} className="flex items-center gap-1 font-mono text-xs">
                   <Badge variant="secondary" className="text-[10px]">
                     {opConfig?.label}
                   </Badge>
@@ -114,16 +107,12 @@ export function ChangesPreview({
 
       {validConditions.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-            IF
-          </span>
+          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">IF</span>
           <div className="space-y-0.5">
             {validConditions.map((row, idx) => {
-              const opConfig = CONDITION_OPERATIONS.find(
-                (o) => o.value === row.operation,
-              );
+              const opConfig = CONDITION_OPERATIONS.find((o) => o.value === row.operation);
               return (
-                <div key={row.id} className="flex items-center gap-1 text-xs font-mono">
+                <div key={row.id} className="flex items-center gap-1 font-mono text-xs">
                   {idx > 0 && (
                     <Badge variant="outline" className="text-[10px]">
                       {row.joinAs}
@@ -131,9 +120,7 @@ export function ChangesPreview({
                   )}
                   <span className="text-foreground">{row.property}</span>
                   <span className="text-muted-foreground">{opConfig?.label}</span>
-                  {row.value && (
-                    <span className="text-muted-foreground">{row.value}</span>
-                  )}
+                  {row.value && <span className="text-muted-foreground">{row.value}</span>}
                 </div>
               );
             })}

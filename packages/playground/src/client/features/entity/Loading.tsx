@@ -58,9 +58,9 @@ export function LoadingEntities() {
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-5 w-6 rounded-full" />
             </div>
-            <div className="pl-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 pl-6 sm:grid-cols-2">
               {[1, 2].map((i) => (
-                <div key={i} className="border rounded-lg px-3 py-3 space-y-3">
+                <div key={i} className="space-y-3 rounded-lg border px-3 py-3">
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-5 w-16 rounded-full" />

@@ -15,7 +15,7 @@ import { CONDITION_OPERATIONS, getOpConfig } from './constants';
 import type { ConditionOperation } from './constants';
 import { PropertySelect } from './PropertySelect';
 import { SectionHeader } from './SectionHeader';
-import { createId, validateJson } from './helpers';
+import { createId } from './helpers';
 
 interface ConditionsSectionProps {
   rows: ConditionRow[];
@@ -51,14 +51,9 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
 
   return (
     <div>
-      <SectionHeader
-        title="Conditions"
-        count={rows.length}
-        onAdd={addRow}
-        addLabel="Add"
-      />
+      <SectionHeader title="Conditions" count={rows.length} onAdd={addRow} addLabel="Add" />
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">
+        <p className="py-2 text-xs text-muted-foreground">
           No conditions. Operations will apply unconditionally.
         </p>
       ) : (
@@ -66,14 +61,12 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
           {rows.map((row, idx) => {
             const config = getOpConfig(row.operation);
             return (
-              <div key={row.id} className="p-1 bg-background space-y-2">
+              <div key={row.id} className="space-y-2 bg-background p-1">
                 {idx > 0 && (
                   <div className="flex items-center gap-2 pb-1">
                     <Select
                       value={row.joinAs}
-                      onValueChange={(v) =>
-                        updateRow(row.id, { joinAs: v as 'and' | 'or' })
-                      }
+                      onValueChange={(v) => updateRow(row.id, { joinAs: v as 'and' | 'or' })}
                     >
                       <SelectTrigger className="h-6 w-20 text-xs">
                         <SelectValue />
@@ -85,7 +78,7 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
                     </Select>
                   </div>
                 )}
-                <div className="flex gap-2 items-start">
+                <div className="flex items-start gap-2">
                   <div className="flex-1">
                     <PropertySelect
                       properties={properties}
@@ -120,7 +113,7 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-destructive shrink-0"
+                    className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() => removeRow(row.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -132,7 +125,7 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
                     value={row.value}
                     onChange={(e) => updateRow(row.id, { value: e.target.value })}
                     placeholder="value"
-                    className="font-mono h-9"
+                    className="h-9 font-mono"
                   />
                 )}
 
@@ -142,13 +135,13 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
                       value={row.start}
                       onChange={(e) => updateRow(row.id, { start: e.target.value })}
                       placeholder="start"
-                      className="font-mono h-9"
+                      className="h-9 font-mono"
                     />
                     <Input
                       value={row.end}
                       onChange={(e) => updateRow(row.id, { end: e.target.value })}
                       placeholder="end"
-                      className="font-mono h-9"
+                      className="h-9 font-mono"
                     />
                   </div>
                 )}
@@ -158,7 +151,7 @@ export function ConditionsSection({ rows, properties, onChange }: ConditionsSect
                     value={row.values}
                     onChange={(e) => updateRow(row.id, { values: e.target.value })}
                     placeholder="value1, value2, value3"
-                    className="font-mono h-9"
+                    className="h-9 font-mono"
                   />
                 )}
               </div>

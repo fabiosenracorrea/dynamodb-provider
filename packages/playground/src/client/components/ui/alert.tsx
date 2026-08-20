@@ -3,13 +3,13 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border border-slate-200 bg-white p-4 text-slate-950 [&>svg]:text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50 dark:[&>svg]:text-slate-50',
+  'relative w-full rounded-lg border border-slate-200 bg-white p-4 text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50 [&>svg]:text-slate-950 dark:[&>svg]:text-slate-50',
   {
     variants: {
       variant: {
         default: '',
         destructive:
-          'border-red-500/50 text-red-500 dark:border-red-500 [&>svg]:text-red-500 dark:text-red-500 dark:[&>svg]:text-red-500',
+          'border-red-500/50 text-red-500 dark:border-red-500 dark:text-red-500 [&>svg]:text-red-500 dark:[&>svg]:text-red-500',
       },
     },
     defaultVariants: {
@@ -23,17 +23,12 @@ function Alert({
   variant,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>) {
-  return (
-    <div role="alert" className={cn(alertVariants({ variant }), className)} {...props} />
-  );
+  return <div role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
 }
 
 function AlertTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h5
-      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
-      {...props}
-    />
+    <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)} {...props} />
   );
 }
 

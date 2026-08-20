@@ -22,24 +22,17 @@ export function QueryParams({
 
   return (
     <>
-      <RangeFilter
-        {...rangeConfig}
-        range={range}
-        setRange={configHandlers.getSetter('range')}
-      />
+      <RangeFilter {...rangeConfig} range={range} setRange={configHandlers.getSetter('range')} />
 
       <section className="space-y-3">
-        <div className="flex flex-wrap gap-3 items-end">
+        <div className="flex flex-wrap items-end gap-3">
           {/* Filters */}
           {filter && (
-            <FiltersSheet
-              filters={filters}
-              onChange={configHandlers.getSetter('filters')}
-            />
+            <FiltersSheet filters={filters} onChange={configHandlers.getSetter('filters')} />
           )}
 
           <div className="min-w-[100px] flex-1">
-            <label className="text-sm font-medium mb-1.5 block">Limit</label>
+            <label className="mb-1.5 block text-sm font-medium">Limit</label>
             <Input
               type="number"
               value={limit}
@@ -51,7 +44,7 @@ export function QueryParams({
           </div>
 
           <div className="min-w-[140px] flex-1">
-            <label className="text-sm font-medium mb-1.5 block">Order</label>
+            <FieldCaption>Order</FieldCaption>
             <Button
               type="button"
               variant="outline"
@@ -65,9 +58,9 @@ export function QueryParams({
               <span>{retrieveOrder === 'ASC' ? 'Ascending' : 'Descending'}</span>
 
               {retrieveOrder === 'ASC' ? (
-                <ArrowUp className="h-4 w-4 ml-2" />
+                <ArrowUp className="ml-2 h-4 w-4" />
               ) : (
-                <ArrowDown className="h-4 w-4 ml-2" />
+                <ArrowDown className="ml-2 h-4 w-4" />
               )}
             </Button>
           </div>

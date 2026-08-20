@@ -1,19 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Users } from 'lucide-react';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMetadataContext } from '@/context';
 import type { KeyPiece } from '@/utils/api';
 
 function buildPattern(pieces: KeyPiece[]): string {
-  return pieces
-    .map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}'))
-    .join('#');
+  return pieces.map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}')).join('#');
 }
 
 interface KeyDisplayProps {
@@ -36,9 +29,7 @@ export function KeyDisplay({
 
   // Look up partition group if this is a partition key
   const partitionGroup =
-    isPartitionKey && source
-      ? getPartitionGroup(`${source}|${buildPattern(pieces)}`)
-      : undefined;
+    isPartitionKey && source ? getPartitionGroup(`${source}|${buildPattern(pieces)}`) : undefined;
 
   const handlePartitionClick = () => {
     if (partitionGroup) {
@@ -48,15 +39,15 @@ export function KeyDisplay({
 
   return (
     <div className={`flex items-center gap-2 ${compact ? 'text-xs' : 'text-sm'}`}>
-      <span className="text-muted-foreground min-w-[90px]">{label}:</span>
-      <div className="flex items-center gap-1 font-mono bg-muted/50 rounded px-2 py-1">
+      <span className="min-w-[90px] text-muted-foreground">{label}:</span>
+      <div className="flex items-center gap-1 rounded bg-muted/50 px-2 py-1 font-mono">
         {pieces.map((piece, idx) => (
           <TooltipProvider key={idx}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="flex items-center gap-0.5">
                   {idx > 0 && (
-                    <span className="text-muted-foreground mx-0.5">
+                    <span className="mx-0.5 text-muted-foreground">
                       {table?.keySeparator ?? '#'}
                     </span>
                   )}
@@ -91,7 +82,7 @@ export function KeyDisplay({
             <TooltipTrigger asChild>
               <button
                 onClick={handlePartitionClick}
-                className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Users className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
                 <span className={compact ? 'text-[10px]' : 'text-xs'}>
@@ -100,12 +91,10 @@ export function KeyDisplay({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="font-medium mb-1">
+              <p className="mb-1 font-medium">
                 {partitionGroup.entities.length} entities share this partition
               </p>
-              <p className="text-xs text-muted-foreground">
-                {partitionGroup.entities.join(', ')}
-              </p>
+              <p className="text-xs text-muted-foreground">{partitionGroup.entities.join(', ')}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

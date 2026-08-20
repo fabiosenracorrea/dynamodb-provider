@@ -136,7 +136,7 @@ export function ResultTable({
         </div>
 
         <div className="overflow-hidden rounded-md border">
-          <div className="max-h-[52vh] overflow-auto scrollbar-slim">
+          <div className="scrollbar-slim max-h-[52vh] overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-surface">
                 <tr className="border-b">

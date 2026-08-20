@@ -1,10 +1,5 @@
 import { Database } from 'lucide-react';
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 import { useEntity, useMetadataContext } from '@/context';
@@ -15,10 +10,7 @@ import {
   OperationTabsContent,
   type OperationTab,
 } from '@/components/shared';
-import { KeyParamsForm } from '@/features/query';
-import { BatchGetForm } from '@/features/query';
-import { ListForm } from '@/features/query';
-import { QueryForm } from '@/features/query';
+import { KeyParamsForm, BatchGetForm, ListForm, QueryForm } from '@/features/query';
 
 import { LoadingEntities } from './Loading';
 import { EntitySchemaTab } from './Schema';
@@ -99,12 +91,12 @@ export function EntityView({ entityType }: EntityViewProps) {
       <CardHeader className="p-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
+            <div className="rounded-lg bg-primary/10 p-2">
               <Database className="h-5 w-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-xl">{entity.name}</CardTitle>
-              <CardDescription className="font-mono text-xs mt-0.5">
+              <CardDescription className="mt-0.5 font-mono text-xs">
                 type: {entity.type}
               </CardDescription>
             </div>
@@ -112,8 +104,7 @@ export function EntityView({ entityType }: EntityViewProps) {
           <div className="flex items-center gap-2">
             {entity.indexes.length > 0 && (
               <Badge variant="outline" className="text-xs">
-                {entity.indexes.length}{' '}
-                {entity.indexes.length === 1 ? 'index' : 'indexes'}
+                {entity.indexes.length} {entity.indexes.length === 1 ? 'index' : 'indexes'}
               </Badge>
             )}
             <Badge variant="secondary" className="font-mono">

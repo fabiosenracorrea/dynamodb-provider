@@ -41,9 +41,7 @@ export function SidebarItem({
           {name}
         </span>
 
-        {meta && (
-          <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{meta}</span>
-        )}
+        {meta && <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{meta}</span>}
       </div>
 
       {subtitle && (

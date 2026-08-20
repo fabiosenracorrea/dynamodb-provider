@@ -62,10 +62,7 @@ function runOperation(
   return definition.run(shared);
 }
 
-export async function executeRoute(
-  ctx: OperationContext,
-  body: unknown,
-): Promise<ExecuteOutcome> {
+export async function executeRoute(ctx: OperationContext, body: unknown): Promise<ExecuteOutcome> {
   const request = parseWith(executeRequestSchema, body, 'request');
 
   const { target, name, operation, index, rangeQuery, params: rawParams } = request;
@@ -74,9 +71,7 @@ export async function executeRoute(
 
   if (!definition) {
     throw PlaygroundError.notFound(
-      `Unknown ${target} operation "${operation}". Available: ${operationsFor(
-        target,
-      ).join(', ')}`,
+      `Unknown ${target} operation "${operation}". Available: ${operationsFor(target).join(', ')}`,
     );
   }
 

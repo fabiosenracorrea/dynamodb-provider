@@ -129,7 +129,7 @@ export function CommandPalette() {
           />
         </div>
 
-        <div ref={listRef} className="max-h-80 overflow-auto scrollbar-slim p-1">
+        <div ref={listRef} className="scrollbar-slim max-h-80 overflow-auto p-1">
           {!results.length && (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">
               Nothing matches “{search}”

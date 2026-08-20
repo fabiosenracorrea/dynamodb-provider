@@ -1,8 +1,4 @@
-import type {
-  ResolvedPlaygroundConfig,
-  MetadataResponse,
-  TableMetadata,
-} from '../../types';
+import type { ResolvedPlaygroundConfig, MetadataResponse, TableMetadata } from '../../types';
 import { entityToMetadata } from './entity';
 import { inferKeyPieces } from './entity/key';
 

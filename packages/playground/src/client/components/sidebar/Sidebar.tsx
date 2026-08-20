@@ -54,7 +54,7 @@ export function Sidebar() {
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as SelectionType)}
-        className="flex-1 flex flex-col"
+        className="flex flex-1 flex-col"
       >
         <TabsList className="mx-2 mt-2 grid h-8 grid-cols-3">
           <TabsTrigger value="entity" className="text-xs">
@@ -68,28 +68,27 @@ export function Sidebar() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="entity" className="flex-1 m-0">
+        <TabsContent value="entity" className="m-0 flex-1">
           <EntityList
             selectedEntity={selection?.type === 'entity' ? selection.name : null}
             onSelect={handleEntitySelect}
           />
         </TabsContent>
 
-        <TabsContent value="collection" className="flex-1 m-0">
+        <TabsContent value="collection" className="m-0 flex-1">
           <CollectionList
             selectedCollection={selection?.type === 'collection' ? selection.name : null}
             onSelect={handleCollectionSelect}
           />
         </TabsContent>
 
-        <TabsContent value="partition" className="flex-1 m-0">
+        <TabsContent value="partition" className="m-0 flex-1">
           <PartitionList
             selectedPartition={selection?.type === 'partition' ? selection.name : null}
             onSelect={handlePartitionSelect}
           />
         </TabsContent>
       </Tabs>
-
     </aside>
   );
 }

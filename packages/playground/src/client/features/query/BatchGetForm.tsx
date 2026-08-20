@@ -28,8 +28,7 @@ export function BatchGetForm({
 }: BatchGetFormProps) {
   // Extract variable names from keys
   const variables = useMemo(() => {
-    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> =
-      [];
+    const vars: Array<{ name: string; source: 'partition' | 'range'; numeric: boolean }> = [];
     const seen = new Set<string>();
 
     partitionKey.forEach((piece) => {
@@ -70,9 +69,7 @@ export function BatchGetForm({
   const handleChange = (entryId: string, varName: string, value: string) => {
     setEntries((prev) =>
       prev.map((entry) =>
-        entry.id === entryId
-          ? { ...entry, values: { ...entry.values, [varName]: value } }
-          : entry,
+        entry.id === entryId ? { ...entry, values: { ...entry.values, [varName]: value } } : entry,
       ),
     );
   };
@@ -121,7 +118,7 @@ export function BatchGetForm({
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
 
       {variables.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">
+        <p className="text-sm italic text-muted-foreground">
           No parameters required - key uses only constant values
         </p>
       ) : (
@@ -129,20 +126,18 @@ export function BatchGetForm({
           {entries.map((entry, index) => (
             <div
               key={entry.id}
-              className="flex gap-2 items-start p-3 border rounded-lg bg-muted/30"
+              className="flex items-start gap-2 rounded-lg border bg-muted/30 p-3"
             >
-              <div className="flex-1 grid gap-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Key {index + 1}
-                  </span>
+              <div className="grid flex-1 gap-2">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Key {index + 1}</span>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {variables.map((variable) => (
                     <div key={variable.name}>
-                      <label className="text-xs font-medium mb-1 flex items-center gap-1.5">
+                      <label className="mb-1 flex items-center gap-1.5 text-xs font-medium">
                         <span>{variable.name}</span>
-                        <span className="text-muted-foreground font-normal">
+                        <span className="font-normal text-muted-foreground">
                           ({variable.source}
                           {variable.numeric ? ', n' : ''})
                         </span>
@@ -150,11 +145,9 @@ export function BatchGetForm({
                       <Input
                         type={variable.numeric ? 'number' : 'text'}
                         value={entry.values[variable.name]}
-                        onChange={(e) =>
-                          handleChange(entry.id, variable.name, e.target.value)
-                        }
+                        onChange={(e) => handleChange(entry.id, variable.name, e.target.value)}
                         placeholder={variable.name}
-                        className="font-mono h-8 text-sm"
+                        className="h-8 font-mono text-sm"
                       />
                     </div>
                   ))}
@@ -175,9 +168,9 @@ export function BatchGetForm({
         </div>
       )}
 
-      <div className="flex gap-3 items-center justify-end">
+      <div className="flex items-center justify-end gap-3">
         <Button variant="outline" onClick={addEntry}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Add Key
         </Button>
 
@@ -188,8 +181,8 @@ export function BatchGetForm({
       </div>
 
       {!!mutation.data && (
-        <div className="pt-4 border-t">
-          <h4 className="text-sm font-medium mb-2">Result</h4>
+        <div className="border-t pt-4">
+          <h4 className="mb-2 text-sm font-medium">Result</h4>
           <ListResultView
             data={result}
             error={error ?? undefined}

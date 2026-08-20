@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import type { RemoveRow } from './types';
 import { PropertySelect } from './PropertySelect';
 import { SectionHeader } from './SectionHeader';
-import { createId, validateJson } from './helpers';
+import { createId } from './helpers';
 
 interface RemoveSectionProps {
   rows: RemoveRow[];
@@ -14,12 +14,7 @@ interface RemoveSectionProps {
   onChange: (rows: RemoveRow[]) => void;
 }
 
-export function RemoveSection({
-  rows,
-  properties,
-  usedProperties,
-  onChange,
-}: RemoveSectionProps) {
+export function RemoveSection({ rows, properties, usedProperties, onChange }: RemoveSectionProps) {
   const addRow = () => {
     onChange([...rows, { id: createId(), property: '', isCustom: false }]);
   };
@@ -34,21 +29,13 @@ export function RemoveSection({
 
   return (
     <div>
-      <SectionHeader
-        title="Remove Properties"
-        count={rows.length}
-        onAdd={addRow}
-        addLabel="Add"
-      />
+      <SectionHeader title="Remove Properties" count={rows.length} onAdd={addRow} addLabel="Add" />
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No properties to remove.</p>
+        <p className="py-2 text-xs text-muted-foreground">No properties to remove.</p>
       ) : (
         <div className="space-y-2">
           {rows.map((row) => (
-            <div
-              key={row.id}
-              className="flex gap-2 items-center p-2 border rounded bg-background"
-            >
+            <div key={row.id} className="flex items-center gap-2 rounded border bg-background p-2">
               <div className="flex-1">
                 <PropertySelect
                   properties={properties}
@@ -65,7 +52,7 @@ export function RemoveSection({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-muted-foreground hover:text-destructive shrink-0"
+                className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={() => removeRow(row.id)}
               >
                 <Trash2 className="h-4 w-4" />

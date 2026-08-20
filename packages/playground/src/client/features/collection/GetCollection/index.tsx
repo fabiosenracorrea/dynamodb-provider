@@ -79,19 +79,17 @@ export function GetCollection({ collectionName }: CollectionOperationsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {variables.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">
+          <p className="text-sm italic text-muted-foreground">
             No parameters required - partition key uses only constant values
           </p>
         ) : (
           <div className="grid gap-3">
             {variables.map((variable) => (
               <div key={variable.name}>
-                <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
+                <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
                   <span>{variable.name}</span>
                   {variable.numeric && (
-                    <span className="text-xs text-muted-foreground font-normal">
-                      (numeric)
-                    </span>
+                    <span className="text-xs font-normal text-muted-foreground">(numeric)</span>
                   )}
                 </label>
                 <Input
@@ -112,8 +110,8 @@ export function GetCollection({ collectionName }: CollectionOperationsProps) {
         </Button>
 
         {(result !== null || error) && (
-          <div className="pt-4 border-t">
-            <h4 className="text-sm font-medium mb-2">Result</h4>
+          <div className="border-t pt-4">
+            <h4 className="mb-2 text-sm font-medium">Result</h4>
 
             {Array.isArray(result) ? (
               <CollectionListView data={result} error={error ?? undefined} />

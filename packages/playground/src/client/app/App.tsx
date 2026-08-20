@@ -8,28 +8,25 @@ import { EntityView, PartitionView, CollectionView } from '@/features';
 import { Shell } from './Shell';
 import { CommandPalette } from './CommandPalette';
 
-export function App() {
-  const { isLoading, error } = useMetadataContext();
-
-  if (error) {
-    return <ErrorScreen error={error instanceof Error ? error.message : 'Unknown error'} />;
-  }
-
-  if (isLoading) return <LoadingScreen />;
-
+function LoadingScreen() {
   return (
-    <>
-      <CommandPalette />
+    <div className="flex h-screen items-center justify-center">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm">Loading playground…</span>
+      </div>
+    </div>
+  );
+}
 
-      <Shell>
-        <Routes>
-          <Route path="/" element={<EmptyState />} />
-          <Route path="/entity/:name" element={<EntityRoute />} />
-          <Route path="/collection/:name" element={<CollectionRoute />} />
-          <Route path="/partition/:name" element={<PartitionRoute />} />
-        </Routes>
-      </Shell>
-    </>
+function ErrorScreen({ error }: { error: string }) {
+  return (
+    <div className="flex h-screen items-center justify-center p-4">
+      <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/10 p-6">
+        <h2 className="font-semibold text-destructive">Failed to load playground</h2>
+        <p className="mt-2 text-sm text-destructive/80">{error}</p>
+      </div>
+    </div>
   );
 }
 
@@ -73,24 +70,27 @@ function PartitionRoute() {
   return <PartitionView key={partition.id} partitionId={partition.id} />;
 }
 
-function LoadingScreen() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm">Loading playground…</span>
-      </div>
-    </div>
-  );
-}
+export function App() {
+  const { isLoading, error } = useMetadataContext();
 
-function ErrorScreen({ error }: { error: string }) {
+  if (error) {
+    return <ErrorScreen error={error instanceof Error ? error.message : 'Unknown error'} />;
+  }
+
+  if (isLoading) return <LoadingScreen />;
+
   return (
-    <div className="flex h-screen items-center justify-center p-4">
-      <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/10 p-6">
-        <h2 className="font-semibold text-destructive">Failed to load playground</h2>
-        <p className="mt-2 text-sm text-destructive/80">{error}</p>
-      </div>
-    </div>
+    <>
+      <CommandPalette />
+
+      <Shell>
+        <Routes>
+          <Route path="/" element={<EmptyState />} />
+          <Route path="/entity/:name" element={<EntityRoute />} />
+          <Route path="/collection/:name" element={<CollectionRoute />} />
+          <Route path="/partition/:name" element={<PartitionRoute />} />
+        </Routes>
+      </Shell>
+    </>
   );
 }

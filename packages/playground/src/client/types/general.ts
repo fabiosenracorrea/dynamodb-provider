@@ -8,9 +8,8 @@ type UnionToIntersectionBase<U> = (U extends any ? (k: U) => void : never) exten
   : never;
 
 // makes the result be shown in a better way
-export type UnionToIntersection<U> = UnionToIntersectionBase<U> extends infer O
-  ? { [K in keyof O]: O[K] }
-  : never;
+export type UnionToIntersection<U> =
+  UnionToIntersectionBase<U> extends infer O ? { [K in keyof O]: O[K] } : never;
 
 /**
  *    Resolves TS type result so VSCODE shows it as string | number[]

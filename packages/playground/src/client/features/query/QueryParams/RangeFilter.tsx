@@ -18,12 +18,7 @@ export interface RangeFilterProps {
   setRange: StateSetter<QueryConfig['range']>;
 }
 
-export function RangeFilter({
-  rangeKey,
-  customQueries,
-  range,
-  setRange,
-}: RangeFilterProps) {
+export function RangeFilter({ rangeKey, customQueries, range, setRange }: RangeFilterProps) {
   const { mode, operation, params } = range;
 
   // Get selected range query config from current target's range queries
@@ -57,15 +52,13 @@ export function RangeFilter({
 
   return (
     <section className="space-y-3">
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className={mode === 'none' ? 'flex-1' : ' flex-1 min-w-[160px]'}>
-          <h4 className="text-sm font-medium flex items-center gap-2">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className={mode === 'none' ? 'flex-1' : ' min-w-[160px] flex-1'}>
+          <h4 className="flex items-center gap-2 text-sm font-medium">
             Range Filtering
             {!!rangeKey && (
-              <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
-                {rangeKey
-                  .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
-                  .join(' | ')}
+              <span className="mt-0.5 font-mono text-[10px] font-normal text-muted-foreground">
+                {rangeKey.map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value)).join(' | ')}
               </span>
             )}
           </h4>
@@ -81,9 +74,7 @@ export function RangeFilter({
                 <SelectItem key={rq.name} value={rq.name}>
                   <span className="flex items-center gap-2">
                     <span>{rq.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({rq.operation})
-                    </span>
+                    <span className="text-xs text-muted-foreground">({rq.operation})</span>
                   </span>
                 </SelectItem>
               ))}
@@ -96,8 +87,8 @@ export function RangeFilter({
         {/* Predefined Range Query params - shown when a predefined query is selected */}
         {isPredefinedMode &&
           selectedRangeQuery?.params.map((paramName) => (
-            <div key={paramName} className="flex-1 min-w-[120px]">
-              <label className="text-sm font-medium mb-1.5 block">{paramName}</label>
+            <div key={paramName} className="min-w-[120px] flex-1">
+              <label className="mb-1.5 block text-sm font-medium">{paramName}</label>
               <Input
                 value={params[paramName] || ''}
                 onChange={(e) => handleRangeParamChange(paramName, e.target.value)}
@@ -111,7 +102,7 @@ export function RangeFilter({
         {isCustomMode && (
           <>
             <div className="min-w-[160px]">
-              <label className="text-sm font-medium mb-1.5 block">Operation</label>
+              <FieldCaption>Operation</FieldCaption>
               <Select value={operation} onValueChange={setOperation}>
                 <SelectTrigger>
                   <SelectValue />
@@ -126,8 +117,8 @@ export function RangeFilter({
               </Select>
             </div>
             {selectedCustomOp?.params.map((param) => (
-              <div key={param} className="flex-1 min-w-[120px]">
-                <label className="text-sm font-medium mb-1.5 block">{param}</label>
+              <div key={param} className="min-w-[120px] flex-1">
+                <label className="mb-1.5 block text-sm font-medium">{param}</label>
                 <Input
                   value={params[param] || ''}
                   onChange={(e) => handleRangeParamChange(param, e.target.value)}

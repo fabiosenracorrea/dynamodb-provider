@@ -50,21 +50,18 @@ export function ListForm({ target, name }: ListFormProps) {
   return (
     <div className="space-y-6">
       {/* Info Alert */}
-      <div className="flex items-start gap-3 p-3 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200">
-        <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+      <div className="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
+        <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
         <p>
           This operation requires a{' '}
-          <code className="font-mono bg-blue-100 dark:bg-blue-900 px-1 rounded">
-            typeIndex
-          </code>{' '}
-          GSI configured on the table, and entities must have their type columns properly
-          set.
+          <code className="rounded bg-blue-100 px-1 font-mono dark:bg-blue-900">typeIndex</code> GSI
+          configured on the table, and entities must have their type columns properly set.
         </p>
       </div>
 
       <QueryParams params={queryConfig} configHandlers={configHandlers} />
 
-      <div className="flex items-center gap-4 justify-end">
+      <div className="flex items-center justify-end gap-4">
         <FullRetrievalCheckbox
           selected={queryConfig.fullRetrieval}
           onChange={configHandlers.getSetter('fullRetrieval')}
@@ -77,8 +74,8 @@ export function ListForm({ target, name }: ListFormProps) {
       </div>
 
       {!!mutation.data && (
-        <div className="pt-4 border-t">
-          <h4 className="text-sm font-medium mb-2">Result</h4>
+        <div className="border-t pt-4">
+          <h4 className="mb-2 text-sm font-medium">Result</h4>
           <ListResultView
             data={result}
             error={error ?? undefined}

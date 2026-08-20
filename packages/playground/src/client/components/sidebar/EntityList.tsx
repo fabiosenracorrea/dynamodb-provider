@@ -23,8 +23,7 @@ export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
       const lower = search.toLowerCase();
       result = result.filter(
         (entity) =>
-          entity.name.toLowerCase().includes(lower) ||
-          entity.type.toLowerCase().includes(lower),
+          entity.name.toLowerCase().includes(lower) || entity.type.toLowerCase().includes(lower),
       );
     }
 
@@ -32,20 +31,16 @@ export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
   }, [entities, search, sortOrder]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2 flex gap-2">
+    <div className="flex h-full flex-col">
+      <div className="flex gap-2 p-2">
         <div className="flex-1">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Search entities..."
-          />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search entities..." />
         </div>
         <SortPopover value={sortOrder} onChange={setSortOrder} />
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 pt-0 space-y-1">
+        <div className="space-y-1 p-2 pt-0">
           {filteredAndSortedEntities.map((entity) => (
             <SidebarItem
               key={entity.type}
@@ -58,9 +53,7 @@ export function EntityList({ selectedEntity, onSelect }: EntityListProps) {
           ))}
 
           {filteredAndSortedEntities.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No entities found
-            </p>
+            <p className="py-4 text-center text-sm text-muted-foreground">No entities found</p>
           )}
         </div>
       </ScrollArea>

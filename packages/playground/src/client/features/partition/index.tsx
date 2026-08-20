@@ -1,12 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Layers, Loader2 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,15 +11,15 @@ import { omit } from '@/utils/object';
 
 import type { KeyPiece } from '@/utils/api';
 
-import { ListResultView } from '@/features/query';
-import { PartitionLoading } from './Loading';
 import {
+  ListResultView,
   buildRangeParams,
   FullRetrievalCheckbox,
   isRangeQueryValid,
   QueryParams,
   useQueryConfig,
 } from '@/features/query';
+import { PartitionLoading } from './Loading';
 import { PartitionEntityList } from './EntityList';
 
 interface PartitionOperationsProps {
@@ -119,11 +113,11 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+              <div className="rounded-lg bg-primary/10 p-2">
                 <Layers className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl font-mono">{partition.pattern}</CardTitle>
+                <CardTitle className="font-mono text-xl">{partition.pattern}</CardTitle>
                 <CardDescription className="mt-0.5">
                   Shared partition across {partition.entities.length} entities
                 </CardDescription>
@@ -140,9 +134,9 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
 
       {/* Query Card */}
       <Card>
-        <div className="p-6 flex items-center gap-3">
+        <div className="flex items-center gap-3 p-6">
           <CardTitle className="text-base">Query Partition</CardTitle>
-          <span className="font-mono text-[10px] mt-0.5 text-muted-foreground font-normal">
+          <span className="mt-0.5 font-mono text-[10px] font-normal text-muted-foreground">
             {partitionKeyPieces
               .map((p) => (p.type === 'VARIABLE' ? `.${p.value}` : p.value))
               .join(' | ')}
@@ -152,14 +146,14 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
           {/* Partition Key */}
           <section className="space-y-3">
             {partitionVars.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic pl-1">
+              <p className="pl-1 text-sm italic text-muted-foreground">
                 No parameters required - partition key uses only constant values
               </p>
             ) : (
-              <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex flex-wrap items-end gap-3">
                 {partitionVars.map((variable) => (
-                  <div key={variable.name} className="flex-1 min-w-[140px]">
-                    <label className="text-sm mb-1.5 flex items-center gap-2">
+                  <div key={variable.name} className="min-w-[140px] flex-1">
+                    <label className="mb-1.5 flex items-center gap-2 text-sm">
                       <span className="font-medium">{variable.name}</span>
                       {variable.numeric && (
                         <span className="text-xs text-muted-foreground">(n)</span>
@@ -183,13 +177,9 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
             )}
           </section>
 
-          <QueryParams
-            params={queryConfig}
-            configHandlers={configHandlers}
-            filter={false}
-          />
+          <QueryParams params={queryConfig} configHandlers={configHandlers} filter={false} />
 
-          <div className="flex items-center gap-4 justify-end">
+          <div className="flex items-center justify-end gap-4">
             <FullRetrievalCheckbox
               selected={queryConfig.fullRetrieval}
               onChange={configHandlers.getSetter('fullRetrieval')}
@@ -202,8 +192,8 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
           </div>
 
           {!!mutation.data && (
-            <div className="pt-4 border-t">
-              <h4 className="text-sm font-medium mb-2">Result</h4>
+            <div className="border-t pt-4">
+              <h4 className="mb-2 text-sm font-medium">Result</h4>
               <ListResultView data={result} error={error ?? undefined} />
             </div>
           )}

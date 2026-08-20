@@ -23,14 +23,14 @@ export function OperationTabs({ tabs, defaultTab, children }: OperationTabsProps
 
 export function OperationTabsList({ tabs }: { tabs: OperationTab[] }) {
   return (
-    <TabsList className="h-8 p-1 bg-muted/50 rounded-lg justify-start">
+    <TabsList className="h-8 justify-start rounded-lg bg-muted/50 p-1">
       {tabs
         .filter((t) => !t.hide)
         .map((tab) => (
           <TabsTrigger
             key={tab.id}
             value={tab.id}
-            className="text-xs px-3 h-6 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            className="h-6 px-3 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             {tab.label}
           </TabsTrigger>

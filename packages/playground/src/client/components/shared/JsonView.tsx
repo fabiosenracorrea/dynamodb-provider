@@ -73,7 +73,7 @@ export function JsonView({ value, className, style }: JsonViewProps) {
   return (
     <pre
       className={cn(
-        'font-mono text-xs leading-relaxed p-3 rounded-md bg-surface border overflow-auto scrollbar-slim',
+        'scrollbar-slim overflow-auto rounded-md border bg-surface p-3 font-mono text-xs leading-relaxed',
         className,
       )}
       style={style}

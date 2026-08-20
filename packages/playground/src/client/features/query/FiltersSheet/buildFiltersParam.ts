@@ -2,9 +2,7 @@ import type { FilterRow } from './types';
 import { getOpConfig, parseValue } from './constants';
 
 // Helper to convert FilterRow[] to the API format
-export function buildFiltersParam(
-  filters: FilterRow[],
-): Record<string, unknown> | undefined {
+export function buildFiltersParam(filters: FilterRow[]): Record<string, unknown> | undefined {
   const validFilters = filters.filter((f) => {
     if (!f.property) return false;
     const config = getOpConfig(f.operation);

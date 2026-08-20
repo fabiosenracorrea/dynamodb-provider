@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Key, ChevronRight } from 'lucide-react';
+import { Key } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,15 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useResolveEntityKeys } from '@/utils/hooks';
 
-import type {
-  AtomicOperationRow,
-  ConditionRow,
-  RemoveRow,
-  UpdateParams,
-  ValueRow,
-} from './types';
+import type { AtomicOperationRow, ConditionRow, RemoveRow, UpdateParams, ValueRow } from './types';
 import { getOpConfig } from './constants';
-import { createId, getPropertyKeys, parseValue, validateJson } from './helpers';
+import { getPropertyKeys, parseValue } from './helpers';
 import { ValuesSection } from './ValuesSection';
 import { RemoveSection } from './RemoveSection';
 import { AtomicOperationsSection } from './AtomicOperationsSection';
@@ -104,8 +98,7 @@ export function UpdateModal({
     const validAtomic = atomicRows.filter((r) => r.property && !r.jsonError && r.value);
     if (validAtomic.length > 0) {
       params.atomicOperations = validAtomic.map((row) => {
-        const isSetOperation =
-          row.type === 'add_to_set' || row.type === 'remove_from_set';
+        const isSetOperation = row.type === 'add_to_set' || row.type === 'remove_from_set';
         try {
           const parsedValue = JSON.parse(row.value);
           if (isSetOperation) {
@@ -185,9 +178,9 @@ export function UpdateModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 gap-0">
+      <DialogContent className="flex h-[85vh] max-w-5xl flex-col gap-0 p-0">
         {/* Header */}
-        <DialogHeader className="px-6 py-4 border-b shrink-0">
+        <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle className="flex items-center gap-2">
             Update Item
             <Badge variant="secondary" className="font-mono text-xs">
@@ -196,17 +189,17 @@ export function UpdateModal({
           </DialogTitle>
           {/* Item Keys */}
           {resolvedKeys?.success && (
-            <div className="flex items-center gap-4 mt-2 text-xs">
+            <div className="mt-2 flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <Key className="h-3 w-3 text-muted-foreground" />
                 <span className="text-muted-foreground">PK:</span>
-                <code className="font-mono bg-muted px-1.5 py-0.5 rounded">
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
                   {resolvedKeys.partitionKey}
                 </code>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-muted-foreground">SK:</span>
-                <code className="font-mono bg-muted px-1.5 py-0.5 rounded">
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
                   {resolvedKeys.rangeKey}
                 </code>
               </div>
@@ -215,10 +208,10 @@ export function UpdateModal({
         </DialogHeader>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
           {/* Form Section */}
           <ScrollArea className="flex-1 border-r">
-            <div className="p-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 p-4">
               <ValuesSection
                 rows={valueRows}
                 properties={properties}
@@ -246,7 +239,7 @@ export function UpdateModal({
           </ScrollArea>
 
           {/* Preview Section */}
-          <div className="w-[280px] bg-muted/20 p-4 overflow-y-auto">
+          <div className="w-[280px] overflow-y-auto bg-muted/20 p-4">
             <ChangesPreview
               valueRows={valueRows}
               removeRows={removeRows}
@@ -254,7 +247,7 @@ export function UpdateModal({
               conditionRows={conditionRows}
             />
             {!hasContent && (
-              <div className="text-xs text-muted-foreground text-center py-8">
+              <div className="py-8 text-center text-xs text-muted-foreground">
                 Add changes to see a preview
               </div>
             )}
@@ -262,7 +255,7 @@ export function UpdateModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 py-4 border-t shrink-0">
+        <DialogFooter className="shrink-0 border-t px-6 py-4">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>

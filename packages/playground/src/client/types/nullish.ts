@@ -26,11 +26,8 @@ export type IsNever<T> = [T] extends [never] ? true : false;
  * - If Yes, returns the `second` type parameter
  * - If No, returns the `third` type parameter
  */
-export type IfNever<
-  T,
-  TypeIfNever = true,
-  TypeIfNotNever = false,
-> = IsNever<T> extends true ? TypeIfNever : TypeIfNotNever;
+export type IfNever<T, TypeIfNever = true, TypeIfNotNever = false> =
+  IsNever<T> extends true ? TypeIfNever : TypeIfNotNever;
 
 /**
  * Make any type be optionally undefined as well

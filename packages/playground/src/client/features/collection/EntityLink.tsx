@@ -10,12 +10,12 @@ export function EntityLink({
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between p-2 rounded-md border hover:bg-accent transition-colors text-left group w-full max-w-sm"
+      className="group flex w-full max-w-sm items-center justify-between rounded-md border p-2 text-left transition-colors hover:bg-accent"
     >
       <div className="flex items-center gap-2">
         <span className="font-medium">{entity.name}</span>
       </div>
-      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }

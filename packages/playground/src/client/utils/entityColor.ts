@@ -28,7 +28,5 @@ export function entityColor(type: string): string {
 
 /** Faint background wash for rows/badges of this entity. */
 export function entityTint(type: string, alpha = 0.14): string {
-  return `hsl(${entityHue(
-    type,
-  )} var(--entity-saturation) var(--entity-lightness) / ${alpha})`;
+  return `hsl(${entityHue(type)} var(--entity-saturation) var(--entity-lightness) / ${alpha})`;
 }

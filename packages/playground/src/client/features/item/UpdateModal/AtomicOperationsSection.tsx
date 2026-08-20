@@ -1,7 +1,6 @@
 import { Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -31,10 +30,7 @@ export function AtomicOperationsSection({
   onChange,
 }: AtomicOperationsSectionProps) {
   const addRow = () => {
-    onChange([
-      ...rows,
-      { id: createId(), type: 'add', property: '', isCustom: false, value: '' },
-    ]);
+    onChange([...rows, { id: createId(), type: 'add', property: '', isCustom: false, value: '' }]);
   };
 
   const removeRow = (id: string) => {
@@ -61,30 +57,22 @@ export function AtomicOperationsSection({
 
   return (
     <div>
-      <SectionHeader
-        title="Atomic Operations"
-        count={rows.length}
-        onAdd={addRow}
-        addLabel="Add"
-      />
+      <SectionHeader title="Atomic Operations" count={rows.length} onAdd={addRow} addLabel="Add" />
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No atomic operations.</p>
+        <p className="py-2 text-xs text-muted-foreground">No atomic operations.</p>
       ) : (
         <div className="space-y-2">
           {rows.map((row) => {
             const opConfig = getAtomicConfig(row.type);
-            const isSetOperation =
-              row.type === 'add_to_set' || row.type === 'remove_from_set';
+            const isSetOperation = row.type === 'add_to_set' || row.type === 'remove_from_set';
 
             return (
-              <div key={row.id} className="p-2 border rounded bg-background space-y-2">
-                <div className="flex gap-2 items-start">
+              <div key={row.id} className="space-y-2 rounded border bg-background p-2">
+                <div className="flex items-start gap-2">
                   <div className="w-[140px]">
                     <Select
                       value={row.type}
-                      onValueChange={(v) =>
-                        updateRow(row.id, { type: v as AtomicOperationType })
-                      }
+                      onValueChange={(v) => updateRow(row.id, { type: v as AtomicOperationType })}
                     >
                       <SelectTrigger className="h-9">
                         <SelectValue />
@@ -114,7 +102,7 @@ export function AtomicOperationsSection({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-destructive shrink-0"
+                    className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() => removeRow(row.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -125,15 +113,13 @@ export function AtomicOperationsSection({
                     value={row.value}
                     onChange={(e) => updateRow(row.id, { value: e.target.value })}
                     placeholder={isSetOperation ? '["a", "b"]' : '1'}
-                    className={`font-mono min-h-[36px] h-9 py-2 resize-none ${
+                    className={`h-9 min-h-[36px] resize-none py-2 font-mono ${
                       row.jsonError ? 'border-destructive' : ''
                     }`}
                   />
-                  <div className="flex justify-between items-center mt-0.5">
+                  <div className="mt-0.5 flex items-center justify-between">
                     {row.jsonError ? (
-                      <span className="text-[10px] text-destructive">
-                        {row.jsonError}
-                      </span>
+                      <span className="text-[10px] text-destructive">{row.jsonError}</span>
                     ) : (
                       <span className="text-[10px] text-muted-foreground">
                         {opConfig?.description}

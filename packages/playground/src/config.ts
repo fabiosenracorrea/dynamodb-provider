@@ -1,7 +1,10 @@
 import type { AnyEntity, PlaygroundConfig, ResolvedPlaygroundConfig } from './types';
 
 export class ConfigError extends Error {
-  constructor(message: string, readonly hint?: string) {
+  constructor(
+    message: string,
+    readonly hint?: string,
+  ) {
     super(message);
     this.name = 'ConfigError';
   }

@@ -3,9 +3,7 @@ export function createId(): string {
 }
 
 export function getPropertyKeys(item: Record<string, unknown>): string[] {
-  return Object.keys(item).filter(
-    (key) => !['_pk', '_sk', '_type', '_c', '_m'].includes(key),
-  );
+  return Object.keys(item).filter((key) => !['_pk', '_sk', '_type', '_c', '_m'].includes(key));
 }
 
 export function validateJson(value: string): {

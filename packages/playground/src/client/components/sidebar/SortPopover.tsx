@@ -25,12 +25,7 @@ export function SortPopover({ value, onChange }: SortPopoverProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 shrink-0"
-          aria-label="Sort items"
-        >
+        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" aria-label="Sort items">
           <SortIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -46,7 +41,7 @@ export function SortPopover({ value, onChange }: SortPopoverProps) {
                   onChange(option.value);
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent transition-colors"
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent"
               >
                 <Icon className="h-4 w-4 text-muted-foreground" />
                 <span className="flex-1 text-left">{option.label}</span>
@@ -70,8 +65,6 @@ export function applySortOrder<T>(
   return [...items].sort((a, b) => {
     const nameA = getName(a);
     const nameB = getName(b);
-    return sortOrder === 'asc'
-      ? nameA.localeCompare(nameB)
-      : nameB.localeCompare(nameA);
+    return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
   });
 }

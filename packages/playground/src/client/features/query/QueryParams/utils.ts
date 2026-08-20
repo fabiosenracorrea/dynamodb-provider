@@ -75,9 +75,7 @@ export function isRangeQueryValid(
     selectedRangeQuery.params.every((p) => !!params[p]?.trim());
 
   const isCustomRangeValid =
-    !isCustomMode ||
-    !selectedCustomOp ||
-    selectedCustomOp.params.every((p) => !!params[p]?.trim());
+    !isCustomMode || !selectedCustomOp || selectedCustomOp.params.every((p) => !!params[p]?.trim());
 
   if (isPredefinedMode) return isPredefinedRangeValid;
 

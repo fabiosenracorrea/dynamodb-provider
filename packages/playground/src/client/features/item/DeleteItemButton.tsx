@@ -50,7 +50,7 @@ export function DeleteItemButton({ disabled }: DeleteItemButtonProps) {
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => setDeleteDialogOpen(true)}
             disabled={disabled}
           >

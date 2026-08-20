@@ -15,9 +15,7 @@ type IncompleteState<State> = { [key in keyof State]?: OrUpdater<State, State[ke
 type UpdateState<State> = IncompleteState<State> | ((old: State) => State);
 // type UpdateState<State> = IncompleteState<State>;
 
-export type MultiStateDispatchAction<DefaultValues> = Dispatch<
-  UpdateState<DefaultValues>
->;
+export type MultiStateDispatchAction<DefaultValues> = Dispatch<UpdateState<DefaultValues>>;
 
 const REMOVAL_KEY = `${Math.random()}__remove`;
 
@@ -75,9 +73,7 @@ export type MultiStateHook<State> = {
   getSetter: <Key extends keyof State>(key: Key) => StateSetter<State[Key]>;
 };
 
-export function useMultiState<State extends object>(
-  defaultValues: State,
-): MultiStateHook<State> {
+export function useMultiState<State extends object>(defaultValues: State): MultiStateHook<State> {
   const [values, dispatch] = useReducer(resolveState, defaultValues);
 
   const resetDefault = useCallback(() => {
@@ -103,9 +99,7 @@ export function useMultiState<State extends object>(
   const set: MultiStateHook<State>['set'] = useCallback((prop, value) => {
     dispatch({
       [prop]:
-        typeof value === 'function'
-          ? (old: State) => (value as AnyFunction)(old[prop])
-          : value,
+        typeof value === 'function' ? (old: State) => (value as AnyFunction)(old[prop]) : value,
     });
   }, []);
 
@@ -113,9 +107,7 @@ export function useMultiState<State extends object>(
     return (value) =>
       dispatch({
         [prop]:
-          typeof value === 'function'
-            ? (old: State) => (value as AnyFunction)(old[prop])
-            : value,
+          typeof value === 'function' ? (old: State) => (value as AnyFunction)(old[prop]) : value,
       });
   }, []);
 

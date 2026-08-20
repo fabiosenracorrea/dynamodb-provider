@@ -56,17 +56,13 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
   }, [partitionGroups, filter, search, sortOrder]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2 flex gap-2">
+    <div className="flex h-full flex-col">
+      <div className="flex gap-2 p-2">
         <div className="flex-1">
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Search partitions..."
-          />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search partitions..." />
         </div>
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-[100px] h-9">
+          <SelectTrigger className="h-9 w-[100px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -83,7 +79,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 pt-0 space-y-1">
+        <div className="space-y-1 p-2 pt-0">
           {filteredAndSortedPartitions.map((partition) => (
             <SidebarItem
               key={partition.id}
@@ -96,7 +92,7 @@ export function PartitionList({ selectedPartition, onSelect }: PartitionListProp
           ))}
 
           {filteredAndSortedPartitions.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="py-4 text-center text-sm text-muted-foreground">
               {partitionGroups.length === 0
                 ? 'No shared partitions found'
                 : 'No partitions match your search'}

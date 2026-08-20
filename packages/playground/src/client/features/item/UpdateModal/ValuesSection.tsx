@@ -15,12 +15,7 @@ interface ValuesSectionProps {
   onChange: (rows: ValueRow[]) => void;
 }
 
-export function ValuesSection({
-  rows,
-  properties,
-  usedProperties,
-  onChange,
-}: ValuesSectionProps) {
+export function ValuesSection({ rows, properties, usedProperties, onChange }: ValuesSectionProps) {
   const addRow = () => {
     onChange([...rows, { id: createId(), property: '', isCustom: false, value: '' }]);
   };
@@ -45,22 +40,14 @@ export function ValuesSection({
 
   return (
     <div className="space-y-2">
-      <SectionHeader
-        title="Set Values"
-        count={rows.length}
-        onAdd={addRow}
-        addLabel="Add"
-      />
+      <SectionHeader title="Set Values" count={rows.length} onAdd={addRow} addLabel="Add" />
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No values to set.</p>
+        <p className="py-2 text-xs text-muted-foreground">No values to set.</p>
       ) : (
         <div className="space-y-2">
           {rows.map((row) => (
-            <div
-              key={row.id}
-              className="flex gap-2 items-start p-2 border rounded bg-background"
-            >
-              <div className="flex-1 min-w-[120px]">
+            <div key={row.id} className="flex items-start gap-2 rounded border bg-background p-2">
+              <div className="min-w-[120px] flex-1">
                 <PropertySelect
                   properties={properties}
                   usedProperties={usedProperties}
@@ -78,7 +65,7 @@ export function ValuesSection({
                   value={row.value}
                   onChange={(e) => updateRow(row.id, { value: e.target.value })}
                   placeholder='JSON value: "text", 123, true, {...}'
-                  className={`font-mono min-h-[40px] h-9 py-2 resize-y ${
+                  className={`h-9 min-h-[40px] resize-y py-2 font-mono ${
                     row.jsonError ? 'border-destructive' : ''
                   }`}
                 />
@@ -89,7 +76,7 @@ export function ValuesSection({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-muted-foreground hover:text-destructive shrink-0"
+                className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={() => removeRow(row.id)}
               >
                 <Trash2 className="h-4 w-4" />

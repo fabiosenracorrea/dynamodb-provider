@@ -12,11 +12,7 @@ import type { ResolvedPlaygroundConfig } from './types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const CONFIG_NAMES = [
-  'playground.config.ts',
-  'playground.config.js',
-  'playground.config.mjs',
-];
+const CONFIG_NAMES = ['playground.config.ts', 'playground.config.js', 'playground.config.mjs'];
 
 async function findConfig(): Promise<string | null> {
   const cwd = process.cwd();
@@ -120,9 +116,7 @@ async function startServer(
       css: {
         postcss: {
           plugins: [
-            (
-              await import('tailwindcss')
-            ).default({
+            (await import('tailwindcss')).default({
               config: {
                 darkMode,
                 theme,
@@ -193,9 +187,7 @@ async function main() {
 
       server = await startServer(newConfig, true);
 
-      console.log(
-        `\n✨ Playground restarted at http://localhost:${newConfig.port || 3030}\n`,
-      );
+      console.log(`\n✨ Playground restarted at http://localhost:${newConfig.port || 3030}\n`);
     } catch (err) {
       reportConfigError(err);
       console.log('   Fix the error and save again to retry.\n');
