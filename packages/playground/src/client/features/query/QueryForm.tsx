@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { Loader2, Database, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ListResultView } from './ListResultView';
+import { ResultPane } from './ResultPane';
 import { buildFiltersParam } from './FiltersSheet';
-import { useExecute } from '@/utils/hooks';
+import { useOperation } from './useOperation';
+import { useQueryUrlState } from './useQueryUrlState';
 import type { ExecuteRequest, KeyPiece, RangeQuery, EntityIndex } from '@/utils/api';
 
 import {
@@ -81,7 +82,13 @@ export function QueryForm({
 
   const [queryConfig, configHandlers] = useQueryConfig();
 
-  const mutation = useExecute();
+  const operationState = useOperation();
+
+  const syncUrl = useQueryUrlState((shared) => {
+    setQueryTarget(shared.target);
+    setPartitionValues(shared.partitionValues);
+    configHandlers.dispatch(shared.config);
+  });
 
   const handlePartitionChange = (varName: string, value: string) => {
     setPartitionValues((prev) => ({ ...prev, [varName]: value }));
@@ -96,6 +103,9 @@ export function QueryForm({
   };
 
   const handleExecute = () => {
+    // Only on run: mirroring every keystroke would spam history entries.
+    syncUrl({ target: queryTarget, partitionValues, config: queryConfig });
+
     const { rangeQuery, params: rangeParams } = buildRangeParams(
       queryConfig.range,
       currentConfig.rangeQueries,
@@ -113,7 +123,7 @@ export function QueryForm({
       params[v.name] = v.numeric && val ? Number(val) : val;
     });
 
-    mutation.mutate({
+    operationState.run({
       target,
       name,
       operation,
@@ -127,9 +137,6 @@ export function QueryForm({
 
   const isValid =
     isPartitionValid && isRangeQueryValid(queryConfig.range, currentConfig.rangeQueries);
-
-  const result = mutation.data?.success ? mutation.data.data : null;
-  const error = mutation.data?.success === false ? mutation.data.error : null;
 
   return (
     <div className="space-y-6">
@@ -237,22 +244,13 @@ export function QueryForm({
           onChange={configHandlers.getSetter('fullRetrieval')}
         />
 
-        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button onClick={handleExecute} disabled={operationState.isRunning || !isValid}>
+          {operationState.isRunning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Query
         </Button>
       </div>
 
-      {!!mutation.data && (
-        <div className="border-t pt-4">
-          <h4 className="mb-2 text-sm font-medium">Result</h4>
-          <ListResultView
-            data={result}
-            error={error ?? undefined}
-            entityType={target === 'entity' ? name : undefined}
-          />
-        </div>
-      )}
+      <ResultPane {...operationState} entityType={target === 'entity' ? name : undefined} />
     </div>
   );
 }

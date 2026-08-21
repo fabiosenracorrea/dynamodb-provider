@@ -4,5 +4,8 @@ export * from './BatchGetForm';
 export * from './ListForm';
 export * from './ListResultView';
 export * from './GetResultView';
+export * from './ResultPane';
 export * from './FiltersSheet';
 export * from './QueryParams';
+export * from './useOperation';
+export * from './history';

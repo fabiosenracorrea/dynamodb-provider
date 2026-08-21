@@ -692,3 +692,36 @@ New shared `KeyPattern` renders key pieces chrome-free for dense rows, on new `-
 Verified: the repo fixture renders all 9 entities, 3 GSIs, the typeIndex, TTL, both partition groups and
 `ProjectWithTasks`, and produces zero warnings — correct, since that config is clean. The warning paths were
 exercised separately against synthetic metadata covering all four cases before the harness was removed.
+
+### Phase 5 — pagination + history + shareable URLs ✅
+
+**Cursor pagination.** `useOperation` replaces the bare `useExecute` mutation in `QueryForm`, `ListForm`
+and `PartitionView`. It keeps the request that produced the current page, appends the next page on
+`loadMore`, and exposes `hasMore` from the response's `paginationToken`. The table's own paging is now
+explicitly just a view over what has been fetched. Verified end to end: three pages of 3 over 7 tasks
+chained by real tokens (3 + 3 + 1) and accumulated correctly.
+
+**`ResultPane`** consolidates what each form used to hand-roll: result table, timing, and a "as code"
+popover carrying the library snippet plus the exact params — §4D's copy-as-code, landing here because the
+server already returns `meta.call`.
+
+**History.** `features/query/history.ts` is a small `useSyncExternalStore` store over `sessionStorage`,
+recording every run (label, ok/error, count, duration) with a 50-entry cap. Surfaced as a fourth sidebar
+tab with per-entry status, timing and one-click navigation back to the target.
+
+**Shareable URLs.** `useQueryUrlState` mirrors the builder's state into a single `?q=` param on run
+(not on keystroke — that would spam history) and restores it on mount. Verified: exact round-trip
+including nested filters and range params, and non-ASCII key values survive (`encodeURIComponent` before
+`btoa`, since `btoa` is latin1-only).
+
+Deviation: **one opaque `q` param rather than a field per option.** The state is nested — filters, range
+params, key values — and a flat mapping would need its own escaping rules per shape. The UI is the editor;
+the URL only has to round-trip faithfully. A consequence worth noting: the existing `hooks/urlState.ts`
+(326 lines, still unused) was not the right fit for this and remains dead code — worth deleting unless
+it is wanted elsewhere.
+
+### Docs ✅
+
+`packages/playground/README.md` rewritten around what the tool actually does now. Added
+`docs/guide/playground.md` and wired it into the VitePress sidebar, plus a Playground section in the root
+`readme.md` — the playground previously had **zero** presence in the docs site or root readme.

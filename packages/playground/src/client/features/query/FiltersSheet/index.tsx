@@ -148,7 +148,9 @@ export function FiltersSheet({ filters, onChange }: FiltersSheetProps) {
                       />
                     </div>
                     <div className="flex-1">
-                      <FieldCaption className="mb-1 text-xs font-normal text-muted-foreground">Operation</FieldCaption>
+                      <FieldCaption className="mb-1 text-xs font-normal text-muted-foreground">
+                        Operation
+                      </FieldCaption>
                       <Select
                         value={filter.operation}
                         onValueChange={(v) =>

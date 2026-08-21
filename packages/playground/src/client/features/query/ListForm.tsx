@@ -1,8 +1,8 @@
 import { Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ListResultView } from './ListResultView';
+import { ResultPane } from './ResultPane';
 import { buildFiltersParam } from './FiltersSheet';
-import { useExecute } from '@/utils/hooks';
+import { useOperation } from './useOperation';
 import type { ExecuteRequest } from '@/utils/api';
 
 import {
@@ -22,7 +22,7 @@ interface ListFormProps {
 export function ListForm({ target, name }: ListFormProps) {
   const [queryConfig, configHandlers] = useQueryConfig();
 
-  const mutation = useExecute();
+  const operationState = useOperation();
 
   const handleExecute = () => {
     const params = {
@@ -32,7 +32,7 @@ export function ListForm({ target, name }: ListFormProps) {
       ...buildRangeParams(queryConfig.range).params,
     };
 
-    mutation.mutate({
+    operationState.run({
       target,
       name,
       operation: 'list',
@@ -40,12 +40,7 @@ export function ListForm({ target, name }: ListFormProps) {
     });
   };
 
-  const isCustomRangeValid = isRangeQueryValid(queryConfig.range);
-
-  const isValid = isCustomRangeValid;
-
-  const result = mutation.data?.success ? mutation.data.data : null;
-  const error = mutation.data?.success === false ? mutation.data.error : null;
+  const isValid = isRangeQueryValid(queryConfig.range);
 
   return (
     <div className="space-y-6">
@@ -67,22 +62,13 @@ export function ListForm({ target, name }: ListFormProps) {
           onChange={configHandlers.getSetter('fullRetrieval')}
         />
 
-        <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button onClick={handleExecute} disabled={operationState.isRunning || !isValid}>
+          {operationState.isRunning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           List
         </Button>
       </div>
 
-      {!!mutation.data && (
-        <div className="border-t pt-4">
-          <h4 className="mb-2 text-sm font-medium">Result</h4>
-          <ListResultView
-            data={result}
-            error={error ?? undefined}
-            entityType={target === 'entity' ? name : undefined}
-          />
-        </div>
-      )}
+      <ResultPane {...operationState} entityType={target === 'entity' ? name : undefined} />
     </div>
   );
 }

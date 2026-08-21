@@ -6,17 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { usePartitionGroup, useMetadataContext } from '@/context';
-import { useExecute } from '@/utils/hooks';
 import { omit } from '@/utils/object';
 
 import type { KeyPiece } from '@/utils/api';
 
 import {
-  ListResultView,
+  ResultPane,
   buildRangeParams,
   FullRetrievalCheckbox,
   isRangeQueryValid,
   QueryParams,
+  useOperation,
   useQueryConfig,
 } from '@/features/query';
 import { PartitionLoading } from './Loading';
@@ -36,7 +36,7 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
   // Query state
   const [partitionValues, setPartitionValues] = useState<Record<string, string>>({});
 
-  const mutation = useExecute();
+  const operationState = useOperation();
 
   // Get partition key structure from first entity
   const partitionKeyPieces = useMemo<KeyPiece[]>(() => {
@@ -87,7 +87,7 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
       ...buildRangeParams(queryConfig.range).params,
     };
 
-    mutation.mutate({
+    operationState.run({
       target: 'table',
       name: '',
       operation: 'query',
@@ -102,9 +102,6 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
   const isRangeValid = isRangeQueryValid(queryConfig.range);
 
   const isValid = isPartitionValid && isRangeValid;
-
-  const result = mutation.data?.success ? mutation.data.data : null;
-  const error = mutation.data?.success === false ? mutation.data.error : null;
 
   return (
     <div className="space-y-4">
@@ -185,18 +182,13 @@ export function PartitionView({ partitionId }: PartitionOperationsProps) {
               onChange={configHandlers.getSetter('fullRetrieval')}
             />
 
-            <Button onClick={handleExecute} disabled={mutation.isPending || !isValid}>
-              {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleExecute} disabled={operationState.isRunning || !isValid}>
+              {operationState.isRunning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Query
             </Button>
           </div>
 
-          {!!mutation.data && (
-            <div className="border-t pt-4">
-              <h4 className="mb-2 text-sm font-medium">Result</h4>
-              <ListResultView data={result} error={error ?? undefined} />
-            </div>
-          )}
+          <ResultPane {...operationState} emptyMessage="This partition is empty" />
         </CardContent>
       </Card>
     </div>

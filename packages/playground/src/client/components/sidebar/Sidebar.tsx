@@ -5,8 +5,12 @@ import { useMetadataContext } from '@/context';
 import { EntityList } from './EntityList';
 import { CollectionList } from './CollectionList';
 import { PartitionList } from './PartitionList';
+import { HistoryList } from './HistoryList';
 
 export type SelectionType = 'entity' | 'collection' | 'partition';
+
+/** History is a view, not a selection, so it lives alongside the selection types. */
+type TabValue = SelectionType | 'history';
 
 export interface Selection {
   type: SelectionType;
@@ -28,7 +32,7 @@ export function Sidebar() {
   const selection = parseSelection(location.pathname);
 
   // Local state for tab - syncs when selection changes
-  const [activeTab, setActiveTab] = useState<SelectionType>('entity');
+  const [activeTab, setActiveTab] = useState<TabValue>('entity');
 
   // Sync tab with selection when navigating to an item
   useEffect(() => {
@@ -53,18 +57,21 @@ export function Sidebar() {
     <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-surface">
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as SelectionType)}
+        onValueChange={(v) => setActiveTab(v as TabValue)}
         className="flex flex-1 flex-col"
       >
-        <TabsList className="mx-2 mt-2 grid h-8 grid-cols-3">
-          <TabsTrigger value="entity" className="text-xs">
+        <TabsList className="mx-2 mt-2 grid h-8 grid-cols-4">
+          <TabsTrigger value="entity" className="text-[11px]">
             Entities
           </TabsTrigger>
-          <TabsTrigger value="collection" className="text-xs" disabled={!hasCollections}>
+          <TabsTrigger value="collection" className="text-[11px]" disabled={!hasCollections}>
             Collections
           </TabsTrigger>
-          <TabsTrigger value="partition" className="text-xs">
+          <TabsTrigger value="partition" className="text-[11px]">
             Partitions
+          </TabsTrigger>
+          <TabsTrigger value="history" className="text-[11px]">
+            History
           </TabsTrigger>
         </TabsList>
 
@@ -87,6 +94,10 @@ export function Sidebar() {
             selectedPartition={selection?.type === 'partition' ? selection.name : null}
             onSelect={handlePartitionSelect}
           />
+        </TabsContent>
+
+        <TabsContent value="history" className="m-0 min-h-0 flex-1">
+          <HistoryList />
         </TabsContent>
       </Tabs>
     </aside>

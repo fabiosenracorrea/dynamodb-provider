@@ -28,6 +28,20 @@ Each part builds on the previous. Use only what you need—the provider works st
 
 If you want to instruct your agents/LLMs, take a look at the [ai](./ai/) folder.
 
+## Playground
+
+`dynamodb-provider-playground` is a local UI that reads your schema and lets you explore the table as you
+designed it — entities and their key patterns, index access patterns by name, declared range queries,
+shared partitions and collections — instead of the flat `pk`/`sk` list the AWS console shows.
+
+```bash
+npm install -D dynamodb-provider-playground
+npx dynamodb-playground
+```
+
+See [packages/playground](./packages/playground/) or the
+[docs](https://fabiosenracorrea.github.io/dynamodb-provider/guide/playground).
+
 ## 1. DynamoDB Provider
 
 The provider wraps AWS SDK clients (v2 or v3) with type-safe methods. Only DocumentClient instances are supported.
