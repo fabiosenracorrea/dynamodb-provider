@@ -14,8 +14,13 @@ interface OperationTabsProps {
 }
 
 export function OperationTabs({ tabs, defaultTab, children }: OperationTabsProps) {
+  const visible = tabs.filter((tab) => !tab.hide);
+
+  // A hidden tab as the default would leave the whole panel blank.
+  const initial = visible.some((tab) => tab.id === defaultTab) ? defaultTab : visible[0]?.id;
+
   return (
-    <Tabs defaultValue={defaultTab || tabs[0]?.id} className="w-full">
+    <Tabs defaultValue={initial} className="w-full">
       {children}
     </Tabs>
   );
@@ -42,11 +47,14 @@ export function OperationTabsList({ tabs }: { tabs: OperationTab[] }) {
 export function OperationTabsContent({ tabs }: { tabs: OperationTab[] }) {
   return (
     <>
-      {tabs.map((tab) => (
-        <TabsContent key={tab.id} value={tab.id} className="mt-0">
-          {tab.content}
-        </TabsContent>
-      ))}
+      {/* Filtered like the trigger list — a hidden tab should not mount its content. */}
+      {tabs
+        .filter((tab) => !tab.hide)
+        .map((tab) => (
+          <TabsContent key={tab.id} value={tab.id} className="mt-0">
+            {tab.content}
+          </TabsContent>
+        ))}
     </>
   );
 }

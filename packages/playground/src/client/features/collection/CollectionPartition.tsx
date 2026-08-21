@@ -17,9 +17,9 @@ export function CollectionPartition({ pieces }: { pieces: KeyPiece[] }) {
                   <span className="mx-0.5 text-muted-foreground">{table?.keySeparator ?? '#'}</span>
                 )}
                 {piece.type === 'CONSTANT' ? (
-                  <span className="text-amber-600 dark:text-amber-400">{piece.value}</span>
+                  <span className="text-key-constant">{piece.value}</span>
                 ) : (
-                  <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
+                  <span className="flex items-center gap-0.5 text-key-variable">
                     {piece.value}
                     {piece.numeric && (
                       <span className="text-[10px] text-muted-foreground">(n)</span>

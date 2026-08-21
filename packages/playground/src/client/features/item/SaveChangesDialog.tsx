@@ -67,11 +67,11 @@ function formatValue(value: unknown): string {
 function ChangeIcon({ type }: { type: Change['type'] }) {
   switch (type) {
     case 'added':
-      return <Plus className="h-3.5 w-3.5 text-green-500" />;
+      return <Plus className="h-3.5 w-3.5 text-success" />;
     case 'removed':
-      return <Minus className="h-3.5 w-3.5 text-red-500" />;
+      return <Minus className="h-3.5 w-3.5 text-destructive" />;
     case 'modified':
-      return <RefreshCw className="h-3.5 w-3.5 text-amber-500" />;
+      return <RefreshCw className="h-3.5 w-3.5 text-warning" />;
     default:
       return null;
   }
@@ -81,15 +81,15 @@ function ChangeBadge({ type }: { type: Change['type'] }) {
   const variants: Record<Change['type'], { label: string; className: string }> = {
     added: {
       label: 'Added',
-      className: 'bg-green-500/10 text-green-600 border-green-500/20',
+      className: 'border-success/20 bg-success/10 text-success',
     },
     removed: {
       label: 'Removed',
-      className: 'bg-red-500/10 text-red-600 border-red-500/20',
+      className: 'border-destructive/20 bg-destructive/10 text-destructive',
     },
     modified: {
       label: 'Modified',
-      className: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+      className: 'border-warning/20 bg-warning/10 text-warning',
     },
   };
 
@@ -135,17 +135,20 @@ export function SaveChangesDialog({
         <div className="flex items-center gap-3 py-2">
           <span className="text-sm text-muted-foreground">Changes:</span>
           {summary.added > 0 && (
-            <Badge variant="outline" className="border-green-500/20 bg-green-500/10 text-green-600">
+            <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
               +{summary.added} added
             </Badge>
           )}
           {summary.modified > 0 && (
-            <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-amber-600">
+            <Badge variant="outline" className="border-warning/20 bg-warning/10 text-warning">
               {summary.modified} modified
             </Badge>
           )}
           {summary.removed > 0 && (
-            <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-600">
+            <Badge
+              variant="outline"
+              className="border-destructive/20 bg-destructive/10 text-destructive"
+            >
               -{summary.removed} removed
             </Badge>
           )}
@@ -173,13 +176,13 @@ export function SaveChangesDialog({
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="space-y-1">
                         <span className="text-muted-foreground">Before:</span>
-                        <pre className="overflow-x-auto rounded border border-red-500/10 bg-red-500/5 p-2 font-mono text-red-600 dark:text-red-400">
+                        <pre className="overflow-x-auto rounded border border-destructive/10 bg-destructive/5 p-2 font-mono text-destructive">
                           {formatValue(change.oldValue)}
                         </pre>
                       </div>
                       <div className="space-y-1">
                         <span className="text-muted-foreground">After:</span>
-                        <pre className="overflow-x-auto rounded border border-green-500/10 bg-green-500/5 p-2 font-mono text-green-600 dark:text-green-400">
+                        <pre className="overflow-x-auto rounded border border-success/10 bg-success/5 p-2 font-mono text-success">
                           {formatValue(change.newValue)}
                         </pre>
                       </div>
@@ -189,7 +192,7 @@ export function SaveChangesDialog({
                   {change.type === 'added' && (
                     <div className="space-y-1 text-xs">
                       <span className="text-muted-foreground">Value:</span>
-                      <pre className="overflow-x-auto rounded border border-green-500/10 bg-green-500/5 p-2 font-mono text-green-600 dark:text-green-400">
+                      <pre className="overflow-x-auto rounded border border-success/10 bg-success/5 p-2 font-mono text-success">
                         {formatValue(change.newValue)}
                       </pre>
                     </div>
@@ -198,7 +201,7 @@ export function SaveChangesDialog({
                   {change.type === 'removed' && (
                     <div className="space-y-1 text-xs">
                       <span className="text-muted-foreground">Removed value:</span>
-                      <pre className="overflow-x-auto rounded border border-red-500/10 bg-red-500/5 p-2 font-mono text-red-600 line-through dark:text-red-400">
+                      <pre className="overflow-x-auto rounded border border-destructive/10 bg-destructive/5 p-2 font-mono text-destructive line-through">
                         {formatValue(change.oldValue)}
                       </pre>
                     </div>

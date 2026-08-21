@@ -4,10 +4,7 @@ import { Users } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMetadataContext } from '@/context';
 import type { KeyPiece } from '@/utils/api';
-
-function buildPattern(pieces: KeyPiece[]): string {
-  return pieces.map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}')).join('#');
-}
+import { buildKeyPattern, partitionGroupId } from '@/utils/keys';
 
 interface KeyDisplayProps {
   label: string;
@@ -27,9 +24,14 @@ export function KeyDisplay({
   const navigate = useNavigate();
   const { table, getPartitionGroup } = useMetadataContext();
 
-  // Look up partition group if this is a partition key
+  // Look up partition group if this is a partition key. Must build the id exactly as
+  // MetadataContext does, hence the shared helpers.
   const partitionGroup =
-    isPartitionKey && source ? getPartitionGroup(`${source}|${buildPattern(pieces)}`) : undefined;
+    isPartitionKey && source
+      ? getPartitionGroup(
+          partitionGroupId(source, buildKeyPattern(pieces, table?.keySeparator ?? '#')),
+        )
+      : undefined;
 
   const handlePartitionClick = () => {
     if (partitionGroup) {
@@ -52,11 +54,11 @@ export function KeyDisplay({
                     </span>
                   )}
                   {piece.type === 'CONSTANT' ? (
-                    <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400">
+                    <span className="flex items-center gap-0.5 text-key-constant">
                       {piece.value}
                     </span>
                   ) : (
-                    <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
+                    <span className="flex items-center gap-0.5 text-key-variable">
                       {piece.value}
                       {piece.numeric && (
                         <span className="text-[10px] text-muted-foreground">(n)</span>

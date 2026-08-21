@@ -169,10 +169,10 @@ export function ItemDetailView({
         {isEditing && (
           <Alert
             variant="default"
-            className="flex items-center gap-2 border-amber-500/50 bg-amber-500/10"
+            className="flex items-center gap-2 border-warning/40 bg-warning/10"
           >
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-sm text-amber-900/90">
+            <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
+            <AlertDescription className="text-sm">
               <strong>Note:</strong> SET data types (String Set, Number Set, Binary Set) are not
               currently supported in the JSON editor. Only add/remove operations are possible via
               update builder.
@@ -212,7 +212,7 @@ export function ItemDetailView({
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 text-green-600 hover:bg-green-500/10 hover:text-green-600"
+                        className="h-8 w-8 text-success hover:bg-success/10 hover:text-success"
                         onClick={handleSaveClick}
                         disabled={!!jsonError || !parsedEditedItem}
                       >

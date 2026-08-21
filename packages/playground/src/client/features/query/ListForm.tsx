@@ -45,11 +45,11 @@ export function ListForm({ target, name }: ListFormProps) {
   return (
     <div className="space-y-6">
       {/* Info Alert */}
-      <div className="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
+      <div className="flex items-start gap-3 rounded-md border bg-surface p-3 text-sm text-muted-foreground">
         <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
         <p>
           This operation requires a{' '}
-          <code className="rounded bg-blue-100 px-1 font-mono dark:bg-blue-900">typeIndex</code> GSI
+          <code className="rounded bg-muted px-1 font-mono text-foreground">typeIndex</code> GSI
           configured on the table, and entities must have their type columns properly set.
         </p>
       </div>

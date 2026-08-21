@@ -11,6 +11,7 @@ import {
   type KeyPiece,
   type PartitionGroup,
 } from '@/utils/api';
+import { buildKeyPattern, partitionGroupId } from '@/utils/keys';
 
 export interface PartitionInfo {
   id: string;
@@ -47,52 +48,41 @@ interface MetadataContextValue {
 
 const MetadataContext = createContext<MetadataContextValue | null>(null);
 
-function buildPattern(pieces: KeyPiece[]): string {
-  return pieces.map((piece) => (piece.type === 'CONSTANT' ? piece.value : '{value}')).join('#');
-}
+type GroupDraft = Omit<PartitionGroup, 'id'>;
 
-function buildPartitionGroups(entities: EntityMetadata[]): PartitionGroup[] {
-  const groupMap = new Map<
-    string,
-    { source: string; sourceType: 'main' | 'index'; entities: string[] }
-  >();
+function buildPartitionGroups(entities: EntityMetadata[], separator: string): PartitionGroup[] {
+  const groupMap = new Map<string, GroupDraft>();
+
+  const add = (
+    source: string,
+    sourceType: GroupDraft['sourceType'],
+    pieces: KeyPiece[],
+    entityType: string,
+  ) => {
+    const pattern = buildKeyPattern(pieces, separator);
+    const id = partitionGroupId(source, pattern);
+
+    if (!groupMap.has(id)) {
+      groupMap.set(id, { pattern, source, sourceType, entities: [] });
+    }
+
+    groupMap.get(id)!.entities.push(entityType);
+  };
 
   for (const entity of entities) {
-    // Main table partition
-    const mainPattern = buildPattern(entity.partitionKey);
-    const mainKey = `TABLE|${mainPattern}`;
+    add('TABLE', 'main', entity.partitionKey, entity.type);
 
-    if (!groupMap.has(mainKey)) {
-      groupMap.set(mainKey, { source: 'TABLE', sourceType: 'main', entities: [] });
-    }
-    groupMap.get(mainKey)!.entities.push(entity.type);
-
-    // Index partitions
-    for (const idx of entity.indexes) {
-      const indexPattern = buildPattern(idx.partitionKey);
-      const indexKey = `${idx.index}|${indexPattern}`;
-
-      if (!groupMap.has(indexKey)) {
-        groupMap.set(indexKey, { source: idx.index, sourceType: 'index', entities: [] });
-      }
-      groupMap.get(indexKey)!.entities.push(entity.type);
+    for (const index of entity.indexes) {
+      add(index.index, 'index', index.partitionKey, entity.type);
     }
   }
 
-  // Filter to only groups with 2+ entities
+  // A "shared" partition needs at least two entities in it; a solo entity's partition
+  // is just that entity, and is reachable from its own page.
   const groups: PartitionGroup[] = [];
 
-  for (const [key, value] of groupMap) {
-    if (value.entities.length >= 2) {
-      const [, pattern] = key.split('|');
-      groups.push({
-        id: key,
-        pattern,
-        source: value.source,
-        sourceType: value.sourceType,
-        entities: value.entities,
-      });
-    }
+  for (const [id, draft] of groupMap) {
+    if (draft.entities.length >= 2) groups.push({ id, ...draft });
   }
 
   // Sort: TABLE first, then indexes alphabetically, then by pattern
@@ -129,7 +119,8 @@ export function MetadataProvider({ children }: { children: ReactNode }) {
 
   const partitionGroups = useMemo(() => {
     if (!metadata) return [];
-    return buildPartitionGroups(metadata.entities);
+
+    return buildPartitionGroups(metadata.entities, metadata.table.keySeparator ?? '#');
   }, [metadata]);
 
   const partitionGroupMap = useMemo(() => {

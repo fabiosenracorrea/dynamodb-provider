@@ -49,7 +49,7 @@ export function ChangesPreview({
 
       {validValues.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-green-600 dark:text-green-400">SET</span>
+          <span className="text-xs font-medium text-success">SET</span>
           <div className="space-y-0.5">
             {validValues.map((row) => {
               let parsed: unknown;
@@ -74,7 +74,7 @@ export function ChangesPreview({
 
       {validRemove.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-red-600 dark:text-red-400">REMOVE</span>
+          <span className="text-xs font-medium text-destructive">REMOVE</span>
           <div className="flex flex-wrap gap-1">
             {validRemove.map((row) => (
               <Badge key={row.id} variant="outline" className="font-mono text-xs">
@@ -87,7 +87,7 @@ export function ChangesPreview({
 
       {validAtomic.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">ATOMIC</span>
+          <span className="text-xs font-medium text-key-variable">ATOMIC</span>
           <div className="space-y-0.5">
             {validAtomic.map((row) => {
               const opConfig = ATOMIC_OPERATIONS.find((o) => o.value === row.type);
@@ -107,7 +107,7 @@ export function ChangesPreview({
 
       {validConditions.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">IF</span>
+          <span className="text-xs font-medium text-warning">IF</span>
           <div className="space-y-0.5">
             {validConditions.map((row, idx) => {
               const opConfig = CONDITION_OPERATIONS.find((o) => o.value === row.operation);
