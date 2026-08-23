@@ -119,6 +119,7 @@ export function EntityView({ entityType }: EntityViewProps) {
         <CardHeader className="p-2 pt-0">
           <OperationTabsList tabs={tabs} />
         </CardHeader>
+
         <CardContent className="p-2">
           <OperationTabsContent tabs={tabs} />
         </CardContent>
