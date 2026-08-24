@@ -51,7 +51,7 @@ so adding an entity shows up on save.
 | `collections` | `Record<string, Collection>` | No | Named exports of your collections |
 | `port` | `number` | No | Server port (default: 3030) |
 | `autoOpen` | `boolean` | No | Open the browser on start (default: true) |
-| `enableMutations` | `{ create?, update?, delete?: boolean }` | No | Enable write operations — **all off by default** |
+| `enableMutations` | `{ update?, delete?: boolean }` | No | Enable editing and deleting items — **both off by default** |
 
 ### Why `dynamodbProvider` is separate
 
@@ -61,12 +61,17 @@ scan the table, look items up by raw `pk`/`sk`, and check the connection.
 
 ### Writes are opt-in
 
-Nothing mutates your data unless you say so. Each flag is checked server-side, so a disabled operation is
-rejected with a 403 even if something in the UI tried to call it:
+The playground is an exploration tool: it reads by default and nothing mutates your data unless you say so.
+Each flag is checked server-side, so a disabled operation is rejected with a 403 even if something in the
+UI tried to call it:
 
 ```typescript
-enableMutations: { create: true, update: true, delete: true }
+enableMutations: { update: true, delete: true }
 ```
+
+Item **creation is deliberately not supported.** Entities are TypeScript types with no runtime shape, so a
+create form would have to guess an item's attributes. Editing and deleting act on an item that already
+exists, so its shape is known — creation has nothing to derive it from, and would invite malformed items.
 
 ## What you get
 

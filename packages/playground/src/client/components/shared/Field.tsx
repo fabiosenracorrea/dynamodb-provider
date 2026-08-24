@@ -29,7 +29,5 @@ interface FieldCaptionProps {
 }
 
 export function FieldCaption({ children, className }: FieldCaptionProps) {
-  return (
-    <span className={cn('mb-1.5 block text-sm font-medium', className)}>{children}</span>
-  );
+  return <span className={cn('mb-1.5 block text-sm font-medium', className)}>{children}</span>;
 }

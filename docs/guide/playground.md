@@ -46,7 +46,7 @@ npx dynamodb-playground
 | `collections` | `Record<string, Collection>` | No | Named exports of your collections |
 | `port` | `number` | No | Server port (default: 3030) |
 | `autoOpen` | `boolean` | No | Open the browser on start (default: true) |
-| `enableMutations` | `{ create?, update?, delete?: boolean }` | No | Enable writes — all off by default |
+| `enableMutations` | `{ update?, delete?: boolean }` | No | Enable editing and deleting items — both off by default |
 
 ::: tip Why pass the provider separately?
 It is the same instance you gave to `new SingleTable({ dynamodbProvider })`. `SingleTable` omits it from
@@ -55,8 +55,13 @@ scan the table, fetch by literal key, and check the connection.
 :::
 
 ::: warning Writes are opt-in
-Nothing mutates your data unless `enableMutations` says so. The flags are enforced server-side, so a
-disabled operation is rejected even if the UI tries to call it.
+The playground is an exploration tool. It reads by default, and nothing mutates your data unless
+`enableMutations` says so — the flags are enforced server-side, so a disabled operation is rejected even if
+the UI tries to call it.
+
+Item **creation is deliberately unsupported**: entities are TypeScript types with no runtime shape, so a
+create form would have to guess an item's attributes. Editing and deleting act on an item that already
+exists, so its shape is known.
 :::
 
 ## What it gives you
