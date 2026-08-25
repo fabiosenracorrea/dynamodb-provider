@@ -22,7 +22,6 @@ export function extractMetadata(config: ResolvedPlaygroundConfig): MetadataRespo
       joins: Object.keys(collection.join),
     })),
 
-    isCreateEnabled: !!config.enableMutations?.create,
     isUpdateEnabled: !!config.enableMutations?.update,
     isDeleteEnabled: !!config.enableMutations?.delete,
   };

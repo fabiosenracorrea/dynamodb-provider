@@ -6,8 +6,6 @@ import { pathToFileURL, fileURLToPath } from 'url';
 import { existsSync, watch, statSync, readdirSync } from 'fs';
 import { playgroundPlugin } from './vite-plugin';
 import { CONFIG_EXAMPLE, ConfigError, resolvePlaygroundConfig } from './config';
-// @ts-expect-error -- plain JS module shared with tailwind.config.js, no types
-import { darkMode, theme } from '../tailwind.theme.js';
 import type { ResolvedPlaygroundConfig } from './types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -63,6 +61,13 @@ function getWatchPaths(configPath: string): string[] {
   return paths;
 }
 
+async function loadTailwindTheme(): Promise<Record<string, unknown>> {
+  // @ts-expect-error -- plain JS module shared with tailwind.config.js, no types
+  const { darkMode, theme } = await import('../tailwind.theme.js');
+
+  return { darkMode, theme } as Record<string, unknown>;
+}
+
 function reportConfigError(err: unknown): void {
   console.error(`❌ Failed to load config: ${(err as Error).message}`);
 
@@ -112,14 +117,16 @@ async function startServer(
         '@': isBuiltClient ? resolve(__dirname, 'client') : clientRoot,
       },
     },
+    // Built clients ship their CSS already compiled. Tailwind only runs when serving
+    // source, and the theme is imported here rather than at module scope so the
+    // published package never has to carry the build-time config.
     ...(!isBuiltClient && {
       css: {
         postcss: {
           plugins: [
             (await import('tailwindcss')).default({
               config: {
-                darkMode,
-                theme,
+                ...(await loadTailwindTheme()),
                 content: [resolve(clientRoot, '**/*.{html,js,ts,jsx,tsx}')],
                 plugins: [(await import('tailwindcss-animate')).default],
               },

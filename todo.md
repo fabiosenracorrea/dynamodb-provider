@@ -15,3 +15,4 @@
 
 - "batchWrite"
 
+- a way to skip the type index inside the entity generation

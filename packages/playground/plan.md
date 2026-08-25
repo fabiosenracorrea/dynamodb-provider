@@ -177,22 +177,20 @@ every consumer. Worth folding into `notes/suggestions.md`.
 
 ## 7. Publish checklist
 
-### A. Decisions to make first
+### A. Decisions — settled
 
-- [ ] **Unexposed server surface** — keep `entity.create` / `table.scan` / `table.getByKey` as latent,
-      undocumented code, or strip them from v1? Keeping costs nothing at runtime; stripping makes the
-      shipped API surface exactly what is supported.
-- [ ] **`enableMutations.create`** — the flag still exists in the config type. Remove it, or keep it
-      undocumented? README and docs no longer mention it.
-- [ ] **Delete `hooks/urlState.ts`** (326 lines, unused).
-- [ ] **Commit `playground.config.ts`?** It is gitignored at the repo root, so the richest example of the
-      library's API lives only on your machine — and a fresh clone cannot run `yarn dev`.
+- [x] **Unexposed server surface** — `entity.create`, `table.scan` and `table.getByKey` stay as latent
+      code. Inert without UI, and useful groundwork.
+- [x] **`enableMutations.create` removed** from the config type, along with `isCreateEnabled` from the
+      metadata response. The `entity.create` operation now refuses with an explanatory 403 rather than
+      reading a flag that can no longer be set.
+- [x] **`hooks/urlState.ts` kept.**
+- [x] **Demo config stays uncommitted.**
 
 ### B. Code
 
-- [ ] Finish the `Field` wrapping — six `<label>`+`<Input>` pairs (§5) — and clear the remaining lint.
-- [ ] `yarn lint` exits clean.
-- [ ] `yarn check-ts` exits clean.
+- [x] `yarn lint` — 0 errors (2 `exhaustive-deps` warnings remain, both pre-existing).
+- [x] `yarn check-ts` — clean, and now covers `scripts/` and `playground.config.ts` too.
 - [ ] Root `yarn lint` still passes (it runs with `--fix`, so it rewrites files — commit first).
 - [ ] Consider anchoring the root `.gitignore`'s `lib` to `/lib`; unanchored it swallows any nested `lib/`
       directory, which already cost us once.
@@ -220,16 +218,32 @@ Prerequisite: `docker run -p 8000:8000 amazon/dynamodb-local`, then `yarn setup:
 - [ ] **Copy-as-code** — paste a named index range-query snippet into a `.ts` file; it compiles against the
       real entity.
 
-### D. Package
+### D. Package — verified end to end
 
-- [ ] `package.json` `files` covers what ships (`src`, `bin`, `dist/client`, `tsconfig.json`) — confirm the
-      new `scripts/` and config files are included or deliberately excluded.
-- [ ] `yarn build` produces `dist/client`, and the CLI serves the built client when present.
-- [ ] `npm pack` → install the tarball into a scratch project with its own `playground.config.ts` → run
-      `npx dynamodb-playground` against a real table. **This is the real gate**: it exercises the packaged
-      path, which differs from `yarn dev` (built client, no React plugin, no tailwind postcss injection).
-- [ ] Version and changelog entry.
-- [ ] Confirm `peerDependencies` on `dynamodb-provider` matches what v1 actually needs.
+The tarball was built, installed into a scratch consumer project with its own `playground.config.ts`
+(different table, different entities, `dynamodb-provider@3.1.5` from npm) and driven against a live
+DynamoDB. All of the following passed on the **packaged** path, not `yarn dev`:
+
+- [x] `files` audited. **Found and fixed a release blocker:** `src/cli.ts` imported `../tailwind.theme.js`
+      at module scope, and that file was not in `files` — the published CLI would have crashed on startup.
+      The import is now lazy and only runs when serving source; the tailwind configs ship as a fallback.
+- [x] `yarn build` → `dist/client`; the CLI detects it and serves the built assets (HTML, JS, CSS all 200,
+      dark-theme tokens present in the built CSS).
+- [x] `npm pack` → install → `npx dynamodb-playground` boots, finds the config, lists entities and
+      collections, and reports `connected` against the consumer's own table.
+- [x] Access patterns on the packaged build: partition query (6), `allOrders` range query (5),
+      `ByStatus` GSI split 3/2, entity `get`, `ByEmail` GSI, `list` via typeIndex, collection join, and a
+      raw partition read.
+- [x] Guard rails: create → 403 with the "cannot infer the shape" explanation; unknown entity/index/
+      collection → 404 with the known names listed; bad param type → 400 with the zod issue.
+- [x] Mutation gate: with `enableMutations: {}` both update and delete refuse with 403 and the metadata
+      reports them disabled.
+- [ ] Changelog entry for 0.0.1.
+- [ ] Confirm `peerDependencies` (`dynamodb-provider >=3.0.0`) — verified working against 3.1.5.
+- [ ] Decide whether `dependencies` should shrink. The published package pulls React, Radix, Tailwind and
+      friends, but a consumer only needs them if the CLI falls back to serving source. Everything else is
+      already compiled into `dist/client`. Trimming would cut install size substantially; it needs a pass
+      to confirm nothing in the built path imports them.
 
 ### E. Docs
 

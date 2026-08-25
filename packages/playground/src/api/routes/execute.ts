@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PlaygroundError, parseWith, OperationContext, OperationResult } from '../core';
+import {
+  PlaygroundError,
+  parseWith,
+  type MutationKind,
+  type OperationContext,
+  type OperationResult,
+} from '../core';
 import { findOperation, operationsFor } from '../operations';
 import { resolveCollection, resolveEntity } from '../operations/resolveTarget';
 import { executeRequestSchema } from '../schemas/execute';
@@ -14,12 +20,18 @@ export interface ExecuteOutcome {
   };
 }
 
-function assertMutationAllowed(ctx: OperationContext, kind?: string): void {
+function assertMutationAllowed(ctx: OperationContext, kind?: MutationKind): void {
   if (!kind) return;
 
-  const enabled = ctx.config.enableMutations?.[kind as 'create' | 'update' | 'delete'];
+  // `create` has no flag: a create form would have to guess an entity's shape, so the
+  // operation stays unreachable until the library can describe attributes at runtime.
+  if (kind === 'create') {
+    throw PlaygroundError.forbidden(
+      'Item creation is not supported. The playground reads and edits existing items; it cannot infer the shape of a new one.',
+    );
+  }
 
-  if (!enabled) {
+  if (!ctx.config.enableMutations?.[kind]) {
     throw PlaygroundError.forbidden(
       `${kind} is disabled. Set enableMutations.${kind} to true in your playground config to allow it.`,
     );

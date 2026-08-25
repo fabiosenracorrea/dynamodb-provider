@@ -1,6 +1,6 @@
 {
   "name": "dynamodb-provider-playground",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Development playground for DynamoDB Provider",
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,10 @@
     "src",
     "bin",
     "dist/client",
-    "tsconfig.json"
+    "tsconfig.json",
+    "tailwind.config.js",
+    "tailwind.theme.js",
+    "postcss.config.js"
   ],
   "scripts": {
     "dev": "rm -rf ./dist && tsx src/cli.ts",

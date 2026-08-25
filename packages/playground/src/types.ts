@@ -32,8 +32,13 @@ export interface PlaygroundConfig {
   port?: number;
   autoOpen?: boolean;
 
+  /**
+   * Editing and deleting act on an item that already exists, so its shape is known.
+   * There is no `create` flag: entities are types with no runtime shape, so a create
+   * form would have to guess an item's attributes. The `entity.create` operation
+   * still exists server-side but is unreachable without a flag to enable it.
+   */
   enableMutations?: {
-    create?: boolean;
     update?: boolean;
     delete?: boolean;
   };
@@ -130,7 +135,6 @@ export interface MetadataResponse {
   table: TableMetadata;
   entities: EntityMetadata[];
   collections: CollectionMetadata[];
-  isCreateEnabled: boolean;
   isUpdateEnabled: boolean;
   isDeleteEnabled: boolean;
 }
