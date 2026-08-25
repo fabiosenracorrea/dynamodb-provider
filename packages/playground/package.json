@@ -18,13 +18,16 @@
     "postcss.config.js"
   ],
   "scripts": {
-    "dev": "rm -rf ./dist && tsx src/cli.ts",
+    "dev": "yarn clean && tsx src/cli.ts",
+    "clean": "rm -rf ./dist",
     "build": "vite build",
-    "pack": "npm run build && npm pack",
+    "build-all": "yarn clean && yarn check-ts && yarn lint && yarn build",
+    "build-publish": "yarn build-all && npm publish",
+    "pack": "yarn build-all && npm pack",
     "check-ts": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
-    "setup:local": "tsx scripts/setup-local-table.ts",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "setup:local": "tsx scripts/setup-local-table.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
