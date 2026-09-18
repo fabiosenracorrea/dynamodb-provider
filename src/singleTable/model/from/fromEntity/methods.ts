@@ -172,7 +172,9 @@ export class SingleTableFromEntityMethods<
   }
 
   private getTypeListingParams(): ListEntityMethods<Entity, SingleParams> {
-    if (!this.config.typeIndex) return {} as ListEntityMethods<Entity, SingleParams>;
+    type Methods = ListEntityMethods<Entity, SingleParams>;
+
+    if (!this.config.typeIndex) return {} as Methods;
 
     return {
       listAll: () => this.methods.listAllFromType(this.entity.type),
@@ -182,8 +184,8 @@ export class SingleTableFromEntityMethods<
           type: this.entity.type,
 
           ...params,
-        }),
-    } as ListEntityMethods<Entity, SingleParams>;
+        } as any),
+    } as Methods;
   }
 
   buildMethods(): FromEntity<Entity, SingleParams> {
