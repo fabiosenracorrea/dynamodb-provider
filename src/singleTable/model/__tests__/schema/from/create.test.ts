@@ -209,8 +209,17 @@ describe('single table - from entity - create', () => {
       name: 'name',
     };
 
+    const { create } = instance.buildMethods();
+
+    type ExpiresConfig = NonNullable<Parameters<typeof create>[1]>;
+
+    type _ExpiresAt = Expect<
+      Equal<ExpiresConfig['expiresAt'], number | Date | undefined>
+    >;
+
     // Should work with expiresAt when table has it configured
-    instance.buildMethods().create(createUser, { expiresAt: 123456 });
+    create(createUser, { expiresAt: 123456 });
+    create(createUser, { expiresAt: new Date('2024-01-01T00:00:00.999Z') });
 
     const { expiresAt: _, ...paramsWithoutExpires } = paramsWithExpires;
 

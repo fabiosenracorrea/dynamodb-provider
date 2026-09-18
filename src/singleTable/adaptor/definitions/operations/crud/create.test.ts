@@ -829,7 +829,7 @@ describe('single table adaptor - creator', () => {
       });
     });
 
-    it('should properly add expire param', () => {
+    it('should convert a Date expiration to epoch seconds', () => {
       const creator = new SingleTableCreator({
         db: {} as any,
 
@@ -874,7 +874,7 @@ describe('single table adaptor - creator', () => {
           age: 27,
         },
 
-        expiresAt: 20392039,
+        expiresAt: new Date('2024-01-01T00:00:00.999Z'),
 
         indexes: {
           someIndex: {
@@ -904,7 +904,7 @@ describe('single table adaptor - creator', () => {
           _type: 'ITEM_TYPE',
           _ts: fakeIso,
 
-          _expires: 20392039,
+          _expires: 1704067200,
 
           _indexHash1: 'index value 1',
           _indexRange1: 'index range 1',

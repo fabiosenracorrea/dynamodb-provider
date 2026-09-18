@@ -274,6 +274,38 @@ describe('single table adaptor - update', () => {
       });
     });
 
+    it('should convert a Date expiration to epoch seconds', () => {
+      const updater = new SingleTableUpdater({
+        db: {} as any,
+
+        config: {
+          table: 'db-table',
+          partitionKey: '_pk',
+          rangeKey: '_sk',
+          expiresAt: '_expires',
+        },
+      });
+
+      const params = updater.getUpdateParams({
+        partitionKey: 'some',
+        rangeKey: 'other_pk',
+        expiresAt: new Date('2024-01-01T00:00:00.999Z'),
+      });
+
+      expect(params).toStrictEqual({
+        table: 'db-table',
+
+        key: {
+          _pk: 'some',
+          _sk: 'other_pk',
+        },
+
+        values: {
+          _expires: 1704067200,
+        },
+      });
+    });
+
     it('should remove expiresAt when explicitly set to null', () => {
       const updater = new SingleTableUpdater({
         db: {} as any,

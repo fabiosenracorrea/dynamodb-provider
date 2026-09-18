@@ -6,6 +6,7 @@
 - **Feature**: `expiresAt` now accepts a `Date` as well
 - **Fix**: `expiresAt` not being accepted on `schema.from(entity).update({...})` - it would only show up on `entity.getUpdateParams`
 - **Fix**: `schema.from(entity).list({ filters })` was not correctly typed against the entity type. Now properly show inference and suggestions
+- **Fix**: `includeTypeOnEveryUpdate` tests looking against the wrong params
 
 # v3.1.5
 

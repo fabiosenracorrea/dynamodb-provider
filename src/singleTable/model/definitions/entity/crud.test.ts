@@ -117,6 +117,11 @@ describe('getCRUDParamGetters', () => {
   });
 
   it('should include type on updates when _includeTypeOnEveryUpdate_ is true', () => {
+    const crud = getCRUDParamGetters(tableConfig, {
+      ...crudParamsGenerator,
+      includeTypeOnEveryUpdate: true,
+    });
+
     const mockUpdateParams = {
       values: { name: 'Jane Doe' },
       includeTypeOnEveryUpdate: true,
@@ -130,7 +135,7 @@ describe('getCRUDParamGetters', () => {
     mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
     mockGetUpdatedIndexMapping.mockReturnValueOnce({ updateIndex: true });
 
-    const result = getUpdateParams(mockUpdateParams as never);
+    const result = crud.getUpdateParams(mockUpdateParams as never);
 
     expect(result).toEqual({
       partitionKey: 'partition#123',

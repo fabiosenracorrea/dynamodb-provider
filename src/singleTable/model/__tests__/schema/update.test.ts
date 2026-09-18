@@ -59,6 +59,33 @@ describe('single table schema - entity - update params', () => {
     });
   });
 
+  it('should forward a Date expiresAt', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    const user = schema.createEntity<User>().as(baseEntityParams);
+
+    const expiresAt = new Date('2024-01-01T00:00:00.999Z');
+
+    const params = user.getUpdateParams({
+      id: 'user-id',
+
+      values: {
+        email: 'new@email.com',
+      },
+
+      expiresAt,
+    });
+
+    expect(params).toStrictEqual({
+      partitionKey: ['USER', 'user-id'],
+      rangeKey: ['#DATA'],
+      values: {
+        email: 'new@email.com',
+      },
+      expiresAt,
+    });
+  });
+
   it('should forward null expiresAt', () => {
     const schema = new SingleTableSchema(tableConfig);
 
@@ -183,7 +210,10 @@ describe('single table schema - entity - update params', () => {
   it('should include type when _includeTypeOnEveryUpdate_ is true', () => {
     const schema = new SingleTableSchema(tableConfig);
 
-    const user = schema.createEntity<User>().as(baseEntityParams);
+    const user = schema.createEntity<User>().as({
+      ...baseEntityParams,
+      includeTypeOnEveryUpdate: true,
+    });
 
     const params = user.getUpdateParams({
       id: 'user-id',
@@ -191,8 +221,6 @@ describe('single table schema - entity - update params', () => {
       values: {
         email: 'new@email.com',
       },
-
-      includeTypeOnEveryUpdate: true,
     });
 
     expect(params).toStrictEqual({
