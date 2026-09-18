@@ -190,7 +190,7 @@ const table = new SingleTable({
 await table.create({
   key: { partitionKey: ['SESSION', '123'], rangeKey: '#DATA' },
   item: { sessionId: '123', data: '...' },
-  expiresAt: Math.floor(Date.now() / 1000) + 3600  // Expires in 1 hour
+  expiresAt: Math.floor(Date.now() / 1000) + 3600  // Expires in 1 hour or new Date(...)
 });
 ```
 
