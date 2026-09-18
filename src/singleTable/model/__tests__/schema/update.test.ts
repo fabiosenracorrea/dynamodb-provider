@@ -264,7 +264,7 @@ describe('single table schema - entity - update params', () => {
     });
 
     type _Tests = [
-      Expect<Equal<Params['expiresAt'], number | undefined | null>>,
+      Expect<Equal<Params['expiresAt'], Date | number | undefined | null>>,
 
       Expect<Equal<Params['values'], Partial<User> | undefined>>,
 

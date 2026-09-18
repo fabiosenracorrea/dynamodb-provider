@@ -46,6 +46,8 @@ type IndexParamsForUpdate<TableConfig extends SingleTableConfig> = TableConfig e
     } & AtomicIndexParams<TableConfig['indexes']>
   : unknown;
 
+type BaseDateRef = number | Date;
+
 export type ExpiresAtParams<
   TableConfig extends SingleTableConfig,
   IsUpdate extends boolean = false,
@@ -53,11 +55,14 @@ export type ExpiresAtParams<
   ? unknown
   : {
       /**
-       * The UNIX timestamp expiration of this item
+       * The expiration of this item
+       *
+       * - as `number` = UNIX timestamp
+       * - as `Date`
        *
        * Update: set it to `null` to remove the column
        */
-      expiresAt?: IsUpdate extends true ? number | null : number;
+      expiresAt?: IsUpdate extends true ? BaseDateRef | null : BaseDateRef;
     };
 
 type TypeParams<TableConfig extends SingleTableConfig> =

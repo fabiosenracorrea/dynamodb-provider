@@ -8,6 +8,7 @@ import { toTruthyList } from 'utils/array';
 
 import { UpdateParams } from 'provider';
 
+import { ensureEpoch } from 'utils/date';
 import { SingleTableConfig } from '../../config';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { BaseSingleTableOperator } from '../../executor';
@@ -169,7 +170,7 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
         ? {
             ...params.values,
 
-            ...(expiresAt ? { [this.config.expiresAt!]: expiresAt } : {}),
+            ...(expiresAt ? { [this.config.expiresAt!]: ensureEpoch(expiresAt) } : {}),
 
             ...(type ? { [this.config.typeIndex!.partitionKey]: type } : {}),
 

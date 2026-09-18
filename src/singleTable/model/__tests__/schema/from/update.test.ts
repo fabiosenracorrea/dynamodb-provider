@@ -227,7 +227,9 @@ describe('single table - from entity - update', () => {
 
     type _R = Expect<Equal<ExpiresKey, 'expiresAt'>>;
 
-    type _ExpiresAt = Expect<Equal<InputExpires['expiresAt'], number | null | undefined>>;
+    type _ExpiresAt = Expect<
+      Equal<InputExpires['expiresAt'], Date | number | null | undefined>
+    >;
 
     const { expiresAt: _, ...paramsWithoutExpires } = paramsWithExpires;
 
