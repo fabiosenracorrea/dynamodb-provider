@@ -15,3 +15,31 @@
 
 - "batchWrite"
 
+- a way to skip the type index inside the entity generation
+
+- check 'filters' from(xxx).list() typing
+
+- check affirmation:
+- (Side note: getExpressionValues doesn't recurse into nested — it works here only because both conditions target lastAt. A nested condition on a different property would emit an unbound name.)
+
+
+- range query interactions with fixed keys:
+
+```ts
+export const eUserDailyCounts = schema.createEntity<UserDailyCounts>().as({
+  type: 'USER_DAILY_COUNTS',
+
+  getPartitionKey: ['USER_DAILY_COUNTS', '.userId'],
+  getRangeKey: ['DAY', '.date'],
+});
+
+// This currently returns 0 items!!!
+schema.from(eUserDailyCounts).query.all({
+  userId,
+  range: {
+    operation: 'between',
+    start: startDate,
+    end: endDate,
+  },
+});
+```
