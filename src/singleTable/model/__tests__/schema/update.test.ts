@@ -59,6 +59,31 @@ describe('single table schema - entity - update params', () => {
     });
   });
 
+  it('should forward null expiresAt', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    const user = schema.createEntity<User>().as(baseEntityParams);
+
+    const params = user.getUpdateParams({
+      id: 'user-id',
+
+      values: {
+        email: 'new@email.com',
+      },
+
+      expiresAt: null,
+    });
+
+    expect(params).toStrictEqual({
+      partitionKey: ['USER', 'user-id'],
+      rangeKey: ['#DATA'],
+      values: {
+        email: 'new@email.com',
+      },
+      expiresAt: null,
+    });
+  });
+
   it('should handle indexes', () => {
     const schema = new SingleTableSchema(tableConfig);
 
