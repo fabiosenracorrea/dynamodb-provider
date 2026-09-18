@@ -19,7 +19,9 @@ export type ListEntityMethods<
   : {
       listAll(): Promise<Array<Registered['__entity']>>;
 
-      list(params?: ListEntityParams): Promise<ListEntityResult<Registered['__entity']>>;
+      list(
+        params?: ListEntityParams<Registered['__entity']>,
+      ): Promise<ListEntityResult<Registered['__entity']>>;
     };
 
 /**

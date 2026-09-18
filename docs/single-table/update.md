@@ -48,8 +48,8 @@ update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity>
 - Update index keys (only if table has `indexes` configured)
 
 ### `expiresAt` (optional)
-- **Type**: `number`
-- UNIX timestamp for TTL (only if table has `expiresAt` configured)
+- **Type**: `number` | `Date` | `null`
+- UNIX timestamp / Date for TTL (only if table has `expiresAt` configured). `null` to remove column
 
 ### `type` (optional)
 - **Type**: `string`
@@ -106,7 +106,7 @@ await table.update({
   partitionKey: ['SESSION', sessionId],
   rangeKey: '#DATA',
   values: { lastActivity: new Date().toISOString() },
-  expiresAt: Math.floor(Date.now() / 1000) + 3600  // Extend 1 hour
+  expiresAt: Math.floor(Date.now() / 1000) + 3600  // Extend 1 hour or new Date(...)
 });
 ```
 

@@ -59,7 +59,7 @@ Define as: `const ENTITY = schema.createEntity<ENTITY_TYPE>().as({...params})`
 - `getUpdateParams(params: UPDATE_PARAMS)` type safe. `UPDATE_PARAMS` consists of:
   - REQUIRED: any `getPartitionKey` AND `getRangeKey` params. Eg if `getPartitionKey: ['USER', '.id'], getRangeKey: ['#DATA']` it would be `id`
   - `values?`:  `Partial<ENTITY_TYPE>` = any property you may want to set
-  - `expiresAt?`: If `tableConfig.expiresAt`, indicate the epoch expiration
+  - `expiresAt?`: If `tableConfig.expiresAt`, indicate the epoch expiration/Date object OR `null` to remove current value (thus preventing deletion)
   - `remove?`: `Array<keyof ENTITY_TYPE>` any property to remove
   - `returnUpdatedProperties?`: If true, everything updated will be returned as the update call.
   - `atomicOperations?`: Atomic in place operations. Format: `Operation[]`

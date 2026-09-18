@@ -8,6 +8,7 @@ import { toTruthyList } from 'utils/array';
 
 import { UpdateParams } from 'provider';
 
+import { ensureEpoch } from 'utils/date';
 import { SingleTableConfig } from '../../config';
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { BaseSingleTableOperator } from '../../executor';
@@ -123,16 +124,27 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
     return mixed;
   }
 
+  private ensureRemove<Entity = AnyObject>({
+    remove,
+    expiresAt,
+  }: SingleTableUpdateParams<Entity, RefConfig>) {
+    const expiresProp = expiresAt === null ? this.config.expiresAt! : null;
+
+    const actualRemove = toTruthyList([...(remove || []), expiresProp]);
+
+    if (actualRemove.length) return actualRemove as typeof remove;
+  }
+
   getUpdateParams<Entity = AnyObject>(
     params: SingleTableUpdateParams<Entity, RefConfig>,
   ): UpdateParams<Entity> {
     this.validateUpdateProps(params);
 
     const {
+      //
       conditions,
       expiresAt,
       indexes,
-      remove,
       values,
       returnUpdatedProperties,
       type,
@@ -150,15 +162,15 @@ export class SingleTableUpdater extends BaseSingleTableOperator {
       key: getPrimaryKey(params, this.config),
 
       atomicOperations: this.resolveAtomic(params),
+      remove: this.ensureRemove(params),
       conditions,
-      remove,
       returnUpdatedProperties,
 
       values: (addValues
         ? {
             ...params.values,
 
-            ...(expiresAt ? { [this.config.expiresAt!]: expiresAt } : {}),
+            ...(expiresAt ? { [this.config.expiresAt!]: ensureEpoch(expiresAt) } : {}),
 
             ...(type ? { [this.config.typeIndex!.partitionKey]: type } : {}),
 

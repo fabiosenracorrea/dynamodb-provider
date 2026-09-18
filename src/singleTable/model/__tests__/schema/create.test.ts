@@ -62,6 +62,28 @@ describe('single table schema - entity - creation params', () => {
     expect(createParams.type).toBe('USER');
   });
 
+  it('should accept a Date expiresAt', () => {
+    const schema = new SingleTableSchema(tableConfig);
+
+    const user = schema.createEntity<User>().as(baseEntityParams);
+
+    const expiresAt = new Date('2024-01-01T00:00:00.999Z');
+
+    const createParams = user.getCreationParams(
+      {
+        id: 'id',
+        address: 'address',
+        createdAt: 'now',
+        dob: '1970',
+        email: 'test@email.com',
+        name: 'User',
+      },
+      { expiresAt },
+    );
+
+    expect(createParams.expiresAt).toBe(expiresAt);
+  });
+
   it('should properly build index mapping', () => {
     const schema = new SingleTableSchema(tableConfig);
 

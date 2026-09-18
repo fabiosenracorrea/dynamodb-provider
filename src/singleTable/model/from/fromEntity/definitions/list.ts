@@ -15,7 +15,7 @@ type BasicRangeConfig = {
 
 type BetweenRangeConfig = Omit<BetweenRangeKeyConfig<AnyObject>, 'name'>;
 
-export interface ListEntityParams extends QueryConfigParams<AnyObject> {
+export interface ListEntityParams<Entity> extends QueryConfigParams<Entity> {
   range?: BasicRangeConfig | BetweenRangeConfig;
 }
 

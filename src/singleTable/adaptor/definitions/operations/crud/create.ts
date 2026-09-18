@@ -4,6 +4,9 @@
 import { AnyObject } from 'types';
 
 import { CreateParams } from 'provider';
+
+import { ensureEpoch } from 'utils/date';
+
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { SingleTableConfig } from '../../config';
 import { BaseSingleTableOperator } from '../../executor';
@@ -62,7 +65,7 @@ export class SingleTableCreator extends BaseSingleTableOperator {
         ...item,
 
         ...(expiresAt && this.config.expiresAt
-          ? { [this.config.expiresAt]: expiresAt }
+          ? { [this.config.expiresAt]: ensureEpoch(expiresAt) }
           : {}),
 
         ...(indexes ? transformIndexReferences(indexes as any, this.config) : {}),

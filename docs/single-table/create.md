@@ -24,7 +24,7 @@ create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
 
 ### `expiresAt` (optional)
 - **Type**: `number`
-- UNIX timestamp for TTL (only if table has `expiresAt` configured)
+- UNIX timestamp or Date for TTL (only if table has `expiresAt` configured)
 
 ### `type` (optional)
 - **Type**: `string`

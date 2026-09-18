@@ -931,7 +931,7 @@ create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
   - `partitionKey` - Partition key value
   - `rangeKey` - Range key value
 - `indexes` (optional) - Index key values. Structure: `Record<IndexName, { partitionKey, rangeKey }>`. Only available if table has `indexes` configured.
-- `expiresAt` (optional) - UNIX timestamp for TTL. Only available if table has `expiresAt` configured.
+- `expiresAt` (optional) - UNIX timestamp or Date for TTL. Only available if table has `expiresAt` configured.
 - `type` (optional) - Entity type identifier. Only available if table has `typeIndex` configured.
 
 **Example:**
@@ -948,7 +948,7 @@ const user = await table.create({
     email: 'john.doe@example.com',
   },
   type: 'USER',
-  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days or new Date(...)
 });
 ```
 
@@ -994,7 +994,7 @@ update<Entity>(params: SingleTableUpdateParams<Entity>): Promise<Partial<Entity>
 - `conditions` (optional) - Conditions that must be met
 - `returnUpdatedProperties` (optional) - Return updated values
 - `indexes` (optional) - Update index keys. Structure: `Record<IndexName, Partial<{ partitionKey, rangeKey }>>`. Only available if table has `indexes` configured.
-- `expiresAt` (optional) - UNIX timestamp for TTL. Only available if table has `expiresAt` configured.
+- `expiresAt` (optional) - UNIX timestamp or Date for TTL. Only available if table has `expiresAt` configured.
 - `type` (optional) - Entity type value. Updates the `typeIndex.partitionKey` property. Only available if table has `typeIndex` configured.
 
 **Example:**
@@ -1009,7 +1009,7 @@ const result = await table.update({
   },
   remove: ['someProperty'],
   atomicOperations: [{ operation: 'sum', property: 'loginCount', value: 1 }],
-  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+  expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // or new Date(...)
   indexes: {
     SomeIndex: { partitionKey: 'NEW_PARTITION' },
   },
