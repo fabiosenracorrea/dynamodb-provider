@@ -1,3 +1,4 @@
+import { ExpiresAtParams } from 'singleTable/adaptor/definitions';
 import type { KeyParams, AnyEntity, AtomicIndexParams } from 'singleTable/model';
 import type {
   BatchListItemsArgs,
@@ -45,6 +46,7 @@ export type UpdateEntityParams<Registered extends AnyEntity> = Omit<
   'table' | 'key'
 > &
   KeyParams<Registered> &
+  ExpiresAtParams<Registered['__tableConfig'], true> &
   AtomicIndexParams<Registered['__tableConfig'], Registered>;
 
 export type UpdateReturn<

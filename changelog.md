@@ -1,5 +1,10 @@
 # DynamoDB Provider Changelog
 
+# v3.1.6
+
+- **Feature**: You can now do `expiresAt: null` on entity update calls to remove the column (thus, stopping it from auto deleting)
+- **Fix**: `expiresAt` not being accepted on `schema.from(entity).update({...})` - it would only show up on `entity.getUpdateParams`
+
 # v3.1.5
 
 - **Fix**: `includeTypeOnEveryUpdate` on entity definitions was ignored due to a mismatch on destructure target

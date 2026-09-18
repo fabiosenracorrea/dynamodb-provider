@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { DeleteParams, ValidateTransactParams } from 'provider/utils';
+
 import {
   NumericIndex,
   SingleTableConditionCheckTransaction,
@@ -7,26 +9,19 @@ import {
   SingleTableDeleteTransaction,
   SingleTableUpdateParams,
   SingleTableUpdateTransaction,
+  BaseAtomicIndexUpdate,
+  ExpiresAtParams,
 } from 'singleTable/adaptor/definitions';
 import { SingleTableConfig } from 'singleTable/adaptor';
 
 import { AnyObject, IsNever, MakePartial } from 'types';
 
 import { omitUndefined } from 'utils/object';
-import type { DeleteParams, ValidateTransactParams } from 'provider/utils';
-import { BaseAtomicIndexUpdate } from 'singleTable/adaptor/definitions/operations/crud/types';
-import type { EntityKeyParams, KeyResolvers } from '../key';
 
+import type { EntityKeyParams, KeyResolvers } from '../key';
 import { addAutoGenParams, type AutoGenParams } from './autoGen';
 import type { RegisterEntityParams } from './params';
 import type { GenericIndexMappingFns } from './indexParams';
-
-type UnixExpiresAtProps = {
-  /**
-   * The UNIX timestamp expiration of this item
-   */
-  expiresAt?: number;
-};
 
 export type EntityCRUConfigParams<TableConfig extends SingleTableConfig> =
   TableConfig['typeIndex'] extends { partitionKey: string }
@@ -65,7 +60,7 @@ type UpdateCallProps<
   SingleTableUpdateParams<Entity, TableConfig>,
   'atomicOperations' | 'conditions' | 'remove' | 'values' | 'returnUpdatedProperties'
 > &
-  (TableConfig extends { expiresAt: string } ? UnixExpiresAtProps : unknown) &
+  ExpiresAtParams<TableConfig, true> &
   EntityCRUConfigParams<TableConfig>;
 
 type OnCreateConfig = Required<AutoGenParams<any, SingleTableConfig>>['onCreate'];
@@ -98,7 +93,9 @@ type BaseCRUDProps<
       Params['autoGen']
     >,
 
-    ...config: TableConfig extends { expiresAt: string } ? [UnixExpiresAtProps?] : []
+    ...config: TableConfig extends { expiresAt: string }
+      ? [ExpiresAtParams<TableConfig>?]
+      : []
   ) => SingleTableCreateParams<Entity, TableConfig>;
 
   getUpdateParams: (
