@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.1.7
+
+- **Feature**: `conditions` allowed on `schema.from(ENTITY).create(params, { conditions })` or `ENTITY.getCreationParams(params, { conditions })`
+
 # v3.1.6
 
 - **Feature**: You can now do `expiresAt: null` on entity update calls to remove the column (thus, stopping it from auto deleting)

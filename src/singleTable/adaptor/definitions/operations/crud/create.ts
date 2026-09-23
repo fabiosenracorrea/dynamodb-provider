@@ -6,6 +6,7 @@ import { AnyObject } from 'types';
 import { CreateParams } from 'provider';
 
 import { ensureEpoch } from 'utils/date';
+import { omitUndefined } from 'utils/object';
 
 import { getPrimaryKey, SingleTableKeyReference } from '../../key';
 import { SingleTableConfig } from '../../config';
@@ -17,19 +18,20 @@ import { ParamsByTableConfigForCreate } from './types';
 export type SingleTableCreateParams<
   Entity = AnyObject,
   TableConfig extends SingleTableConfig = SingleTableConfig,
-> = ParamsByTableConfigForCreate<TableConfig> & {
-  /**
-   * Any actual property of your item
-   */
-  item: Entity;
+> = ParamsByTableConfigForCreate<TableConfig> &
+  Pick<CreateParams<Entity>, 'conditions'> & {
+    /**
+     * Any actual property of your item
+     */
+    item: Entity;
 
-  /**
-   * The single table reference of your entity
-   *
-   * This is a separate prop to provide clarity and ease of understanding
-   */
-  key: SingleTableKeyReference;
-};
+    /**
+     * The single table reference of your entity
+     *
+     * This is a separate prop to provide clarity and ease of understanding
+     */
+    key: SingleTableKeyReference;
+  };
 
 type RefConfig = Required<SingleTableConfig>;
 
@@ -57,9 +59,12 @@ export class SingleTableCreator extends BaseSingleTableOperator {
     type,
     indexes,
     expiresAt,
+    conditions,
   }: SingleTableCreateParams<Entity, RefConfig>): CreateParams<Entity> {
-    return {
+    return omitUndefined({
       table: this.config.table,
+
+      conditions,
 
       item: {
         ...item,
@@ -74,7 +79,7 @@ export class SingleTableCreator extends BaseSingleTableOperator {
 
         ...getPrimaryKey(key, this.config),
       },
-    };
+    });
   }
 
   // We only need to extend config on our provider, this method here is not exposed to the application
