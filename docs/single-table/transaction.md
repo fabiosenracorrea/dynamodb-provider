@@ -49,7 +49,10 @@ await table.transaction([
         orderId: 'A100',
         customerId: '12345',
         totalAmount: 100
-      }
+      },
+      conditions: [
+        { operation: 'not_exists', property: 'orderId' }
+      ]
     }
   },
   {
@@ -66,7 +69,9 @@ await table.transaction([
 
 ### Transaction Parameters
 
-Transaction parameters match the corresponding single table method parameters.
+Transaction parameters match the corresponding single table method parameters, including
+create `conditions`. `Entity.transactCreateParams(item, options?)` accepts the same
+`conditions` and `expiresAt` options as `Entity.getCreationParams`.
 
 ### Null Handling
 

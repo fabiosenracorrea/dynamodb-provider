@@ -55,7 +55,9 @@ Define as: `const ENTITY = schema.createEntity<ENTITY_TYPE>().as({...params})`
 
 - `type` - Reference the identifier
 - `getPartitionKey`, `getRangeKey`, `getKey` - partial/full key builders
-- `getCreationParams(toCreate, { expiresAt? }?)` - type safe, takes into account you `autoGen` to require exactly whats missing for `ENTITY_TYPE`. If `tableConfig.expiresAt`, takes optional 2nd param to indicate the epoch expiration.
+- `getCreationParams(toCreate, { conditions?, expiresAt? }?)` - type safe, takes into account your `autoGen` configuration to require exactly what is missing for `ENTITY_TYPE`.
+  - `conditions?: Condition[]` - validations that must pass before creation. Properties are restricted to `keyof ENTITY_TYPE`. Use `not_exists` to prevent DynamoDB `PutItem` from overwriting an existing item.
+  - `expiresAt?: number | Date` - only available if `tableConfig.expiresAt` is configured.
 - `getUpdateParams(params: UPDATE_PARAMS)` type safe. `UPDATE_PARAMS` consists of:
   - REQUIRED: any `getPartitionKey` AND `getRangeKey` params. Eg if `getPartitionKey: ['USER', '.id'], getRangeKey: ['#DATA']` it would be `id`
   - `values?`:  `Partial<ENTITY_TYPE>` = any property you may want to set
@@ -82,7 +84,7 @@ Define as: `const ENTITY = schema.createEntity<ENTITY_TYPE>().as({...params})`
 - `getValidationParams` - Build Validation operations to be used on transactions
   - REQUIRED: any `getPartitionKey` AND `getRangeKey` params.
   - `conditions: Condition[]` - validations to perform
-- `transactCreateParams`, `transactUpdateParams`, `transactValidateParams` versions of their `getXXX` counterparts that produce `TransactParams` directly
+- `transactCreateParams`, `transactUpdateParams`, `transactValidateParams` versions of their `getXXX` counterparts that produce `TransactParams` directly. `transactCreateParams` forwards the same optional `conditions` and `expiresAt` creation options.
   Example, these are equivalent:
   ```ts
   await table.transaction([
@@ -115,7 +117,7 @@ await table.transaction([
 ### Entity Methods
 
 - CRUD operations:
-  - `create` - same **parameters** as `getCreationParams`. Return `ENTITY_TYPE`
+  - `create` - same **parameters** as `getCreationParams`, including creation `conditions`. Returns `ENTITY_TYPE`
   - `delete` - same **parameters** as `transactDeleteParams`. No return
   - `update` - same **parameters** as `getUpdateParams`. No return unless `returnUpdatedProperties:true`
   - `get` - entities `getKey` params plus:

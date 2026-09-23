@@ -930,6 +930,7 @@ create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
 - `key` - Object containing:
   - `partitionKey` - Partition key value
   - `rangeKey` - Range key value
+- `conditions` (optional) - Type-safe conditions that must be met before creating. Use `not_exists` to prevent overwriting an existing item.
 - `indexes` (optional) - Index key values. Structure: `Record<IndexName, { partitionKey, rangeKey }>`. Only available if table has `indexes` configured.
 - `expiresAt` (optional) - UNIX timestamp or Date for TTL. Only available if table has `expiresAt` configured.
 - `type` (optional) - Entity type identifier. Only available if table has `typeIndex` configured.
@@ -949,6 +950,7 @@ const user = await table.create({
   },
   type: 'USER',
   expiresAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days or new Date(...)
+  conditions: [{ operation: 'not_exists', property: 'id' }],
 });
 ```
 
@@ -1647,7 +1649,7 @@ Entities expose helper methods and integration with `schema.from()`.
 
 - `getKey(params)` - Generates key reference from parameters required by `getPartitionKey` and `getRangeKey`. Returns `{ partitionKey: KeyValue, rangeKey: KeyValue }`.
 
-- `getCreationParams(item, options?)` - Generates parameters for [single table create](#single-table-create). Optional `expiresAt` parameter available if table has TTL configured.
+- `getCreationParams(item, options?)` - Generates parameters for [single table create](#single-table-create). The optional second argument accepts `conditions` and, if the table has TTL configured, `expiresAt`.
 
 - `getUpdateParams(params)` - Generates parameters for [single table update](#single-table-update). Requires key parameters plus update operations (`values`, `atomicOperations`, etc.).
 
@@ -1680,6 +1682,8 @@ await userRepo.create({
   id: 'user-id',
   name: 'John',
   createdAt: new Date().toISOString()
+}, {
+  conditions: [{ operation: 'not_exists', property: 'id' }]
 })
 
 await userRepo.update({
@@ -2058,6 +2062,5 @@ const result = await table.schema.from(userWithLogins).get({
 ```
 
 Returns the collection type for `'SINGLE'` collections or `undefined` if not found. Returns array for `'MULTIPLE'` collections.
-
 
 

@@ -18,6 +18,11 @@ create<Entity>(params: SingleTableCreateParams<Entity>): Promise<Entity>
 - **Type**: `{ partitionKey: KeyValue; rangeKey: KeyValue }`
 - Partition and range key values
 
+### `conditions` (optional)
+- **Type**: `ItemExpression<Entity>[]`
+- Conditions that must be met before the item is created
+- Properties are type-safe references to the entity
+
 ### `indexes` (optional)
 - **Type**: `Record<IndexName, { partitionKey?: KeyValue; rangeKey?: KeyValue }>`
 - Index key values (only if table has `indexes` configured)
@@ -140,24 +145,50 @@ const user = await table.create({
 });
 ```
 
-## Preventing Overwrites
+## Conditional Creation and Preventing Overwrites
 
-Use the Provider's create with conditions:
+Single-table creates support the same conditions as provider creates. Because DynamoDB's
+`PutItem` overwrites an existing item by default, use `not_exists` when the item must be new:
 
 ```typescript
-await provider.create({
-  table: 'AppData',
+await table.create({
+  key: {
+    partitionKey: ['USER', '123'],
+    rangeKey: '#DATA'
+  },
   item: {
-    pk: 'USER#123',
-    sk: '#DATA',
     userId: '123',
     name: 'John'
   },
   conditions: [
-    { operation: 'not_exists', property: 'pk' },
-    { operation: 'not_exists', property: 'sk' }
+    { operation: 'not_exists', property: 'userId' }
   ]
 });
+```
+
+Conditions are also supported by entity helpers and repositories:
+
+```typescript
+const options = {
+  conditions: [
+    { operation: 'not_exists' as const, property: 'userId' as const }
+  ]
+};
+
+const params = User.getCreationParams(
+  { userId: '123', name: 'John' },
+  options
+);
+
+await table.schema.from(User).create(
+  { userId: '123', name: 'John' },
+  options
+);
+
+const transactionParams = User.transactCreateParams(
+  { userId: '123', name: 'John' },
+  options
+);
 ```
 
 ## See Also
@@ -165,4 +196,4 @@ await provider.create({
 - [update](/single-table/update) - Update items
 - [Configuration](/single-table/configuration#typeindex) - typeIndex configuration
 - [Configuration](/single-table/configuration#indexes) - indexes configuration
-- [Provider create](/provider/create) - Conditions reference
+- [Provider create conditions](/provider/create#conditions) - Operations and nested conditions

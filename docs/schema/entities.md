@@ -477,14 +477,23 @@ const key = User.getKey({ id: '123' });
 
 ### `getCreationParams(item, options?)`
 
-Generates parameters for single table create. Optional `expiresAt` parameter if table has TTL configured.
+Generates parameters for single table create. The optional second argument accepts
+`conditions` and, when the table has TTL configured, `expiresAt`.
 
 ```typescript
-const params = User.getCreationParams({
-  id: '123',
-  name: 'John',
-  email: 'john@example.com'
-});
+const params = User.getCreationParams(
+  {
+    id: '123',
+    name: 'John',
+    email: 'john@example.com'
+  },
+  {
+    conditions: [
+      { operation: 'not_exists', property: 'id' }
+    ],
+    expiresAt: new Date('2030-01-01')
+  }
+);
 ```
 
 ### `getUpdateParams(params)`
@@ -507,7 +516,10 @@ const params = User.getUpdateParams({
 
 ```typescript
 const configs = [
-  User.transactCreateParams({ id: '123', name: 'John' }),
+  User.transactCreateParams(
+    { id: '123', name: 'John' },
+    { conditions: [{ operation: 'not_exists', property: 'id' }] }
+  ),
   Order.transactUpdateParams({ id: 'O1', values: { status: 'completed' } })
 ];
 
@@ -522,7 +534,10 @@ Creates a repository interface for entity operations:
 const userRepo = table.schema.from(User);
 
 // CRUD operations
-await userRepo.create({ name: 'John', email: 'john@example.com' });
+await userRepo.create(
+  { id: '123', name: 'John', email: 'john@example.com' },
+  { conditions: [{ operation: 'not_exists', property: 'id' }] }
+);
 await userRepo.update({ id: '123', values: { name: 'Jane' } });
 await userRepo.delete({ id: '123' });
 const user = await userRepo.get({ id: '123' });
