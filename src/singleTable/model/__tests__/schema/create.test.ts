@@ -44,6 +44,13 @@ describe('single table schema - entity - creation params', () => {
 
     schema.from(user);
 
+    const conditions = [
+      {
+        operation: 'not_exists' as const,
+        property: 'id' as const,
+      },
+    ];
+
     const createParams = user.getCreationParams(
       {
         id: 'id',
@@ -55,10 +62,12 @@ describe('single table schema - entity - creation params', () => {
       },
       {
         expiresAt: 2032043,
+        conditions,
       },
     );
 
     expect(createParams.expiresAt).toEqual(2032043);
+    expect(createParams.conditions).toBe(conditions);
     expect(createParams.type).toBe('USER');
   });
 

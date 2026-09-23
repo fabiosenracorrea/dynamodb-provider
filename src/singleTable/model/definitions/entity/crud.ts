@@ -85,7 +85,7 @@ type MakeGenPropsPartial<
 type CreationConfigParams<
   Entity extends AnyObject,
   TableConfig extends SingleTableConfig,
-> = Pick<UpdateCallProps<TableConfig, Entity>, 'conditions'> &
+> = Pick<SingleTableCreateParams<Entity, TableConfig>, 'conditions'> &
   (TableConfig extends { expiresAt: string } ? ExpiresAtParams<TableConfig> : unknown);
 
 type BaseCRUDProps<

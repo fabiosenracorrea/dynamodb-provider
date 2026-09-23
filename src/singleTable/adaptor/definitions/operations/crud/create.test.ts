@@ -15,6 +15,12 @@ describe('single table adaptor - creator', () => {
 
   describe('create action', () => {
     it('should correctly call/return the db provider create fn', async () => {
+      const conditions = [
+        {
+          operation: 'not_exists' as const,
+          property: 'name' as const,
+        },
+      ];
       const createMock = jest.fn().mockResolvedValue({
         prop: 'value',
         name: 'hello',
@@ -55,11 +61,15 @@ describe('single table adaptor - creator', () => {
           name: 'hello',
           age: 27,
         },
+
+        conditions,
       });
 
       expect(createMock).toHaveBeenCalled();
       expect(createMock).toHaveBeenCalledWith({
         table: 'db-table',
+
+        conditions,
 
         item: {
           _pk: 'some',
