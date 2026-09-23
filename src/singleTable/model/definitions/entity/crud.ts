@@ -82,6 +82,12 @@ type MakeGenPropsPartial<
   ? WithOptionalCreationProps<CreationProps, GenConfig['onCreate']>
   : CreationProps;
 
+type CreationConfigParams<
+  Entity extends AnyObject,
+  TableConfig extends SingleTableConfig,
+> = Pick<UpdateCallProps<TableConfig, Entity>, 'conditions'> &
+  (TableConfig extends { expiresAt: string } ? ExpiresAtParams<TableConfig> : unknown);
+
 type BaseCRUDProps<
   TableConfig extends SingleTableConfig,
   Entity extends AnyObject,
@@ -93,9 +99,7 @@ type BaseCRUDProps<
       Params['autoGen']
     >,
 
-    ...config: TableConfig extends { expiresAt: string }
-      ? [ExpiresAtParams<TableConfig>?]
-      : []
+    params?: CreationConfigParams<Entity, TableConfig>,
   ) => SingleTableCreateParams<Entity, TableConfig>;
 
   getUpdateParams: (
