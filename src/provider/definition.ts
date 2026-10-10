@@ -17,6 +17,10 @@ import {
   ListOptions,
   ListTableResult,
   DynamoDBConfig,
+  BatchCreateParams,
+  BatchCreateResult,
+  BatchDeleteParams,
+  BatchDeleteResult,
   BatchMutateParams,
   BatchMutateResult,
 } from './utils';
@@ -47,6 +51,7 @@ export interface IDynamodbProvider<
     tableName: string,
     options?: ListOptions<Entity>,
   ): Promise<ListTableResult<Entity>>;
+
   listAll<Entity>(tableName: string, options?: ListAllOptions<Entity>): Promise<Entity[]>;
 
   get<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
@@ -60,6 +65,14 @@ export interface IDynamodbProvider<
   batchMutate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: BatchMutateParams<Entity, PKs>,
   ): Promise<BatchMutateResult<Entity, PKs>>;
+
+  batchCreate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchCreateParams<Entity, PKs>,
+  ): Promise<BatchCreateResult<Entity, PKs>>;
+
+  batchDelete<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchDeleteParams<Entity, PKs>,
+  ): Promise<BatchDeleteResult<Entity, PKs>>;
 
   create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: CreateParams<Entity, PKs>,

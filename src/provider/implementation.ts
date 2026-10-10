@@ -28,6 +28,12 @@ import {
   QueryOneParams,
   QueryAllParams,
   DynamoDBSet,
+  BatchCreator,
+  BatchCreateParams,
+  BatchCreateResult,
+  BatchDeleter,
+  BatchDeleteParams,
+  BatchDeleteResult,
   BatchMutator,
   BatchMutateParams,
   BatchMutateResult,
@@ -47,6 +53,10 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   private lister: ItemLister;
 
   private batchGetter: BatchGetter;
+
+  private batchCreator: BatchCreator;
+
+  private batchDeleter: BatchDeleter;
 
   private batchMutator: BatchMutator;
 
@@ -70,6 +80,10 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     this.lister = new ItemLister(params);
 
     this.batchGetter = new BatchGetter(params);
+
+    this.batchCreator = new BatchCreator(params);
+
+    this.batchDeleter = new BatchDeleter(params);
 
     this.batchMutator = new BatchMutator(params);
 
@@ -130,6 +144,18 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     options: BatchMutateParams<Entity, PKs>,
   ): Promise<BatchMutateResult<Entity, PKs>> {
     return this.batchMutator.batchMutate(options);
+  }
+
+  batchCreate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchCreateParams<Entity, PKs>,
+  ): Promise<BatchCreateResult<Entity, PKs>> {
+    return this.batchCreator.batchCreate(options);
+  }
+
+  batchDelete<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchDeleteParams<Entity, PKs>,
+  ): Promise<BatchDeleteResult<Entity, PKs>> {
+    return this.batchDeleter.batchDelete(options);
   }
 
   async query<Entity = AnyObject>(

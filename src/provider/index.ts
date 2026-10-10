@@ -12,6 +12,10 @@ export {
   CreateParams,
   DeleteParams,
   ListOptions,
+  BatchCreateParams,
+  BatchCreateResult,
+  BatchDeleteParams,
+  BatchDeleteResult,
   BatchMutateParams,
   BatchMutateResult,
 } from './utils';

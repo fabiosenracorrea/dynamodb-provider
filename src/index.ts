@@ -9,6 +9,12 @@ export {
   type QueryResult,
   type TransactionParams,
   type DBSet,
+  type BatchCreateParams,
+  type BatchCreateResult,
+  type BatchDeleteParams,
+  type BatchDeleteResult,
+  type BatchMutateParams,
+  type BatchMutateResult,
 } from './provider';
 
 export {
