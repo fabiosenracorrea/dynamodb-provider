@@ -17,6 +17,7 @@ class FakeCommand {
 
 export const fakeDBCommands = {
   BatchGetCommand: FakeCommand,
+  BatchWriteCommand: FakeCommand,
   GetCommand: FakeCommand,
   DeleteCommand: FakeCommand,
   PutCommand: FakeCommand,
