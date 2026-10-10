@@ -12,6 +12,8 @@ export {
   CreateParams,
   DeleteParams,
   ListOptions,
+  BatchMutateParams,
+  BatchMutateResult,
 } from './utils';
 
 export { DynamodbProvider };

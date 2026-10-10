@@ -17,6 +17,8 @@ import {
   ListOptions,
   ListTableResult,
   DynamoDBConfig,
+  BatchMutateParams,
+  BatchMutateResult,
 } from './utils';
 
 export interface DynamoDbProviderParams {
@@ -54,6 +56,10 @@ export interface IDynamodbProvider<
   batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: BatchListItemsArgs<Entity, PKs>,
   ): Promise<Entity[]>;
+
+  batchMutate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchMutateParams<Entity, PKs>,
+  ): Promise<BatchMutateResult<Entity, PKs>>;
 
   create<Entity, PKs extends StringKey<Entity> | unknown = unknown>(
     params: CreateParams<Entity, PKs>,

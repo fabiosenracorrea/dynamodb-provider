@@ -28,6 +28,9 @@ import {
   QueryOneParams,
   QueryAllParams,
   DynamoDBSet,
+  BatchMutator,
+  BatchMutateParams,
+  BatchMutateResult,
 } from './utils';
 
 export class DynamodbProvider<Params extends DynamoDbProviderParams>
@@ -44,6 +47,8 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
   private lister: ItemLister;
 
   private batchGetter: BatchGetter;
+
+  private batchMutator: BatchMutator;
 
   private transactWriter: TransactionWriter;
 
@@ -65,6 +70,8 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     this.lister = new ItemLister(params);
 
     this.batchGetter = new BatchGetter(params);
+
+    this.batchMutator = new BatchMutator(params);
 
     this.transactWriter = new TransactionWriter(params);
 
@@ -117,6 +124,12 @@ export class DynamodbProvider<Params extends DynamoDbProviderParams>
     options: BatchListItemsArgs<Entity, PKs>,
   ): Promise<Entity[]> {
     return this.batchGetter.batchGet(options);
+  }
+
+  batchMutate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: BatchMutateParams<Entity, PKs>,
+  ): Promise<BatchMutateResult<Entity, PKs>> {
+    return this.batchMutator.batchMutate(options);
   }
 
   async query<Entity = AnyObject>(

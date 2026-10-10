@@ -14,6 +14,7 @@ import {
   DBScanParams,
   DBQueryParams,
   DBTransactWriteParams,
+  DBBatchWriteParams,
 } from './types';
 
 export type ExecutorParams = {
@@ -55,6 +56,21 @@ export class DynamodbExecutor {
       params,
       Command: this.dynamoDB.commands?.BatchGetCommand,
       v2: 'batchGet',
+    });
+  }
+
+  protected async _batchWriteItems(
+    params: DBBatchWriteParams['input'],
+  ): Promise<DBBatchWriteParams['output']> {
+    const Command = this.dynamoDB.commands?.BatchWriteCommand;
+
+    if (!Command && this.dynamoDB.target === 'v3')
+      throw new Error('BatchWriteCommand is not registered');
+
+    return this.execute({
+      params,
+      Command,
+      v2: 'batchWrite',
     });
   }
 

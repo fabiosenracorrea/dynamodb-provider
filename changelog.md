@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.2.0
+
+- **Feature**: `batchMutate`, `batchDelete` and `batchCreate` methods added to all abstraction levels
+
 # v3.1.7
 
 - **Feature**: `conditions` allowed on `schema.from(ENTITY).create(params, { conditions })` or `ENTITY.getCreationParams(params, { conditions })`

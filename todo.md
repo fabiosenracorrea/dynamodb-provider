@@ -41,3 +41,5 @@ schema.from(eUserDailyCounts).query.all({
   },
 });
 ```
+
+- v4 = normalize param names. Eg `BatchListItemsArgs` to `BatchGetParams`
