@@ -1,7 +1,12 @@
 /* eslint-disable max-classes-per-file */
 import { StringKey, AnyObject, AnyFunction } from 'types';
 
-import { IDynamodbProvider } from 'provider';
+import {
+  BatchCreateResult,
+  BatchDeleteResult,
+  BatchMutateResult,
+  IDynamodbProvider,
+} from 'provider';
 
 import { QueryResult, TransactionParams } from 'provider/utils';
 
@@ -9,6 +14,9 @@ import {
   ListItemTypeParams,
   ListItemTypeResult,
   SingleTableBatchGetParams,
+  SingleTableBatchCreateParams,
+  SingleTableBatchDeleteParams,
+  SingleTableBatchMutateParams,
   SingleTableQueryParams,
   SingleTableQueryOneParams,
   SingleTableQueryAllParams,
@@ -19,6 +27,9 @@ import {
   SingleTableLister,
   SingleTableConfig,
   SingleTableBatchGetter,
+  SingleTableBatchCreator,
+  SingleTableBatchDeleter,
+  SingleTableBatchMutator,
   SingleTableRemover,
   SingleTableCreator,
   SingleTableGetter,
@@ -47,6 +58,12 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
 
   private batchGetter: SingleTableBatchGetter;
 
+  private batchCreator: SingleTableBatchCreator;
+
+  private batchDeleter: SingleTableBatchDeleter;
+
+  private batchMutator: SingleTableBatchMutator;
+
   private remover: SingleTableRemover;
 
   private creator: SingleTableCreator;
@@ -71,6 +88,9 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
 
     this.lister = new SingleTableLister(params);
     this.batchGetter = new SingleTableBatchGetter(params);
+    this.batchCreator = new SingleTableBatchCreator(params);
+    this.batchDeleter = new SingleTableBatchDeleter(params);
+    this.batchMutator = new SingleTableBatchMutator(params);
     this.remover = new SingleTableRemover(params);
     this.creator = new SingleTableCreator(params);
     this.getter = new SingleTableGetter(params);
@@ -108,6 +128,33 @@ export class SingleTableMethods<SingleParams extends SingleTableParams>
     params: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]> {
     return this.batchGetter.batchGet<Entity, PKs>(params);
+  }
+
+  async batchCreate<
+    Entity = AnyObject,
+    PKs extends StringKey<Entity> | unknown = unknown,
+  >(
+    params: SingleTableBatchCreateParams<Entity, PKs>,
+  ): Promise<BatchCreateResult<Entity, PKs>> {
+    return this.batchCreator.batchCreate<Entity, PKs>(params);
+  }
+
+  async batchDelete<
+    Entity = AnyObject,
+    PKs extends StringKey<Entity> | unknown = unknown,
+  >(
+    params: SingleTableBatchDeleteParams<Entity, PKs>,
+  ): Promise<BatchDeleteResult<Entity, PKs>> {
+    return this.batchDeleter.batchDelete<Entity, PKs>(params);
+  }
+
+  async batchMutate<
+    Entity = AnyObject,
+    PKs extends StringKey<Entity> | unknown = unknown,
+  >(
+    params: SingleTableBatchMutateParams<Entity, PKs>,
+  ): Promise<BatchMutateResult<Entity, PKs>> {
+    return this.batchMutator.batchMutate<Entity, PKs>(params);
   }
 
   async query<Entity = AnyObject>(
