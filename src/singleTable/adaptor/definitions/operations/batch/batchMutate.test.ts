@@ -22,7 +22,16 @@ describe('single table adaptor - batch mutate', () => {
       } as any,
       config: tableConfig,
     });
-    const creations = [{ id: 'create-1' }];
+    const creation = { id: 'create-1' };
+    const creations = [
+      {
+        item: creation,
+        key: {
+          partitionKey: ['USER', '2'],
+          rangeKey: ['PROFILE', '2'],
+        },
+      },
+    ];
 
     const result = await mutator.batchMutate({
       creations,
@@ -38,7 +47,13 @@ describe('single table adaptor - batch mutate', () => {
 
     expect(batchMock).toHaveBeenCalledWith({
       table: 'db-table',
-      creations,
+      creations: [
+        {
+          ...creation,
+          _pk: 'USER#2',
+          _sk: 'PROFILE#2',
+        },
+      ],
       deletes: [{ _pk: 'USER#1', _sk: 'PROFILE#1' }],
       maxRetries: 3,
       throwOnUnprocessed: true,

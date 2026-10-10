@@ -203,6 +203,25 @@ export class SingleTableFromEntityMethods<
           keys: keys.map(entity.getKey),
         })) as FromEntity<Entity, SingleParams>['batchGet'],
 
+      batchCreate: (({ items, ...options }) =>
+        this.methods.batchCreate({
+          ...options,
+          items: items.map((item) => (entity as any).getCreationParams(item)),
+        })) as FromEntity<Entity, SingleParams>['batchCreate'],
+
+      batchDelete: (({ items, ...options }) =>
+        this.methods.batchDelete({
+          ...options,
+          items: items.map(entity.getKey),
+        })) as FromEntity<Entity, SingleParams>['batchDelete'],
+
+      batchMutate: (({ creations, deletes, ...options }) =>
+        this.methods.batchMutate({
+          ...options,
+          creations: creations?.map((item) => (entity as any).getCreationParams(item)),
+          deletes: deletes?.map(entity.getKey),
+        })) as FromEntity<Entity, SingleParams>['batchMutate'],
+
       create: ((...p) =>
         this.methods.create((entity as any).getCreationParams(...p))) as FromEntity<
         Entity,

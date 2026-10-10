@@ -19,7 +19,16 @@ describe('single table adaptor - batch create', () => {
       } as any,
       config: tableConfig,
     });
-    const items = [{ id: 'create-1' }];
+    const creation = { id: 'create-1' };
+    const items = [
+      {
+        item: creation,
+        key: {
+          partitionKey: ['USER', '1'],
+          rangeKey: ['PROFILE', '1'],
+        },
+      },
+    ];
 
     const result = await creator.batchCreate({
       items,
@@ -29,7 +38,13 @@ describe('single table adaptor - batch create', () => {
 
     expect(batchMock).toHaveBeenCalledWith({
       table: 'db-table',
-      items,
+      items: [
+        {
+          ...creation,
+          _pk: 'USER#1',
+          _sk: 'PROFILE#1',
+        },
+      ],
       maxRetries: 3,
       throwOnUnprocessed: true,
     });

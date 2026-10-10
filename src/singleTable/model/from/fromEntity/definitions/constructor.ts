@@ -1,9 +1,13 @@
 import type { AnyEntity } from 'singleTable/model';
 import type { SingleTableConfig } from 'singleTable/adaptor/definitions';
+import type { BatchCreateResult, BatchDeleteResult, BatchMutateResult } from 'provider';
 import type {
   CreateEntityParams,
   DeleteEntityParams,
+  EntityBatchCreateParams,
+  EntityBatchDeleteParams,
   EntityBatchGetParams,
+  EntityBatchMutateParams,
   EntityGetParams,
   UpdateEntityParams,
   UpdateReturn,
@@ -42,6 +46,18 @@ export type FromEntity<
   batchGet(
     params: EntityBatchGetParams<Registered>,
   ): Promise<Array<Registered['__entity']>>;
+
+  batchCreate(
+    params: EntityBatchCreateParams<Registered>,
+  ): Promise<BatchCreateResult<Registered['__entity']>>;
+
+  batchDelete(
+    params: EntityBatchDeleteParams<Registered>,
+  ): Promise<BatchDeleteResult<Registered['__entity']>>;
+
+  batchMutate(
+    params: EntityBatchMutateParams<Registered>,
+  ): Promise<BatchMutateResult<Registered['__entity']>>;
 
   create(...params: CreateEntityParams<Registered>): Promise<Registered['__entity']>;
 
