@@ -20,7 +20,7 @@ export function getPropertyCounter() {
 
       if (!count) return property;
 
-      return `${property}_${count}`;
+      return `${property}__${count}`;
     },
   };
 }

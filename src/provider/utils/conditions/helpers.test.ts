@@ -230,14 +230,44 @@ describe('condition expression helpers', () => {
 
     expect(params).toEqual({
       ConditionExpression:
-        '((#__condition_lastAt < :__condition_lastAt) or (#__condition_lastAt_1 > :__condition_lastAt_1))',
+        '((#__condition_lastAt < :__condition_lastAt) or (#__condition_lastAt__1 > :__condition_lastAt__1))',
       ExpressionAttributeNames: {
         '#__condition_lastAt': 'lastAt',
-        '#__condition_lastAt_1': 'lastAt',
+        '#__condition_lastAt__1': 'lastAt',
       },
       ExpressionAttributeValues: {
         ':__condition_lastAt': 10,
-        ':__condition_lastAt_1': 20,
+        ':__condition_lastAt__1': 20,
+      },
+    });
+  });
+
+  it('getConditionParams: should not collide repeated properties with list indexes', () => {
+    const params = getConditionParams([
+      {
+        operation: 'in',
+        property: 'status',
+        values: ['active', 'pending'],
+      },
+      {
+        operation: 'equal',
+        property: 'status',
+        value: 'archived',
+        joinAs: 'or',
+      },
+    ]);
+
+    expect(params).toEqual({
+      ConditionExpression:
+        '(#__condition_status in (:__condition_status_0,:__condition_status_1)) or (#__condition_status__1 = :__condition_status__1)',
+      ExpressionAttributeNames: {
+        '#__condition_status': 'status',
+        '#__condition_status__1': 'status',
+      },
+      ExpressionAttributeValues: {
+        ':__condition_status_0': 'active',
+        ':__condition_status_1': 'pending',
+        ':__condition_status__1': 'archived',
       },
     });
   });

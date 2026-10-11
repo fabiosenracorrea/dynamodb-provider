@@ -680,7 +680,7 @@ describe('expression builder', () => {
         },
       ]);
 
-      expect(expression).toBe('((#lastAt < :lastAt) or (#lastAt_1 > :lastAt_1))');
+      expect(expression).toBe('((#lastAt < :lastAt) or (#lastAt__1 > :lastAt__1))');
     });
 
     it('should handle multiple nested expressions', () => {
