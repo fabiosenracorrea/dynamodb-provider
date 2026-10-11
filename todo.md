@@ -36,4 +36,6 @@ schema.from(eUserDailyCounts).query.all({
 });
 ```
 
+-> decide if this is the intended behavior or if we should auto-prefix -> v4 as well
+
 - v4 = normalize param names. Eg `BatchListItemsArgs` to `BatchGetParams`
