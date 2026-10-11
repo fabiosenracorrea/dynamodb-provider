@@ -3,6 +3,7 @@
 # v3.2.0
 
 - **Feature**: `batchMutate`, `batchDelete` and `batchCreate` methods added to all abstraction levels
+- **Fix**: Using the same property multiple times inside a condition would cause all the values be referenced to the last. Conditions like `prop < 10 OR prop > 20` would not be generated properly
 
 # v3.1.7
 
