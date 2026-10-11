@@ -663,6 +663,26 @@ describe('expression builder', () => {
       );
     });
 
+    it('should use distinct value references when nested conditions target the same property', () => {
+      const expression = buildExpression([
+        {
+          operation: 'lower_than',
+          property: 'lastAt',
+          value: 10,
+          nested: [
+            {
+              operation: 'bigger_than',
+              property: 'lastAt',
+              value: 20,
+              joinAs: 'or',
+            },
+          ],
+        },
+      ]);
+
+      expect(expression).toBe('((#lastAt < :lastAt) or (#lastAt_1 > :lastAt_1))');
+    });
+
     it('should handle multiple nested expressions', () => {
       const expression = buildExpression([
         {

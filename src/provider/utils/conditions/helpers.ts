@@ -5,6 +5,7 @@ import {
   buildExpression,
   getExpressionNames,
   getExpressionValues,
+  getPropertyCounter,
   ItemExpression,
 } from '../expressions';
 import { DBConditionParams } from '../dynamoDB';
@@ -46,7 +47,14 @@ function flatConditions(conditions: ItemExpression<any>[]): ItemExpression<any>[
 export function getConditionExpressionValues(
   conditions: ItemExpression<any>[],
 ): AnyObject {
-  return getExpressionValues(flatConditions(conditions), CONDITION_PREFIX);
+  const propCounter = getPropertyCounter();
+
+  const flat = flatConditions(conditions).map(({ property, ...rest }) => ({
+    ...rest,
+    property: propCounter.withCountedSuffix(property),
+  }));
+
+  return getExpressionValues(flat, CONDITION_PREFIX);
 }
 
 export function getConditionParams(

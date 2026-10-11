@@ -211,6 +211,37 @@ describe('condition expression helpers', () => {
     });
   });
 
+  it('getConditionParams: should bind distinct values for nested conditions on the same property', () => {
+    const params = getConditionParams([
+      {
+        operation: 'lower_than',
+        property: 'lastAt',
+        value: 10,
+        nested: [
+          {
+            operation: 'bigger_than',
+            property: 'lastAt',
+            value: 20,
+            joinAs: 'or',
+          },
+        ],
+      },
+    ]);
+
+    expect(params).toEqual({
+      ConditionExpression:
+        '((#__condition_lastAt < :__condition_lastAt) or (#__condition_lastAt_1 > :__condition_lastAt_1))',
+      ExpressionAttributeNames: {
+        '#__condition_lastAt': 'lastAt',
+        '#__condition_lastAt_1': 'lastAt',
+      },
+      ExpressionAttributeValues: {
+        ':__condition_lastAt': 10,
+        ':__condition_lastAt_1': 20,
+      },
+    });
+  });
+
   describe('edge cases', () => {
     it('buildConditionExpression: should handle empty array', () => {
       const result = buildConditionExpression([]);

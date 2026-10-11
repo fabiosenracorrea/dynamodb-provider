@@ -4,6 +4,7 @@ import { omit, pick } from 'utils/object';
 import { ItemExpression } from './types';
 
 import { expressionBuilders } from './builders';
+import { getPropertyCounter, PropertyCounter } from './counter';
 
 function getConditionValue(condition: ItemExpression<any>) {
   switch (condition.operation) {
@@ -20,7 +21,11 @@ function getConditionValue(condition: ItemExpression<any>) {
   }
 }
 
-export function buildExpression(conditions: ItemExpression<any>[], prefix = ''): string {
+export function buildExpression(
+  conditions: ItemExpression<any>[],
+  prefix = '',
+  propCounter: PropertyCounter = getPropertyCounter(),
+): string {
   const expression = conditions.reduce((acc, condition) => {
     const { operation, property, joinAs = 'and', nested = [] } = condition;
 
@@ -30,9 +35,10 @@ export function buildExpression(conditions: ItemExpression<any>[], prefix = ''):
       ? buildExpression(
           [omit(condition, ['nested']) as ItemExpression<any>, ...nested],
           prefix,
+          propCounter,
         )
       : expressionBuilders[operation]({
-          prop: property,
+          prop: propCounter.withCountedSuffix(property),
           value: getConditionValue(condition),
           prefix,
         });

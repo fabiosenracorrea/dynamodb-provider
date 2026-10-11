@@ -9,6 +9,7 @@ import {
   ItemExpression,
   ListExpression,
 } from './types';
+import { getPropertyCounter } from './counter';
 
 // as used on all AWS examples
 const EXPRESSION_NAMES_CHAR = '#';
@@ -26,8 +27,18 @@ export function getExpressionNames(
   properties: string[],
   prefix = '',
 ): Record<string, string> {
+  const counter = getPropertyCounter();
+
   return Object.fromEntries(
-    properties.map((property) => [toExpressionName(`${prefix}${property}`), property]),
+    properties.map((property) => {
+      /**
+       * we only use it as the key, as repeat references of the
+       * same property still need to point to the same name
+       */
+      const propRef = counter.withCountedSuffix(property);
+
+      return [toExpressionName(`${prefix}${propRef}`), property];
+    }),
   );
 }
 
