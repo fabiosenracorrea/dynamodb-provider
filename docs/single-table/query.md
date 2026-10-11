@@ -22,6 +22,10 @@ query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entit
 - **Type**: Range key condition
 - Range key filter with operation
 
+::: warning Complete range values
+`value`, `start`, and `end` are treated as complete range-key values. Pass an array such as `['DAY', date]` when the stored key was composed from multiple segments; SingleTable joins the array with `keySeparator` but does not add missing segments.
+:::
+
 #### `index` (optional)
 - **Type**: `string`
 - Index name to query (only if table has `indexes` configured)

@@ -38,6 +38,7 @@ Define as: `const ENTITY = schema.createEntity<ENTITY_TYPE>().as({...params})`
     - `"equal" | "lower_than" | "lower_or_equal_than" | "bigger_than" | "bigger_or_equal_than" | "begins_with"` - expect a `value` when using. Pass in `getValues({name}:{name: string}) => ({ value: name })` the required params change from the default references. (more on `schema.from(XXX).query` bellow)
     - `"between"` - expect `start` and `end` when using, optional `getValues` accepted if change necessary
     - `"key_prefix"` - No param needed. Calls `getRangeKey` with no params and leaves all valid prefixes. Eg: if key `['LOG', '.timestamp']` = prefix === `LOG`.
+  - In v3, range values are complete range keys. Fixed segments from `getRangeKey` are not prepended for `value`, `start`, or `end`. With `getRangeKey: ['DAY', '.date']`, pass `['DAY', date]` (including from `getValues`). `key_prefix` is the exception and derives the fixed prefix automatically.
 
 - `indexes?` - Only available if `tableConfig.indexes` is defined. A mapping of `Record<YOUR_CUSTOM_NAMES, { getPartitionKey, getRangeKey, index, rangeQueries? }>`
   - same key rules as above
@@ -129,6 +130,14 @@ await table.transaction([
     - `propertiesToRetrieve?: Array<keyof ENTITY_TYPE>`
     - `maxRetries?: number` - Amount of times to retry unprocessed entres
     - `throwOnUnprocessed?: boolean` - Defaults to true - if there's still unprocessed entries, throws an error
+  - `batchCreate` - Batch creates typed entity inputs. `items` uses the same inferred creation shape as `create`, including optional auto-generated properties.
+    - `maxRetries?: number` - Amount of times to retry unprocessed entries. Defaults to 8
+    - `throwOnUnprocessed?: boolean` - Throw when entries remain unprocessed. Defaults to false
+  - `batchDelete` - Batch deletes typed entity key parameters through `items`.
+    - Accepts the same retry options as `batchCreate`
+  - `batchMutate` - Combines optional typed `creations` and `deletes` arrays in one batch.
+    - Accepts the same retry options as `batchCreate`
+  - Batch writes are not atomic and cannot use conditions. Use `table.transaction` for atomic or conditional writes.
   - LISTING METHODS - !Warning - only available if `typeIndex` is configured on the table and the index is properly created
     - `list(params?)` - Return `{ items: ENTITY_TYPE[], paginationToken?: string }`
       - `fullRetrieval?: boolean` - auto paginates
@@ -142,6 +151,7 @@ await table.transaction([
       - `custom(params?)` - queries against the rangeKey. `params` is REQUIRED if there's any REQUIRED param inside `getPartitionKey` - Return `{ items: ENTITY_TYPE[], paginationToken?: string }`
         - REQUIRED: any `getPartitionKey` params.
         - Same as listing: `fullRetrieval`, `paginationToken`, `limit`, `retrieveOrder`, `range`
+        - `range.value`, `range.start`, and `range.end` are complete range keys; fixed `getRangeKey` segments are not added automatically
         - `filters?: { [Key in keyof ENTITY_TYPE]?: FilterValue }` - narrow by matching operations. Only properties that have `string | number | boolean | null | undefined` values are allowed
           `FilterValue` can be:
             - `string` | `number` | `null` | `boolean`

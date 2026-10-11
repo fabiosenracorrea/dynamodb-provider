@@ -12,6 +12,7 @@ Type-safe wrappers around DynamoDB operations (get, update, query, transaction, 
 - Full TypeScript support for all operations
 - Simplified expression building
 - Automatic attribute name handling
+- Automatic chunking and retries for batch reads and writes
 - Works with both AWS SDK v2 and v3
 
 [Learn more about Provider →](/provider/)
@@ -26,6 +27,7 @@ Table configuration layer that removes repetition when all operations target the
 - Type property for entity identification (think of it as shorta "Table Name")
 - Property cleanup (removes internal keys from results)
 - TTL management
+- Batch creates, deletes, and mixed mutations with automatic key mapping
 
 [Learn more about SingleTable →](/single-table/)
 
@@ -39,6 +41,7 @@ Entity and collection definitions for single-table designs, with partition and a
 - Collection joins for retrieving related data
 - Auto-generation of properties (IDs, timestamps, etc.)
 - Type-safe access patterns
+- Fully inferred entity batch writes
 
 **Example use case**: You have complex relationships like User → Profile → Permissions → AuditLogs and want to query and join them efficiently.
 
@@ -68,6 +71,12 @@ await provider.create({
 await provider.create({
   table: 'Orders',
   item: { orderId: '456', userId: '123', total: 100 }
+});
+
+await provider.batchMutate({
+  table: 'Users',
+  creations: [{ userId: '789', name: 'Jane' }],
+  deletes: [{ userId: '123' }]
 });
 
 // or as transaction:
@@ -119,6 +128,10 @@ await table.create({
   item: { orderId: '456', total: 100 },
   type: 'ORDER'
 });
+
+await table.batchDelete({
+  items: [{ partitionKey: ['USER', '123'], rangeKey: ['ORDER', '456'] }]
+});
 ```
 
 ### Level 3: Schema
@@ -151,6 +164,13 @@ await table.schema.from(Order).create({
   userId: '123',
   orderId: '456',
   total: 100
+});
+
+await table.schema.from(Order).batchCreate({
+  items: [
+    { userId: '123', orderId: '789', total: 50 },
+    { userId: '123', orderId: '012', total: 75 }
+  ]
 });
 
 // Define collection with joins

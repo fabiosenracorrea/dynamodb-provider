@@ -285,6 +285,25 @@ const logs = await table.schema.from(LOGS_DEFAULT).query.dateSlice({
 });
 ```
 
+::: warning Fixed range-key segments
+In v3, entity query ranges are complete key values. They do not automatically prepend fixed segments from `getRangeKey`.
+
+For an entity with `getRangeKey: ['DAY', '.date']`, pass composed bounds to a custom range:
+
+```typescript
+await table.schema.from(UserDailyCounts).query.all({
+  userId,
+  range: {
+    operation: 'between',
+    start: ['DAY', startDate],
+    end: ['DAY', endDate]
+  }
+});
+```
+
+The same rule applies to a `rangeQueries.getValues` result: return `['DAY', value]` for each bound. `key_prefix` is the exception; it derives the fixed prefix from `getRangeKey` automatically.
+:::
+
 ## Indexes
 
 Secondary index definitions.
@@ -543,6 +562,19 @@ await userRepo.delete({ id: '123' });
 const user = await userRepo.get({ id: '123' });
 const users = await userRepo.batchGet({ keys: [{ id: '1' }, { id: '2' }] });
 
+// Batch writes use the entity's inferred creation and key parameters
+await userRepo.batchCreate({
+  items: [
+    { id: '1', name: 'John', email: 'john@example.com' },
+    { id: '2', name: 'Jane', email: 'jane@example.com' }
+  ]
+});
+await userRepo.batchDelete({ items: [{ id: '3' }, { id: '4' }] });
+await userRepo.batchMutate({
+  creations: [{ id: '5', name: 'Jo', email: 'jo@example.com' }],
+  deletes: [{ id: '6' }]
+});
+
 // List operations (requires typeIndex)
 const allUsers = await userRepo.listAll();
 const { items, paginationToken } = await userRepo.list({ limit: 100 });
@@ -550,6 +582,8 @@ const { items, paginationToken } = await userRepo.list({ limit: 100 });
 // Query operations
 const { items } = await userRepo.query.custom({ limit: 10 });
 ```
+
+The batch-write methods also accept `maxRetries` and `throwOnUnprocessed`. They use DynamoDB BatchWrite, so they are not atomic and do not support conditions; use a transaction when either behavior is required.
 
 ## Query Methods
 

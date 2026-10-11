@@ -91,5 +91,6 @@ try {
 ## See Also
 
 - [get](/single-table/get) - Retrieve single item
+- [batchMutate, batchCreate, batchDelete](/single-table/batch-write) - Write multiple items
 - [query](/single-table/query) - Query by partition
 - [Provider batchGet](/provider/batch-get) - Underlying implementation

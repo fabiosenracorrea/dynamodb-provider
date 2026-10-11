@@ -68,6 +68,9 @@ await provider.update({
 - [query](/provider/query) - Query items by partition key with range filters
 
 ### Batch Operations
+- [batchMutate](/provider/batch-write#batchmutate) - Create and delete items in one batch
+- [batchCreate](/provider/batch-write#batchcreate) - Create multiple items
+- [batchDelete](/provider/batch-write#batchdelete) - Delete multiple items
 - [transaction](/provider/transaction) - Atomic multi-item operations
 
 ### Helpers

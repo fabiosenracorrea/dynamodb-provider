@@ -58,6 +58,7 @@ await table.delete({
 
 ## See Also
 
+- [batchDelete and batchMutate](/single-table/batch-write) - Delete multiple items
 - [Provider delete](/provider/delete) - Conditions reference
 - [create](/single-table/create) - Create items
 - [update](/single-table/update) - Update items

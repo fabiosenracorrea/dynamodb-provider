@@ -277,6 +277,7 @@ try {
 
 ## See Also
 
+- [batchCreate and batchMutate](/provider/batch-write) - Create multiple items without conditions
 - [update](/provider/update) - Update items with conditions
 - [delete](/provider/delete) - Delete items with conditions
 - [transaction](/provider/transaction) - Atomic multi-item operations with conditions

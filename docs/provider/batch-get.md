@@ -265,5 +265,6 @@ async function getProductsWithFallback(ids: string[]) {
 ## See Also
 
 - [get](/provider/get) - Retrieve single item
+- [batchMutate, batchCreate, batchDelete](/provider/batch-write) - Write multiple items
 - [query](/provider/query) - Query items by partition key
 - [list](/provider/list) - Scan entire table

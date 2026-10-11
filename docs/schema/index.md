@@ -132,6 +132,12 @@ await table.schema.from(User).update({
   values: { email: 'newemail@example.com' }
 });
 
+// Batch writes preserve inferred creation and key parameters
+await table.schema.from(User).batchMutate({
+  creations: [{ name: 'Jane', email: 'jane@example.com' }],
+  deletes: [{ id: user.id }]
+});
+
 // Query all users
 const users = await table.schema.from(User).listAll();
 ```

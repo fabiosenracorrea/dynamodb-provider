@@ -168,6 +168,7 @@ Common patterns for delete:
 
 ## See Also
 
+- [batchDelete and batchMutate](/provider/batch-write) - Delete multiple items without conditions
 - [create](/provider/create#conditions) - Full conditions reference
 - [update](/provider/update) - Update items with conditions
 - [transaction](/provider/transaction) - Atomic deletes with other operations
