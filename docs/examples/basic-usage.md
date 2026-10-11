@@ -11,6 +11,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   BatchGetCommand,
+  BatchWriteCommand,
   GetCommand,
   DeleteCommand,
   PutCommand,
@@ -39,6 +40,7 @@ export const provider = new DynamodbProvider({
     instance: documentClient,
     commands: {
       BatchGetCommand,
+      BatchWriteCommand,
       GetCommand,
       DeleteCommand,
       PutCommand,

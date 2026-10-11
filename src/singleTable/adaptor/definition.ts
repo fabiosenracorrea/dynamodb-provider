@@ -1,6 +1,13 @@
 import { AnyObject, StringKey } from 'types';
 
-import { IDynamodbProvider, QueryResult, TransactionParams } from 'provider';
+import {
+  BatchCreateResult,
+  BatchDeleteResult,
+  BatchMutateResult,
+  IDynamodbProvider,
+  QueryResult,
+  TransactionParams,
+} from 'provider';
 
 import {
   SingleTableCreateParams,
@@ -8,6 +15,9 @@ import {
   SingleTableUpdateParams,
   SingleTableGetParams,
   SingleTableBatchGetParams,
+  SingleTableBatchCreateParams,
+  SingleTableBatchDeleteParams,
+  SingleTableBatchMutateParams,
   SingleTableQueryParams,
   SingleTableQueryOneParams,
   SingleTableQueryAllParams,
@@ -34,6 +44,18 @@ export interface ISingleTableMethods<SingleParams extends SingleTableParams>
   batchGet<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
     options: SingleTableBatchGetParams<Entity, PKs>,
   ): Promise<Entity[]>;
+
+  batchCreate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: SingleTableBatchCreateParams<Entity, PKs>,
+  ): Promise<BatchCreateResult<Entity, PKs>>;
+
+  batchDelete<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: SingleTableBatchDeleteParams<Entity, PKs>,
+  ): Promise<BatchDeleteResult<Entity, PKs>>;
+
+  batchMutate<Entity = AnyObject, PKs extends StringKey<Entity> | unknown = unknown>(
+    options: SingleTableBatchMutateParams<Entity, PKs>,
+  ): Promise<BatchMutateResult<Entity, PKs>>;
 
   create<Entity>(params: SingleTableCreateParams<Entity, SingleParams>): Promise<Entity>;
 

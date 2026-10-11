@@ -9,6 +9,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   BatchGetCommand,
+  BatchWriteCommand,
   GetCommand,
   DeleteCommand,
   PutCommand,
@@ -38,6 +39,7 @@ const provider = new DynamodbProvider({
     instance: documentClient,
     commands: {
       BatchGetCommand,
+      BatchWriteCommand,
       GetCommand,
       DeleteCommand,
       PutCommand,
@@ -54,7 +56,8 @@ const provider = new DynamodbProvider({
 
 You must provide all command classes that the provider uses:
 
-- `BatchGetCommand` - For batch operations
+- `BatchGetCommand` - For batch reads
+- `BatchWriteCommand` - For batch creates and deletes
 - `GetCommand` - For single item retrieval
 - `DeleteCommand` - For delete operations
 - `PutCommand` - For create operations
@@ -62,6 +65,10 @@ You must provide all command classes that the provider uses:
 - `ScanCommand` - For list/scan operations
 - `QueryCommand` - For query operations
 - `TransactWriteCommand` - For transactions
+
+::: warning BatchWriteCommand and v3
+`BatchWriteCommand` remains optional in the v3 configuration type for backward compatibility, but it must be registered before calling `batchMutate`, `batchCreate`, or `batchDelete`.
+:::
 
 ## Using AWS SDK v2
 
@@ -100,6 +107,7 @@ The DynamoDB client configuration.
   instance: DynamoDBDocumentClient,
   commands: {
     BatchGetCommand,
+    BatchWriteCommand,
     GetCommand,
     DeleteCommand,
     PutCommand,

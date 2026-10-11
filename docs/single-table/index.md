@@ -152,6 +152,9 @@ const { items, paginationToken } = await table.listType({
 - [Type Methods](/single-table/type-methods) - Query by entity type
 
 ### Batch Operations
+- [batchMutate](/single-table/batch-write#batchmutate) - Create and delete items in one batch
+- [batchCreate](/single-table/batch-write#batchcreate) - Create multiple items
+- [batchDelete](/single-table/batch-write#batchdelete) - Delete multiple items
 - [transaction](/single-table/transaction) - Atomic multi-item operations
 
 ### Helpers

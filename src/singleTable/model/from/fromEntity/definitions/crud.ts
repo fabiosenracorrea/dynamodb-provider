@@ -1,7 +1,10 @@
 import { ExpiresAtParams } from 'singleTable/adaptor/definitions';
 import type { KeyParams, AnyEntity, AtomicIndexParams } from 'singleTable/model';
 import type {
+  BatchCreateParams,
+  BatchDeleteParams,
   BatchListItemsArgs,
+  BatchMutateParams,
   GetItemParams,
   UpdateParams,
   DeleteParams,
@@ -27,6 +30,32 @@ export type EntityBatchGetParams<Registered extends AnyEntity> = Omit<
   'table' | 'keys'
 > & {
   keys: Array<KeyParams<Registered>>;
+};
+
+type EntityCreationItem<Registered extends AnyEntity> = FirstParameter<
+  Registered['getCreationParams']
+>;
+
+export type EntityBatchCreateParams<Registered extends AnyEntity> = Omit<
+  BatchCreateParams<Registered['__entity']>,
+  'table' | 'items'
+> & {
+  items: Array<EntityCreationItem<Registered>>;
+};
+
+export type EntityBatchDeleteParams<Registered extends AnyEntity> = Omit<
+  BatchDeleteParams<Registered['__entity']>,
+  'table' | 'items'
+> & {
+  items: Array<KeyParams<Registered>>;
+};
+
+export type EntityBatchMutateParams<Registered extends AnyEntity> = Omit<
+  BatchMutateParams<Registered['__entity']>,
+  'table' | 'creations' | 'deletes'
+> & {
+  creations?: Array<EntityCreationItem<Registered>>;
+  deletes?: Array<KeyParams<Registered>>;
 };
 
 export type DeleteEntityParams<Registered extends AnyEntity> =

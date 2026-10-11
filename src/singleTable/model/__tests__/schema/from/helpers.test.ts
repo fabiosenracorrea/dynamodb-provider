@@ -43,10 +43,17 @@ export const baseParams = {
   },
 };
 
-export function paramsFor<T extends 'get' | 'batchGet' | 'delete' | 'create' | 'update'>(
-  method: T,
-  returnValue?: any,
-) {
+export function paramsFor<
+  T extends
+    | 'get'
+    | 'batchGet'
+    | 'batchCreate'
+    | 'batchDelete'
+    | 'batchMutate'
+    | 'delete'
+    | 'create'
+    | 'update',
+>(method: T, returnValue?: any) {
   return {
     ...baseParams,
 

@@ -193,6 +193,7 @@ const transactionParams = User.transactCreateParams(
 
 ## See Also
 
+- [batchCreate and batchMutate](/single-table/batch-write) - Create multiple items
 - [update](/single-table/update) - Update items
 - [Configuration](/single-table/configuration#typeindex) - typeIndex configuration
 - [Configuration](/single-table/configuration#indexes) - indexes configuration

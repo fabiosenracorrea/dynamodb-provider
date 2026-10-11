@@ -4,21 +4,23 @@
 import { DynamoDB as DynamoDBv2 } from 'aws-sdk';
 
 import {
-  DynamoDBDocumentClient,
   BatchGetCommand,
-  GetCommand,
-  DeleteCommand,
-  PutCommand,
-  UpdateCommand,
-  ScanCommand,
-  QueryCommand,
-  TransactWriteCommand,
   BatchGetCommandInput,
+  BatchWriteCommand,
+  BatchWriteCommandInput,
+  DeleteCommand,
   DeleteCommandInput,
-  UpdateCommandInput,
-  QueryCommandInput,
-  TransactWriteCommandInput,
+  DynamoDBDocumentClient,
+  GetCommand,
   GetCommandInput,
+  PutCommand,
+  QueryCommand,
+  QueryCommandInput,
+  ScanCommand,
+  TransactWriteCommand,
+  TransactWriteCommandInput,
+  UpdateCommand,
+  UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 
 type DynamoV2 = DynamoDBv2.DocumentClient;
@@ -27,7 +29,15 @@ type CommandConstructor<TCommand, TInput = any> = new (input: TInput) => TComman
 
 export type DynamoDBV2Actions = Extract<
   keyof DynamoV2,
-  'scan' | 'get' | 'batchGet' | 'transactWrite' | 'update' | 'delete' | 'put' | 'query'
+  | 'scan'
+  | 'get'
+  | 'batchGet'
+  | 'transactWrite'
+  | 'update'
+  | 'delete'
+  | 'put'
+  | 'query'
+  | 'batchWrite'
 >;
 
 export type DynamoDBConfig =
@@ -40,6 +50,9 @@ export type DynamoDBConfig =
       target: 'v3';
       instance: DynamoDBDocumentClient;
       commands: {
+        // todo: make it required in the next major
+        BatchWriteCommand?: CommandConstructor<BatchWriteCommand, BatchWriteCommandInput>;
+
         BatchGetCommand: CommandConstructor<BatchGetCommand, BatchGetCommandInput>;
         GetCommand: CommandConstructor<GetCommand, GetCommandInput>;
         DeleteCommand: CommandConstructor<DeleteCommand, DeleteCommandInput>;
@@ -71,6 +84,11 @@ interface GetItemOutput<Entity>
 export type DBBatchGetParams = {
   input: DynamoDBv2.DocumentClient.BatchGetItemInput;
   output: DynamoDBv2.DocumentClient.BatchGetItemOutput;
+};
+
+export type DBBatchWriteParams = {
+  input: DynamoDBv2.DocumentClient.BatchWriteItemInput;
+  output: DynamoDBv2.DocumentClient.BatchWriteItemOutput;
 };
 
 export type DBGetParams<Entity> = {

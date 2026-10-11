@@ -38,6 +38,10 @@ features:
     title: Transactions
     details: Atomic multi-item operations with full condition support. All operations succeed or all fail.
 
+  - icon: 📦
+    title: Batch Reads and Writes
+    details: Automatic request chunking and retries for batchGet, batchCreate, batchDelete, and mixed batchMutate operations.
+
   - icon: 🎨
     title: Expression Builder
     details: Simplified condition and filter expressions without manual attribute name handling or collision avoidance.

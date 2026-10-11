@@ -56,6 +56,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   BatchGetCommand,
+  BatchWriteCommand,
   GetCommand,
   DeleteCommand,
   PutCommand,
@@ -81,6 +82,7 @@ const provider = new DynamodbProvider({
 
     commands: {
       BatchGetCommand,
+      BatchWriteCommand,
       GetCommand,
       DeleteCommand,
       PutCommand,
@@ -117,6 +119,9 @@ Quick Access
 - [delete](#delete)
 - [update](#update)
 - [batchGet](#batchGet)
+- [batchMutate](#batchmutate)
+- [batchCreate](#batchcreate)
+- [batchDelete](#batchdelete)
 - [list](#list)
 - [listAll](#listAll)
 - [query](#query)
@@ -402,6 +407,45 @@ const products = await provider.batchGet({
   propertiesToRetrieve: ['name', 'price'],
 });
 ```
+
+### batchMutate
+
+Creates and deletes items in the same batch. Requests larger than DynamoDB's 25-operation limit are split automatically.
+
+```ts
+const { unprocessed } = await provider.batchMutate<User>({
+  table: 'Users',
+  creations: [{ userId: '123', name: 'John' }],
+  deletes: [{ userId: '456' }],
+});
+```
+
+### batchCreate
+
+Convenience method for batches containing only creations.
+
+```ts
+const { unprocessed } = await provider.batchCreate<User>({
+  table: 'Users',
+  items: [
+    { userId: '123', name: 'John' },
+    { userId: '456', name: 'Jane' },
+  ],
+});
+```
+
+### batchDelete
+
+Convenience method for batches containing only deletes.
+
+```ts
+const { unprocessed } = await provider.batchDelete<User>({
+  table: 'Users',
+  items: [{ userId: '123' }, { userId: '456' }],
+});
+```
+
+All batch-write methods accept `maxRetries` (default `8`) and `throwOnUnprocessed` (default `false`). They are not atomic and do not support per-item conditions; use `transaction` when either behavior is required.
 
 ### list
 
@@ -835,6 +879,9 @@ Available methods:
 
 - [get](#single-table-get)
 - [batchGet](#single-table-batch-get)
+- [batchMutate](#single-table-batch-mutate)
+- [batchCreate](#single-table-batch-create)
+- [batchDelete](#single-table-batch-delete)
 - [create](#single-table-create)
 - [delete](#single-table-delete)
 - [update](#single-table-update)
@@ -915,6 +962,43 @@ const items = await table.batchGet({
   throwOnUnprocessed: true,
 });
 ```
+
+### single table batch mutate
+
+Creates and deletes items in the same batch while applying SingleTable key and creation mapping.
+
+```ts
+const { unprocessed } = await table.batchMutate<User>({
+  creations: [{
+    key: { partitionKey: ['USER', '123'], rangeKey: '#DATA' },
+    item: { userId: '123', name: 'John' },
+    type: 'USER',
+  }],
+  deletes: [{ partitionKey: ['USER', '456'], rangeKey: '#DATA' }],
+});
+```
+
+### single table batch create
+
+```ts
+await table.batchCreate<User>({
+  items: [{
+    key: { partitionKey: ['USER', '123'], rangeKey: '#DATA' },
+    item: { userId: '123', name: 'John' },
+    type: 'USER',
+  }],
+});
+```
+
+### single table batch delete
+
+```ts
+await table.batchDelete<User>({
+  items: [{ partitionKey: ['USER', '123'], rangeKey: '#DATA' }],
+});
+```
+
+The batch-write methods accept `maxRetries` and `throwOnUnprocessed`, automatically split requests into groups of 25, and are not atomic. They do not support conditions; use `transaction` for atomic or conditional writes.
 
 ### single table create
 
@@ -1094,6 +1178,8 @@ query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entit
 - `paginationToken` (optional) - Continue from previous query
 - `filters` (optional) - Filter expressions
 - `propertiesToRetrieve` (optional) - Specific attributes to return (root-level only)
+
+`range.value`, `range.start`, and `range.end` are complete key values. Pass composed arrays such as `['DAY', date]` when the stored key contains multiple segments; SingleTable joins the array but does not add missing segments.
 
 Returns `{ items, paginationToken? }`
 
@@ -1563,6 +1649,8 @@ Use functions for complex key generation logic. Dot notation handles simple prop
 
   Generates typed query methods accessible via `table.schema.from(Logs).query.dateSlice({ start, end })`.
 
+  **Fixed-prefix caveat:** In v3, range values are complete range keys. If `getRangeKey` is `['DAY', '.date']`, `range: { operation: 'between', start: startDate, end: endDate }` queries the bare dates and does not prepend `DAY`. Pass `start: ['DAY', startDate]` and `end: ['DAY', endDate]`, or return those arrays from `getValues`. The `key_prefix` operation is the exception and derives the fixed prefix automatically.
+
 - **`indexes`** (object, optional) - Secondary index definitions. Only available if table has `indexes` configured.
   - Key: Custom index identifier
   - Value: Index configuration
@@ -1690,12 +1778,29 @@ await userRepo.update({
   id: 'user-id',
   values: { name: 'Jane' }
 })
+
+await userRepo.batchCreate({
+  items: [
+    { id: 'user-2', name: 'Jane', createdAt: new Date().toISOString() },
+    { id: 'user-3', name: 'Jo', createdAt: new Date().toISOString() },
+  ]
+})
+
+await userRepo.batchDelete({ items: [{ id: 'user-4' }] })
+
+await userRepo.batchMutate({
+  creations: [{ id: 'user-5', name: 'Jay', createdAt: new Date().toISOString() }],
+  deletes: [{ id: 'user-6' }],
+})
 ```
 
 **Available Methods:**
 
 - `get`
 - `batchGet`
+- `batchCreate`
+- `batchDelete`
+- `batchMutate`
 - `create`
 - `update`
 - `delete`
@@ -1703,6 +1808,8 @@ await userRepo.update({
 - `list` - Requires `typeIndex`
 - `query`
 - `queryIndex` - Requires entity `indexes` definition
+
+The entity batch methods infer creation inputs and key parameters from the entity definition. They accept `maxRetries` and `throwOnUnprocessed`, but do not support conditions or atomic execution; use `transaction` when those guarantees are required.
 
 **Query Methods:**
 
@@ -1791,6 +1898,8 @@ const allJanErrors = await table.schema.from(Logs).queryIndex.byType.dateSlice.a
 - **Default call** - Accepts `limit`, `paginationToken`, `retrieveOrder`, `filters`, `propertiesToRetrieve`, `range`
 - **`.one(params?)`** - Accepts all params except `limit` and `paginationToken`
 - **`.all(params?)`** - Accepts all params except `paginationToken` (limit sets max total items)
+
+For custom `range` values, `value`, `start`, and `end` must be complete range keys. Fixed segments from an entity or index `getRangeKey` are not added automatically; pass composed arrays such as `['DAY', date]` when needed.
 
 All retrieval methods apply `extend` function if defined.
 
@@ -2062,5 +2171,3 @@ const result = await table.schema.from(userWithLogins).get({
 ```
 
 Returns the collection type for `'SINGLE'` collections or `undefined` if not found. Returns array for `'MULTIPLE'` collections.
-
-

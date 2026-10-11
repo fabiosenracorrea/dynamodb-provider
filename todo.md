@@ -13,13 +13,7 @@
 
 - "safeValues" - set a value to X only if its not X (values + conditions)
 
-- "batchWrite"
-
 - a way to skip the type index inside the entity generation
-
-- check affirmation:
-- (Side note: getExpressionValues doesn't recurse into nested — it works here only because both conditions target lastAt. A nested condition on a different property would emit an unbound name.)
-
 
 - range query interactions with fixed keys:
 
@@ -41,3 +35,7 @@ schema.from(eUserDailyCounts).query.all({
   },
 });
 ```
+
+-> decide if this is the intended behavior or if we should auto-prefix -> v4 as well
+
+- v4 = normalize param names. Eg `BatchListItemsArgs` to `BatchGetParams`
