@@ -1155,4 +1155,95 @@ describe('batchGetter', () => {
 
     setTimeoutMock.mockRestore();
   });
+
+  it('should not throw on a single attempt when every key is returned', async () => {
+    const sendMock = jest.fn().mockResolvedValue({
+      Responses: {
+        table: [{ id: '1' }, { id: '2' }],
+      },
+      UnprocessedKeys: {},
+    });
+
+    const batchGetter = new BatchGetter({
+      dynamoDB: {
+        target: 'v3',
+        commands: fakeDBCommands,
+        instance: { send: sendMock } as any,
+      },
+    });
+
+    const result = await batchGetter.batchGet<any>({
+      table: 'table',
+      throwOnUnprocessed: true,
+      maxRetries: 1,
+      keys: [{ id: '1' }, { id: '2' }],
+    });
+
+    expect(result).toStrictEqual([{ id: '1' }, { id: '2' }]);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not throw when the last allowed attempt resolves every remaining key', async () => {
+    const setTimeoutMock = jest.spyOn(global, 'setTimeout').mockImplementation((fn) => {
+      fn();
+      return 0 as any;
+    });
+
+    const sendMock = jest.fn();
+
+    sendMock.mockResolvedValueOnce({
+      Responses: { table: [{ id: '1' }] },
+      UnprocessedKeys: { table: { Keys: [{ id: '2' }] } },
+    });
+
+    sendMock.mockResolvedValueOnce({
+      Responses: { table: [{ id: '2' }] },
+    });
+
+    const batchGetter = new BatchGetter({
+      dynamoDB: {
+        target: 'v3',
+        commands: fakeDBCommands,
+        instance: { send: sendMock } as any,
+      },
+    });
+
+    const result = await batchGetter.batchGet<any>({
+      table: 'table',
+      throwOnUnprocessed: true,
+      maxRetries: 2,
+      keys: [{ id: '1' }, { id: '2' }],
+    });
+
+    expect(result).toStrictEqual([{ id: '1' }, { id: '2' }]);
+    expect(sendMock).toHaveBeenCalledTimes(2);
+
+    setTimeoutMock.mockRestore();
+  });
+
+  it('should throw with maxRetries: 1 when keys remain unprocessed', async () => {
+    const sendMock = jest.fn().mockResolvedValue({
+      Responses: { table: [{ id: '1' }] },
+      UnprocessedKeys: { table: { Keys: [{ id: '2' }] } },
+    });
+
+    const batchGetter = new BatchGetter({
+      dynamoDB: {
+        target: 'v3',
+        commands: fakeDBCommands,
+        instance: { send: sendMock } as any,
+      },
+    });
+
+    await expect(
+      batchGetter.batchGet<any>({
+        table: 'table',
+        throwOnUnprocessed: true,
+        maxRetries: 1,
+        keys: [{ id: '1' }, { id: '2' }],
+      }),
+    ).rejects.toThrow();
+
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
 });

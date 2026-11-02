@@ -100,19 +100,21 @@ export class BatchGetter extends DynamodbExecutor {
 
     const updatedItems = [...items, ...returnItems] as Entity[];
 
-    const maxRetriesReached = retries >= maxRetries;
-
-    if (maxRetriesReached && throwOnUnprocessed)
-      throw new Error(`Unprocessed items timeout`);
-
-    if (!UnprocessedKeys?.[table] || maxRetriesReached) return updatedItems;
-
-    await waitExponentially(retries);
-
-    const unprocessedItems = UnprocessedKeys[table].Keys as BatchListItemsArgs<
+    const unprocessedItems = (UnprocessedKeys?.[table]?.Keys ?? []) as BatchListItemsArgs<
       Entity,
       PKs
     >['keys'];
+
+    const hasUnprocessed = unprocessedItems.length > 0;
+
+    const maxRetriesReached = retries >= maxRetries;
+
+    if (maxRetriesReached && throwOnUnprocessed && hasUnprocessed)
+      throw new Error(`Unprocessed items timeout`);
+
+    if (!hasUnprocessed || maxRetriesReached) return updatedItems;
+
+    await waitExponentially(retries);
 
     return this.safeBatchGetOperation(
       { ...args, keys: unprocessedItems },
