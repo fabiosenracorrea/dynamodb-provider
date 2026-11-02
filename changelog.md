@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.2.1
+
+- **Fix**: `batchGet` with `throwOnUnprocessed: true` would throw on its last allowed attempt even if every key was returned. With `maxRetries: 1` every call threw
+
 # v3.2.0
 
 - **Feature**: `batchMutate`, `batchDelete` and `batchCreate` methods added to all abstraction levels
