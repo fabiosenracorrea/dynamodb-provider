@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.2.2
+
+- **Fix**: Entity index generation on **update** params was not taking the `autoGen` params into account
+
 # v3.2.1
 
 - **Fix**: `batchGet` with `throwOnUnprocessed: true` would throw on its last allowed attempt even if every key was returned. With `maxRetries: 1` every call threw

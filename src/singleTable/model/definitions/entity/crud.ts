@@ -273,7 +273,7 @@ export function getCRUDParamGetters<
 
       indexes: getUpdatedIndexMapping?.({
         ...updateParams,
-        ...values,
+        ...resolvedValues,
       }),
     });
   };

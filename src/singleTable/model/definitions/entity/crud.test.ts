@@ -146,6 +146,92 @@ describe('getCRUDParamGetters', () => {
     });
   });
 
+  describe('auto generated values on index generation', () => {
+    it('create: should pass auto generated values to the index mapping', () => {
+      const mockItem = { id: '123', name: 'John Doe' };
+      const mockGeneratedItem = { ...mockItem, createdAt: '2024-01-01T00:00:00.000Z' };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedItem);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      getCreationParams(mockItem);
+
+      expect(mockGetCreationIndexMapping).toHaveBeenCalledTimes(1);
+      expect(mockGetCreationIndexMapping).toHaveBeenCalledWith(
+        expect.objectContaining(mockGeneratedItem),
+      );
+    });
+
+    it('update: should pass auto generated values to the index mapping', () => {
+      const mockUpdateParams = {
+        id: '123',
+        values: { name: 'Jane Doe' },
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      getUpdateParams(mockUpdateParams as never);
+
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledTimes(1);
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '123',
+          ...mockGeneratedValues,
+        }),
+      );
+    });
+
+    it('update: should pass auto generated values to the index mapping even without values', () => {
+      const mockUpdateParams = {
+        id: '123',
+        atomicOperations: [{ operation: 'add', property: 'count', value: 1 }],
+      };
+      const mockGeneratedValues = { updatedAt: '2024-01-01T00:00:00.000Z' };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      getUpdateParams(mockUpdateParams as never);
+
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledTimes(1);
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '123',
+          ...mockGeneratedValues,
+        }),
+      );
+    });
+
+    it('update [transaction]: should pass auto generated values to the index mapping', () => {
+      const mockUpdateParams = {
+        id: '123',
+        values: { name: 'Jane Doe' },
+      };
+      const mockGeneratedValues = {
+        ...mockUpdateParams.values,
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      (addAutoGenParams as jest.Mock).mockReturnValue(mockGeneratedValues);
+      mockGetKey.mockReturnValue({ partitionKey: 'partition#123', sortKey: 'sort#123' });
+
+      transactParams.transactUpdateParams(mockUpdateParams as never);
+
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledTimes(1);
+      expect(mockGetUpdatedIndexMapping).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '123',
+          ...mockGeneratedValues,
+        }),
+      );
+    });
+  });
+
   describe('atomicIndexes handling', () => {
     const mockIndexes = {
       scoreIndex: { index: 'LeaderboardIndex' },
