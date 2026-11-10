@@ -80,6 +80,7 @@ export const singleTableQueryParams = [
   'fullRetrieval',
   'filters',
   'propertiesToRetrieve',
+  'consistentRead',
 ] as (keyof SingleTableQueryParams<any, any>)[];
 
 export class SingleTableQueryBuilder extends BaseSingleTableOperator {

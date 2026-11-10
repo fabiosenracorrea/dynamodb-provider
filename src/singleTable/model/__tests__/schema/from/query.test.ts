@@ -177,6 +177,7 @@ describe('single table - from entity - query', () => {
           paginationToken: '2903',
           retrieveOrder: 'DESC',
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           range: {
             operation: 'bigger_or_equal_than',
             value: '100',
@@ -191,6 +192,7 @@ describe('single table - from entity - query', () => {
           limit: 20,
           paginationToken: '2903',
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           retrieveOrder: 'DESC',
           range: {
             operation: 'bigger_or_equal_than',
@@ -391,6 +393,7 @@ describe('single table - from entity - query', () => {
           filters: { name: 'John' },
           retrieveOrder: 'DESC',
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           range: {
             operation: 'bigger_or_equal_than',
             value: '100',
@@ -402,6 +405,7 @@ describe('single table - from entity - query', () => {
           partition: ['USER', 'my-id'],
           filters: { name: 'John' },
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           retrieveOrder: 'DESC',
           range: {
             operation: 'bigger_or_equal_than',
@@ -609,6 +613,7 @@ describe('single table - from entity - query', () => {
           limit: 20,
           retrieveOrder: 'DESC',
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           range: {
             operation: 'bigger_or_equal_than',
             value: '100',
@@ -621,6 +626,7 @@ describe('single table - from entity - query', () => {
           filters: { name: 'John' },
           limit: 20,
           propertiesToRetrieve: ['createdAt', 'email'],
+          consistentRead: true,
           retrieveOrder: 'DESC',
           range: {
             operation: 'bigger_or_equal_than',

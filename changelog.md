@@ -1,5 +1,9 @@
 # DynamoDB Provider Changelog
 
+# v3.3.0
+
+- **Feature**: `consistentRead` on query operations. **warning**: Dynamodb rejects it if you use it on GSIs.
+
 # v3.2.2
 
 - **Fix**: Entity index generation on **update** params was not taking the `autoGen` params into account

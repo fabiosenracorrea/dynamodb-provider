@@ -336,6 +336,7 @@ describe('single table adaptor - query', () => {
       filters: { status: 'active' },
       limit: 10,
       propertiesToRetrieve: ['id', 'name', 'email'],
+      consistentRead: true,
     });
 
     expect(queryMock).toHaveBeenCalled();
@@ -356,6 +357,7 @@ describe('single table adaptor - query', () => {
       filters: { status: 'active' },
       limit: 10,
       propertiesToRetrieve: ['id', 'name', 'email'],
+      consistentRead: true,
     });
   });
 

@@ -109,6 +109,7 @@ export class QueryBuilder extends DynamodbExecutor {
     limit,
     paginationToken,
     retrieveOrder = 'ASC',
+    consistentRead,
     items = [],
     _lastKey,
     ...expressionParams
@@ -123,6 +124,8 @@ export class QueryBuilder extends DynamodbExecutor {
       IndexName: index,
 
       ScanIndexForward: retrieveOrder === 'ASC',
+
+      ConsistentRead: consistentRead,
 
       Limit: limit ? Math.max(limit - items.length, 1) : undefined,
 
@@ -161,6 +164,7 @@ export class QueryBuilder extends DynamodbExecutor {
       index,
       limit,
       retrieveOrder,
+      consistentRead,
       items: updatedItems,
       _lastKey: LastEvaluatedKey,
     });

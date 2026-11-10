@@ -86,6 +86,15 @@ export interface QueryConfigParams<Entity> {
    * Which properties to return from each entity
    */
   propertiesToRetrieve?: (keyof Entity)[];
+
+  /**
+   * If `true`, the query uses strongly consistent reads; otherwise, eventually consistent reads.
+   *
+   * Not supported on Global Secondary Indexes: DynamoDB rejects the request with a ValidationException.
+   *
+   * Disabled by default
+   */
+  consistentRead?: boolean;
 }
 
 export interface QueryParams<Entity> extends QueryConfigParams<Entity> {
