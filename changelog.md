@@ -4,6 +4,7 @@
 
 - **Feature**: `consistentRead` on query operations. **warning**: Dynamodb rejects it if you use it on GSIs.
 - **Fix**: Update param validator was still blocking multi conditions on the same property after the `v3.2.0` update
+- **Fix**: `v3.2.0` caused updates to generate unused `ExpressionAttributeNames` (rejected by DynamoDB) when the same property was referenced more than once across atomic operations - eg `set_if_not_exists` with `refProperty` equal to its `property`, or multiple `set_if_not_exists` sharing the same `refProperty`
 
 # v3.2.2
 

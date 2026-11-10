@@ -63,6 +63,13 @@ describe('Provider: expressions - builders tests', () => {
           '#masked_____hello___': '___hello___',
         });
       });
+
+      it('should collapse repeated properties into a single name', () => {
+        expect(getExpressionNames(['name', 'age', 'name'])).toEqual({
+          '#name': 'name',
+          '#age': 'age',
+        });
+      });
     });
 
     describe('expression attribute name builder', () => {

@@ -3,10 +3,10 @@ import { AnyObject } from 'types';
 
 import {
   buildExpression,
-  getExpressionNames,
   getExpressionValues,
   getPropertyCounter,
   ItemExpression,
+  toExpressionName,
 } from '../expressions';
 import { DBConditionParams } from '../dynamoDB';
 
@@ -25,13 +25,20 @@ function getConditionProps(conditions: ItemExpression<any>[]): string[] {
     .flat();
 }
 
+/**
+ * Repeat references get counted keys to match `buildExpression`,
+ * while still pointing to the same attribute name
+ */
 export function getConditionExpressionNames(
   conditions: ItemExpression<any>[],
 ): AnyObject {
-  return getExpressionNames(
-    //
-    getConditionProps(conditions),
-    CONDITION_PREFIX,
+  const propCounter = getPropertyCounter();
+
+  return Object.fromEntries(
+    getConditionProps(conditions).map((property) => [
+      toExpressionName(`${CONDITION_PREFIX}${propCounter.withCountedSuffix(property)}`),
+      property,
+    ]),
   );
 }
 
