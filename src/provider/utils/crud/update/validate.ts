@@ -7,10 +7,7 @@ export function validateUpdateParams({
   atomicOperations,
   remove,
   values,
-  conditions,
 }: UpdateParams<any>): void {
-  const actualConditions = conditions || [];
-
   const propertiesInvolvedInEachOp = [
     Object.keys(values || {}),
     remove || [],
@@ -39,11 +36,6 @@ export function validateUpdateParams({
 
     // no prop resulting to update
     uniqueProperties.size === 0,
-
-    // multiple conditions on the same property
-    // (enhance in the future to allow for this)
-    actualConditions.length !==
-      new Set(actualConditions.map(({ property }) => property)).size,
   ].some(Boolean);
 
   // To do: change error to explicity say which reason

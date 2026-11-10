@@ -3,6 +3,7 @@
 # v3.2.3
 
 - **Feature**: `consistentRead` on query operations. **warning**: Dynamodb rejects it if you use it on GSIs.
+- **Fix**: Update param validator was still blocking multi conditions on the same property after the `v3.2.0` update
 
 # v3.2.2
 
