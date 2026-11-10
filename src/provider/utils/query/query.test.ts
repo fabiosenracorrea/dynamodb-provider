@@ -353,6 +353,51 @@ describe('query builder', () => {
       });
     });
 
+    it('should handle consistentRead', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({}),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.query<any>({
+        table: 'some_table',
+
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+
+        consistentRead: true,
+      });
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith({
+        TableName: 'some_table',
+
+        ScanIndexForward: true,
+
+        ConsistentRead: true,
+
+        KeyConditionExpression: '(#id = :id)',
+
+        ExpressionAttributeNames: {
+          '#id': 'id',
+        },
+
+        ExpressionAttributeValues: {
+          ':id': 'someId',
+        },
+      });
+    });
+
     it('should handle filters', async () => {
       const queryMock = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({}),
@@ -587,6 +632,75 @@ describe('query builder', () => {
       ]);
 
       expect(result.paginationToken).toBeUndefined();
+    });
+
+    it('should keep consistentRead on every request of a full retrieval', async () => {
+      const promiseMock = jest.fn();
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [{ id: 'xx', name: 'a' }],
+        LastEvaluatedKey: { id: 'xx', name: 'a' },
+      });
+
+      promiseMock.mockResolvedValueOnce({
+        Items: [{ id: 'xx', name: 'b' }],
+      });
+
+      const queryMock = jest.fn().mockReturnValue({
+        promise: promiseMock,
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      const result = await queryBuilder.query<any>({
+        table: 'some_table',
+
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+
+        fullRetrieval: true,
+
+        consistentRead: true,
+      });
+
+      const baseDynamoParams = {
+        TableName: 'some_table',
+
+        ScanIndexForward: true,
+
+        ConsistentRead: true,
+
+        KeyConditionExpression: '(#id = :id)',
+
+        ExpressionAttributeNames: {
+          '#id': 'id',
+        },
+
+        ExpressionAttributeValues: {
+          ':id': 'xx',
+        },
+      };
+
+      expect(queryMock).toHaveBeenCalledTimes(2);
+      expect(queryMock).toHaveBeenNthCalledWith(1, baseDynamoParams);
+      expect(queryMock).toHaveBeenNthCalledWith(2, {
+        ...baseDynamoParams,
+        ExclusiveStartKey: { id: 'xx', name: 'a' },
+      });
+
+      expect(result.items).toStrictEqual([
+        { id: 'xx', name: 'a' },
+        { id: 'xx', name: 'b' },
+      ]);
     });
 
     it('should handle paginated results if fully retrieval is turned off', async () => {
@@ -1498,6 +1612,39 @@ describe('query builder', () => {
       );
     });
 
+    it('should support consistentRead', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'a' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryOne<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'someId',
+        },
+        consistentRead: true,
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ConsistentRead: true,
+          Limit: 1,
+        }),
+      );
+    });
+
     it('should support index queries', async () => {
       const queryMock = jest.fn().mockReturnValue({
         promise: jest.fn().mockResolvedValue({
@@ -1905,6 +2052,38 @@ describe('query builder', () => {
         { id: 'xx', name: 'a' },
         { id: 'xx', name: 'b' },
       ]);
+    });
+
+    it('should support consistentRead', async () => {
+      const queryMock = jest.fn().mockReturnValue({
+        promise: jest.fn().mockResolvedValue({
+          Items: [{ id: 'xx', name: 'a' }],
+        }),
+      });
+
+      const queryBuilder = new QueryBuilder({
+        dynamoDB: {
+          target: 'v2',
+          instance: {
+            query: queryMock,
+          } as any,
+        },
+      });
+
+      await queryBuilder.queryAll<any>({
+        table: 'some_table',
+        partitionKey: {
+          name: 'id',
+          value: 'xx',
+        },
+        consistentRead: true,
+      });
+
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ConsistentRead: true,
+        }),
+      );
     });
   });
 });

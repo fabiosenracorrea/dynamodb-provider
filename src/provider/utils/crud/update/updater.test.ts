@@ -1117,6 +1117,92 @@ describe('Updater tests', () => {
       });
     });
 
+    describe('repeated atomic property references', () => {
+      it('should not generate unused names when set_if_not_exists refProperty is the property itself', () => {
+        const updater = new ItemUpdater({
+          dynamoDB: {} as any,
+        });
+
+        const params = updater.getUpdateParams<any>({
+          table: 'table',
+
+          key: { id: '23023' },
+
+          atomicOperations: [
+            {
+              property: 'prop',
+              type: 'set_if_not_exists',
+              refProperty: 'prop',
+              value: 1,
+            },
+          ],
+        });
+
+        expect(params).toStrictEqual({
+          TableName: 'table',
+
+          Key: { id: '23023' },
+
+          UpdateExpression: 'SET #prop = if_not_exists(#prop, :prop)',
+
+          ExpressionAttributeNames: {
+            '#prop': 'prop',
+          },
+
+          ExpressionAttributeValues: {
+            ':prop': 1,
+          },
+        });
+      });
+
+      it('should not generate unused names when multiple set_if_not_exists share a refProperty', () => {
+        const updater = new ItemUpdater({
+          dynamoDB: {} as any,
+        });
+
+        const params = updater.getUpdateParams<any>({
+          table: 'table',
+
+          key: { id: '23023' },
+
+          atomicOperations: [
+            {
+              property: 'first',
+              type: 'set_if_not_exists',
+              refProperty: 'createdAt',
+              value: 1,
+            },
+            {
+              property: 'second',
+              type: 'set_if_not_exists',
+              refProperty: 'createdAt',
+              value: 2,
+            },
+          ],
+        });
+
+        expect(params).toStrictEqual({
+          TableName: 'table',
+
+          Key: { id: '23023' },
+
+          UpdateExpression:
+            'SET #first = if_not_exists(#createdAt, :first), #second = if_not_exists(#createdAt, :second)',
+
+          ExpressionAttributeNames: {
+            '#createdAt': 'createdAt',
+            '#first': 'first',
+            '#second': 'second',
+          },
+
+          ExpressionAttributeValues: {
+            ':first': 1,
+            ':second': 2,
+          },
+        });
+      });
+    });
+
     it('should NOT return ExpressionAttributeValues if only remove is passed', () => {
       const updater = new ItemUpdater({
         dynamoDB: {} as any,

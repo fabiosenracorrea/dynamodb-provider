@@ -56,6 +56,11 @@ query<Entity>(params: SingleTableQueryParams<Entity>): Promise<QueryResult<Entit
 - **Type**: `string[]`
 - Specific attributes to return (root-level only)
 
+#### `consistentRead` (optional)
+- **Type**: `boolean`
+- **Default**: `false`
+- Use strongly consistent reads. Not supported on Global Secondary Indexes
+
 ### Return Value
 
 Returns `{ items: Entity[], paginationToken?: string }`
