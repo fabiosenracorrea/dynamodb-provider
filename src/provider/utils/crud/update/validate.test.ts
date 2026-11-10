@@ -269,10 +269,8 @@ describe('Update params validator', () => {
 
       expect(caller).toThrow();
     });
-  });
 
-  describe('conditions', () => {
-    it('should not allow the same property to be reference on multiple conditions', () => {
+    it('should not allow the same property on multiple atomic operations', () => {
       const caller = () => {
         validateUpdateParams({
           key: {
@@ -302,6 +300,64 @@ describe('Update params validator', () => {
       };
 
       expect(caller).toThrow();
+    });
+  });
+
+  describe('conditions', () => {
+    it('should allow the same property to be referenced on multiple conditions', () => {
+      const caller = () => {
+        validateUpdateParams({
+          key: {
+            id: 'sss',
+          },
+
+          table: 'table',
+
+          values: {
+            some: 'q',
+          },
+
+          conditions: [
+            { property: 'count', operation: 'lower_than', value: 10 },
+            { property: 'count', operation: 'bigger_than', value: 20, joinAs: 'or' },
+          ],
+        });
+      };
+
+      expect(caller).not.toThrow();
+    });
+
+    it('should allow the same property across conditions, nested conditions and atomic ifs', () => {
+      const caller = () => {
+        validateUpdateParams({
+          key: {
+            id: 'sss',
+          },
+
+          table: 'table',
+
+          atomicOperations: [
+            {
+              property: 'count',
+              type: 'subtract',
+              value: 1,
+              if: { operation: 'bigger_than', value: 0 },
+            },
+          ],
+
+          conditions: [
+            {
+              property: 'count',
+              operation: 'lower_than',
+              value: 100,
+              nested: [{ property: 'count', operation: 'exists' }],
+            },
+            { property: 'count', operation: 'not_equal', value: 50 },
+          ],
+        });
+      };
+
+      expect(caller).not.toThrow();
     });
   });
 });

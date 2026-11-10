@@ -1076,10 +1076,8 @@ describe('Updater tests', () => {
 
           expect(caller).toThrow();
         });
-      });
 
-      describe('conditions', () => {
-        it('should not allow the same property to be reference on multiple conditions', () => {
+        it('should not allow the same property on multiple atomic operations', () => {
           const updater = new ItemUpdater({
             dynamoDB: {} as any,
           });
@@ -1113,6 +1111,98 @@ describe('Updater tests', () => {
           };
 
           expect(caller).toThrow();
+        });
+      });
+
+      describe('conditions', () => {
+        it('should allow and properly build the same property referenced on multiple conditions', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const params = updater.getUpdateParams<any>({
+            key: { id: 'sss' },
+
+            table: 'table',
+
+            values: {
+              some: 'q',
+            },
+
+            conditions: [
+              { property: 'count', operation: 'lower_than', value: 10 },
+              { property: 'count', operation: 'bigger_than', value: 20, joinAs: 'or' },
+            ],
+          });
+
+          expect(params).toStrictEqual({
+            TableName: 'table',
+
+            Key: { id: 'sss' },
+
+            UpdateExpression: 'SET #some = :some',
+
+            ConditionExpression:
+              '(#__condition_count < :__condition_count) or (#__condition_count__1 > :__condition_count__1)',
+
+            ExpressionAttributeNames: {
+              '#some': 'some',
+              '#__condition_count': 'count',
+              '#__condition_count__1': 'count',
+            },
+
+            ExpressionAttributeValues: {
+              ':some': 'q',
+              ':__condition_count': 10,
+              ':__condition_count__1': 20,
+            },
+          });
+        });
+
+        it('should allow and properly build the same property across atomic ifs and conditions', () => {
+          const updater = new ItemUpdater({
+            dynamoDB: {} as any,
+          });
+
+          const params = updater.getUpdateParams<any>({
+            key: { id: 'sss' },
+
+            table: 'table',
+
+            atomicOperations: [
+              {
+                property: 'count',
+                type: 'subtract',
+                value: 1,
+                if: { operation: 'bigger_than', value: 0 },
+              },
+            ],
+
+            conditions: [{ property: 'count', operation: 'lower_than', value: 100 }],
+          });
+
+          expect(params).toStrictEqual({
+            TableName: 'table',
+
+            Key: { id: 'sss' },
+
+            UpdateExpression: 'SET #count = #count - :count',
+
+            ConditionExpression:
+              '(#__condition_count > :__condition_count) and (#__condition_count__1 < :__condition_count__1)',
+
+            ExpressionAttributeNames: {
+              '#count': 'count',
+              '#__condition_count': 'count',
+              '#__condition_count__1': 'count',
+            },
+
+            ExpressionAttributeValues: {
+              ':count': 1,
+              ':__condition_count': 0,
+              ':__condition_count__1': 100,
+            },
+          });
         });
       });
     });
