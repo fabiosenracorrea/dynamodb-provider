@@ -1,6 +1,6 @@
 # DynamoDB Provider Changelog
 
-# v3.3.0
+# v3.2.3
 
 - **Feature**: `consistentRead` on query operations. **warning**: Dynamodb rejects it if you use it on GSIs.
 
